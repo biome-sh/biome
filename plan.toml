@@ -1,0 +1,7 @@
+[tomlcheck]
+add-path = ["tests/test.toml"]
+
+[shellcheck]
+# Check by default all our plugins
+add-path = ["../../../ci/*.sh"]
+add-exclude = ["SC2164", "SC2148"]
