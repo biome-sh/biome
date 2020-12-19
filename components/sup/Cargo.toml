@@ -48,7 +48,7 @@ prost-types = "*"
 rand = "*"
 rants = { version = "*", features = ["native-tls"] }
 regex = "*"
-rustls = "*"
+rustls = "=0.18.1"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }

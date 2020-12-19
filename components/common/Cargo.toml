@@ -44,7 +44,7 @@ serde_yaml = "*"
 tempfile = "*"
 thiserror = "*"
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
-rustls = "*"
+rustls = "=0.18.1"
 termcolor = "*"
 tokio = { version = "^0.2", features = ["full"] }
 toml = { version = "*", features = ["preserve_order"] }

@@ -31,7 +31,7 @@ rand = "*"
 regex = "*"
 rcgen = "*"
 rust-crypto = "*"
-rustls = "*"
+rustls = "=0.18.1"
 serde = "*"
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }

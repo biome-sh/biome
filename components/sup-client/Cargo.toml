@@ -12,7 +12,7 @@ biome_common = { path = "../common" }
 biome_core = { path = "../core" }
 log = "^0.4.11"
 prost = "*"
-rustls = "*"
+rustls = "=0.18.1"
 termcolor = "*"
 tokio = { version = "^0.2", features = ["full"] }
 tokio-util = { version = "^0.3", features = ["full"] }
