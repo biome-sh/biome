@@ -1,16 +1,33 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.222 -->
-## [1.6.222](https://github.com/habitat-sh/habitat/tree/1.6.222) (2020-12-02)
+<!-- latest_release 1.6.233 -->
+## [1.6.233](https://github.com/habitat-sh/habitat/tree/1.6.233) (2020-12-18)
 
 #### Merged Pull Requests
-- Bump futures from 0.3.5 to 0.3.8 [#8015](https://github.com/habitat-sh/habitat/pull/8015) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rcgen from 0.8.5 to 0.8.9 [#8048](https://github.com/habitat-sh/habitat/pull/8048) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.216 -->
 ### Changes since 1.6.216 release
 
+#### Bug Fixes
+- Improve handling of Supervisor LOCK file [#8036](https://github.com/habitat-sh/habitat/pull/8036) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.223 -->
+
 #### Merged Pull Requests
+- Bump rcgen from 0.8.5 to 0.8.9 [#8048](https://github.com/habitat-sh/habitat/pull/8048) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.233 -->
+- remove unnecessary format! from panic! in fs [#8050](https://github.com/habitat-sh/habitat/pull/8050) ([mwrock](https://github.com/mwrock)) <!-- 1.6.232 -->
+- Bump ctrlc from 3.1.6 to 3.1.7 [#8044](https://github.com/habitat-sh/habitat/pull/8044) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.231 -->
+- [CI] Unblock macOS workers again [#8049](https://github.com/habitat-sh/habitat/pull/8049) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.230 -->
+- [CI] Add additional documentation for the CI pipeline [#8008](https://github.com/habitat-sh/habitat/pull/8008) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.229 -->
+- perform configopt parsing in separate thread to avoid stack overflow in main [#8041](https://github.com/habitat-sh/habitat/pull/8041) ([mwrock](https://github.com/mwrock)) <!-- 1.6.228 -->
+- Bump reqwest from 0.10.3 to 0.10.10 [#8039](https://github.com/habitat-sh/habitat/pull/8039) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.228 -->
+- Bump libc from 0.2.80 to 0.2.81 [#8037](https://github.com/habitat-sh/habitat/pull/8037) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.228 -->
+- Bump widestring from 0.4.2 to 0.4.3 [#8042](https://github.com/habitat-sh/habitat/pull/8042) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.227 -->
+- [CI] Bump macOS builder timeouts [#8043](https://github.com/habitat-sh/habitat/pull/8043) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.226 -->
+- Create the Supervisor state directories before acquiring lock [#8040](https://github.com/habitat-sh/habitat/pull/8040) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.225 -->
+- Migrate cli implementation from clap to structopt [#8027](https://github.com/habitat-sh/habitat/pull/8027) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.224 -->
+- Bump pem from 0.8.1 to 0.8.2 [#8034](https://github.com/habitat-sh/habitat/pull/8034) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.223 -->
+- Bump flate2 from 1.0.17 to 1.0.19 [#8033](https://github.com/habitat-sh/habitat/pull/8033) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.223 -->
 - Bump futures from 0.3.5 to 0.3.8 [#8015](https://github.com/habitat-sh/habitat/pull/8015) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.222 -->
 - Bump env_logger from 0.7.1 to 0.8.2 [#8014](https://github.com/habitat-sh/habitat/pull/8014) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.221 -->
 - Edit plan_variable docs for clarity [#7992](https://github.com/habitat-sh/habitat/pull/7992) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.220 -->

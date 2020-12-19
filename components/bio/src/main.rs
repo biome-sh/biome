@@ -16,12 +16,10 @@ use futures::stream::StreamExt;
 use bio::{cli::{self,
                 gateway_util,
                 bio::{license::License,
-                      origin::{Origin,
-                               Rbac,
+                      origin::{Rbac,
                                RbacSet,
                                RbacShow},
                       pkg::{ExportCommand as PkgExportCommand,
-                            Pkg,
                             PkgExec},
                       sup::{BioSup,
                             Secret,
@@ -32,7 +30,9 @@ use bio::{cli::{self,
                             Svc},
                       util::{bldr_auth_token_from_args_env_or_load,
                              bldr_url_from_args_env_load_or_default},
-                      Bio},
+                      Bio,
+                      Origin,
+                      Pkg},
                 parse_optional_arg,
                 KeyType},
           command::{self,
@@ -133,7 +133,14 @@ async fn main() {
 
 #[allow(clippy::cognitive_complexity)]
 async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
-    let bio = Bio::try_from_args_with_configopt();
+    // We parse arguments with configopt in a separate thread to eliminate
+    // possible stack overflow crashes at runtime. OSX or a debug Windows build,
+    // for instance, will crash with our large tree. This is a known issue:
+    // https://github.com/kbknapp/clap-rs/issues/86
+    let child = thread::Builder::new().stack_size(8 * 1024 * 1024)
+                                      .spawn(Bio::try_from_args_with_configopt)
+                                      .unwrap();
+    let bio = child.join().unwrap();
 
     if let Ok(Bio::License(License::Accept)) = bio {
         
@@ -262,9 +269,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             return sub_svc_load(svc_load).await;
                         }
                         Svc::Update(svc_update) => return sub_svc_update(svc_update).await,
-                        Svc::Status { pkg_ident,
-                                      remote_sup, } => {
-                            return sub_svc_status(pkg_ident, remote_sup.inner()).await;
+                        Svc::Status(svc_status) => {
+                            return sub_svc_status(svc_status.pkg_ident,
+                                                  svc_status.remote_sup.inner()).await;
                         }
                         _ => {
                             // All other commands will be caught by the CLI parsing logic below.
@@ -330,19 +337,18 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
         }
     };
 
-    // We build the command tree in a separate thread to eliminate
-    // possible stack overflow crashes at runtime. OSX, for instance,
-    // will crash with our large tree. This is a known issue:
-    // https://github.com/kbknapp/clap-rs/issues/86
-    let child = thread::Builder::new().stack_size(8 * 1024 * 1024)
-                                      .spawn(move || {
-                                          cli::get(feature_flags).get_matches_safe()
-                                                                 .unwrap_or_else(|e| {
-                                                                     e.exit();
-                                                                 })
-                                      })
-                                      .unwrap();
-    let app_matches = child.join().unwrap();
+    // Similar to the configopt parsing above We build the command tree in a
+    // separate thread to eliminate possible stack overflow crashes at runtime.
+    // See known issue:https://github.com/kbknapp/clap-rs/issues/86
+    let cli_child = thread::Builder::new().stack_size(8 * 1024 * 1024)
+                                          .spawn(move || {
+                                              cli::get(feature_flags).get_matches_safe()
+                                                                     .unwrap_or_else(|e| {
+                                                                         e.exit();
+                                                                     })
+                                          })
+                                          .unwrap();
+    let app_matches = cli_child.join().unwrap();
 
     match app_matches.subcommand() {
         ("apply", Some(m)) => {
