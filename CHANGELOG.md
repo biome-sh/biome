@@ -1,19 +1,37 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.233 -->
-## [1.6.233](https://github.com/habitat-sh/habitat/tree/1.6.233) (2020-12-18)
+<!-- latest_release 1.6.242 -->
+## [1.6.242](https://github.com/habitat-sh/habitat/tree/1.6.242) (2021-01-08)
 
 #### Merged Pull Requests
-- Bump rcgen from 0.8.5 to 0.8.9 [#8048](https://github.com/habitat-sh/habitat/pull/8048) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Remove christophermaier as code owner [#8066](https://github.com/habitat-sh/habitat/pull/8066) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.216 -->
-### Changes since 1.6.216 release
+<!-- release_rollup since=1.6.235 -->
+### Changes since 1.6.235 release
+
+#### Merged Pull Requests
+- Remove christophermaier as code owner [#8066](https://github.com/habitat-sh/habitat/pull/8066) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.242 -->
+- Update release announcement instructions [#8065](https://github.com/habitat-sh/habitat/pull/8065) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.241 -->
+- [CI] Small pipeline tweaks, documentation changes [#8064](https://github.com/habitat-sh/habitat/pull/8064) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.240 -->
+- Fix some minor errors in the generate-cli-docs script [#8062](https://github.com/habitat-sh/habitat/pull/8062) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.239 -->
+- Update kernel2 evaluation VM to Centos 6.10 [#8060](https://github.com/habitat-sh/habitat/pull/8060) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.238 -->
+- Assorted release instruction updates [#8061](https://github.com/habitat-sh/habitat/pull/8061) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.238 -->
+- Rustfmt and Nightly Rust Bump to nightly-2021-01-06 [#8058](https://github.com/habitat-sh/habitat/pull/8058) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.237 -->
+- Update changelog for 1.6.235 release [#8059](https://github.com/habitat-sh/habitat/pull/8059) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.236 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.235 -->
+
+## [1.6.235](https://github.com/habitat-sh/habitat/tree/1.6.235) (2020-01-06)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.216..1.6.235)
 
 #### Bug Fixes
 - Improve handling of Supervisor LOCK file [#8036](https://github.com/habitat-sh/habitat/pull/8036) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.223 -->
 
 #### Merged Pull Requests
+- [CI] Update to use new mac bootstrapper [#8051](https://github.com/habitat-sh/habitat/pull/8051) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.235 -->
+- Remove the Hab docs website [#8055](https://github.com/habitat-sh/habitat/pull/8055) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.234 -->
 - Bump rcgen from 0.8.5 to 0.8.9 [#8048](https://github.com/habitat-sh/habitat/pull/8048) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.233 -->
 - remove unnecessary format! from panic! in fs [#8050](https://github.com/habitat-sh/habitat/pull/8050) ([mwrock](https://github.com/mwrock)) <!-- 1.6.232 -->
 - Bump ctrlc from 3.1.6 to 3.1.7 [#8044](https://github.com/habitat-sh/habitat/pull/8044) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.231 -->
@@ -34,9 +52,6 @@
 - Bump async-trait from 0.1.38 to 0.1.42 [#8007](https://github.com/habitat-sh/habitat/pull/8007) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.219 -->
 - Bump tar from 0.4.29 to 0.4.30 [#8003](https://github.com/habitat-sh/habitat/pull/8003) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.218 -->
 - Update CHANGELOG for 1.6.216 [#8012](https://github.com/habitat-sh/habitat/pull/8012) ([christophermaier](https://github.com/christophermaier)) <!-- 1.6.217 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.216 -->
 
 ## [1.6.216](https://github.com/habitat-sh/habitat/tree/1.6.216) (2020-12-01)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/1.6.181..1.6.216)
