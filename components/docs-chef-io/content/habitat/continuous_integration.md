@@ -1,6 +1,7 @@
 +++
 title = "Biome and Continuous Integration"
 description = "Biome and Continuous Integration"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -10,8 +11,6 @@ description = "Biome and Continuous Integration"
     weight = 200
 
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/continuous_integration.md)
 
 **Examples: [Jenkins](https://jenkins.io/), [TravisCI](https://travis-ci.org/), and [Drone](https://drone.io/)**
 

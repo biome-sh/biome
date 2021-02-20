@@ -1,6 +1,7 @@
 +++
 title = "Exporting Packages"
 description = "Export Biome packages to Docker, Kubernetes, Helm, Mesos, DC/OS, Cloud Foundry, or as a tarball "
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -8,9 +9,7 @@ description = "Export Biome packages to Docker, Kubernetes, Helm, Mesos, DC/OS, 
     identifier = "habitat/packages/pkg-exports Export Biome Packages"
     parent = "habitat/packages"
     weight = 40
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pkg_exports.md)
 
 Biome Artifacts--`.hart` files--can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Biome artifact by exporting it into a format that you need for a specific job.
 

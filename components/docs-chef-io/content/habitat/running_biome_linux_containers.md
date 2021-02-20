@@ -1,6 +1,7 @@
 +++
 title = "Running Biome Linux Containers"
 description = "Running Biome Linux Containers"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -8,9 +9,7 @@ description = "Running Biome Linux Containers"
     identifier = "habitat/containers/running-biome-linux-containers Linux Containers"
     parent = "habitat/containers"
     weight = 70
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/running_biome_linux_containers.md)
 
 When you run `bio pkg export docker`, you'll get a Docker container that provides a few things. First, a minimal Linux OS filesystem is provided, with just enough configuration (e.g., `/etc/passwd`, `/etc/resolv.conf`, etc.) to run. Second, the contents of the exported Biome package, along with its complete dependency tree, as well as a complete Biome Supervisor installation, are provided, unpacked, in the `/hab/pkgs` directory. Finally, an entry-point script that will start the Supervisor, running the exported Biome package, is provided, allowing the container itself to behave as though it were the Supervisor.
 

@@ -1,6 +1,7 @@
 +++
 title = "Create an Origin on Builder"
 description = "Create an Origin on Builder"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -8,10 +9,7 @@ description = "Create an Origin on Builder"
     identifier = "habitat/builder/origins"
     parent = "habitat/builder"
     weight = 30
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/builder_origins.md)
-
 An origin is a place on Biome Builder where you can store, share, and build packages. It is a unique namespace within Biome Builder, and while you can delete or transfer an origin, you can't rename an origin after it is created. One example of an origin is the "core" origin, which is the set of foundational packages managed and versioned by the core Biome maintainers.
 
 You can join existing origins by invitation and you can create your own origins.

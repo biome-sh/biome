@@ -1,15 +1,14 @@
 +++
 title = "Custom Certificates"
 description = "Handling custom (CA) certificates"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
     title = "Custom Certificates"
     identifier = "habitat/reference/certs-custom Custom Certs"
     parent = "habitat/reference"
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/certs_custom.md)
 
 Many enterprise environments use custom certificates (for example, self-signed). For example, an on-premises Biome Builder Depot might have a self-signed SSL certificate.
 

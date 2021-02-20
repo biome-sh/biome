@@ -1,6 +1,7 @@
 +++
 title = "Running Biome on Servers (Linux and Windows)"
 description = "Running Biome on Servers (Linux and Windows)"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -8,9 +9,7 @@ description = "Running Biome on Servers (Linux and Windows)"
     identifier = "habitat/supervisors/running-biome-servers"
     parent = "habitat/supervisors"
     weight = 25
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/running_biome_servers.md)
 
 Biome can be run on bare metal servers, as well as virtual machines. Currently, Biome can run on Linux and Windows platforms, and in all cases, running a Supervisor boils down to running `bio sup run`. How that happens depends on which platform you choose to use.
 

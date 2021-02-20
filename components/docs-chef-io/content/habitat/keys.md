@@ -1,6 +1,7 @@
 +++
 title = "Keys"
 description = "Biome Security"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -9,7 +10,6 @@ description = "Biome Security"
     parent = "habitat/reference"
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/keys.md)
 
 Biome has strong cryptography built into Biome Builder, the Supervisor, and the `bio` CLI commands. This means there are several different kinds of keys.
 

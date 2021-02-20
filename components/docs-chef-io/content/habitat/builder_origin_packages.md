@@ -1,6 +1,7 @@
 +++
 title = "Upload and Promote Packages"
 description = "Upload and Promote packages on Biome Builder enables automated package rebuilds and increases collaboration"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -8,10 +9,7 @@ description = "Upload and Promote packages on Biome Builder enables automated pa
     identifier = "habitat/builder/origin-packages"
     parent = "habitat/builder"
     weight = 40
-
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/builder_origin_packages.md)
 
 While you can build and run Biome packages without sharing them on [Biome Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
 

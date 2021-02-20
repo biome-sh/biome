@@ -1,7 +1,7 @@
 +++
 title = "About Biome Builder"
 description = "Biome Builder is Chef's Application Delivery Enterprise hub"
-
+gh_repo = "biome"
 aliases = ["/habitat/using-builder/"]
 
 [menu]
@@ -12,7 +12,6 @@ aliases = ["/habitat/using-builder/"]
     weight = 10
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/builder_overview.md)
 
 Biome Builder acts as the core of Chef's Application Delivery Enterprise hub. Biome Builder was first launched as a cloud service and as the repository of all available plan templates built by Chef and the supporting community. Due to the fact that the application source code is stored alongside the build package, many users expressed a preference for storing packages and running Biome Builder on-prem. As a result, Biome Builder can be consumed either as a cloud based or on-premises solution. Plan files are stored in the Biome Builder SaaS, where they can be viewed and accessed by the Biome community and then shared with the on-premises version of the builder where they can then be copied and maintained locally.
 

@@ -1,6 +1,7 @@
 +++
 title = "Runtime Services Group Binding"
 description = "Runtime Services Group Binding"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -10,6 +11,5 @@ description = "Runtime Services Group Binding"
     weight = 80
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/runtime_binding.md)
 
 ![Biome Runtime Services Group Binding Diagram](/images/habitat/biome-runtime-service-group-binding.png)

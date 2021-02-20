@@ -1,8 +1,8 @@
 +++
 title = "Get Biome"
 description = "Install the Biome CLI and configure your workstation for Biome development"
-
 aliases = ["/habitat/install-habitat/"]
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -10,9 +10,7 @@ aliases = ["/habitat/install-habitat/"]
     identifier = "habitat/get_started/installing-packages"
     parent = "habitat/get_started"
     weight = 10
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/install_habitat.md)
 
 Below you'll find installation instructions for each platform and their requirements. The Biome CLI is currently supported on Linux, Mac, and Windows.
 

@@ -1,6 +1,7 @@
 +++
 title = "Biome Architecture Overview"
 description = "Biome Architecture Overview"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -10,7 +11,5 @@ description = "Biome Architecture Overview"
     weight = 10
 
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/architecture_overview.md)
 
 ![Biome Architecture Overview Diagram](/images/habitat/biome-architecture-overview.png)

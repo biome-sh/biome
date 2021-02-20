@@ -1,6 +1,7 @@
 +++
 title = "Running Biome Supervisors"
 description = "Running Biome Packages"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -10,8 +11,6 @@ description = "Running Biome Packages"
     weight = 20
 
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_run.md)
 
 Use Biome packages to start services under the Biome Supervisor. At runtime, you can join services together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container or a virtual machine.
 

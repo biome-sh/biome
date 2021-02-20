@@ -1,6 +1,7 @@
 +++
 title = "Plan Settings"
 description = "Define basic metadata about your artifact with plan settings"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -8,7 +9,6 @@ description = "Define basic metadata about your artifact with plan settings"
     identifier = "habitat/reference/plan-settings"
     parent = "habitat/reference"
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/plan_settings.md)
 
 Biome reserves some names for internal use. You can set all of these values in your plan and use them as variables in your Biome code.
 

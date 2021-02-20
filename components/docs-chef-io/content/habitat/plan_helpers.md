@@ -1,15 +1,14 @@
 +++
 title = "Configuration Helpers"
 description = "Define dynamic plan configuration settings with plan helpers"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
     title = "Plan Configuration Helpers"
     identifier = "habitat/reference/plan-helpers Plan Tuning"
     parent = "habitat/reference"
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/plan_helpers.md)
 
 Biome allows you to use [Handlebars-based](http://handlebarsjs.com) tuneables in your plan, and you can also use both built-in Handlebars helpers and Biome-specific helpers in defining your configuration logic.
 
