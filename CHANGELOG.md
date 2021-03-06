@@ -1,16 +1,36 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.251 -->
-## [1.6.251](https://github.com/habitat-sh/habitat/tree/1.6.251) (2021-02-19)
+<!-- latest_release 1.6.267 -->
+## [1.6.267](https://github.com/habitat-sh/habitat/tree/1.6.267) (2021-03-04)
 
 #### Merged Pull Requests
-- Bump log4net from 2.0.8 to 2.0.10 in /components/windows-service [#8076](https://github.com/habitat-sh/habitat/pull/8076) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump paste from 1.0.3 to 1.0.4 [#8108](https://github.com/habitat-sh/habitat/pull/8108) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.235 -->
 ### Changes since 1.6.235 release
 
 #### Merged Pull Requests
+- Bump paste from 1.0.3 to 1.0.4 [#8108](https://github.com/habitat-sh/habitat/pull/8108) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.267 -->
+- Bump blake2b_simd from 0.5.10 to 0.5.11 [#8107](https://github.com/habitat-sh/habitat/pull/8107) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.267 -->
+- Bump hyper from 0.13.9 to 0.14.4 [#8106](https://github.com/habitat-sh/habitat/pull/8106) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.266 -->
+- Bump termcolor from 1.1.0 to 1.1.2 [#8104](https://github.com/habitat-sh/habitat/pull/8104) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.265 -->
+- Bump uuid from 0.8.1 to 0.8.2 [#8103](https://github.com/habitat-sh/habitat/pull/8103) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.265 -->
+- serialized package shutdown_timeout should reflect effective timeout [#8099](https://github.com/habitat-sh/habitat/pull/8099) ([mwrock](https://github.com/mwrock)) <!-- 1.6.264 -->
+- Bump toml from 0.5.7 to 0.5.8 [#8101](https://github.com/habitat-sh/habitat/pull/8101) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.264 -->
+- Bump ctrlc from 3.1.7 to 3.1.8 [#8100](https://github.com/habitat-sh/habitat/pull/8100) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.263 -->
+- Bump serde_yaml from 0.8.13 to 0.8.17 [#8093](https://github.com/habitat-sh/habitat/pull/8093) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.262 -->
+- Bump libc from 0.2.81 to 0.2.87 [#8097](https://github.com/habitat-sh/habitat/pull/8097) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.261 -->
+- Bump bincode from 1.3.1 to 1.3.2 [#8096](https://github.com/habitat-sh/habitat/pull/8096) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.261 -->
+- Bump flate2 from 1.0.19 to 1.0.20 [#8095](https://github.com/habitat-sh/habitat/pull/8095) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.260 -->
+- bump rand to 0.8.3 [#8098](https://github.com/habitat-sh/habitat/pull/8098) ([mwrock](https://github.com/mwrock)) <!-- 1.6.259 -->
+- Bump thiserror from 1.0.22 to 1.0.24 [#8092](https://github.com/habitat-sh/habitat/pull/8092) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.258 -->
+- Bump tempfile from 3.1.0 to 3.2.0 [#8091](https://github.com/habitat-sh/habitat/pull/8091) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.257 -->
+- Revert &quot;Bump actix-rt from 1.1.1 to 2.1.0&quot; [#8089](https://github.com/habitat-sh/habitat/pull/8089) ([mwrock](https://github.com/mwrock)) <!-- 1.6.256 -->
+- Bump serde_test from 1.0.117 to 1.0.123 [#8087](https://github.com/habitat-sh/habitat/pull/8087) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.255 -->
+- Bump actix-rt from 1.1.1 to 2.1.0 [#8086](https://github.com/habitat-sh/habitat/pull/8086) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.254 -->
+- Bump httparse from 1.3.4 to 1.3.5 [#8085](https://github.com/habitat-sh/habitat/pull/8085) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.253 -->
+- Bump log4rs from 0.13.0 to 1.0.0 [#8046](https://github.com/habitat-sh/habitat/pull/8046) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.252 -->
 - Bump log4net from 2.0.8 to 2.0.10 in /components/windows-service [#8076](https://github.com/habitat-sh/habitat/pull/8076) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.251 -->
 - Page metadata [#8081](https://github.com/habitat-sh/habitat/pull/8081) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.250 -->
 - use eprintln! to output specific error messages in pre_exec [#8082](https://github.com/habitat-sh/habitat/pull/8082) ([mwrock](https://github.com/mwrock)) <!-- 1.6.249 -->
