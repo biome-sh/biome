@@ -13,11 +13,11 @@ doc = false
 
 [dependencies]
 byteorder = "*"
-bytes = "*"
+bytes = "^0.5"
 env_logger = "*"
 biome_core = { path = "../core" }
 biome_common = { path = "../common" }
-log = "^0.4.11"
+log = "^0.4.14"
 lazy_static = "^1.4.0"
 prometheus = "*"
 parking_lot = "*"
