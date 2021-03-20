@@ -1,16 +1,32 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.276 -->
-## [1.6.276](https://github.com/habitat-sh/habitat/tree/1.6.276) (2021-03-11)
+<!-- latest_release 1.6.283 -->
+## [1.6.283](https://github.com/habitat-sh/habitat/tree/1.6.283) (2021-03-19)
 
 #### Merged Pull Requests
-- Bump async-trait from 0.1.42 to 0.1.48 [#8125](https://github.com/habitat-sh/habitat/pull/8125) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.89 to 0.2.90 [#8149](https://github.com/habitat-sh/habitat/pull/8149) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.267 -->
 ### Changes since 1.6.267 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.89 to 0.2.90 [#8149](https://github.com/habitat-sh/habitat/pull/8149) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.283 -->
+- Bump linked-hash-map from 0.5.3 to 0.5.4 [#8146](https://github.com/habitat-sh/habitat/pull/8146) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.282 -->
+- Bump native-tls from 0.2.6 to 0.2.7 [#8142](https://github.com/habitat-sh/habitat/pull/8142) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.281 -->
+- Bump valico from 3.5.0 to 3.6.0 [#8143](https://github.com/habitat-sh/habitat/pull/8143) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.281 -->
+- Bump url from 2.2.0 to 2.2.1 [#8145](https://github.com/habitat-sh/habitat/pull/8145) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.281 -->
+- Bump cc from 1.0.66 to 1.0.67 [#8141](https://github.com/habitat-sh/habitat/pull/8141) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.280 -->
+- Bump prometheus from 0.11.0 to 0.12.0 [#8139](https://github.com/habitat-sh/habitat/pull/8139) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
+- Bump windows-acl from 0.2.2 to 0.3.0 [#8133](https://github.com/habitat-sh/habitat/pull/8133) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
+- Bump derivative from 2.1.1 to 2.2.0 [#8131](https://github.com/habitat-sh/habitat/pull/8131) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
+- Bump mktemp from 0.4.0 to 0.4.1 [#8129](https://github.com/habitat-sh/habitat/pull/8129) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
+- Bump libc from 0.2.87 to 0.2.89 [#8137](https://github.com/habitat-sh/habitat/pull/8137) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
+- Bump paste from 1.0.4 to 1.0.5 [#8140](https://github.com/habitat-sh/habitat/pull/8140) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
+- Bump bimap from 0.5.2 to 0.6.0 [#8138](https://github.com/habitat-sh/habitat/pull/8138) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
+- Bump tar from 0.4.30 to 0.4.33 [#8136](https://github.com/habitat-sh/habitat/pull/8136) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.279 -->
+- Bump regex from 1.4.2 to 1.4.5 [#8134](https://github.com/habitat-sh/habitat/pull/8134) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.278 -->
+- fix segmentation faults of musl binaries with static relocation-model [#8135](https://github.com/habitat-sh/habitat/pull/8135) ([mwrock](https://github.com/mwrock)) <!-- 1.6.277 -->
 - Bump async-trait from 0.1.42 to 0.1.48 [#8125](https://github.com/habitat-sh/habitat/pull/8125) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.276 -->
 - Bump hex from 0.4.2 to 0.4.3 [#8127](https://github.com/habitat-sh/habitat/pull/8127) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.276 -->
 - Bump serde_test from 1.0.123 to 1.0.124 [#8124](https://github.com/habitat-sh/habitat/pull/8124) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.276 -->
