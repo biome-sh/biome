@@ -1,7 +1,10 @@
 +++
 title = "About Biome"
-
 aliases = ["/habitat/reference/", "/habitat/glossary/", "/habitat/diagrams/"]
+gh_repo = "biome"
+
+[cascade]
+  product = ["biome"]
 
 [menu]
   [menu.biome]

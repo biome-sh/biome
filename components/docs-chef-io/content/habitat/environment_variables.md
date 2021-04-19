@@ -1,6 +1,7 @@
 +++
 title = "Environment Variables"
 description = "Customize and configure your Biome Studio and Supervisor environments"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -9,7 +10,6 @@ description = "Customize and configure your Biome Studio and Supervisor environm
     parent = "habitat/reference"
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/environment_variables.md)
 
 This is a list of all environment variables that can be used to modify the operation of the Biome Studio and Supervisor.
 

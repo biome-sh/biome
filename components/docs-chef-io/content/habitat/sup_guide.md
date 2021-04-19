@@ -1,8 +1,8 @@
 +++
 title = "Supervisor Guide"
-
 date = 2020-10-26T19:11:45-07:00
 draft = false
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -11,8 +11,6 @@ draft = false
     parent = "habitat/supervisors"
     weight = 120
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/sup_guide.md)
 
 This document provides developer documentation on how the Biome system becomes self-sustaining. It is built upon the work from the [Linux from Scratch](http://www.linuxfromscratch.org/lfs/) project.
 

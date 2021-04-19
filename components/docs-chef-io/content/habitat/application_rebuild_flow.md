@@ -1,6 +1,7 @@
 +++
 title = "Application Rebuild Flow"
 description = "Application Rebuild Flow"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -10,7 +11,5 @@ description = "Application Rebuild Flow"
     weight = 40
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/application_rebuild_flow.md)
-
 ![Biome Application Rebuild Flow Diagram](/images/habitat/biome-application-rebuild-flow.png)
 

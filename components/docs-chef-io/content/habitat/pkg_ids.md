@@ -1,15 +1,14 @@
 +++
 title = "Package Identifiers"
 description = "How to call a package in Biome Builder, Studio, and plan files"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
     title = "Package Identifiers"
     identifier = "habitat/reference/pkg_ids Package ID"
     parent = "habitat/reference"
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/pkg_ids.md)
 
 A Biome artifact the binary distribution for a given package built with Biome. A Biome artifact is a signed tarball with a `.hart` file extension. Biome artifacts are composed of a software library or application, the configuration information for that software, and lifecycle hooks. They are created from a the plan file, a `plan.sh` on Linux systems or a `plan.ps1` on Windows systems, and are built with Biome tools. Biome artifacts can be exported to a specific format, such as when creating a Docker image.
 

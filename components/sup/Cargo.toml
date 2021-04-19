@@ -15,7 +15,7 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-bytes = "*"
+bytes = "^0.5"
 actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
 actix-rt = "*"
 byteorder = "*"
@@ -23,6 +23,7 @@ clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", f
 configopt = { git = "https://github.com/davidMcneil/configopt.git" }
 cpu-time = "*"
 derivative = "*"
+fs2 = "*"
 futures = { version = "0.3.8" }
 glob = "*"
 bio = { path = "../bio" }
@@ -35,7 +36,7 @@ biome-launcher-client = { path = "../launcher-client" }
 biome-sup-protocol = { path = "../sup-protocol", default-features = false }
 lazy_static = "^1.4.0"
 libc = "*"
-log = "^0.4.11"
+log = "^0.4.14"
 log4rs = "*"
 notify = "*"
 num_cpus = "*"
@@ -58,6 +59,7 @@ state = "*"
 structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tempfile = "*"
 termcolor = "*"
+thiserror = "*"
 toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "^0.2", features = ["full"] }
 tokio-rustls = "^0.14" # Tokio 0.2

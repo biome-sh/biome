@@ -1,6 +1,7 @@
 +++
 title = "Dependency Update Flow"
 description = "Dependency Update Flow"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -10,7 +11,5 @@ description = "Dependency Update Flow"
     weight = 30
 
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/dependency_update_flow.md)
-
 ![Biome Dependency Update Flow Diagram](/images/habitat/biome-dependency-update-flow.png)
 

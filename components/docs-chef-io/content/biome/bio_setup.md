@@ -1,6 +1,7 @@
 +++
 title = "Configure the Biome CLI"
 description = "Set up the Biome CLI"
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -8,9 +9,7 @@ description = "Set up the Biome CLI"
     identifier = "habitat/get_started/bio-setup Install Biome"
     parent = "habitat/get_started"
     weight = 20
-
 +++
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/biome/bio_setup.md)
 
 Once Biome has been installed, the `bio` CLI makes it easy to get your workstation configured by guiding through the setup process. To set up your workstation, run `bio cli setup` and follow the instructions.
 

@@ -1,8 +1,8 @@
 +++
 title = "Writing Plans"
 description = "Documentation for writing Biome Plan files including configuration templates, binds, and exporting"
-
 aliases = ["/habitat/developing-packages/"]
+gh_repo = "biome"
 
 [menu]
   [menu.biome]
@@ -10,10 +10,7 @@ aliases = ["/habitat/developing-packages/"]
     identifier = "habitat/plans/plan-writing Biome Plan Overview"
     parent = "habitat/plans"
     weight = 10
-
 +++
-
-[\[edit on GitHub\]](https://github.com/habitat-sh/habitat/blob/master/components/docs-chef-io/content/habitat/plan_writing.md)
 
 In Biome the unit of automation is the application itself. This chapter includes content related specifically to the process and workflow of developing a plan that will instruct Biome in how to build, deploy, and manage your application.
 
