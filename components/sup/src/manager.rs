@@ -1670,6 +1670,7 @@ impl Manager {
                     // ServiceSpec#reconcile must guarantee.
                     if let Some(s) = services.get_mut(&spec.ident) {
                         s.set_spec(spec);
+                        self.gossip_latest_service_rumor_rsw_mlw_rhw(&s);
                         for op in ops {
                             match op {
                                 RefreshOperation::RestartUpdater => {

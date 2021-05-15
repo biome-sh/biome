@@ -1,16 +1,34 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.313 -->
-## [1.6.313](https://github.com/habitat-sh/habitat/tree/1.6.313) (2021-05-07)
+<!-- latest_release 1.6.325 -->
+## [1.6.325](https://github.com/habitat-sh/habitat/tree/1.6.325) (2021-05-15)
 
 #### Merged Pull Requests
-- Bump regex from 1.5.3 to 1.5.4 [#8192](https://github.com/habitat-sh/habitat/pull/8192) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde from 1.0.125 to 1.0.126 [#8202](https://github.com/habitat-sh/habitat/pull/8202) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.288 -->
-### Changes since 1.6.288 release
+<!-- release_rollup since=1.6.319 -->
+### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.125 to 1.0.126 [#8202](https://github.com/habitat-sh/habitat/pull/8202) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.325 -->
+- Bump notify from 4.0.16 to 4.0.17 [#8203](https://github.com/habitat-sh/habitat/pull/8203) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.324 -->
+- Bump serde_test from 1.0.125 to 1.0.126 [#8201](https://github.com/habitat-sh/habitat/pull/8201) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.323 -->
+- Bump os_info from 3.0.4 to 3.0.5 [#8204](https://github.com/habitat-sh/habitat/pull/8204) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.322 -->
+- Rustfmt and Nightly Rust Bump to nightly-2021-05-12 [#8199](https://github.com/habitat-sh/habitat/pull/8199) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.321 -->
+- update changelog for 1.6.319 [#8200](https://github.com/habitat-sh/habitat/pull/8200) ([mwrock](https://github.com/mwrock)) <!-- 1.6.320 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.319 -->
+## [1.6.319](https://github.com/habitat-sh/habitat/tree/1.6.319) (2021-05-12)
+
+#### Merged Pull Requests
+- gossip after service is updated [#8197](https://github.com/habitat-sh/habitat/pull/8197) ([mwrock](https://github.com/mwrock)) <!-- 1.6.319 -->
+- Add descriptions to API pages [#8191](https://github.com/habitat-sh/habitat/pull/8191) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.318 -->
+- Bump caps from 0.5.1 to 0.5.2 [#8196](https://github.com/habitat-sh/habitat/pull/8196) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.317 -->
+- Bump httparse from 1.4.0 to 1.4.1 [#8195](https://github.com/habitat-sh/habitat/pull/8195) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.316 -->
+- gossip service rumor after update [#8194](https://github.com/habitat-sh/habitat/pull/8194) ([mwrock](https://github.com/mwrock)) <!-- 1.6.315 -->
+- Bump url from 2.2.1 to 2.2.2 [#8193](https://github.com/habitat-sh/habitat/pull/8193) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.314 -->
 - Bump regex from 1.5.3 to 1.5.4 [#8192](https://github.com/habitat-sh/habitat/pull/8192) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.313 -->
 - Bump regex from 1.4.6 to 1.5.3 [#8189](https://github.com/habitat-sh/habitat/pull/8189) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.312 -->
 - Bump rcgen from 0.8.10 to 0.8.11 [#8187](https://github.com/habitat-sh/habitat/pull/8187) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.311 -->
@@ -39,9 +57,6 @@
 - Bump libc from 0.2.92 to 0.2.93 [#8161](https://github.com/habitat-sh/habitat/pull/8161) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.291 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-03-25 [#8158](https://github.com/habitat-sh/habitat/pull/8158) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.290 -->
 - update changelog [#8159](https://github.com/habitat-sh/habitat/pull/8159) ([mwrock](https://github.com/mwrock)) <!-- 1.6.289 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.288 -->
 ## [1.6.288](https://github.com/habitat-sh/habitat/tree/1.6.288) (2021-04-05)
 
 #### Merged Pull Requests
