@@ -1,16 +1,23 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.327 -->
-## [1.6.327](https://github.com/habitat-sh/habitat/tree/1.6.327) (2021-05-20)
+<!-- latest_release 1.6.333 -->
+## [1.6.333](https://github.com/habitat-sh/habitat/tree/1.6.333) (2021-05-28)
 
 #### Merged Pull Requests
-- Update Hugo and fix docs build command [#8190](https://github.com/habitat-sh/habitat/pull/8190) ([IanMadd](https://github.com/IanMadd))
+- Bump tar from 0.4.33 to 0.4.35 [#8213](https://github.com/habitat-sh/habitat/pull/8213) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.319 -->
 ### Changes since 1.6.319 release
 
 #### Merged Pull Requests
+- Bump tar from 0.4.33 to 0.4.35 [#8213](https://github.com/habitat-sh/habitat/pull/8213) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.333 -->
+- Bump semver from 0.11.0 to 1.0.0 [#8212](https://github.com/habitat-sh/habitat/pull/8212) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.332 -->
+- Bump cc from 1.0.67 to 1.0.68 [#8210](https://github.com/habitat-sh/habitat/pull/8210) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.331 -->
+- Bump libc from 0.2.94 to 0.2.95 [#8211](https://github.com/habitat-sh/habitat/pull/8211) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.330 -->
+- Bump winreg from 0.8.0 to 0.9.0 [#8209](https://github.com/habitat-sh/habitat/pull/8209) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.330 -->
+- Bump thiserror from 1.0.24 to 1.0.25 [#8208](https://github.com/habitat-sh/habitat/pull/8208) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.329 -->
+- Fix bad link [#8198](https://github.com/habitat-sh/habitat/pull/8198) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.328 -->
 - Update Hugo and fix docs build command [#8190](https://github.com/habitat-sh/habitat/pull/8190) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.327 -->
 - Bump os_info from 3.0.5 to 3.0.6 [#8207](https://github.com/habitat-sh/habitat/pull/8207) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.326 -->
 - Bump serde from 1.0.125 to 1.0.126 [#8202](https://github.com/habitat-sh/habitat/pull/8202) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.325 -->
