@@ -7,6 +7,7 @@ layout = "data-api"
 style_sheet = "/biome-api-styles.css"
 api_file_path = "/biome-api-docs/sup-api.json"
 return_page = "/habitat/"
+description = "Biome Supervisor API documentation."
 
 [menu]
   [menu.biome]
