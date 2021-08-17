@@ -38,7 +38,7 @@ pbr = "*"
 rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
 reqwest = { version = "*", features = ["blocking", "json", "stream"] }
 retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
-rustls = "=0.18.1"
+rustls = "*"
 same-file = "*"
 serde = "*"
 serde_derive = "*"

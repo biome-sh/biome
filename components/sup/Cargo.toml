@@ -49,7 +49,7 @@ prost-types = "*"
 rand = "*"
 rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
 regex = "*"
-rustls = "=0.18.1"
+rustls = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }
