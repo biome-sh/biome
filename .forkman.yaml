@@ -73,6 +73,7 @@ patterns:
   habitat-sh/homebrew-habitat: habitat-sh/homebrew-habitat
   habitat-sh/clap: habitat-sh/clap
   habitat-sh/structopt: habitat-sh/structopt
+  habitat-sh/rants: habitat-sh/rants
 
   # Source code and raw content (direct links)
   'https://raw.githubusercontent.com/habitat-sh/habitat': 'https://raw.githubusercontent.com/habitat-sh/habitat'
