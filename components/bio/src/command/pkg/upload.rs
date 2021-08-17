@@ -221,14 +221,14 @@ async fn attempt_upload_dep(ui: &mut UI,
                             token: &str,
                             (ident, target): (&PackageIdent, PackageTarget),
                             additional_release_channel: &Option<ChannelIdent>,
-                            archives_dir: &PathBuf,
+                            archives_dir: &Path,
                             key_cache: &KeyCache)
                             -> Result<()> {
     let candidate_path = archives_dir.join(ident.archive_name_with_target(target).unwrap());
 
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path)?;
-        upload_public_key(ui, &token, api_client, &mut archive, key_cache).await?;
+        upload_public_key(ui, token, api_client, &mut archive, key_cache).await?;
         upload_into_depot(ui,
                           api_client,
                           token,
@@ -265,7 +265,7 @@ async fn upload_public_key(ui: &mut UI,
     let name = header.signer().name();
     let rev = header.signer().revision();
 
-    match api_client.put_origin_key(&name, &rev, &path_in_cache, token, ui.progress())
+    match api_client.put_origin_key(name, rev, &path_in_cache, token, ui.progress())
                     .await
     {
         Ok(()) => {

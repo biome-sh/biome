@@ -1,4 +1,5 @@
 pub mod gateway_util;
+#[allow(legacy_derive_helpers)]
 pub mod bio;
 
 use crate::cli::bio::Bio;

@@ -202,5 +202,5 @@ impl BioRoot {
 }
 
 impl AsRef<Path> for BioRoot {
-    fn as_ref(&self) -> &Path { &self.0.path() }
+    fn as_ref(&self) -> &Path { self.0.path() }
 }

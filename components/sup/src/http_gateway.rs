@@ -85,6 +85,7 @@ struct HealthCheckBody {
     stderr: String,
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<StatusCode> for HealthCheckResult {
     fn into(self) -> StatusCode {
         match self {
@@ -119,9 +120,9 @@ impl AppState {
 // Begin middleware
 
 fn authentication_middleware<S>(req: ServiceRequest,
-                                srv: &mut S)
+                                srv: &S)
                                 -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
-    where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+    where S: Service<ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
     let current_token = &req.app_data::<Data<AppState>>()
                             .expect("app data")
@@ -162,9 +163,9 @@ fn authentication_middleware<S>(req: ServiceRequest,
 }
 
 fn metrics_middleware<S>(req: ServiceRequest,
-                         srv: &mut S)
+                         srv: &S)
                          -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
-    where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+    where S: Service<ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
     let label_values = &[req.path()];
 
@@ -192,9 +193,9 @@ fn metrics_middleware<S>(req: ServiceRequest,
 }
 
 fn redact_http_middleware<S>(req: ServiceRequest,
-                             srv: &mut S)
+                             srv: &S)
                              -> impl Future<Output = Result<ServiceResponse<Body>, Error>>
-    where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+    where S: Service<ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
 {
     if req.app_data::<Data<AppState>>()
           .expect("app data")
@@ -271,9 +272,9 @@ impl Server {
             if let Ok(b) = bind {
                 // Starting the server could be simplified
                 // See https://github.com/habitat-sh/habitat/issues/7352
-                System::new("actix-rt").block_on(async move {
-                                           b.run().await.expect("to start http server");
-                                       })
+                System::new().block_on(async move {
+                                 b.run().await.expect("to start http server");
+                             })
             }
         });
     }
