@@ -61,8 +61,6 @@ As long as you are already a member of the Biome origin, once Builder possesses 
 
 ## Promote Packages
 
-<%= partial "/partials/global/channel-overview" %>
-
 By default, newly uploaded packages are placed in the `unstable` channel. However, the default package that is downloaded is the latest `stable` version of a package, unless overridden in commands such as `bio sup run`, `bio svc load`, and `bio pkg install`. If you want to promote your package to the `stable` channel, run the `bio pkg promote` command as follows:
 
 ```bash

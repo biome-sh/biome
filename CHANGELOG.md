@@ -1,16 +1,52 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.344 -->
-## [1.6.344](https://github.com/habitat-sh/habitat/tree/1.6.344) (2021-06-21)
+<!-- latest_release 1.6.371 -->
+## [1.6.371](https://github.com/habitat-sh/habitat/tree/1.6.371) (2021-08-16)
 
 #### Merged Pull Requests
-- Bump state from 0.5.1 to 0.5.2 [#8227](https://github.com/habitat-sh/habitat/pull/8227) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump bitflags from 1.2.1 to 1.3.1 [#8274](https://github.com/habitat-sh/habitat/pull/8274) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.319 -->
-### Changes since 1.6.319 release
+<!-- release_rollup since=1.6.351 -->
+### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- Bump bitflags from 1.2.1 to 1.3.1 [#8274](https://github.com/habitat-sh/habitat/pull/8274) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.371 -->
+- add referenced images to repo [#8269](https://github.com/habitat-sh/habitat/pull/8269) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.371 -->
+- Update readme to fix or remove invalid links [#8268](https://github.com/habitat-sh/habitat/pull/8268) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.371 -->
+- bump cargo deps [#8273](https://github.com/habitat-sh/habitat/pull/8273) ([mwrock](https://github.com/mwrock)) <!-- 1.6.370 -->
+- adding some pins to core so that crates in builder resolve correctly [#8267](https://github.com/habitat-sh/habitat/pull/8267) ([mwrock](https://github.com/mwrock)) <!-- 1.6.369 -->
+- fix the days until close to be number of days since stale [#8266](https://github.com/habitat-sh/habitat/pull/8266) ([mwrock](https://github.com/mwrock)) <!-- 1.6.368 -->
+- Rust54 [#8265](https://github.com/habitat-sh/habitat/pull/8265) ([mwrock](https://github.com/mwrock)) <!-- 1.6.367 -->
+- Bump serde from 1.0.126 to 1.0.127 [#8262](https://github.com/habitat-sh/habitat/pull/8262) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.366 -->
+- Bump serde_test from 1.0.126 to 1.0.127 [#8263](https://github.com/habitat-sh/habitat/pull/8263) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.365 -->
+- fork rants with updated crate deps [#8261](https://github.com/habitat-sh/habitat/pull/8261) ([mwrock](https://github.com/mwrock)) <!-- 1.6.364 -->
+- fix builder uploads with FuturesAsyncReadCompatExt and AllowStdIo from futures [#8255](https://github.com/habitat-sh/habitat/pull/8255) ([mwrock](https://github.com/mwrock)) <!-- 1.6.363 -->
+- adding whitespace to readme so i can trigger a release build [#8253](https://github.com/habitat-sh/habitat/pull/8253) ([mwrock](https://github.com/mwrock)) <!-- 1.6.362 -->
+- Cargo update [#8252](https://github.com/habitat-sh/habitat/pull/8252) ([mwrock](https://github.com/mwrock)) <!-- 1.6.361 -->
+- Bump dns-lookup from 1.0.7 to 1.0.8 [#8251](https://github.com/habitat-sh/habitat/pull/8251) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.360 -->
+- Bump env_logger from 0.8.4 to 0.9.0 [#8250](https://github.com/habitat-sh/habitat/pull/8250) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.359 -->
+- Bump cc from 1.0.68 to 1.0.69 [#8248](https://github.com/habitat-sh/habitat/pull/8248) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.358 -->
+- Bump nix from 0.21.0 to 0.22.0 [#8247](https://github.com/habitat-sh/habitat/pull/8247) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.358 -->
+- Bump serde-transcode from 1.1.0 to 1.1.1 [#8246](https://github.com/habitat-sh/habitat/pull/8246) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.358 -->
+- remove dependency on rust-crypto [#8249](https://github.com/habitat-sh/habitat/pull/8249) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.357 -->
+- Bump libc from 0.2.97 to 0.2.98 [#8241](https://github.com/habitat-sh/habitat/pull/8241) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.356 -->
+- Rustfmt and Nightly Rust Bump to nightly-2021-07-07 [#8239](https://github.com/habitat-sh/habitat/pull/8239) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.355 -->
+- update changelog for 1.6.351 [#8240](https://github.com/habitat-sh/habitat/pull/8240) ([mwrock](https://github.com/mwrock)) <!-- 1.6.354 -->
+- minor docs fix [#8238](https://github.com/habitat-sh/habitat/pull/8238) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.353 -->
+- Fix headings in install CLI page [#8236](https://github.com/habitat-sh/habitat/pull/8236) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.352 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.351 -->
+## [1.6.351](https://github.com/habitat-sh/habitat/tree/1.6.351) (2021-07-07)
+
+- bump powershell to 7.1.3 [#8237](https://github.com/habitat-sh/habitat/pull/8237) ([mwrock](https://github.com/mwrock)) <!-- 1.6.351 -->
+- opt out of pwsh telemetry to avoid shell startup issues [#8233](https://github.com/habitat-sh/habitat/pull/8233) ([mwrock](https://github.com/mwrock)) <!-- 1.6.350 -->
+- Bump petgraph from 0.5.1 to 0.6.0 [#8234](https://github.com/habitat-sh/habitat/pull/8234) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.349 -->
+- Bump thiserror from 1.0.25 to 1.0.26 [#8235](https://github.com/habitat-sh/habitat/pull/8235) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.348 -->
+- Updating expeditor configuration [#8232](https://github.com/habitat-sh/habitat/pull/8232) ([jayashrig158](https://github.com/jayashrig158)) <!-- 1.6.347 -->
+- Bump sodiumoxide from 0.2.6 to 0.2.7 [#8231](https://github.com/habitat-sh/habitat/pull/8231) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.346 -->
+- update rust to 1.52.1 [#8230](https://github.com/habitat-sh/habitat/pull/8230) ([mwrock](https://github.com/mwrock)) <!-- 1.6.345 -->
 - Bump state from 0.5.1 to 0.5.2 [#8227](https://github.com/habitat-sh/habitat/pull/8227) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.344 -->
 - exclude libressl install in rootless studio build [#8228](https://github.com/habitat-sh/habitat/pull/8228) ([mwrock](https://github.com/mwrock)) <!-- 1.6.343 -->
 - Bump rand from 0.8.3 to 0.8.4 [#8225](https://github.com/habitat-sh/habitat/pull/8225) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.342 -->
@@ -37,7 +73,6 @@
 - Bump os_info from 3.0.4 to 3.0.5 [#8204](https://github.com/habitat-sh/habitat/pull/8204) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.322 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-05-12 [#8199](https://github.com/habitat-sh/habitat/pull/8199) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.321 -->
 - update changelog for 1.6.319 [#8200](https://github.com/habitat-sh/habitat/pull/8200) ([mwrock](https://github.com/mwrock)) <!-- 1.6.320 -->
-<!-- release_rollup -->
 
 <!-- latest_stable_release 1.6.319 -->
 ## [1.6.319](https://github.com/habitat-sh/habitat/tree/1.6.319) (2021-05-12)

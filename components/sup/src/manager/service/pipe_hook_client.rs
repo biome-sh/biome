@@ -4,7 +4,6 @@ use biome_common::{error::{Error,
                      outputln,
                      templating::package::Pkg};
 use biome_core::{env as henv,
-                   os::process::windows_child::Child,
                    util::{self,
                           BufReadLossy}};
 use mio::{windows::NamedPipe,
@@ -25,7 +24,8 @@ use std::{self,
           os::windows::{ffi::OsStrExt,
                         fs::*,
                         io::*},
-          path::PathBuf,
+          path::{Path,
+                 PathBuf},
           process,
           thread,
           time::{Duration,
@@ -170,11 +170,10 @@ impl PipeHookClient {
                              process::id());
 
         // Start instance of powershell to host named pipe server for this client
-        let child = Child::spawn("pwsh.exe",
-                                 &util::pwsh_args(ps_cmd.as_str()),
-                                 &pkg.env.to_hash_map(),
-                                 &pkg.svc_user,
-                                 svc_encrypted_password)?;
+        let child = util::spawn_pwsh(&ps_cmd,
+                                     &pkg.env.to_hash_map(),
+                                     &pkg.svc_user,
+                                     svc_encrypted_password)?;
         debug!("spawned powershell server for {} {} hook on pipe: {}",
                service_group, self.hook_name, self.pipe_name);
 
@@ -267,7 +266,7 @@ impl Drop for PipeHookClient {
     }
 }
 
-fn stream_output<T>(out: T, log_file: &PathBuf, preamble_str: &str)
+fn stream_output<T>(out: T, log_file: &Path, preamble_str: &str)
     where T: Read
 {
     File::create(&log_file).unwrap_or_else(|_| {
@@ -276,25 +275,23 @@ fn stream_output<T>(out: T, log_file: &PathBuf, preamble_str: &str)
                                       &log_file.to_string_lossy())
                            });
 
-    for line in BufReader::new(out).lines_lossy() {
-        if let Ok(ref l) = line {
-            outputln!(preamble preamble_str, l);
-            // we append each line to the log file instead of continuously
-            // streaming to an open file because the parent thread needs to
-            // truncate the log on each hook execution so that the log only
-            // holds the output of the last run. This mimics the behavior of
-            // the HookOutput streaming.
-            match OpenOptions::new().write(true).append(true).open(&log_file) {
-                Ok(mut log) => {
-                    if let Err(e) = writeln!(log, "{}", l) {
-                        outputln!(preamble preamble_str, "couldn't write line. {}", e);
-                    }
+    for line in BufReader::new(out).lines_lossy().flatten() {
+        outputln!(preamble preamble_str, &line);
+        // we append each line to the log file instead of continuously
+        // streaming to an open file because the parent thread needs to
+        // truncate the log on each hook execution so that the log only
+        // holds the output of the last run. This mimics the behavior of
+        // the HookOutput streaming.
+        match OpenOptions::new().write(true).append(true).open(&log_file) {
+            Ok(mut log) => {
+                if let Err(e) = writeln!(log, "{}", line) {
+                    outputln!(preamble preamble_str, "couldn't write line. {}", e);
                 }
-                Err(err) => {
-                    outputln!(preamble preamble_str, "unable to open log {} : {}",
-                            &log_file.to_string_lossy(),
-                            err);
-                }
+            }
+            Err(err) => {
+                outputln!(preamble preamble_str, "unable to open log {} : {}",
+                        &log_file.to_string_lossy(),
+                        err);
             }
         }
     }
@@ -324,7 +321,7 @@ mod test {
     async fn pkg() -> Pkg {
         let service_group = ServiceGroup::new("test_service", "test_group", None).unwrap();
         let pg_id = PackageIdent::new("testing",
-                                      &service_group.service(),
+                                      service_group.service(),
                                       Some("1.0.0"),
                                       Some("20170712000000"));
         let pkg_install = PackageInstall::new_from_parts(pg_id.clone(),

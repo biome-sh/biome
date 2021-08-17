@@ -84,6 +84,7 @@ impl std::iter::FromIterator<biome_core::service::ServiceBind> for ServiceBindLi
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<Vec<biome_core::service::ServiceBind>> for ServiceBindList {
     fn into(self) -> Vec<biome_core::service::ServiceBind> {
         self.binds.into_iter().map(Into::into).collect()

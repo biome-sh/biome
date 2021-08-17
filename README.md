@@ -1,7 +1,4 @@
-<img src="https://github.com/habitat-sh/habitat/blob/master/www/source/images/biome-logo.png" width="200">
-
 [![Build Status](https://badge.buildkite.com/f527cd3d7851756ed1a5f6ec463dd41e7145f7941fd932672a.svg)](https://buildkite.com/chef/habitat-sh-habitat-master-verify?branch=master)
-[![Slack](http://slack.habitat.sh/badge.svg)](http://slack.habitat.sh/)
 [![Discourse status](https://img.shields.io/discourse/https/meta.discourse.org/status.svg?style=flat)](https://forums.habitat.sh)
 [![Open Source Helpers](https://www.codetriage.com/habitat-sh/habitat/badges/users.svg)](https://www.codetriage.com/habitat-sh/habitat)
 
@@ -13,6 +10,7 @@ The goal of Biome is to allow you to automate your application behavior when you
 
 See a quick demo of how to build, deploy and manage an application with Biome:
 
+
 **Project State**: [Active](https://github.com/chef/chef-oss-practices/blob/master/repo-management/repo-states.md#active)
 
 **Issues Response Time Max**: 5 business days
@@ -23,7 +21,7 @@ See a quick demo of how to build, deploy and manage an application with Biome:
 
 # Table of Contents
 * [Diagrams](#diagrams)
-* [Hands-on Demos](#hands-on-demos)
+* [Training](#training)
 * [Install](#install)
 * [Contribute](#contribute)
 * [Documentation](#documentation)
@@ -39,35 +37,30 @@ See a quick demo of how to build, deploy and manage an application with Biome:
 Graphics that will help you and your team better understand the concepts and how they fit together into the larger Biome ecosystem.
 ### Where Biome Fits
 
-[![Biome Flow Infographic](images/biome-flow-infographic.png)](http://biome.sh#reference-diagram)
+[![Biome Flow Infographic](https://github.com/habitat-sh/habitat/raw/master/images/biome-flow-infographic.png)](http://biome.sh#reference-diagram)
 
 Try the interactive infographics on the [website](http://biome.sh#reference-diagram)!
 
 ### How Biome Works
-* [Architecture Overview](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/biome-architecture-overview.png)
-* [Initial Package Build Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/biome-initial-package-build-flow.png)
-* [Application Rebuild Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/biome-application-rebuild-flow.png)
-* [Dependency Update Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/biome-dependency-update-flow.png)
-* [Promote Packages Through Channels](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/biome-promote-packages-through-channels.png)
+* [Architecture Overview](https://github.com/habitat-sh/habitat/raw/master/images/biome-architecture-overview.png)
+* [Initial Package Build Flow](https://github.com/habitat-sh/habitat/raw/master/images/biome-initial-package-build-flow.png)
+* [Application Rebuild Flow](https://github.com/habitat-sh/habitat/raw/master/images/biome-application-rebuild-flow.png)
+* [Dependency Update Flow](https://github.com/habitat-sh/habitat/raw/master/images/biome-dependency-update-flow.png)
+* [Promote Packages Through Channels](https://github.com/habitat-sh/habitat/raw/master/images/biome-promote-packages-through-channels.png)
 
 ### Biome and **Docker**
-* [Initial Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/biome-initial-docker-container-publishing-flow.png)
-* [Automated Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/www/source/images/infographics/biome-automated-docker-container-publishing-flow.png)
+* [Initial Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/images/biome-initial-docker-container-publishing-flow.png)
+* [Automated Docker Container Publishing Flow](https://github.com/habitat-sh/habitat/raw/master/images/biome-automated-docker-container-publishing-flow.png)
 
 *View all diagrams in [Docs](https://www.habitat.sh/docs/diagrams/)*
 
-## Hands-on Demos
-Choose any topic to begin learning how Biome can help your team build, deploy, and manage all of your applications - both new and legacy - in a cloud-native way:
-* [Package a sample application (15 mins)](https://www.habitat.sh/demo/packaging-system/steps/1/)
-* [Set up automated deployments (20 mins)](https://www.habitat.sh/demo/build-system/steps/1/)
-* [Auto-update a running application (15 mins)](https://www.habitat.sh/demo/process-supervisor/steps/1/)
-
+## Training
 *View all demos and tutorials in [Learn](https://www.habitat.sh/learn/)*
 
 
 ## Install
 
-You can download Biome from the [Biome downloads page](https://www.habitat.sh/docs/install-habitat/).
+You can download Biome from the [Biome downloads page](https://docs.chef.io/habitat/install_habitat).
 
 Once you have downloaded it, follow the instructions on the page for your specific operating system.
 
@@ -125,9 +118,9 @@ The Biome core team's project tracker is also public and on [Github.](https://gi
 
 ## Community and support
 
-* [Biome Slack](http://slack.habitat.sh)
+* [Chef Community Slack](https://community-slack.chef.io/)
 * [Forums](https://forums.habitat.sh)
-* Community triage is every Tuesday at 10am Pacific. The link to participate is shared in the [Biome Slack channel](http://slack.habitat.sh), and videos are posted on the [Biome YouTube channel](https://youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg).
+* The Chef Community meeting is every Thursday at 9am Pacific.  More information can be found in the Connect section of [Chef Community](https://community.chef.io/)
 
 ## Building
 See [BUILDING.md](BUILDING.md) for platform specific info on building Biome from source.
