@@ -26,8 +26,8 @@ jobs:
         run: |
           git remote add habitat https://github.com/habitat-sh/habitat.git
           git fetch --depth 1 origin forkman-raw:forkman-raw
-          git fetch --depth 1 habitat master
+          git fetch --depth 1 habitat main
           git config user.name "Fork Man"
           git config user.email forkman@biome.sh
-          forkman-patch-git -b -u habitat/master || true
+          forkman-patch-git -b -u habitat/main || true
           git push origin forkman-raw:forkman-raw
