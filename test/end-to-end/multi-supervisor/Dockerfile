@@ -5,7 +5,7 @@ ARG CHANNEL=stable
 
 # Bootstrap the installation of Biome
 RUN apt-get update && apt-get -y install curl
-RUN curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/bio/install.sh -o install.sh
+RUN curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/bio/install.sh -o install.sh
 RUN chmod a+x ./install.sh
 RUN /bin/bash -c ./install.sh
 

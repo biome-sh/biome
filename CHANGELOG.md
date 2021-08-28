@@ -1,16 +1,26 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.373 -->
-## [1.6.373](https://github.com/habitat-sh/habitat/tree/1.6.373) (2021-08-18)
+<!-- latest_release 1.6.382 -->
+## [1.6.382](https://github.com/habitat-sh/habitat/tree/1.6.382) (2021-08-27)
 
 #### Merged Pull Requests
-- Bump serde_yaml from 0.8.17 to 0.8.18 [#8277](https://github.com/habitat-sh/habitat/pull/8277) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_yaml from 0.8.19 to 0.8.20 [#8292](https://github.com/habitat-sh/habitat/pull/8292) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.351 -->
 ### Changes since 1.6.351 release
 
 #### Merged Pull Requests
+- Bump serde_yaml from 0.8.19 to 0.8.20 [#8292](https://github.com/habitat-sh/habitat/pull/8292) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.382 -->
+- Bump bytes from 1.0.1 to 1.1.0 [#8288](https://github.com/habitat-sh/habitat/pull/8288) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.381 -->
+- Bump libc from 0.2.100 to 0.2.101 [#8289](https://github.com/habitat-sh/habitat/pull/8289) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.381 -->
+- fix windows download url typo [#8290](https://github.com/habitat-sh/habitat/pull/8290) ([mwrock](https://github.com/mwrock)) <!-- 1.6.380 -->
+- Bump serde_test from 1.0.127 to 1.0.129 [#8285](https://github.com/habitat-sh/habitat/pull/8285) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.379 -->
+- Bump serde from 1.0.127 to 1.0.129 [#8286](https://github.com/habitat-sh/habitat/pull/8286) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.378 -->
+- Bump libc from 0.2.99 to 0.2.100 [#8284](https://github.com/habitat-sh/habitat/pull/8284) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.377 -->
+- Bump serde_yaml from 0.8.18 to 0.8.19 [#8281](https://github.com/habitat-sh/habitat/pull/8281) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.376 -->
+- Bump httparse from 1.4.1 to 1.5.1 [#8280](https://github.com/habitat-sh/habitat/pull/8280) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.375 -->
+- use the main branch for ci installs [#8287](https://github.com/habitat-sh/habitat/pull/8287) ([mwrock](https://github.com/mwrock)) <!-- 1.6.374 -->
 - Bump serde_yaml from 0.8.17 to 0.8.18 [#8277](https://github.com/habitat-sh/habitat/pull/8277) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.373 -->
 - Bump nix from 0.22.0 to 0.22.1 [#8275](https://github.com/habitat-sh/habitat/pull/8275) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.372 -->
 - Bump bitflags from 1.2.1 to 1.3.1 [#8274](https://github.com/habitat-sh/habitat/pull/8274) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.371 -->

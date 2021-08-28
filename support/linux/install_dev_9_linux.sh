@@ -45,5 +45,5 @@ else
   sudo -E addgroup --system hab || true
 fi
 
-curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/bio/install.sh | sudo bash
+curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/bio/install.sh | sudo bash
 sudo HAB_LICENSE="accept-no-persist" bio pkg install core/busybox-static biome/bio-studio

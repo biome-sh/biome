@@ -11,7 +11,7 @@ ENV HAB_LICENSE=accept-no-persist
 # out the /hab directory. The `bio` binary isn't necessarily the one
 # that we want in the final image.
 RUN apk add bash \
-  && wget https://raw.githubusercontent.com/habitat-sh/habitat/master/components/bio/install.sh \
+  && wget https://raw.githubusercontent.com/habitat-sh/habitat/main/components/bio/install.sh \
   && bash install.sh \
   && mv /hab/pkgs/biome/bio/*/*/bin/bio /bin/ \
   && rm -Rf /hab
