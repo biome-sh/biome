@@ -1183,7 +1183,7 @@ dependencies = [
  "uuid 0.8.2",
  "walkdir",
  "webpki 0.22.0",
- "widestring",
+ "widestring 0.5.0",
  "winapi 0.3.9",
  "winreg 0.9.0",
 ]
@@ -1401,7 +1401,7 @@ dependencies = [
  "num_cpus",
  "os_info",
  "paste 1.0.5",
- "pem",
+ "pem 1.0.0",
  "pin-project",
  "rand 0.8.4",
  "rcgen",
@@ -1423,7 +1423,7 @@ dependencies = [
  "typemap",
  "url",
  "webpki 0.22.0",
- "widestring",
+ "widestring 0.5.0",
  "winapi 0.3.9",
  "windows-acl",
  "xz2",
@@ -1439,7 +1439,7 @@ dependencies = [
  "httparse",
  "log 0.4.14",
  "native-tls",
- "pem",
+ "pem 1.0.0",
  "reqwest",
  "serde",
  "serde_json",
@@ -1572,7 +1572,7 @@ version = "0.0.0"
 dependencies = [
  "cc",
  "log 0.4.14",
- "widestring",
+ "widestring 0.5.0",
  "winapi 0.3.9",
 ]
 
@@ -2492,6 +2492,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pem"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f2373df5233932a893d3bc2c78a0bf3f6d12590a1edd546b4fbefcac32c5c0f"
+dependencies = [
+ "base64",
+ "once_cell",
+ "regex 1.5.4",
+]
+
+[[package]]
 name = "percent-encoding"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2687,9 +2698,9 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de5e2533f59d08fcf364fd374ebda0692a70bd6d7e66ef97f306f45c6c5d8020"
+checksum = "444879275cb4fd84958b1a1d5420d15e6fcf7c235fe47f053c9c2a80aceb6001"
 dependencies = [
  "bytes",
  "prost-derive",
@@ -2697,27 +2708,29 @@ dependencies = [
 
 [[package]]
 name = "prost-build"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "355f634b43cdd80724ee7848f95770e7e70eefa6dcf14fea676216573b8fd603"
+checksum = "62941722fb675d463659e49c4f3fe1fe792ff24fe5bbaa9c08cd3b98a1c354f5"
 dependencies = [
  "bytes",
  "heck",
  "itertools",
+ "lazy_static 1.4.0",
  "log 0.4.14",
  "multimap",
- "petgraph 0.5.1",
+ "petgraph 0.6.0",
  "prost",
  "prost-types",
+ "regex 1.5.4",
  "tempfile",
  "which",
 ]
 
 [[package]]
 name = "prost-derive"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "600d2f334aa05acb02a755e217ef1ab6dea4d51b58b7846588b747edec04efba"
+checksum = "f9cc1a3263e07e0bf68e96268f37665207b49560d98739662cdfaae215c720fe"
 dependencies = [
  "anyhow",
  "itertools",
@@ -2728,9 +2741,9 @@ dependencies = [
 
 [[package]]
 name = "prost-types"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "603bbd6394701d13f3f25aada59c7de9d35a6a5887cfc156181234a44002771b"
+checksum = "534b7a0e836e3c482d2693070f982e39e7611da9695d4d1f5a4b186b51faef0a"
 dependencies = [
  "bytes",
  "prost",
@@ -2931,7 +2944,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48b4fc1b81d685fcd442a86da2e2c829d9e353142633a8159f42bf28e7e94428"
 dependencies = [
  "chrono",
- "pem",
+ "pem 0.8.3",
  "ring",
  "yasna",
 ]
@@ -3719,18 +3732,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.29"
+version = "1.0.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "602eca064b2d83369e2b2f34b09c70b605402801927c65c11071ac911d299b88"
+checksum = "854babe52e4df1653706b98fcfc05843010039b406875930a70e4d9644e5c417"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.29"
+version = "1.0.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bad553cc2c78e8de258400763a647e80e6d1b31ee237275d756f6836d204494c"
+checksum = "aa32fd3f627f367fe16f893e2597ae3c05020f8bba2666a4e6ea73d377e5714b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4285,6 +4298,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c168940144dd21fd8046987c16a46a33d5fc84eec29ef9dcddc2ac9e31526b7c"
 
 [[package]]
+name = "widestring"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15be6395051be4e41efeee975b7561b8c602ba30204bfa35fefa0f85582075b6"
+
+[[package]]
 name = "winapi"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4335,7 +4354,7 @@ checksum = "177b1723986bcb4c606058e77f6e8614b51c7f9ad2face6f6fd63dd5c8b3cec3"
 dependencies = [
  "field-offset",
  "libc",
- "widestring",
+ "widestring 0.4.3",
  "winapi 0.3.9",
 ]
 

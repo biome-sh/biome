@@ -1,16 +1,30 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.398 -->
-## [1.6.398](https://github.com/habitat-sh/habitat/tree/1.6.398) (2021-10-07)
+<!-- latest_release 1.6.405 -->
+## [1.6.405](https://github.com/habitat-sh/habitat/tree/1.6.405) (2021-10-14)
 
 #### Merged Pull Requests
-- Bump cc from 1.0.70 to 1.0.71 [#8322](https://github.com/habitat-sh/habitat/pull/8322) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- bump prost and friends [#8333](https://github.com/habitat-sh/habitat/pull/8333) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.351 -->
-### Changes since 1.6.351 release
+<!-- release_rollup since=1.6.400 -->
+### Changes since 1.6.400 release
 
 #### Merged Pull Requests
+- bump prost and friends [#8333](https://github.com/habitat-sh/habitat/pull/8333) ([mwrock](https://github.com/mwrock)) <!-- 1.6.405 -->
+- Bump prost-derive from 0.8.0 to 0.9.0 [#8330](https://github.com/habitat-sh/habitat/pull/8330) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.404 -->
+- Bump pem from 0.8.3 to 1.0.0 [#8318](https://github.com/habitat-sh/habitat/pull/8318) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.404 -->
+- Bump widestring from 0.4.3 to 0.5.0 [#8329](https://github.com/habitat-sh/habitat/pull/8329) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.403 -->
+- Rustfmt and Nightly Rust Bump to nightly-2021-10-12 [#8327](https://github.com/habitat-sh/habitat/pull/8327) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.402 -->
+- update changelog for 1.6.400 [#8328](https://github.com/habitat-sh/habitat/pull/8328) ([mwrock](https://github.com/mwrock)) <!-- 1.6.401 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.400 -->
+## [1.6.400](https://github.com/habitat-sh/habitat/tree/1.6.400) (2021-10-12)
+
+#### Merged Pull Requests
+- whitespace change to force pipeline [#8326](https://github.com/habitat-sh/habitat/pull/8326) ([mwrock](https://github.com/mwrock)) <!-- 1.6.400 -->
+- Bump thiserror from 1.0.29 to 1.0.30 [#8325](https://github.com/habitat-sh/habitat/pull/8325) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.399 -->
 - Bump cc from 1.0.70 to 1.0.71 [#8322](https://github.com/habitat-sh/habitat/pull/8322) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.398 -->
 - another whitespace change to force release [#8321](https://github.com/habitat-sh/habitat/pull/8321) ([mwrock](https://github.com/mwrock)) <!-- 1.6.397 -->
 - whitespace change to force release [#8320](https://github.com/habitat-sh/habitat/pull/8320) ([mwrock](https://github.com/mwrock)) <!-- 1.6.396 -->
@@ -69,9 +83,6 @@
 - update changelog for 1.6.351 [#8240](https://github.com/habitat-sh/habitat/pull/8240) ([mwrock](https://github.com/mwrock)) <!-- 1.6.354 -->
 - minor docs fix [#8238](https://github.com/habitat-sh/habitat/pull/8238) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.353 -->
 - Fix headings in install CLI page [#8236](https://github.com/habitat-sh/habitat/pull/8236) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.352 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.351 -->
 ## [1.6.351](https://github.com/habitat-sh/habitat/tree/1.6.351) (2021-07-07)
 
 - bump powershell to 7.1.3 [#8237](https://github.com/habitat-sh/habitat/pull/8237) ([mwrock](https://github.com/mwrock)) <!-- 1.6.351 -->
