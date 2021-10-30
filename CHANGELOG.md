@@ -1,16 +1,34 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.407 -->
-## [1.6.407](https://github.com/habitat-sh/habitat/tree/1.6.407) (2021-10-18)
+<!-- latest_release 1.6.419 -->
+## [1.6.419](https://github.com/habitat-sh/habitat/tree/1.6.419) (2021-10-29)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.103 to 0.2.104 [#8336](https://github.com/habitat-sh/habitat/pull/8336) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Minor updates to script to generate CLI docs [#8348](https://github.com/habitat-sh/habitat/pull/8348) ([IanMadd](https://github.com/IanMadd))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.400 -->
-### Changes since 1.6.400 release
+<!-- release_rollup since=1.6.416 -->
+### Changes since 1.6.416 release
 
 #### Merged Pull Requests
+- Minor updates to script to generate CLI docs [#8348](https://github.com/habitat-sh/habitat/pull/8348) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.419 -->
+- Rustfmt and Nightly Rust Bump to nightly-2021-10-28 [#8347](https://github.com/habitat-sh/habitat/pull/8347) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.419 -->
+- updated 1.6.416 changelog [#8350](https://github.com/habitat-sh/habitat/pull/8350) ([mwrock](https://github.com/mwrock)) <!-- 1.6.418 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.416 -->
+## [1.6.416](https://github.com/habitat-sh/habitat/tree/1.6.416) (2021-10-28)
+
+#### Merged Pull Requests
+- add aarch64-darwin (M1) to release pipeline and curlbash install [#8346](https://github.com/habitat-sh/habitat/pull/8346) ([mwrock](https://github.com/mwrock)) <!-- 1.6.416 -->
+- whitespace change to force release [#8345](https://github.com/habitat-sh/habitat/pull/8345) ([mwrock](https://github.com/mwrock)) <!-- 1.6.415 -->
+- mac release root path should fall back to /hab [#8344](https://github.com/habitat-sh/habitat/pull/8344) ([mwrock](https://github.com/mwrock)) <!-- 1.6.414 -->
+- search for nginx* process in e2e [#8343](https://github.com/habitat-sh/habitat/pull/8343) ([mwrock](https://github.com/mwrock)) <!-- 1.6.413 -->
+- Bump pem from 1.0.0 to 1.0.1 [#8342](https://github.com/habitat-sh/habitat/pull/8342) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.412 -->
+- update e2e test to fix text mismatch [#8341](https://github.com/habitat-sh/habitat/pull/8341) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.411 -->
+- Bump widestring from 0.5.0 to 0.5.1 [#8339](https://github.com/habitat-sh/habitat/pull/8339) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.410 -->
+- Enabling macos M1 hab cli build [#8334](https://github.com/habitat-sh/habitat/pull/8334) ([mwrock](https://github.com/mwrock)) <!-- 1.6.409 -->
+- Bump libc from 0.2.104 to 0.2.105 [#8340](https://github.com/habitat-sh/habitat/pull/8340) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.408 -->
 - Bump libc from 0.2.103 to 0.2.104 [#8336](https://github.com/habitat-sh/habitat/pull/8336) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.407 -->
 - replace rants dependency with nats.io crate [#8293](https://github.com/habitat-sh/habitat/pull/8293) ([pozsgaic](https://github.com/pozsgaic)) <!-- 1.6.406 -->
 - bump prost and friends [#8333](https://github.com/habitat-sh/habitat/pull/8333) ([mwrock](https://github.com/mwrock)) <!-- 1.6.405 -->
@@ -19,9 +37,7 @@
 - Bump widestring from 0.4.3 to 0.5.0 [#8329](https://github.com/habitat-sh/habitat/pull/8329) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.403 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-10-12 [#8327](https://github.com/habitat-sh/habitat/pull/8327) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.402 -->
 - update changelog for 1.6.400 [#8328](https://github.com/habitat-sh/habitat/pull/8328) ([mwrock](https://github.com/mwrock)) <!-- 1.6.401 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release 1.6.400 -->
 ## [1.6.400](https://github.com/habitat-sh/habitat/tree/1.6.400) (2021-10-12)
 
 #### Merged Pull Requests

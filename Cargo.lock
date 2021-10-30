@@ -1287,7 +1287,7 @@ dependencies = [
  "uuid 0.8.2",
  "walkdir",
  "webpki 0.22.0",
- "widestring 0.5.0",
+ "widestring 0.5.1",
  "winapi 0.3.9",
  "winreg 0.9.0",
 ]
@@ -1505,7 +1505,7 @@ dependencies = [
  "num_cpus",
  "os_info",
  "paste 1.0.5",
- "pem 1.0.0",
+ "pem 1.0.1",
  "pin-project",
  "rand 0.8.4",
  "rcgen",
@@ -1527,7 +1527,7 @@ dependencies = [
  "typemap",
  "url",
  "webpki 0.22.0",
- "widestring 0.5.0",
+ "widestring 0.5.1",
  "winapi 0.3.9",
  "windows-acl",
  "xz2",
@@ -1543,7 +1543,7 @@ dependencies = [
  "httparse",
  "log 0.4.14",
  "native-tls",
- "pem 1.0.0",
+ "pem 1.0.1",
  "reqwest",
  "serde",
  "serde_json",
@@ -1677,7 +1677,7 @@ version = "0.0.0"
 dependencies = [
  "cc",
  "log 0.4.14",
- "widestring 0.5.0",
+ "widestring 0.5.1",
  "winapi 0.3.9",
 ]
 
@@ -2027,9 +2027,9 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "libc"
-version = "0.2.104"
+version = "0.2.105"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b2f96d100e1cf1929e7719b7edb3b90ab5298072638fccd77be9ce942ecdfce"
+checksum = "869d572136620d55835903746bcb5cdc54cb2851fd0aeec53220b4bb65ef3013"
 
 [[package]]
 name = "libsodium-sys"
@@ -2632,9 +2632,9 @@ dependencies = [
 
 [[package]]
 name = "pem"
-version = "1.0.0"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f2373df5233932a893d3bc2c78a0bf3f6d12590a1edd546b4fbefcac32c5c0f"
+checksum = "06673860db84d02a63942fa69cd9543f2624a5df3aea7f33173048fa7ad5cf1a"
 dependencies = [
  "base64",
  "once_cell",
@@ -4425,9 +4425,9 @@ checksum = "c168940144dd21fd8046987c16a46a33d5fc84eec29ef9dcddc2ac9e31526b7c"
 
 [[package]]
 name = "widestring"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15be6395051be4e41efeee975b7561b8c602ba30204bfa35fefa0f85582075b6"
+checksum = "17882f045410753661207383517a6f62ec3dbeb6a4ed2acce01f0728238d1983"
 
 [[package]]
 name = "winapi"
