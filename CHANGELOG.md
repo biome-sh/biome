@@ -1,22 +1,32 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.419 -->
-## [1.6.419](https://github.com/habitat-sh/habitat/tree/1.6.419) (2021-10-29)
+<!-- latest_release 1.6.423 -->
+## [1.6.423](https://github.com/habitat-sh/habitat/tree/1.6.423) (2021-11-02)
 
 #### Merged Pull Requests
-- Minor updates to script to generate CLI docs [#8348](https://github.com/habitat-sh/habitat/pull/8348) ([IanMadd](https://github.com/IanMadd))
+- use macos 10.15 when verifying the install [#8357](https://github.com/habitat-sh/habitat/pull/8357) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.416 -->
-### Changes since 1.6.416 release
+<!-- release_rollup since=1.6.420 -->
+### Changes since 1.6.420 release
 
 #### Merged Pull Requests
+- use macos 10.15 when verifying the install [#8357](https://github.com/habitat-sh/habitat/pull/8357) ([mwrock](https://github.com/mwrock)) <!-- 1.6.423 -->
+- Bump libc from 0.2.105 to 0.2.106 [#8352](https://github.com/habitat-sh/habitat/pull/8352) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.422 -->
+- revert rants e2e test change [#8355](https://github.com/habitat-sh/habitat/pull/8355) ([mwrock](https://github.com/mwrock)) <!-- 1.6.422 -->
+- Rustfmt and Nightly Rust Bump to nightly-2021-11-01 [#8354](https://github.com/habitat-sh/habitat/pull/8354) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.422 -->
+- updating changelog for 1.6.420 [#8356](https://github.com/habitat-sh/habitat/pull/8356) ([mwrock](https://github.com/mwrock)) <!-- 1.6.421 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.420 -->
+## [1.6.420](https://github.com/habitat-sh/habitat/tree/1.6.420) (2021-11-01)
+
+#### Merged Pull Requests
+- Revert &quot;replace rants dependency with nats.io crate&quot; [#8353](https://github.com/habitat-sh/habitat/pull/8353) ([mwrock](https://github.com/mwrock)) <!-- 1.6.420 -->
 - Minor updates to script to generate CLI docs [#8348](https://github.com/habitat-sh/habitat/pull/8348) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.419 -->
 - Rustfmt and Nightly Rust Bump to nightly-2021-10-28 [#8347](https://github.com/habitat-sh/habitat/pull/8347) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.419 -->
 - updated 1.6.416 changelog [#8350](https://github.com/habitat-sh/habitat/pull/8350) ([mwrock](https://github.com/mwrock)) <!-- 1.6.418 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release 1.6.416 -->
 ## [1.6.416](https://github.com/habitat-sh/habitat/tree/1.6.416) (2021-10-28)
 
 #### Merged Pull Requests
