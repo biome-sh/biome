@@ -52,6 +52,7 @@ patterns:
   github.com/habitat-sh/habitat/pull: github.com/habitat-sh/habitat/pull
   github.com/apps/habitat-builder: github.com/apps/habitat-builder
   buildkite.com/chef/habitat-sh-habitat-master: buildkite.com/chef/habitat-sh-habitat-master
+  buildkite.com/chef/habitat-sh-habitat-main: buildkite.com/chef/habitat-sh-habitat-main
   www.codetriage.com/habitat-sh/habitat: www.codetriage.com/habitat-sh/habitat
   'habitat-sh/habitat#6509': 'habitat-sh/habitat#6509'
 
