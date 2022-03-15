@@ -54,5 +54,5 @@ The ```command``` entry for the National Parks Tomcat application allows the Bio
 
 ## Related Reading
 
-* [A Journey with Biome on Amazon ECS, Part 1](https://blog.chef.io/a-journey-with-biome-on-amazon-ecs-part-1/))
-* [A Journey with Biome on Amazon ECS, Part 2](https://blog.chef.io/a-journey-with-biome-on-amazon-ecs-part-2/)
+* [A Journey with Biome on Amazon ECS, Part 1](https://www.chef.io/blog/a-journey-with-biome-on-amazon-ecs-part-1)
+* [A Journey with Biome on Amazon ECS, Part 2](https://www.chef.io/blog/a-journey-with-biome-on-amazon-ecs-part-2)

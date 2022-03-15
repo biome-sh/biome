@@ -256,7 +256,7 @@ fn run_container<I, J, S, T>(docker_cmd: PathBuf,
     if let Ok(opts) = henv::var(DOCKER_OPTS_ENVVAR) {
         let opts = opts
             .split_whitespace()
-            .map(|v| v.into())
+            .map(std::convert::Into::into)
             // Ensure we're not passing something like `--tty` again here.
             .filter(|v| !cmd_args.contains(v))
             .collect::<Vec<_>>();
@@ -351,6 +351,8 @@ fn studio_target(windows: bool, target: target::PackageTarget) -> target::Packag
         target::X86_64_LINUX_KERNEL2 => target::X86_64_LINUX_KERNEL2,
         #[cfg(feature = "supported_targets")]
         target::X86_64_WINDOWS => target::X86_64_LINUX,
+        #[cfg(feature = "supported_targets")]
+        target::AARCH64_DARWIN => target::X86_64_LINUX,
         #[cfg(feature = "aarch64-linux")]
         target::AARCH64_LINUX => panic!("{} studios are not supported", target::AARCH64_LINUX),
         // This is only needed for the case that we have no target enabled. In that case, we get a

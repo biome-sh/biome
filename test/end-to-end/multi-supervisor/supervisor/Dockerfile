@@ -10,8 +10,8 @@ ENV HAB_LICENSE=accept-no-persist
 # Bootstrap us enough to get a `bio` binary on the box, but then clear
 # out the /hab directory. The `bio` binary isn't necessarily the one
 # that we want in the final image.
-RUN apk add bash \
-  && wget https://raw.githubusercontent.com/habitat-sh/habitat/master/components/bio/install.sh \
+RUN apk add bash wget \
+  && wget https://raw.githubusercontent.com/habitat-sh/habitat/main/components/bio/install.sh \
   && bash install.sh \
   && mv /hab/pkgs/biome/bio/*/*/bin/bio /bin/ \
   && rm -Rf /hab

@@ -149,11 +149,11 @@ async fn upload_into_depot(ui: &mut UI,
                            additional_release_channel: &Option<ChannelIdent>,
                            force_upload: bool,
                            auto_build: BuildOnUpload,
-                           mut archive: &mut PackageArchive)
+                           archive: &mut PackageArchive)
                            -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
     let package_exists_in_target =
-        match api_client.put_package(&mut archive, token, force_upload, auto_build, ui.progress())
+        match api_client.put_package(archive, token, force_upload, auto_build, ui.progress())
                         .await
         {
             Ok(_) => true,
@@ -243,7 +243,7 @@ async fn attempt_upload_dep(ui: &mut UI,
         ui.status(Status::Missing,
                   format!("artifact {}. It was not found in {}. Please make sure that all the \
                            dependent artifacts are present in the same directory as the \
-                           original artifact that you are attemping to upload.",
+                           original artifact that you are attempting to upload.",
                           archive_name,
                           archives_dir.display()))?;
         Err(Error::FileNotFound(archives_dir.to_string_lossy().into_owned()))
