@@ -15,7 +15,7 @@ An origin is a place on Biome Builder where you can store, share, and build pack
 You can join existing origins by invitation and you can create your own origins.
 For more on invitations, see [origin membership and RBAC]({{< relref "#origin-membership" >}}).
 
-### Create an Origin
+## Create an Origin
 
 ![Biome Builder without origins](/images/habitat/create-origin.png)
 
@@ -38,7 +38,7 @@ When you select **Save and Continue**, Biome Builder:
 
 ![Origin successfully created](/images/habitat/create-origin-done.png)
 
-#### Create an Origin with the Biome CLI
+### Create an Origin with the Biome CLI
 
 Use the [bio origin]({{< relref "biome_cli/#bio-origin" >}}) commands to manage your origins from the command line.
 

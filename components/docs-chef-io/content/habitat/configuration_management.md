@@ -11,7 +11,7 @@ gh_repo = "biome"
     parent = "habitat/reference"
 
 +++
-**Examples: [Ansible](https://www.ansible.com/), [Chef](https://www.chef.io/chef/), [Puppet](https://puppet.com/), and [Salt](https://saltstack.com/)**
+**Examples: [Ansible](https://www.ansible.com/), [Chef](https://www.chef.io/products/chef-infra), [Puppet](https://puppet.com/), and [Salt](https://saltstack.com/)**
 
 Configuration management tools allow you write configuration files, using a declarative language to manage a server. These tools focus on building working servers by installing and configuring system settings, system libraries, and application libraries before an application is installed on the server. Biome focuses on the application first instead of the server. Biome builds and packages your application's entire binary toolchain, including the system libraries, application libraries, and runtime dependencies necessary for your application to function. As a result, Biome can replace many use-cases that configuration management tools perform related to installing system binaries, application dependent libraries, or templating configuration files.
 

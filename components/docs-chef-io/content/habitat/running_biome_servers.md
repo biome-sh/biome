@@ -24,11 +24,11 @@ sudo groupadd bio
 sudo useradd -g bio hab
 ```
 
-Finally, you will need to wire Biome up to your systems init system. This may be SysVinit, SystemD, runit, etc. The details will be different for each system, but in the end, you must call `bio sup run`.
+Finally, you will need to wire Biome up to your systems init system. This may be SysVinit, systemd, runit, etc. The details will be different for each system, but in the end, you must call `bio sup run`.
 
-### Running under SystemD
+### Running under systemd
 
-A basic SystemD unit file for Biome might look like this. This assumes that you have already created the `hab` user and group, as instructed above, and that your `bio` binary is linked to `/bin/bio`.
+A basic systemd unit file for Biome might look like this. This assumes that you have already created the `hab` user and group, as instructed above, and that your `bio` binary is linked to `/bin/bio`.
 
 ```toml
     [Unit]
