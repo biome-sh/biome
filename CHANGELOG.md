@@ -1,16 +1,25 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.478 -->
-## [1.6.478](https://github.com/habitat-sh/habitat/tree/1.6.478) (2022-03-24)
+<!-- latest_release 1.6.486 -->
+## [1.6.486](https://github.com/habitat-sh/habitat/tree/1.6.486) (2022-03-31)
 
 #### Merged Pull Requests
-- update changelog [#8469](https://github.com/habitat-sh/habitat/pull/8469) ([atrniv](https://github.com/atrniv))
+- Update Habitat Supervisor API Docs - 20220323155103 [#8467](https://github.com/habitat-sh/habitat/pull/8467) ([chef-ci](https://github.com/chef-ci))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.477 -->
 ### Changes since 1.6.477 release
 
 #### Merged Pull Requests
+- Update Habitat Supervisor API Docs - 20220323155103 [#8467](https://github.com/habitat-sh/habitat/pull/8467) ([chef-ci](https://github.com/chef-ci)) <!-- 1.6.486 -->
+- Hab-sup-run arguments modified. [#8464](https://github.com/habitat-sh/habitat/pull/8464) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 1.6.485 -->
+- Rustfmt and Nightly Rust Bump to nightly-2022-03-23 [#8468](https://github.com/habitat-sh/habitat/pull/8468) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.484 -->
+- Bump log from 0.4.14 to 0.4.16 [#8466](https://github.com/habitat-sh/habitat/pull/8466) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.483 -->
+- update prost crates [#8478](https://github.com/habitat-sh/habitat/pull/8478) ([mwrock](https://github.com/mwrock)) <!-- 1.6.482 -->
+- Bump prost-derive from 0.9.0 to 0.10.0 [#8474](https://github.com/habitat-sh/habitat/pull/8474) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.481 -->
+- Bump paste from 1.0.6 to 1.0.7 [#8472](https://github.com/habitat-sh/habitat/pull/8472) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.480 -->
+- Bump semver from 1.0.6 to 1.0.7 [#8473](https://github.com/habitat-sh/habitat/pull/8473) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.480 -->
+- Bump async-trait from 0.1.52 to 0.1.53 [#8471](https://github.com/habitat-sh/habitat/pull/8471) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.479 -->
 - update changelog [#8469](https://github.com/habitat-sh/habitat/pull/8469) ([atrniv](https://github.com/atrniv)) <!-- 1.6.478 -->
 <!-- release_rollup -->
 

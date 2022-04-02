@@ -44,12 +44,14 @@ mod test {
                         "PKG_IDENT_OR_ARTIFACT" => "core/redis");
 
         assert_cli_cmd!(should_handle_multiple_bind_flags,
-                        "bio-sup run --bind test:service.group1 --bind test:service.group2",
-                        "BIND" => ["test:service.group1", "test:service.group2"]);
+                        "bio-sup run --bind test:service.group1 --bind test:service.group2 -- core/redis",
+                        "BIND" => ["test:service.group1", "test:service.group2"],
+                        "PKG_IDENT_OR_ARTIFACT" => "core/redis");
 
         assert_cli_cmd!(should_handle_single_bind_flag_with_multiple_values,
-                        "bio-sup run --bind test:service.group1 test2:service.group2",
-                        "BIND" => ["test:service.group1", "test2:service.group2"]);
+                        "bio-sup run --bind test:service.group1 test2:service.group2 -- core/redis",
+                        "BIND" => ["test:service.group1", "test2:service.group2"],
+                        "PKG_IDENT_OR_ARTIFACT" => "core/redis");
 
         assert_cli_cmd!(should_handle_bind_flag_with_arguments,
                         "bio-sup run --bind test:service.group1 test:service.group2 -- core/redis",
