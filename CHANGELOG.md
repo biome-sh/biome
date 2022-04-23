@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.490 -->
-## [1.6.490](https://github.com/habitat-sh/habitat/tree/1.6.490) (2022-04-13)
+<!-- latest_release 1.6.493 -->
+## [1.6.493](https://github.com/habitat-sh/habitat/tree/1.6.493) (2022-04-21)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.122 to 0.2.123 [#8484](https://github.com/habitat-sh/habitat/pull/8484) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump toml from 0.5.8 to 0.5.9 [#8488](https://github.com/habitat-sh/habitat/pull/8488) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.477 -->
 ### Changes since 1.6.477 release
 
 #### Merged Pull Requests
+- Bump toml from 0.5.8 to 0.5.9 [#8488](https://github.com/habitat-sh/habitat/pull/8488) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.493 -->
+- Bump libc from 0.2.123 to 0.2.124 [#8489](https://github.com/habitat-sh/habitat/pull/8489) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.492 -->
+- Implement advanced behavior for init and run hooks [#8454](https://github.com/habitat-sh/habitat/pull/8454) ([atrniv](https://github.com/atrniv)) <!-- 1.6.491 -->
 - Bump libc from 0.2.122 to 0.2.123 [#8484](https://github.com/habitat-sh/habitat/pull/8484) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.490 -->
 - Set permissions for GitHub actions [#8481](https://github.com/habitat-sh/habitat/pull/8481) ([nathannaveen](https://github.com/nathannaveen)) <!-- 1.6.489 -->
 - Bump httparse from 1.6.0 to 1.7.0 [#8483](https://github.com/habitat-sh/habitat/pull/8483) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.489 -->
