@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.508 -->
-## [1.6.508](https://github.com/habitat-sh/habitat/tree/1.6.508) (2022-05-13)
+<!-- latest_release 1.6.513 -->
+## [1.6.513](https://github.com/habitat-sh/habitat/tree/1.6.513) (2022-05-19)
 
 #### Merged Pull Requests
-- going back to latest ubuntu images [#8514](https://github.com/habitat-sh/habitat/pull/8514) ([mwrock](https://github.com/mwrock))
+- another empty change to force rebuild and pickup linux2 tar [#8520](https://github.com/habitat-sh/habitat/pull/8520) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.500 -->
 ### Changes since 1.6.500 release
 
 #### Merged Pull Requests
+- another empty change to force rebuild and pickup linux2 tar [#8520](https://github.com/habitat-sh/habitat/pull/8520) ([mwrock](https://github.com/mwrock)) <!-- 1.6.513 -->
+- forcing another build [#8519](https://github.com/habitat-sh/habitat/pull/8519) ([mwrock](https://github.com/mwrock)) <!-- 1.6.512 -->
+- another rebuild [#8517](https://github.com/habitat-sh/habitat/pull/8517) ([mwrock](https://github.com/mwrock)) <!-- 1.6.511 -->
+- another comment change [#8516](https://github.com/habitat-sh/habitat/pull/8516) ([mwrock](https://github.com/mwrock)) <!-- 1.6.510 -->
+- comment change to force a build with refreshed packages [#8515](https://github.com/habitat-sh/habitat/pull/8515) ([mwrock](https://github.com/mwrock)) <!-- 1.6.509 -->
 - going back to latest ubuntu images [#8514](https://github.com/habitat-sh/habitat/pull/8514) ([mwrock](https://github.com/mwrock)) <!-- 1.6.508 -->
 - Bump nix from 0.23.1 to 0.24.1 [#8509](https://github.com/habitat-sh/habitat/pull/8509) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.507 -->
 - Bump prost from 0.10.1 to 0.10.3 [#8510](https://github.com/habitat-sh/habitat/pull/8510) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.507 -->
