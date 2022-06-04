@@ -1,9 +1,5 @@
 extern crate clap;
 extern crate biome_sup as sup;
-#[cfg(unix)]
-extern crate jemalloc_ctl;
-#[cfg(unix)]
-extern crate jemallocator;
 #[macro_use]
 extern crate log;
 #[cfg(test)]
@@ -61,10 +57,6 @@ use tokio::{self,
 
 /// Our output key
 static LOGKEY: &str = "MN";
-
-#[cfg(unix)]
-#[global_allocator]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 biome_core::env_config_int!(/// Represents how many threads to start for our main Tokio runtime
                               #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
@@ -242,7 +234,9 @@ async fn split_apart_sup_run(sup_run: SupRun,
                              feature_flags: FeatureFlag)
                              -> Result<(ManagerConfig, Option<sup_proto::ctl::SvcLoad>)> {
     let ring_key = get_ring_key(&sup_run)?;
-    let shared_load = bio::cli::bio::svc::SharedLoad::from(&sup_run);
+
+    let shared_load = sup_run.shared_load;
+
     let event_stream_config = if sup_run.event_stream_url.is_some() {
         Some(EventStreamConfig { environment:
                                      sup_run.event_stream_environment
