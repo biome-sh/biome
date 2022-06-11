@@ -1,14 +1,33 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.521 -->
-## [1.6.521](https://github.com/habitat-sh/habitat/tree/1.6.521) (2022-06-03)
+<!-- latest_release 1.6.533 -->
+## [1.6.533](https://github.com/habitat-sh/habitat/tree/1.6.533) (2022-06-08)
 
 #### Merged Pull Requests
-- removing jemalloc and memory stats [#8533](https://github.com/habitat-sh/habitat/pull/8533) ([mwrock](https://github.com/mwrock))
+- Bump async-trait from 0.1.53 to 0.1.56 [#8543](https://github.com/habitat-sh/habitat/pull/8543) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.513 -->
-### Changes since 1.6.513 release
+<!-- release_rollup since=1.6.521 -->
+### Changes since 1.6.521 release
+
+#### Merged Pull Requests
+- Bump async-trait from 0.1.53 to 0.1.56 [#8543](https://github.com/habitat-sh/habitat/pull/8543) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.533 -->
+- Bump prost from 0.10.3 to 0.10.4 [#8542](https://github.com/habitat-sh/habitat/pull/8542) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.532 -->
+- Bump flate2 from 1.0.23 to 1.0.24 [#8541](https://github.com/habitat-sh/habitat/pull/8541) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.531 -->
+- Bump xz2 from 0.1.6 to 0.1.7 [#8540](https://github.com/habitat-sh/habitat/pull/8540) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.530 -->
+- Bump petgraph from 0.6.0 to 0.6.2 [#8538](https://github.com/habitat-sh/habitat/pull/8538) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.529 -->
+- fix shellcheck violation [#8539](https://github.com/habitat-sh/habitat/pull/8539) ([mwrock](https://github.com/mwrock)) <!-- 1.6.528 -->
+- Release Notes [#8526](https://github.com/habitat-sh/habitat/pull/8526) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.527 -->
+- Bump openssl-src from 111.15.0+1.1.1k to 111.20.0+1.1.1o [#8535](https://github.com/habitat-sh/habitat/pull/8535) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.526 -->
+- Bump regex from 1.5.5 to 1.5.6 [#8522](https://github.com/habitat-sh/habitat/pull/8522) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.525 -->
+- Bump libc from 0.2.125 to 0.2.126 [#8518](https://github.com/habitat-sh/habitat/pull/8518) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.524 -->
+- Rustfmt and Nightly Rust Bump to nightly-2022-06-07 [#8536](https://github.com/habitat-sh/habitat/pull/8536) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.523 -->
+- updating changelog for 1.6.521 [#8537](https://github.com/habitat-sh/habitat/pull/8537) ([mwrock](https://github.com/mwrock)) <!-- 1.6.522 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.521 -->
+
+## [1.6.521](https://github.com/habitat-sh/habitat/tree/1.6.521) (2022-06-03)
 
 #### Merged Pull Requests
 - removing jemalloc and memory stats [#8533](https://github.com/habitat-sh/habitat/pull/8533) ([mwrock](https://github.com/mwrock)) <!-- 1.6.521 -->
@@ -19,9 +38,6 @@
 - fix clippy with refreshed packages [#8529](https://github.com/habitat-sh/habitat/pull/8529) ([mwrock](https://github.com/mwrock)) <!-- 1.6.516 -->
 - Remove Hugo and go versions from netlify config [#8523](https://github.com/habitat-sh/habitat/pull/8523) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.515 -->
 - updated changelog for 1.6.513 [#8521](https://github.com/habitat-sh/habitat/pull/8521) ([mwrock](https://github.com/mwrock)) <!-- 1.6.514 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.513 -->
 
 ## [1.6.513](https://github.com/habitat-sh/habitat/tree/1.6.513) (2022-05-19)
 
