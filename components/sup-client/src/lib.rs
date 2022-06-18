@@ -32,8 +32,9 @@
 //! ```
 
 use biome_sup_protocol as protocol;
-#[macro_use]
-extern crate log;
+use log::{debug,
+          trace};
+
 use crate::{common::types::ResolvedListenCtlAddr,
             protocol::{codec::*,
                        net::NetErr}};

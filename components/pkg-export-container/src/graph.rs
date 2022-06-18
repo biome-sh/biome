@@ -1,5 +1,5 @@
-use crate::{build::BasePkgIdents,
-            error::Result};
+use crate::build::BasePkgIdents;
+use anyhow::Result;
 use biome_common::package_graph::PackageGraph;
 use biome_core::package::{FullyQualifiedPackageIdent,
                             PackageIdent};

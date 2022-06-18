@@ -1,4 +1,4 @@
-use crate::error::Result;
+use anyhow::Result;
 use biome_core::package::{PackageIdent,
                             PackageInstall};
 use std::{fs::{self,

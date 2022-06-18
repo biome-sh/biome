@@ -1,9 +1,5 @@
-extern crate biome_core as core;
+use biome_core as core;
 use biome_launcher_protocol as protocol;
-#[macro_use]
-extern crate log;
-#[cfg(windows)]
-extern crate winapi;
 
 pub mod error;
 pub mod server;

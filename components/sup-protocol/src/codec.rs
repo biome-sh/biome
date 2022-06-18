@@ -48,6 +48,7 @@ use bytes::{Buf,
             Bytes,
             BytesMut};
 use biome_core::tls::rustls_wrapper::TcpOrTlsStream;
+use log::trace;
 use prost::{self,
             Message};
 use std::{fmt,

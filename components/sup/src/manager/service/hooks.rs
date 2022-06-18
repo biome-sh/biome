@@ -12,6 +12,7 @@ use biome_common::{error::Result,
                      FeatureFlag};
 #[cfg(windows)]
 use biome_core::os::process::windows_child::ExitStatus;
+use log::debug;
 use serde::Serialize;
 #[cfg(not(windows))]
 use std::process::ExitStatus;

@@ -11,8 +11,9 @@ env_logger = "*"
 biome_core = { path = "../core" }
 biome-launcher-protocol = { path = "../launcher-protocol" }
 biome_common = { path = "../common" }
-ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
+ipc-channel = { version = "*" }
 libc = "*"
 log = "*"
 prost = "*"
 serde = "*"
+thiserror = "*"

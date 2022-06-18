@@ -2,6 +2,7 @@ use crate::error::Result;
 use biome_core::crypto::keys::{Key,
                                  KeyCache,
                                  KeyFile};
+use log::debug;
 use std::io::{self,
               Write};
 

@@ -14,6 +14,8 @@ use crate::error::{Error,
                    Result};
 use biome_common::templating::hooks::Hook;
 use biome_core::service::ServiceGroup;
+use log::{debug,
+          error};
 use std::{clone::Clone,
           sync::Arc,
           time::{Duration,

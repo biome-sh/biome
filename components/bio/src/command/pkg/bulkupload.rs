@@ -28,6 +28,7 @@ use biome_core::{crypto::{keys::{Key,
                                    PublicOriginSigningKey},
                             PUBLIC_KEY_SUFFIX},
                    ChannelIdent};
+use log::debug;
 use reqwest::StatusCode;
 use std::{collections::BTreeSet,
           convert::TryFrom,

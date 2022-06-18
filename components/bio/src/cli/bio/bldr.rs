@@ -8,6 +8,7 @@ use crate::cli::valid_origin;
 use configopt::ConfigOpt;
 use biome_common::cli::PACKAGE_TARGET_ENVVAR;
 use biome_core::package::PackageTarget;
+use serde::Serialize;
 use structopt::{clap::ArgGroup,
                 StructOpt};
 

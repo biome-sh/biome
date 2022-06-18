@@ -6,6 +6,7 @@ use biome_common::{liveliness_checker,
                      templating::config::UserConfigPath};
 use biome_core::{fs::USER_CONFIG_FILE,
                    service::ServiceGroup};
+use log::debug;
 use std::{collections::HashMap,
           io,
           path::{Path,

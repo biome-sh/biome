@@ -6,6 +6,9 @@ use biome_core::{self,
                    service::ServiceGroup,
                    ChannelIdent};
 use biome_sup_protocol::types::UpdateCondition;
+use log::{debug,
+          trace,
+          warn};
 use rand::Rng;
 use std::{self,
           time::Duration};

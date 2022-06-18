@@ -6,6 +6,10 @@ use crate::{census::{CensusGroup,
 use biome_common::owning_refs::RwLockReadGuardRef;
 use biome_core::{package::PackageIdent,
                    service::ServiceGroup};
+use log::{debug,
+          error,
+          trace,
+          warn};
 use parking_lot::RwLock;
 use std::{self,
           sync::Arc,

@@ -37,7 +37,7 @@ See a quick demo of how to build, deploy and manage an application with Biome:
 Graphics that will help you and your team better understand the concepts and how they fit together into the larger Biome ecosystem.
 ### Where Biome Fits
 
-[![Biome Flow Infographic](https://github.com/habitat-sh/habitat/raw/master/images/biome-flow-infographic.png)](http://biome.sh#reference-diagram)
+[![Biome Flow Infographic](https://github.com/habitat-sh/habitat/raw/main/images/biome-flow-infographic.png)](http://biome.sh#reference-diagram)
 
 Try the interactive infographics on the [website](http://biome.sh#reference-diagram)!
 
