@@ -1,16 +1,20 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.539 -->
-## [1.6.539](https://github.com/habitat-sh/habitat/tree/1.6.539) (2022-06-23)
+<!-- latest_release 1.6.543 -->
+## [1.6.543](https://github.com/habitat-sh/habitat/tree/1.6.543) (2022-07-21)
 
 #### Merged Pull Requests
-- Correct the channels response parsing [#8548](https://github.com/habitat-sh/habitat/pull/8548) ([sajjaphani](https://github.com/sajjaphani))
+- More crate updates [#8571](https://github.com/habitat-sh/habitat/pull/8571) ([sajjaphani](https://github.com/sajjaphani))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- More crate updates [#8571](https://github.com/habitat-sh/habitat/pull/8571) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.543 -->
+- Remove warning [#8562](https://github.com/habitat-sh/habitat/pull/8562) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.542 -->
+- bump crates [#8565](https://github.com/habitat-sh/habitat/pull/8565) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.541 -->
+- SockerAddressProxy type support [#8559](https://github.com/habitat-sh/habitat/pull/8559) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 1.6.540 -->
 - Correct the channels response parsing [#8548](https://github.com/habitat-sh/habitat/pull/8548) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.539 -->
 - Trigger Build Pipeline Rebuild [#8555](https://github.com/habitat-sh/habitat/pull/8555) ([atrniv](https://github.com/atrniv)) <!-- 1.6.538 -->
 - fixes supervisor - launcher backward compatibility [#8552](https://github.com/habitat-sh/habitat/pull/8552) ([atrniv](https://github.com/atrniv)) <!-- 1.6.537 -->
