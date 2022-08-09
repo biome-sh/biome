@@ -6,6 +6,9 @@ use biome_common::command::package::install::InstallSource;
 use biome_core::{package::{PackageIdent,
                              PackageInstall},
                    ChannelIdent};
+use log::{debug,
+          trace,
+          warn};
 use rand::Rng;
 use std::{borrow::Borrow,
           time::Duration};

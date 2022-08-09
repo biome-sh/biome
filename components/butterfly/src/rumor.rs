@@ -21,8 +21,10 @@ use crate::{error::{Error,
                        Message},
             rumor::election::ElectionRumor};
 use bytes::BytesMut;
-use prometheus::IntCounterVec;
+use prometheus::{register_int_counter_vec,
+                 IntCounterVec};
 use prost::Message as ProstMessage;
+use serde::Serialize;
 use std::{collections::{hash_map::Entry,
                         HashMap},
           default::Default,
@@ -43,6 +45,7 @@ pub use self::{departure::Departure,
 pub use crate::protocol::newscast::{Rumor as ProtoRumor,
                                     RumorPayload,
                                     RumorType};
+use lazy_static::lazy_static;
 
 lazy_static! {
     static ref IGNORED_RUMOR_COUNT: IntCounterVec =
@@ -167,9 +170,7 @@ mod storage {
         ///     println!("{:?}", s);
         /// }
         /// ```
-        pub fn rumors(&self) -> impl Iterator<Item = &R> {
-            self.0.iter().map(|m| m.values()).flatten()
-        }
+        pub fn rumors(&self) -> impl Iterator<Item = &R> { self.0.iter().flat_map(|m| m.values()) }
 
         /// Return the result of applying `f` to the rumor in this service_group from
         /// `member_id`, or `None` if no such rumor is present.
@@ -199,9 +200,7 @@ mod storage {
         ///     println!("{:?}", rumor);
         /// }
         /// ```
-        pub fn rumors(&self) -> impl Iterator<Item = &T> {
-            self.values().map(HashMap::values).flatten()
-        }
+        pub fn rumors(&self) -> impl Iterator<Item = &T> { self.values().flat_map(HashMap::values) }
 
         /// Allows iterator access to the rumors in to the `RumorMap` for a particular service group
         /// while holding its lock.
@@ -524,6 +523,7 @@ mod tests {
                 rumor::{Rumor,
                         RumorKey,
                         RumorType}};
+    use serde::Serialize;
     use uuid::Uuid;
 
     #[derive(Clone, Debug, Serialize)]
@@ -534,7 +534,7 @@ mod tests {
 
     impl Default for FakeRumor {
         fn default() -> FakeRumor {
-            FakeRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
+            FakeRumor { id:  format!("{}", Uuid::new_v4().as_simple()),
                         key: String::from("fakerton"), }
         }
     }
@@ -575,7 +575,7 @@ mod tests {
 
     impl Default for TrumpRumor {
         fn default() -> TrumpRumor {
-            TrumpRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
+            TrumpRumor { id:  format!("{}", Uuid::new_v4().as_simple()),
                          key: String::from("fakerton"), }
         }
     }

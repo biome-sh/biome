@@ -9,9 +9,9 @@ use super::{svc::{ConfigOptSharedLoad,
                    ConfigOptRemoteSup,
                    DurationProxy,
                    RemoteSup,
+                   SocketAddrProxy,
                    SubjectAlternativeName}};
-use crate::{error::Error,
-            VERSION};
+use crate::VERSION;
 use configopt::{self,
                 configopt_fields,
                 ConfigOpt};
@@ -34,9 +34,10 @@ use biome_core::{env::Config,
                    util as core_util};
 use rants::{error::Error as RantsError,
             Address as NatsAddress};
+use serde::{Deserialize,
+            Serialize};
 use std::{fmt,
-          net::{IpAddr,
-                SocketAddr},
+          net::IpAddr,
           path::PathBuf,
           str::FromStr};
 use structopt::{clap::AppSettings,
@@ -127,10 +128,6 @@ impl From<EventStreamAddress> for NatsAddress {
     fn from(address: EventStreamAddress) -> Self { address.0 }
 }
 
-fn parse_peer(s: &str) -> Result<SocketAddr, Error> {
-    Ok(biome_common::util::resolve_socket_addr_with_default_port(s, GossipListenAddr::DEFAULT_PORT)?.1)
-}
-
 /// Run the Biome Supervisor
 #[configopt_fields]
 #[derive(ConfigOpt, StructOpt, Deserialize)]
@@ -185,11 +182,8 @@ pub struct SupRun {
     #[structopt(long = "org")]
     pub organization: Option<String>,
     /// The listen address of one or more initial peers (IP[:PORT])
-    // TODO (DM): Currently there is not a good way to use `parse_peer` when deserializing. Due to
-    // https://github.com/serde-rs/serde/issues/723. There are workarounds but they are all ugly.
-    // This means that you have to specify the port when setting this with a config file.
-    #[structopt(long = "peer", parse(try_from_str = parse_peer))]
-    pub peer: Vec<SocketAddr>,
+    #[structopt(long = "peer")]
+    pub peer: Vec<SocketAddrProxy>,
     /// Make this Supervisor a permanent peer
     #[structopt(long = "permanent-peer", short = "I")]
     pub permanent_peer: bool,
@@ -223,6 +217,18 @@ pub struct SupRun {
     /// The period of time in seconds between service update checks
     #[structopt(long = "service-update-period", default_value = "60")]
     pub service_update_period: DurationProxy,
+    /// The minimum period of time in seconds to wait before attempting to restart a service
+    /// that failed to start up
+    #[structopt(long = "service-min-backoff-period", default_value = "0")]
+    pub service_min_backoff_period: DurationProxy,
+    /// The maximum period of time in seconds to wait before attempting to restart a service
+    /// that failed to start up
+    #[structopt(long = "service-max-backoff-period", default_value = "0")]
+    pub service_max_backoff_period: DurationProxy,
+    /// The period of time in seconds to wait before assuming that a service started up
+    /// successfully after a restart
+    #[structopt(long = "service-restart-cooldown-period", default_value = "300")]
+    pub service_restart_cooldown_period: DurationProxy,
     /// The private key for HTTP Gateway TLS encryption
     ///
     /// Read the private key from KEY_FILE. This should be an RSA private key or PKCS8-encoded

@@ -16,7 +16,7 @@ doc = false
 
 [dependencies]
 bytes = "*"
-actix-web = { version = "4.0.0-beta.8", default-features = false, features = [ "rustls" ] }
+actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
 actix-rt = "*"
 byteorder = "*"
 clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
@@ -43,13 +43,13 @@ num_cpus = "*"
 parking_lot = "*"
 pin-project = "*"
 prometheus = "*"
-prost = "*"
-prost-derive = "*"
+prost = { version = "*", features = ["prost-derive"] }
 prost-types = "*"
 rand = "*"
 rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
 regex = "*"
 rustls = "*"
+rustls-pemfile = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
 serde_json = { version = "*", features = [ "preserve_order" ] }
@@ -60,6 +60,7 @@ structopt = { git = "https://github.com/habitat-sh/structopt.git" }
 tempfile = "*"
 termcolor = "*"
 thiserror = "*"
+anyhow = { version = "*", features = ["backtrace"] }
 toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
@@ -69,10 +70,6 @@ valico = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
-
-[target.'cfg(target_family = "unix")'.dependencies]
-jemallocator = "*"
-jemalloc-ctl = "*"
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
@@ -84,7 +81,10 @@ winapi = { version = "*", features = ["namedpipeapi", "tlhelp32"] }
 [dev-dependencies]
 biome_core = { path = "../core" }
 hyper = "*"
-json = "*"
+reqwest = { version = "*", features = ["json"] }
+
+[target.'cfg(not(windows))'.dev-dependencies]
+nix = "*"
 
 [build-dependencies]
 prost-build = "*"

@@ -1,14 +1,12 @@
-use biome_common as common;
-use biome_pkg_export_tar as export_tar;
-#[macro_use]
-extern crate log;
-
 use crate::{common::{ui::{UIWriter,
                           UI},
                      PROGRAM_NAME},
-            export_tar::{Cli,
-                         Result}};
+            export_tar::Cli};
+use anyhow::Result;
 use clap::App;
+use biome_common as common;
+use biome_pkg_export_tar as export_tar;
+use log::debug;
 
 #[tokio::main]
 async fn main() {

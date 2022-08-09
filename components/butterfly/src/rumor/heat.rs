@@ -39,6 +39,7 @@ pub(crate) mod sync {
     use biome_common::sync::{Lock,
                                ReadGuard,
                                WriteGuard};
+    use log::debug;
     use std::collections::HashMap;
 
     type RumorHeatInner = HashMap<RumorKey, HashMap<String, usize>>;
@@ -388,6 +389,7 @@ mod tests {
                         RumorKey,
                         RumorType}};
     use biome_core::locked_env_var;
+    use serde::Serialize;
     use uuid::Uuid;
 
     locked_env_var!(HAB_RUMOR_SHARE_LIMIT, lock_rumor_limit);
@@ -403,7 +405,7 @@ mod tests {
 
     impl Default for FakeRumor {
         fn default() -> FakeRumor {
-            FakeRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
+            FakeRumor { id:  format!("{}", Uuid::new_v4().as_simple()),
                         key: String::from("fakerton"), }
         }
     }

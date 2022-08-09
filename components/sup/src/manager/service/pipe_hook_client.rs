@@ -6,6 +6,8 @@ use biome_common::{error::{Error,
 use biome_core::{env as henv,
                    util::{self,
                           BufReadLossy}};
+use log::{debug,
+          error};
 use mio::{windows::NamedPipe,
           Events,
           Interest,

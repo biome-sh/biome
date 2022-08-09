@@ -14,7 +14,11 @@ use biome_common::sync::{Lock,
                            ReadGuard,
                            WriteGuard};
 use biome_core::util::ToI64;
-use prometheus::IntGaugeVec;
+use lazy_static::lazy_static;
+use log::{debug,
+          trace};
+use prometheus::{register_int_gauge_vec,
+                 IntGaugeVec};
 use rand::{seq::{IteratorRandom,
                  SliceRandom},
            thread_rng};
@@ -154,7 +158,7 @@ impl Member {
 
 impl Default for Member {
     fn default() -> Self {
-        Member { id:          Uuid::new_v4().to_simple_ref().to_string(),
+        Member { id:          Uuid::new_v4().as_simple().to_string(),
                  incarnation: Incarnation::default(),
                  // TODO (CM): DANGER DANGER DANGER
                  // This is a lousy default, and suggests that the notion

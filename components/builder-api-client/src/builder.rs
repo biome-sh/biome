@@ -16,7 +16,7 @@ use crate::{error::{Error,
 use broadcast::BroadcastWriter;
 use bytes::BytesMut;
 use futures::{io::AllowStdIo,
-              stream::TryStreamExt};
+              TryStreamExt};
 use biome_core::{crypto::keys::AnonymousBox,
                    fs::{AtomicWriter,
                         Permissions,
@@ -31,6 +31,8 @@ use biome_core::{crypto::keys::AnonymousBox,
                              PackageTarget},
                    util,
                    ChannelIdent};
+use log::{debug,
+          trace};
 use percent_encoding::{percent_encode,
                        AsciiSet,
                        CONTROLS};
@@ -39,6 +41,9 @@ use reqwest::{header::CONTENT_LENGTH,
               IntoUrl,
               RequestBuilder,
               StatusCode};
+use serde::{Deserialize,
+            Serialize};
+use serde_json::json;
 use std::{fs::{self,
                File},
           future::Future,
@@ -96,6 +101,8 @@ pub struct OriginPrivateSigningKey {
 }
 
 mod json {
+    use serde::Deserialize;
+
     #[derive(Clone, Deserialize)]
     pub struct PackageIdent {
         pub origin:  String,
@@ -125,6 +132,13 @@ pub struct PackageResults<T> {
 #[derive(Clone, Deserialize)]
 pub struct OriginChannelIdent {
     pub name: String,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct OriginChannelWithPromotion {
+    pub name:        String,
+    pub created_at:  String,
+    pub promoted_at: String,
 }
 
 pub struct BuilderAPIClient(ApiClient);
@@ -342,7 +356,7 @@ impl BuilderAPIClient {
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
                .append_pair("package_only", &package_only.to_string())
-               .append_pair("target", &target.to_string());
+               .append_pair("target", &target);
         };
 
         let resp = self.0
@@ -896,8 +910,7 @@ impl BuilderAPIClient {
         let path = package_channels_path(ident);
 
         let custom = |url: &mut Url| {
-            url.query_pairs_mut()
-               .append_pair("target", &target.to_string());
+            url.query_pairs_mut().append_pair("target", &target);
         };
 
         let resp = self.maybe_add_authz(self.0.get_with_custom_url(&path, custom), token)
@@ -908,8 +921,9 @@ impl BuilderAPIClient {
         let encoded = resp.text().await.map_err(Error::BadResponseBody)?;
         trace!(target: "biome_http_client::api_client::package_channels", "{:?}", encoded);
 
-        Ok(serde_json::from_str::<Vec<String>>(&encoded)?.into_iter()
-                                                         .collect())
+        let results: Vec<OriginChannelWithPromotion> = serde_json::from_str(&encoded)?;
+        let channels = results.into_iter().map(|o| o.name).collect();
+        Ok(channels)
     }
 
     /// Upload a public origin key to a remote Builder.
@@ -1131,7 +1145,7 @@ impl BuilderAPIClient {
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
                .append_pair("checksum", &checksum)
-               .append_pair("target", &target.to_string())
+               .append_pair("target", &target)
                .append_pair("forced", &force_upload.to_string());
 
             // Builder uses presence of the `builder` param to disable builds.
@@ -1170,8 +1184,7 @@ impl BuilderAPIClient {
         let path = package_path(ident);
 
         let custom = |url: &mut Url| {
-            url.query_pairs_mut()
-               .append_pair("target", &target.to_string());
+            url.query_pairs_mut().append_pair("target", &target);
         };
 
         response::ok_if_unit(self.0
@@ -1206,8 +1219,7 @@ impl BuilderAPIClient {
         let path = channel_package_promote(channel, ident);
 
         let custom = |url: &mut Url| {
-            url.query_pairs_mut()
-               .append_pair("target", &target.to_string());
+            url.query_pairs_mut().append_pair("target", &target);
         };
 
         response::ok_if_unit(self.0
@@ -1242,8 +1254,7 @@ impl BuilderAPIClient {
         let path = channel_package_demote(channel, ident);
 
         let custom = |url: &mut Url| {
-            url.query_pairs_mut()
-               .append_pair("target", &target.to_string());
+            url.query_pairs_mut().append_pair("target", &target);
         };
 
         response::ok_if_unit(self.0
@@ -1457,7 +1468,7 @@ macro_rules! retry_builder_api {
                 match $api_future.await.into() {
                     Ok(_) => retry::OperationResult::Ok(()),
                     Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
-                        info!("Unsupported package platform or architecture. Skipping!");
+                        log::info!("Unsupported package platform or architecture. Skipping!");
                         retry::OperationResult::Ok(())
                     }
                     Err(api_client::Error::APIError(code, error)) if code.is_client_error() => {

@@ -1,6 +1,7 @@
 use crate::{engine,
             RegistryType};
-use clap::{App,
+use clap::{clap_app,
+           App,
            Arg};
 use biome_common::PROGRAM_NAME;
 use biome_core::package::PackageIdent;

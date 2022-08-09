@@ -18,6 +18,7 @@ use biome_core::{error as herror,
                              PackageInstall}};
 use biome_sup_client::{SrvClient,
                          SrvClientError};
+use log::warn;
 use std::{fs,
           path::Path,
           str::FromStr};

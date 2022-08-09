@@ -11,6 +11,8 @@ use biome_core::os::process::{is_alive,
                                 Signal};
 use libc::{self,
            pid_t};
+use log::{debug,
+          trace};
 use std::{ops::Neg,
           thread,
           time::{Duration,

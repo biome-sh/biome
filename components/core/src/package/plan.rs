@@ -1,7 +1,7 @@
 use crate::error::{Error,
                    Result};
-use serde_derive::{Deserialize,
-                   Serialize};
+use serde::{Deserialize,
+            Serialize};
 use std::io::BufRead;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -31,8 +31,8 @@ impl Plan {
                 continue;
             }
 
-            let mut val = parts[1].replace("\"", "");
-            val = val.replace("'", "");
+            let mut val = parts[1].replace('\"', "");
+            val = val.replace('\'', "");
 
             match parts[0] {
                 "pkg_name" | "$pkg_name" => name = Some(val),

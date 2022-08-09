@@ -11,6 +11,8 @@ use biome_common::{cli::{file_into_idents,
 use biome_core::{origin::Origin as CoreOrigin,
                    package::{Identifiable,
                              PackageIdent}};
+use serde::{Deserialize,
+            Serialize};
 use std::{fmt,
           path::Path,
           result,

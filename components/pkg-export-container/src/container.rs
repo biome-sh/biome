@@ -1,15 +1,17 @@
 use crate::{build::BuildRoot,
             engine::Engine,
-            error::Result,
             naming::{ImageIdentifiers,
                      Naming},
             util};
-use failure::SyncFailure;
+use anyhow::{anyhow,
+             Result};
 use biome_common::ui::{Status,
                          UIWriter,
                          UI};
 use biome_core::package::PackageIdent;
 use handlebars::Handlebars;
+use log::error;
+use serde_json::json;
 use std::{fs,
           path::{Path,
                  PathBuf},
@@ -81,7 +83,7 @@ impl ContainerImage {
         });
         util::write_file(&report,
                          &Handlebars::new().template_render(BUILD_REPORT, &json)
-                                           .map_err(SyncFailure::new)?)?;
+                                           .map_err(|err| anyhow!("{}", err))?)?;
 
         Self::create_old_report(ui, dst);
 
@@ -218,7 +220,7 @@ impl BuildContext {
         let init = ctx.rootfs().join("init.sh");
         util::write_file(&init,
                          &Handlebars::new().template_render(INIT_SH, &json)
-                                           .map_err(SyncFailure::new)?)?;
+                                           .map_err(|err| anyhow!("{}", err))?)?;
         posix_perm::set_permissions(init.to_string_lossy().as_ref(), 0o0755)?;
         Ok(())
     }
@@ -236,7 +238,7 @@ impl BuildContext {
                 &PackageIdent::from_str("biome/bio")?,
                 ctx.rootfs())?.join("bin/bio")
                 .to_string_lossy()
-                .replace("\\", "/"),
+                .replace('\\', "/"),
             "exposes": ctx.svc_exposes().join(" "),
             "multi_layer": ctx.multi_layer(),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
@@ -246,7 +248,7 @@ impl BuildContext {
         });
         util::write_file(self.0.workdir().join("Dockerfile"),
                          &Handlebars::new().template_render(DOCKERFILE, &json)
-                                           .map_err(SyncFailure::new)?)?;
+                                           .map_err(|err| anyhow!("{}", err))?)?;
         Ok(())
     }
 

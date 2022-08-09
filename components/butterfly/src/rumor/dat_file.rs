@@ -16,6 +16,7 @@ use crate::{error::{Error,
 use byteorder::{ByteOrder,
                 LittleEndian};
 use biome_core::fs::AtomicWriter;
+use log::debug;
 use std::{collections::HashMap,
           fs::{File,
                OpenOptions},

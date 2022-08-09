@@ -5,6 +5,7 @@ use biome_common::{outputln,
 use biome_core::fs::find_command;
 
 use biome_core::os::process::become_command;
+use log::debug;
 
 use std::{env,
           path::PathBuf};

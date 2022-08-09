@@ -1,26 +1,16 @@
-#[macro_use]
-extern crate clap;
 use biome_common as common;
 use biome_core as hcore;
 
-#[macro_use]
-extern crate failure_derive;
-
-#[macro_use]
-extern crate log;
-
 mod build;
 pub mod cli;
-mod error;
 mod rootfs;
 
-pub use crate::{cli::Cli,
-                error::{Error,
-                        Result}};
+pub use crate::cli::Cli;
 use crate::{common::ui::UI,
             hcore::{package::{PackageIdent,
                               PackageInstall},
                     url as hurl}};
+use anyhow::Result;
 use flate2::{write::GzEncoder,
              Compression};
 use std::{fs::File,

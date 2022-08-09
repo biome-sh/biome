@@ -58,7 +58,8 @@ pub enum Error {
     InvalidUpdateStrategy(String),
     Io(io::Error),
     TaskJoin(JoinError),
-    Launcher(biome_launcher_client::Error),
+    LauncherIPCCommand(biome_launcher_client::IPCCommandError),
+    LauncherTryIPCCommand(biome_launcher_client::TryIPCCommandError),
     LockFileError(crate::lock_file::Error),
     MissingRequiredBind(Vec<String>),
     MissingRequiredIdent,
@@ -89,7 +90,7 @@ pub enum Error {
     SpecWatcherGlob(glob::PatternError),
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
-    TLSError(rustls::TLSError),
+    TLSError(rustls::Error),
     TomlEncode(toml::ser::Error),
     TryRecvError(mpsc::TryRecvError),
     UnpackFailed,
@@ -186,7 +187,26 @@ impl fmt::Display for Error {
             Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
             Error::Io(ref err) => err.to_string(),
             Error::TaskJoin(ref err) => err.to_string(),
-            Error::Launcher(ref err) => err.to_string(),
+            Error::LauncherIPCCommand(err) => {
+                let mut chain: Vec<String> = vec![format!("{}", err)];
+                let mut root = err.source();
+                while let Some(cause) = root {
+                    chain.push(format!("{}", cause));
+                    root = cause.source();
+                }
+                format!("Supervisor failed to execute launcher command via IPC: {}",
+                        chain.join(", "))
+            }
+            Error::LauncherTryIPCCommand(err) => {
+                let mut chain: Vec<String> = vec![format!("{}", err)];
+                let mut root = err.source();
+                while let Some(cause) = root {
+                    chain.push(format!("{}", cause));
+                    root = cause.source();
+                }
+                format!("Supervisor failed to try executing launcher command via IPC: {}",
+                        chain.join(", "))
+            }
             Error::MissingRequiredBind(ref e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
             }
@@ -275,8 +295,8 @@ impl error::Error for Error {
     }
 }
 
-impl From<rustls::TLSError> for Error {
-    fn from(err: rustls::TLSError) -> Error { Error::TLSError(err) }
+impl From<rustls::Error> for Error {
+    fn from(err: rustls::Error) -> Error { Error::TLSError(err) }
 }
 
 impl From<biome_api_client::Error> for Error {
@@ -335,8 +355,10 @@ impl From<env::JoinPathsError> for Error {
     fn from(err: env::JoinPathsError) -> Error { Error::EnvJoinPathsError(err) }
 }
 
-impl From<biome_launcher_client::Error> for Error {
-    fn from(err: biome_launcher_client::Error) -> Error { Error::Launcher(err) }
+impl From<biome_launcher_client::IPCCommandError> for Error {
+    fn from(err: biome_launcher_client::IPCCommandError) -> Error {
+        Error::LauncherIPCCommand(err)
+    }
 }
 
 impl From<string::FromUtf8Error> for Error {

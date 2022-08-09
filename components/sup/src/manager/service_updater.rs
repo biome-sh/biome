@@ -11,6 +11,7 @@ use futures::future::{self,
 use biome_common::outputln;
 use biome_core::{package::PackageIdent,
                    service::ServiceGroup};
+use log::debug;
 use parking_lot::{Mutex,
                   RwLock};
 use std::{self,

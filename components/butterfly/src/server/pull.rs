@@ -8,7 +8,13 @@ use crate::{rumor::{RumorEnvelope,
             ZMQ_CONTEXT};
 use biome_common::liveliness_checker;
 use biome_core::util::ToI64;
-use prometheus::{IntCounterVec,
+use lazy_static::lazy_static;
+use log::{error,
+          trace,
+          warn};
+use prometheus::{register_int_counter_vec,
+                 register_int_gauge_vec,
+                 IntCounterVec,
                  IntGaugeVec};
 use std::{thread,
           time::Duration};

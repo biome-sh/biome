@@ -1,17 +1,3 @@
-extern crate clap;
-extern crate biome_sup as sup;
-#[cfg(unix)]
-extern crate jemalloc_ctl;
-#[cfg(unix)]
-extern crate jemallocator;
-#[macro_use]
-extern crate log;
-#[cfg(test)]
-extern crate lazy_static;
-extern crate rustls;
-extern crate tempfile;
-extern crate url;
-
 use crate::sup::{cli::cli,
                  command,
                  error::{Error,
@@ -46,7 +32,12 @@ use biome_core::{self,
 use biome_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE,
                               OK_NO_RETRY_EXCODE};
+use biome_sup as sup;
 use biome_sup_protocol::{self as sup_proto};
+use log::{debug,
+          error,
+          info,
+          warn};
 use std::{convert::TryInto,
           env,
           io,
@@ -55,15 +46,12 @@ use std::{convert::TryInto,
                 Ipv4Addr},
           process,
           str::{self}};
+use sup::manager::ServiceRestartConfig;
 use tokio::{self,
             runtime::Builder as RuntimeBuilder};
 
 /// Our output key
 static LOGKEY: &str = "MN";
-
-#[cfg(unix)]
-#[global_allocator]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 biome_core::env_config_int!(/// Represents how many threads to start for our main Tokio runtime
                               #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
@@ -80,12 +68,11 @@ fn main() {
     signals::init();
     logger::init();
 
-    let runtime =
-        RuntimeBuilder::new_multi_thread()
-                             .worker_threads(TokioThreadCount::configured_value().into())
-                             .enable_all()
-                             .build()
-                             .expect("Couldn't build Tokio Runtime!");
+    let runtime = RuntimeBuilder::new_multi_thread()
+        .worker_threads(TokioThreadCount::configured_value().into())
+        .enable_all()
+        .build()
+        .expect("Couldn't build Tokio Runtime!");
 
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
@@ -104,7 +91,8 @@ fn main() {
 
 fn boot() -> Option<LauncherCli> {
     if crypto::init().is_err() {
-        println!("Crypto initialization failed!");
+        error!("Failed to initialization libsodium, make sure it is available in your runtime \
+                environment");
         process::exit(1);
     }
     match biome_launcher_client::env_pipe() {
@@ -112,7 +100,8 @@ fn boot() -> Option<LauncherCli> {
             match LauncherCli::connect(pipe) {
                 Ok(launcher) => Some(launcher),
                 Err(err) => {
-                    println!("{}", err);
+                    error!("Failed to connect to launcher: {:?}",
+                           anyhow::Error::new(err));
                     process::exit(1);
                 }
             }
@@ -236,14 +225,11 @@ fn sub_term() -> Result<()> {
 
 // Internal Implementation Details
 ////////////////////////////////////////////////////////////////////////
-
 async fn split_apart_sup_run(sup_run: SupRun,
                              feature_flags: FeatureFlag)
                              -> Result<(ManagerConfig, Option<sup_proto::ctl::SvcLoad>)> {
     let ring_key = get_ring_key(&sup_run)?;
-
     let shared_load = sup_run.shared_load;
-
     let event_stream_config = if sup_run.event_stream_url.is_some() {
         Some(EventStreamConfig { environment:
                                      sup_run.event_stream_environment
@@ -281,11 +267,15 @@ async fn split_apart_sup_run(sup_run: SupRun,
 
     let key_cache = KeyCache::new(sup_run.cache_key_path.cache_key_path);
     key_cache.setup()?;
-
     let cfg =
         ManagerConfig { auto_update: sup_run.auto_update,
                         auto_update_period: sup_run.auto_update_period.into(),
                         service_update_period: sup_run.service_update_period.into(),
+                        service_restart_config:
+                            ServiceRestartConfig::new(sup_run.service_min_backoff_period.into(),
+                                                      sup_run.service_max_backoff_period.into(),
+                                                      sup_run.service_restart_cooldown_period
+                                                             .into()),
                         custom_state_path: None, // remove entirely?
                         key_cache,
                         update_url: bldr_url.clone(),
@@ -294,7 +284,7 @@ async fn split_apart_sup_run(sup_run: SupRun,
                         organization: sup_run.organization,
                         gossip_permanent: sup_run.permanent_peer,
                         ring_key,
-                        gossip_peers: sup_run.peer,
+                        gossip_peers: sup_run.peer.iter().map(Into::into).collect(),
                         watch_peer_file: sup_run.peer_watch_file
                                                 .map(|p| p.to_string_lossy().to_string()),
                         gossip_listen: if sup_run.local_gossip_mode {
@@ -453,6 +443,7 @@ mod test {
                   path::PathBuf,
                   str::FromStr,
                   time::Duration};
+        use sup::manager::ServiceRestartConfig;
 
         locked_env_var!(HAB_CACHE_KEY_PATH, lock_var);
 
@@ -475,9 +466,11 @@ mod test {
         fn config_from_cmd_vec(cmd_vec: Vec<&str>) -> ManagerConfig {
             let sup_run = sup_run_from_cmd_vec(cmd_vec);
             executor::block_on(split_apart_sup_run(sup_run, no_feature_flags()))
-                                                            .expect("Could not get split apart \
-                                                                     SupRun")
-                                                            .0
+                .expect(
+                    "Could not get split apart \
+                                                                     SupRun",
+                )
+                .0
         }
 
         fn config_from_cmd_str(cmd: &str) -> ManagerConfig {
@@ -488,9 +481,11 @@ mod test {
         fn maybe_service_load_from_cmd_str(cmd: &str) -> Option<sup_proto::ctl::SvcLoad> {
             let sup_run = sup_run_from_cmd_str(cmd);
             executor::block_on(split_apart_sup_run(sup_run, no_feature_flags()))
-                                                            .expect("Could not get split apart \
-                                                                     SupRun")
-                                                            .1
+                .expect(
+                    "Could not get split apart \
+                                                                     SupRun",
+                )
+                .1
         }
 
         fn service_load_from_cmd_str(cmd: &str) -> sup_proto::ctl::SvcLoad {
@@ -720,6 +715,7 @@ gpoVMSncu2jMIDZX63IkQII=
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
@@ -787,12 +783,13 @@ gpoVMSncu2jMIDZX63IkQII=
             let gossip_peers = vec!["1.1.1.1:1111".parse().unwrap(),
                                     "2.2.2.2:2222".parse().unwrap(),
                                     format!("3.3.3.3:{}", GossipListenAddr::DEFAULT_PORT).parse()
-                                                                                         .unwrap()];
+                                                                                         .unwrap(),];
 
             let config = config_from_cmd_str(&args);
             assert_eq!(ManagerConfig { auto_update: true,
                                        auto_update_period: Duration::from_secs(90),
                                        service_update_period: Duration::from_secs(30),
+                                       service_restart_config: ServiceRestartConfig::default(),
                                        custom_state_path: None,
                                        key_cache: KeyCache::new(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
@@ -834,6 +831,7 @@ gpoVMSncu2jMIDZX63IkQII=
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new("/cache/key/path"),
                                        update_url:
@@ -872,6 +870,7 @@ gpoVMSncu2jMIDZX63IkQII=
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
@@ -939,41 +938,45 @@ gpoVMSncu2jMIDZX63IkQII=
             meta.insert(String::from("key1"), String::from("val1"));
             meta.insert(String::from("key2"), String::from("val2"));
             meta.insert(String::from("keyA"), String::from("valA"));
-            assert_eq!(ManagerConfig { auto_update:          false,
-                                       auto_update_period:   Duration::from_secs(60),
-                                       service_update_period:   Duration::from_secs(60),
-                                       custom_state_path:    None,
-                                       key_cache:       KeyCache::new(&*CACHE_KEY_PATH),
-                                       update_url:
-                                           String::from("https://bldr.habitat.sh"),
-                                       update_channel:       ChannelIdent::default(),
-                                       gossip_listen:        GossipListenAddr::default(),
-                                       ctl_listen:           ListenCtlAddr::default(),
-                                       ctl_server_certificates: None,
-                                       ctl_server_key:          None,
-                                       ctl_client_ca_certificates: None,
-                                       http_listen:          HttpListenAddr::default(),
-                                       http_disable:         false,
-                                       gossip_peers:         vec![],
-                                       gossip_permanent:     false,
-                                       ring_key:             None,
-                                       organization:         None,
-                                       watch_peer_file:      None,
-                                       tls_config:           None,
-                                       feature_flags:        FeatureFlag::empty(),
-                                       event_stream_config:  Some(EventStreamConfig {
-                                        environment: String::from("MY_ENV"),
-                                        application: String::from("MY_APP"),
-                                        site: Some(String::from("my_site")),
-                                        meta: meta.into(),
-                                        token: "some_token".parse().unwrap(),
-                                        url: "127.0.0.1:3456".parse().unwrap(),
-                                        connect_method: EventStreamConnectMethod::Timeout {secs: 5},
-                                        server_certificate: Some(certificate_path_str.parse().unwrap()),
-                                       }),
-                                       keep_latest_packages: None,
-                                       sys_ip:               biome_core::util::sys::ip().unwrap(), },
-                       config,);
+            assert_eq!(
+                ManagerConfig {
+                    auto_update: false,
+                    auto_update_period: Duration::from_secs(60),
+                    service_update_period: Duration::from_secs(60),
+                    service_restart_config: ServiceRestartConfig::default(),
+                    custom_state_path: None,
+                    key_cache: KeyCache::new(&*CACHE_KEY_PATH),
+                    update_url: String::from("https://bldr.habitat.sh"),
+                    update_channel: ChannelIdent::default(),
+                    gossip_listen: GossipListenAddr::default(),
+                    ctl_listen: ListenCtlAddr::default(),
+                    ctl_server_certificates: None,
+                    ctl_server_key: None,
+                    ctl_client_ca_certificates: None,
+                    http_listen: HttpListenAddr::default(),
+                    http_disable: false,
+                    gossip_peers: vec![],
+                    gossip_permanent: false,
+                    ring_key: None,
+                    organization: None,
+                    watch_peer_file: None,
+                    tls_config: None,
+                    feature_flags: FeatureFlag::empty(),
+                    event_stream_config: Some(EventStreamConfig {
+                        environment: String::from("MY_ENV"),
+                        application: String::from("MY_APP"),
+                        site: Some(String::from("my_site")),
+                        meta: meta.into(),
+                        token: "some_token".parse().unwrap(),
+                        url: "127.0.0.1:3456".parse().unwrap(),
+                        connect_method: EventStreamConnectMethod::Timeout { secs: 5 },
+                        server_certificate: Some(certificate_path_str.parse().unwrap()),
+                    }),
+                    keep_latest_packages: None,
+                    sys_ip: biome_core::util::sys::ip().unwrap(),
+                },
+                config,
+            );
         }
 
         #[test]
@@ -1087,7 +1090,6 @@ listen_http = "5.5.5.5:11111"
 http_disable = true
 listen_ctl = "7.8.9.1:12"
 organization = "MY_ORG"
-# TODO (DM): We have to always explicitly set the port instead of relying on defaults
 peer = ["1.1.1.1:1111", "2.2.2.2:2222", "3.3.3.3:9638"]
 permanent_peer = true
 ring = "tester"
@@ -1101,10 +1103,10 @@ ca_cert_file = "{}"
 keep_latest_packages = 5
 sys_ip_address = "7.8.9.0"
     "#,
-                                          temp_dir_str.replace("\\", "/"),
-                                          key_path_str.replace("\\", "/"),
-                                          cert_path_str.replace("\\", "/"),
-                                          ca_cert_path_str.replace("\\", "/")
+                                          temp_dir_str.replace('\\', "/"),
+                                          key_path_str.replace('\\', "/"),
+                                          cert_path_str.replace('\\', "/"),
+                                          ca_cert_path_str.replace('\\', "/")
             );
             let config_path = temp_dir.path().join("config.toml");
             let config_path_str = config_path.to_str().unwrap();
@@ -1116,12 +1118,13 @@ sys_ip_address = "7.8.9.0"
             let gossip_peers = vec!["1.1.1.1:1111".parse().unwrap(),
                                     "2.2.2.2:2222".parse().unwrap(),
                                     format!("3.3.3.3:{}", GossipListenAddr::DEFAULT_PORT).parse()
-                                                                                         .unwrap()];
+                                                                                         .unwrap(),];
 
             let config = config_from_cmd_str(&args);
             assert_eq!(ManagerConfig { auto_update: true,
                                        auto_update_period: Duration::from_secs(3600),
                                        service_update_period: Duration::from_secs(1_000),
+                                       service_restart_config: ServiceRestartConfig::default(),
                                        custom_state_path: None,
                                        key_cache: KeyCache::new(temp_dir_str),
                                        update_url: String::from("https://bldr.habitat.sh"),
@@ -1172,6 +1175,7 @@ sys_ip_address = "7.8.9.0"
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new("/cache/key/path"),
                                        update_url:
@@ -1219,6 +1223,7 @@ sys_ip_address = "7.8.9.0"
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
@@ -1242,6 +1247,55 @@ sys_ip_address = "7.8.9.0"
                                        keep_latest_packages:       None,
                                        sys_ip:
                                            biome_core::util::sys::ip().unwrap(), },
+                       config);
+        }
+
+        #[test]
+        fn test_bio_sup_run_config_file_peer() {
+            let temp_dir = TempDir::new().expect("Could not create tempdir");
+
+            // Setup config file
+            let config_contents = r#"
+            peer = ["1.1.1.1", "localhost"]
+            "#.to_string();
+            let config_path = temp_dir.path().join("config.toml");
+            let config_path_str = config_path.to_str().unwrap();
+            let mut config_file = File::create(&config_path).unwrap();
+            write!(config_file, "{}", config_contents).expect("to write config file contents");
+
+            let args = format!("bio-sup run --config-files {}", config_path_str);
+
+            let gossip_peers = vec!["1.1.1.1:9638".parse().unwrap(),
+                     format!("127.0.0.1:{}", GossipListenAddr::DEFAULT_PORT).parse()
+                                                                            .unwrap(),];
+
+            let config = config_from_cmd_str(&args);
+            assert_eq!(ManagerConfig { auto_update: false,
+                                       auto_update_period: Duration::from_secs(60),
+                                       service_update_period: Duration::from_secs(60),
+                                       service_restart_config: ServiceRestartConfig::default(),
+                                       custom_state_path: None,
+                                       key_cache: KeyCache::new(&*CACHE_KEY_PATH),
+                                       update_url: String::from("https://bldr.habitat.sh"),
+                                       update_channel: ChannelIdent::default(),
+                                       gossip_listen:
+                                           GossipListenAddr::from_str("0.0.0.0:9638").unwrap(),
+                                       ctl_listen: ListenCtlAddr::default(),
+                                       ctl_server_certificates: None,
+                                       ctl_server_key: None,
+                                       ctl_client_ca_certificates: None,
+                                       http_listen: HttpListenAddr::default(),
+                                       http_disable: false,
+                                       gossip_peers,
+                                       gossip_permanent: false,
+                                       ring_key: None,
+                                       organization: None,
+                                       watch_peer_file: None,
+                                       tls_config: None,
+                                       feature_flags: FeatureFlag::empty(),
+                                       event_stream_config: None,
+                                       keep_latest_packages: None,
+                                       sys_ip: biome_core::util::sys::ip().unwrap() },
                        config);
         }
 
@@ -1309,7 +1363,7 @@ event_stream_token = "some_token"
 event_meta = ["key1=val1", "key2=val2", "keyA=valA"]
 event_stream_server_certificate = "{}"
 "#,
-                                          certificate_path_str.replace("\\", "/")
+                                          certificate_path_str.replace('\\', "/")
             );
             let config_path = temp_dir.path().join("config.toml");
             let config_path_str = config_path.to_str().unwrap();
@@ -1323,41 +1377,45 @@ event_stream_server_certificate = "{}"
             meta.insert(String::from("key1"), String::from("val1"));
             meta.insert(String::from("key2"), String::from("val2"));
             meta.insert(String::from("keyA"), String::from("valA"));
-            assert_eq!(ManagerConfig { auto_update:          false,
-                auto_update_period:   Duration::from_secs(60),
-                service_update_period:   Duration::from_secs(60),
-                                       custom_state_path:    None,
-                                       key_cache:       KeyCache::new(&*CACHE_KEY_PATH),
-                                       update_url:
-                                           String::from("https://bldr.habitat.sh"),
-                                       update_channel:       ChannelIdent::default(),
-                                       gossip_listen:        GossipListenAddr::default(),
-                                       ctl_listen:           ListenCtlAddr::default(),
-                                       ctl_server_certificates: None,
-                                       ctl_server_key:          None,
-                                       ctl_client_ca_certificates: None,
-                                       http_listen:          HttpListenAddr::default(),
-                                       http_disable:         false,
-                                       gossip_peers:         vec![],
-                                       gossip_permanent:     false,
-                                       ring_key:             None,
-                                       organization:         None,
-                                       watch_peer_file:      None,
-                                       tls_config:           None,
-                                       feature_flags:        FeatureFlag::empty(),
-                                       event_stream_config:  Some(EventStreamConfig {
-                                        environment: String::from("MY_ENV"),
-                                        application: String::from("MY_APP"),
-                                        site: Some(String::from("my_site")),
-                                        meta: meta.into(),
-                                        token: "some_token".parse().unwrap(),
-                                        url: "127.0.0.1:3456".parse().unwrap(),
-                                        connect_method: EventStreamConnectMethod::Timeout {secs: 5},
-                                        server_certificate: Some(certificate_path_str.parse().unwrap()),
-                                       }),
-                                       keep_latest_packages: None,
-                                       sys_ip:               biome_core::util::sys::ip().unwrap(), },
-                       config,);
+            assert_eq!(
+                ManagerConfig {
+                    auto_update: false,
+                    auto_update_period: Duration::from_secs(60),
+                    service_update_period: Duration::from_secs(60),
+                    service_restart_config: ServiceRestartConfig::default(),
+                    custom_state_path: None,
+                    key_cache: KeyCache::new(&*CACHE_KEY_PATH),
+                    update_url: String::from("https://bldr.habitat.sh"),
+                    update_channel: ChannelIdent::default(),
+                    gossip_listen: GossipListenAddr::default(),
+                    ctl_listen: ListenCtlAddr::default(),
+                    ctl_server_certificates: None,
+                    ctl_server_key: None,
+                    ctl_client_ca_certificates: None,
+                    http_listen: HttpListenAddr::default(),
+                    http_disable: false,
+                    gossip_peers: vec![],
+                    gossip_permanent: false,
+                    ring_key: None,
+                    organization: None,
+                    watch_peer_file: None,
+                    tls_config: None,
+                    feature_flags: FeatureFlag::empty(),
+                    event_stream_config: Some(EventStreamConfig {
+                        environment: String::from("MY_ENV"),
+                        application: String::from("MY_APP"),
+                        site: Some(String::from("my_site")),
+                        meta: meta.into(),
+                        token: "some_token".parse().unwrap(),
+                        url: "127.0.0.1:3456".parse().unwrap(),
+                        connect_method: EventStreamConnectMethod::Timeout { secs: 5 },
+                        server_certificate: Some(certificate_path_str.parse().unwrap()),
+                    }),
+                    keep_latest_packages: None,
+                    sys_ip: biome_core::util::sys::ip().unwrap(),
+                },
+                config,
+            );
         }
 
         #[test]
@@ -1381,7 +1439,7 @@ health_check_interval = 17
 shutdown_timeout = 12
 pkg_ident_or_artifact = "core/redis"
 "#,
-                                          temp_dir_str.replace("\\", "/")
+                                          temp_dir_str.replace('\\', "/")
             );
             let config_path = temp_dir.path().join("config.toml");
             let config_path_str = config_path.to_str().unwrap();
@@ -1409,7 +1467,7 @@ pkg_ident_or_artifact = "core/redis"
                                                  bldr_channel:
                                                      Some(String::from("my_channel")),
                                                  config_from:
-                                                     Some(temp_dir_str.replace("\\", "/")),
+                                                     Some(temp_dir_str.replace('\\', "/")),
                                                  force:                  Some(true),
                                                  group:
                                                      Some(String::from("MyGroup")),
@@ -1435,16 +1493,17 @@ pkg_ident_or_artifact = "core/redis"
             let args = format!("bio-sup run --config-files {}", config_path_str);
 
             let mut config_file = File::create(&config_path).unwrap();
-            write!(config_file,
-                   "pkg_ident_or_artifact = \"core/redis\"",
-                   ).expect("to write config file contents");
+            write!(config_file, "pkg_ident_or_artifact = \"core/redis\"",)
+                .expect("to write config file contents");
             let pkg = sup_run_from_cmd_str(&args).pkg_ident_or_artifact.unwrap();
             assert_eq!("core/redis".parse::<InstallSource>().unwrap(), pkg);
 
             let mut config_file = File::create(&config_path).unwrap();
-            write!(config_file,
-                   "pkg_ident_or_artifact = \"core/redis/4.0.14/20200421191514\"",
-                   ).expect("to write config file contents");
+            write!(
+                config_file,
+                "pkg_ident_or_artifact = \"core/redis/4.0.14/20200421191514\"",
+            )
+            .expect("to write config file contents");
             let pkg = sup_run_from_cmd_str(&args).pkg_ident_or_artifact.unwrap();
             assert_eq!("core/redis/4.0.14/20200421191514".parse::<InstallSource>()
                                                          .unwrap(),
@@ -1512,6 +1571,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
             assert_eq!(ManagerConfig { auto_update:                false,
                                        auto_update_period:         Duration::from_secs(60),
                                        service_update_period:      Duration::from_secs(60),
+                                       service_restart_config:     ServiceRestartConfig::default(),
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
