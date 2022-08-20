@@ -1,16 +1,37 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.544 -->
-## [1.6.544](https://github.com/habitat-sh/habitat/tree/1.6.544) (2022-08-05)
+<!-- latest_release 1.6.560 -->
+## [1.6.560](https://github.com/habitat-sh/habitat/tree/1.6.560) (2022-08-19)
 
 #### Merged Pull Requests
-- Bump crates and pin the crate versions for rants [#8576](https://github.com/habitat-sh/habitat/pull/8576) ([sajjaphani](https://github.com/sajjaphani))
+- remove priviliged in the right job dummy [#8605](https://github.com/habitat-sh/habitat/pull/8605) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.521 -->
 ### Changes since 1.6.521 release
 
 #### Merged Pull Requests
+- remove priviliged in the right job dummy [#8605](https://github.com/habitat-sh/habitat/pull/8605) ([mwrock](https://github.com/mwrock)) <!-- 1.6.560 -->
+- update hab install to not require admin rights [#8604](https://github.com/habitat-sh/habitat/pull/8604) ([mwrock](https://github.com/mwrock)) <!-- 1.6.559 -->
+- Bump pin-project from 1.0.11 to 1.0.12 [#8601](https://github.com/habitat-sh/habitat/pull/8601) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.558 -->
+- run docker build in privileged mode [#8602](https://github.com/habitat-sh/habitat/pull/8602) ([mwrock](https://github.com/mwrock)) <!-- 1.6.557 -->
+- Bump paste from 1.0.7 to 1.0.8 [#8598](https://github.com/habitat-sh/habitat/pull/8598) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.556 -->
+- Bump nix from 0.24.2 to 0.25.0 [#8591](https://github.com/habitat-sh/habitat/pull/8591) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.556 -->
+- try running install script from repo [#8600](https://github.com/habitat-sh/habitat/pull/8600) ([mwrock](https://github.com/mwrock)) <!-- 1.6.555 -->
+- fix docker build script [#8599](https://github.com/habitat-sh/habitat/pull/8599) ([mwrock](https://github.com/mwrock)) <!-- 1.6.554 -->
+- Bump semver from 1.0.12 to 1.0.13 [#8595](https://github.com/habitat-sh/habitat/pull/8595) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.553 -->
+- Bump serde from 1.0.140 to 1.0.143 [#8594](https://github.com/habitat-sh/habitat/pull/8594) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.553 -->
+- ensure hab is installed when building docker images [#8596](https://github.com/habitat-sh/habitat/pull/8596) ([mwrock](https://github.com/mwrock)) <!-- 1.6.552 -->
+- Bump libc from 0.2.126 to 0.2.132 [#8593](https://github.com/habitat-sh/habitat/pull/8593) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.551 -->
+- Bump async-trait from 0.1.56 to 0.1.57 [#8592](https://github.com/habitat-sh/habitat/pull/8592) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.550 -->
+- Bump thiserror from 1.0.31 to 1.0.32 [#8590](https://github.com/habitat-sh/habitat/pull/8590) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.549 -->
+- Bump serde_test from 1.0.140 to 1.0.143 [#8588](https://github.com/habitat-sh/habitat/pull/8588) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.549 -->
+- Bump serde_json from 1.0.81 to 1.0.83 [#8581](https://github.com/habitat-sh/habitat/pull/8581) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.549 -->
+- Bump futures from 0.3.21 to 0.3.23 [#8589](https://github.com/habitat-sh/habitat/pull/8589) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.549 -->
+- Bump rustls-pemfile from 1.0.0 to 1.0.1 [#8587](https://github.com/habitat-sh/habitat/pull/8587) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.548 -->
+- Bump bytes from 1.1.0 to 1.2.1 [#8579](https://github.com/habitat-sh/habitat/pull/8579) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.547 -->
+- Bump anyhow from 1.0.58 to 1.0.62 [#8586](https://github.com/habitat-sh/habitat/pull/8586) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.546 -->
+- Fixes several Rolling Update bugs [#8564](https://github.com/habitat-sh/habitat/pull/8564) ([mwrock](https://github.com/mwrock)) <!-- 1.6.545 -->
 - Bump crates and pin the crate versions for rants [#8576](https://github.com/habitat-sh/habitat/pull/8576) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.544 -->
 - More crate updates [#8571](https://github.com/habitat-sh/habitat/pull/8571) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.543 -->
 - Remove warning [#8562](https://github.com/habitat-sh/habitat/pull/8562) ([kagarmoe](https://github.com/kagarmoe)) <!-- 1.6.542 -->
