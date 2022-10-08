@@ -45,9 +45,7 @@ use self::{bldr::*,
                   RingKeyGenerate,
                   RingKeyImport},
            sup::{ConfigOptBioSup,
-                 ConfigOptSupRun,
-                 BioSup,
-                 SupRun},
+                 BioSup},
            svc::{ConfigOptSvc,
                  ConfigOptSvcStart,
                  ConfigOptSvcStop,
@@ -63,6 +61,10 @@ use crate::{cli::AFTER_HELP,
 use configopt::ConfigOpt;
 use structopt::{clap::AppSettings,
                 StructOpt};
+
+#[cfg(not(target_os = "macos"))]
+use crate::cli::bio::sup::{ConfigOptSupRun,
+                           SupRun};
 
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "bio",
