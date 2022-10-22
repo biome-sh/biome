@@ -1,16 +1,24 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.588 -->
-## [1.6.588](https://github.com/habitat-sh/habitat/tree/1.6.588) (2022-10-05)
+<!-- latest_release 1.6.595 -->
+## [1.6.595](https://github.com/habitat-sh/habitat/tree/1.6.595) (2022-10-21)
 
 #### Merged Pull Requests
-- Jah/macos warning cleanup [#8641](https://github.com/habitat-sh/habitat/pull/8641) ([jasonheath](https://github.com/jasonheath))
+- Bump anyhow from 1.0.65 to 1.0.66 [#8651](https://github.com/habitat-sh/habitat/pull/8651) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- Bump anyhow from 1.0.65 to 1.0.66 [#8651](https://github.com/habitat-sh/habitat/pull/8651) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.595 -->
+- Bump serde_json from 1.0.86 to 1.0.87 [#8648](https://github.com/habitat-sh/habitat/pull/8648) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.594 -->
+- Bump futures from 0.3.24 to 0.3.25 [#8649](https://github.com/habitat-sh/habitat/pull/8649) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.593 -->
+- Bump async-trait from 0.1.57 to 0.1.58 [#8647](https://github.com/habitat-sh/habitat/pull/8647) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.592 -->
+- Bump serde_json from 1.0.85 to 1.0.86 [#8644](https://github.com/habitat-sh/habitat/pull/8644) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.591 -->
+- Bump uuid from 1.1.2 to 1.2.1 [#8643](https://github.com/habitat-sh/habitat/pull/8643) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.591 -->
+- Bump libc from 0.2.133 to 0.2.135 [#8645](https://github.com/habitat-sh/habitat/pull/8645) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.590 -->
+- remove use of try when statting in studio [#8642](https://github.com/habitat-sh/habitat/pull/8642) ([mwrock](https://github.com/mwrock)) <!-- 1.6.589 -->
 - Jah/macos warning cleanup [#8641](https://github.com/habitat-sh/habitat/pull/8641) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.588 -->
 - Bump thiserror from 1.0.36 to 1.0.37 [#8639](https://github.com/habitat-sh/habitat/pull/8639) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.587 -->
 - Bump thiserror from 1.0.35 to 1.0.36 [#8638](https://github.com/habitat-sh/habitat/pull/8638) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.586 -->
