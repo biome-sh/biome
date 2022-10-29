@@ -1,16 +1,22 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.595 -->
-## [1.6.595](https://github.com/habitat-sh/habitat/tree/1.6.595) (2022-10-21)
+<!-- latest_release 1.6.600 -->
+## [1.6.600](https://github.com/habitat-sh/habitat/tree/1.6.600) (2022-10-26)
 
 #### Merged Pull Requests
-- Bump anyhow from 1.0.65 to 1.0.66 [#8651](https://github.com/habitat-sh/habitat/pull/8651) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump mio from 0.8.4 to 0.8.5 [#8656](https://github.com/habitat-sh/habitat/pull/8656) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- Bump mio from 0.8.4 to 0.8.5 [#8656](https://github.com/habitat-sh/habitat/pull/8656) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.600 -->
+- Bump libc from 0.2.136 to 0.2.137 [#8657](https://github.com/habitat-sh/habitat/pull/8657) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.599 -->
+- Bump libc from 0.2.135 to 0.2.136 [#8655](https://github.com/habitat-sh/habitat/pull/8655) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.598 -->
+- Bump base64 from 0.13.0 to 0.13.1 [#8652](https://github.com/habitat-sh/habitat/pull/8652) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.597 -->
+- Bump serde from 1.0.145 to 1.0.147 [#8654](https://github.com/habitat-sh/habitat/pull/8654) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.597 -->
+- Bump serde_test from 1.0.145 to 1.0.147 [#8653](https://github.com/habitat-sh/habitat/pull/8653) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.596 -->
 - Bump anyhow from 1.0.65 to 1.0.66 [#8651](https://github.com/habitat-sh/habitat/pull/8651) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.595 -->
 - Bump serde_json from 1.0.86 to 1.0.87 [#8648](https://github.com/habitat-sh/habitat/pull/8648) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.594 -->
 - Bump futures from 0.3.24 to 0.3.25 [#8649](https://github.com/habitat-sh/habitat/pull/8649) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.593 -->
