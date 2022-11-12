@@ -1,16 +1,25 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.602 -->
-## [1.6.602](https://github.com/habitat-sh/habitat/tree/1.6.602) (2022-11-04)
+<!-- latest_release 1.6.608 -->
+## [1.6.608](https://github.com/habitat-sh/habitat/tree/1.6.608) (2022-11-10)
 
 #### Merged Pull Requests
-- Bump num_cpus from 1.13.1 to 1.14.0 [#8659](https://github.com/habitat-sh/habitat/pull/8659) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- release notes were pulling from chef-server [#8666](https://github.com/habitat-sh/habitat/pull/8666) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.568 -->
 ### Changes since 1.6.568 release
 
 #### Merged Pull Requests
+- release notes were pulling from chef-server [#8666](https://github.com/habitat-sh/habitat/pull/8666) ([mwrock](https://github.com/mwrock)) <!-- 1.6.608 -->
+- support windows 2022 docker images [#8660](https://github.com/habitat-sh/habitat/pull/8660) ([mwrock](https://github.com/mwrock)) <!-- 1.6.607 -->
+- Bump cc from 1.0.74 to 1.0.76 [#8664](https://github.com/habitat-sh/habitat/pull/8664) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.606 -->
+- Bump prost from 0.11.0 to 0.11.2 [#8665](https://github.com/habitat-sh/habitat/pull/8665) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.605 -->
+- Bump prost-types from 0.11.1 to 0.11.2 [#8663](https://github.com/habitat-sh/habitat/pull/8663) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.604 -->
+- Native Package enhancements to enable package bootstrapping [#8650](https://github.com/habitat-sh/habitat/pull/8650) ([atrniv](https://github.com/atrniv)) <!-- 1.6.604 -->
+- Naive Packages Documentation [#8646](https://github.com/habitat-sh/habitat/pull/8646) ([dikshagupta1](https://github.com/dikshagupta1)) <!-- 1.6.604 -->
+- Bump mktemp from 0.4.1 to 0.5.0 [#8661](https://github.com/habitat-sh/habitat/pull/8661) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.604 -->
+- Bump regex from 1.6.0 to 1.7.0 [#8662](https://github.com/habitat-sh/habitat/pull/8662) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.603 -->
 - Bump num_cpus from 1.13.1 to 1.14.0 [#8659](https://github.com/habitat-sh/habitat/pull/8659) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.602 -->
 - Bump cc from 1.0.73 to 1.0.74 [#8658](https://github.com/habitat-sh/habitat/pull/8658) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.601 -->
 - Bump mio from 0.8.4 to 0.8.5 [#8656](https://github.com/habitat-sh/habitat/pull/8656) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.600 -->
