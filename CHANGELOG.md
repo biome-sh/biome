@@ -1,16 +1,23 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.614 -->
-## [1.6.614](https://github.com/habitat-sh/habitat/tree/1.6.614) (2022-11-22)
+<!-- latest_release 1.6.621 -->
+## [1.6.621](https://github.com/habitat-sh/habitat/tree/1.6.621) (2022-12-01)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.87 to 1.0.88 [#8673](https://github.com/habitat-sh/habitat/pull/8673) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump async-trait from 0.1.58 to 0.1.59 [#8681](https://github.com/habitat-sh/habitat/pull/8681) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.607 -->
 ### Changes since 1.6.607 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.58 to 0.1.59 [#8681](https://github.com/habitat-sh/habitat/pull/8681) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.621 -->
+- Bump serde from 1.0.147 to 1.0.148 [#8679](https://github.com/habitat-sh/habitat/pull/8679) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.620 -->
+- Bump nix from 0.25.0 to 0.26.1 [#8680](https://github.com/habitat-sh/habitat/pull/8680) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.619 -->
+- Bump prost from 0.11.2 to 0.11.3 [#8678](https://github.com/habitat-sh/habitat/pull/8678) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.618 -->
+- Bump serde_test from 1.0.147 to 1.0.148 [#8677](https://github.com/habitat-sh/habitat/pull/8677) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.617 -->
+- Bump serde_json from 1.0.88 to 1.0.89 [#8675](https://github.com/habitat-sh/habitat/pull/8675) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.616 -->
+- Bump flate2 from 1.0.24 to 1.0.25 [#8676](https://github.com/habitat-sh/habitat/pull/8676) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.615 -->
 - Bump serde_json from 1.0.87 to 1.0.88 [#8673](https://github.com/habitat-sh/habitat/pull/8673) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.614 -->
 - Bump cc from 1.0.76 to 1.0.77 [#8672](https://github.com/habitat-sh/habitat/pull/8672) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.614 -->
 - Bump bytes from 1.2.1 to 1.3.0 [#8674](https://github.com/habitat-sh/habitat/pull/8674) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.613 -->
