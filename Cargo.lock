@@ -31,7 +31,7 @@ dependencies = [
  "actix-tls",
  "actix-utils",
  "ahash",
- "base64",
+ "base64 0.13.1",
  "bitflags",
  "bytes",
  "bytestring",
@@ -314,6 +314,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
+name = "base64"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ea22880d78093b0cbe17c89f64a7d457941e65759157ec6cb31a31d652b05e5"
+
+[[package]]
 name = "bimap"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -409,9 +415,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.77"
+version = "1.0.78"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9f73505338f7d905b19d18738976aae232eb46b8efc15554ffc56deb5d9ebe4"
+checksum = "a20104e2335ce8a659d6dd92a51a767a0c062599c73b343fd152cb401e828c3d"
 
 [[package]]
 name = "cfg-if"
@@ -469,7 +475,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "serde",
  "structopt",
- "toml 0.5.9",
+ "toml 0.5.10",
 ]
 
 [[package]]
@@ -1092,7 +1098,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "atty",
- "base64",
+ "base64 0.20.0",
  "bitflags",
  "chrono",
  "clap",
@@ -1128,7 +1134,7 @@ dependencies = [
  "termcolor",
  "thiserror",
  "tokio",
- "toml 0.5.9",
+ "toml 0.5.10",
  "url",
  "uuid 1.2.2",
  "walkdir",
@@ -1214,7 +1220,7 @@ dependencies = [
 name = "biome-sup-protocol"
 version = "0.0.0"
 dependencies = [
- "base64",
+ "base64 0.20.0",
  "bytes",
  "biome_core",
  "lazy_static 1.4.0",
@@ -1226,7 +1232,7 @@ dependencies = [
  "tempfile",
  "tokio",
  "tokio-util",
- "toml 0.5.9",
+ "toml 0.5.10",
 ]
 
 [[package]]
@@ -1275,7 +1281,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "threadpool",
- "toml 0.5.9",
+ "toml 0.5.10",
  "uuid 1.2.2",
  "winapi 0.3.9",
  "zmq",
@@ -1315,7 +1321,7 @@ dependencies = [
  "termcolor",
  "thiserror",
  "tokio",
- "toml 0.5.9",
+ "toml 0.5.10",
  "uuid 1.2.2",
  "valico",
  "winapi 0.3.9",
@@ -1325,7 +1331,7 @@ dependencies = [
 name = "biome_core"
 version = "0.0.0"
 dependencies = [
- "base64",
+ "base64 0.20.0",
  "blake2b_simd",
  "caps",
  "cc",
@@ -1363,7 +1369,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-rustls",
- "toml 0.5.9",
+ "toml 0.5.10",
  "typemap",
  "url",
  "webpki",
@@ -1377,7 +1383,7 @@ dependencies = [
 name = "biome_http_client"
 version = "0.0.0"
 dependencies = [
- "base64",
+ "base64 0.20.0",
  "env_proxy",
  "biome_core",
  "httparse",
@@ -1396,7 +1402,7 @@ name = "biome_pkg_export_container"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "base64",
+ "base64 0.20.0",
  "clap",
  "env_logger",
  "bio",
@@ -1502,7 +1508,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tokio-util",
- "toml 0.5.9",
+ "toml 0.5.10",
  "url",
  "uuid 1.2.2",
  "valico",
@@ -2410,9 +2416,9 @@ dependencies = [
 
 [[package]]
 name = "paste"
-version = "1.0.9"
+version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1de2e551fb905ac83f73f7aedf2f0cb4a0da7e35efa24a202a936269f1f18e1"
+checksum = "cf1c2c742266c2f1041c914ba65355a83ae8747b05f208319784083583494b4b"
 
 [[package]]
 name = "pbr"
@@ -2432,7 +2438,7 @@ version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "03c64931a1a212348ec4f3b4362585eca7159d0d09cbdf4a7f74f02173596fd4"
 dependencies = [
- "base64",
+ "base64 0.13.1",
 ]
 
 [[package]]
@@ -2879,7 +2885,7 @@ version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "246e9f61b9bb77df069a947682be06e31ac43ea37862e244a69f177694ea6d22"
 dependencies = [
- "base64",
+ "base64 0.13.1",
  "bytes",
  "encoding_rs",
  "futures-core",
@@ -2939,7 +2945,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b4f000e8934c1b4f70adde180056812e7ea6b1a247952db8ee98c94cd3116cc"
 dependencies = [
  "async-trait",
- "base64",
+ "base64 0.13.1",
  "bytes",
  "crc32fast",
  "futures",
@@ -2995,7 +3001,7 @@ version = "0.47.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6264e93384b90a747758bcc82079711eacf2e755c3a8b5091687b5349d870bcc"
 dependencies = [
- "base64",
+ "base64 0.13.1",
  "bytes",
  "chrono",
  "digest 0.9.0",
@@ -3057,7 +3063,7 @@ version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0864aeff53f8c05aa08d86e5ef839d3dfcf07aeba2db32f12db0ef716e87bd55"
 dependencies = [
- "base64",
+ "base64 0.13.1",
 ]
 
 [[package]]
@@ -3162,9 +3168,9 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.149"
+version = "1.0.150"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "256b9932320c590e707b94576e3cc1f7c9024d0ee6612dfbcf1cb106cbe8e055"
+checksum = "e326c9ec8042f1b5da33252c8a37e9ffbd2c9bef0155215b6e6c80c790e05f91"
 dependencies = [
  "serde_derive",
 ]
@@ -3190,9 +3196,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.149"
+version = "1.0.150"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4eae9b04cbffdfd550eb462ed33bc6a1b68c935127d008b27444d08380f94e4"
+checksum = "42a3df25b0713732468deadad63ab9da1f1fd75a48a15024b50363f128db627e"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3213,9 +3219,9 @@ dependencies = [
 
 [[package]]
 name = "serde_test"
-version = "1.0.149"
+version = "1.0.150"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3434c4787dcd7c8c0837ffbb01e6e34091f8983b2df9655e66393a867f99f7aa"
+checksum = "d2d69092a040763997b563615a8e31f02138ec5f1aa878e1549dc47e39bd6a17"
 dependencies = [
  "serde",
 ]
@@ -3459,7 +3465,7 @@ dependencies = [
  "clap",
  "serde",
  "serde_json",
- "toml 0.5.9",
+ "toml 0.5.10",
 ]
 
 [[package]]
@@ -3647,9 +3653,9 @@ checksum = "736b60249cb25337bc196faa43ee12c705e426f3d55c214d73a4e7be06f92cb4"
 
 [[package]]
 name = "toml"
-version = "0.5.9"
+version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d82e1a7758622a465f8cee077614c73484dac5b836c02ff6a40d5d1010324d7"
+checksum = "1333c76748e868a4d9d1017b5ab53171dfd095f70c712fdb4653a406547f598f"
 dependencies = [
  "indexmap",
  "serde",
@@ -3823,7 +3829,7 @@ version = "3.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d81a70f930f9e6cd04669d38abcf232f96b193acceb0f4c006427ddec6e08b10"
 dependencies = [
- "base64",
+ "base64 0.13.1",
  "chrono",
  "json-pointer",
  "jsonway",
