@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.642 -->
-## [1.6.642](https://github.com/habitat-sh/habitat/tree/1.6.642) (2023-01-12)
+<!-- latest_release 1.6.647 -->
+## [1.6.647](https://github.com/habitat-sh/habitat/tree/1.6.647) (2023-01-18)
 
 #### Merged Pull Requests
-- Bump regex from 1.7.0 to 1.7.1 [#8709](https://github.com/habitat-sh/habitat/pull/8709) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Fix windows 7 support [#8714](https://github.com/habitat-sh/habitat/pull/8714) ([atrniv](https://github.com/atrniv))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.607 -->
 ### Changes since 1.6.607 release
 
 #### Merged Pull Requests
+- Fix windows 7 support [#8714](https://github.com/habitat-sh/habitat/pull/8714) ([atrniv](https://github.com/atrniv)) <!-- 1.6.647 -->
+- Bump rustls-pemfile from 1.0.1 to 1.0.2 [#8713](https://github.com/habitat-sh/habitat/pull/8713) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.646 -->
+- Bump pem from 1.1.0 to 1.1.1 [#8712](https://github.com/habitat-sh/habitat/pull/8712) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.645 -->
+- Bump prost-types from 0.11.5 to 0.11.6 [#8710](https://github.com/habitat-sh/habitat/pull/8710) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.644 -->
+- Bump prost from 0.11.5 to 0.11.6 [#8711](https://github.com/habitat-sh/habitat/pull/8711) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.643 -->
 - Bump regex from 1.7.0 to 1.7.1 [#8709](https://github.com/habitat-sh/habitat/pull/8709) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.642 -->
 - Bump glob from 0.3.0 to 0.3.1 [#8708](https://github.com/habitat-sh/habitat/pull/8708) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.641 -->
 - Bump async-trait from 0.1.60 to 0.1.61 [#8706](https://github.com/habitat-sh/habitat/pull/8706) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.640 -->
