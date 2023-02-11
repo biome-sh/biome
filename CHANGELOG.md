@@ -1,16 +1,36 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.649 -->
-## [1.6.649](https://github.com/habitat-sh/habitat/tree/1.6.649) (2023-02-03)
+<!-- latest_release 1.6.662 -->
+## [1.6.662](https://github.com/habitat-sh/habitat/tree/1.6.662) (2023-02-10)
 
 #### Merged Pull Requests
-- bump to base64 0.21 [#8724](https://github.com/habitat-sh/habitat/pull/8724) ([mwrock](https://github.com/mwrock))
+- Bump blake2b_simd from 1.0.0 to 1.0.1 [#8736](https://github.com/habitat-sh/habitat/pull/8736) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.607 -->
-### Changes since 1.6.607 release
+<!-- release_rollup since=1.6.652 -->
+### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump blake2b_simd from 1.0.0 to 1.0.1 [#8736](https://github.com/habitat-sh/habitat/pull/8736) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.662 -->
+- Bump openssl-src from 111.22.0+1.1.1q to 111.25.0+1.1.1t [#8734](https://github.com/habitat-sh/habitat/pull/8734) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.661 -->
+- Bump serde_json from 1.0.92 to 1.0.93 [#8735](https://github.com/habitat-sh/habitat/pull/8735) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.660 -->
+- Bump futures from 0.3.25 to 0.3.26 [#8733](https://github.com/habitat-sh/habitat/pull/8733) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.659 -->
+- Bump serde_json from 1.0.91 to 1.0.92 [#8731](https://github.com/habitat-sh/habitat/pull/8731) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.658 -->
+- Bump bytes from 1.3.0 to 1.4.0 [#8728](https://github.com/habitat-sh/habitat/pull/8728) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.657 -->
+- Rustfmt and Nightly Rust Bump to nightly-2023-02-07 [#8730](https://github.com/habitat-sh/habitat/pull/8730) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.656 -->
+- Bump petgraph from 0.6.2 to 0.6.3 [#8727](https://github.com/habitat-sh/habitat/pull/8727) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.655 -->
+- update changelog for 1.6.652 release [#8729](https://github.com/habitat-sh/habitat/pull/8729) ([mwrock](https://github.com/mwrock)) <!-- 1.6.654 -->
+- Bump async-trait from 0.1.61 to 0.1.64 [#8726](https://github.com/habitat-sh/habitat/pull/8726) ([dependabot[bot]](https://github.com/dependabot[bot]))
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.652 -->
+
+## [1.6.652](https://github.com/habitat-sh/habitat/tree/1.6.652) (2023-02-06)
+
+#### Merged Pull Requests
+- Bump anyhow from 1.0.68 to 1.0.69 [#8725](https://github.com/habitat-sh/habitat/pull/8725) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.652 -->
+- Bump cc from 1.0.78 to 1.0.79 [#8722](https://github.com/habitat-sh/habitat/pull/8722) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.651 -->
+- Bump nix from 0.26.1 to 0.26.2 [#8715](https://github.com/habitat-sh/habitat/pull/8715) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.650 -->
 - bump to base64 0.21 [#8724](https://github.com/habitat-sh/habitat/pull/8724) ([mwrock](https://github.com/mwrock)) <!-- 1.6.649 -->
 - fixes rolling update leader resetting pkg_incarnation [#8720](https://github.com/habitat-sh/habitat/pull/8720) ([atrniv](https://github.com/atrniv)) <!-- 1.6.648 -->
 - Fix windows 7 support [#8714](https://github.com/habitat-sh/habitat/pull/8714) ([atrniv](https://github.com/atrniv)) <!-- 1.6.647 -->
@@ -56,9 +76,6 @@
 - move release notes scripts to finish_release and document [#8670](https://github.com/habitat-sh/habitat/pull/8670) ([mwrock](https://github.com/mwrock)) <!-- 1.6.611 -->
 - Rustfmt and Nightly Rust Bump to nightly-2022-11-14 [#8667](https://github.com/habitat-sh/habitat/pull/8667) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.610 -->
 - updating changelog for 1.6.607 [#8668](https://github.com/habitat-sh/habitat/pull/8668) ([mwrock](https://github.com/mwrock)) <!-- 1.6.609 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.607 -->
 
 ## [1.6.607](https://github.com/habitat-sh/habitat/tree/1.6.607) (2022-11-10)
 
