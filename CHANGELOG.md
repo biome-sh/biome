@@ -1,16 +1,32 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.664 -->
-## [1.6.664](https://github.com/habitat-sh/habitat/tree/1.6.664) (2023-02-15)
+<!-- latest_release 1.6.675 -->
+## [1.6.675](https://github.com/habitat-sh/habitat/tree/1.6.675) (2023-02-24)
 
 #### Merged Pull Requests
-- Bump mio from 0.8.5 to 0.8.6 [#8739](https://github.com/habitat-sh/habitat/pull/8739) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump native-tls from 0.2.10 to 0.2.11 [#8757](https://github.com/habitat-sh/habitat/pull/8757) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump native-tls from 0.2.10 to 0.2.11 [#8757](https://github.com/habitat-sh/habitat/pull/8757) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.675 -->
+- Bump prost-build from 0.11.6 to 0.11.7 [#8756](https://github.com/habitat-sh/habitat/pull/8756) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.675 -->
+- Bump actix-web from 4.1.0 to 4.3.0 [#8754](https://github.com/habitat-sh/habitat/pull/8754) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.674 -->
+- acquire lock for cache_key to fix a flaky unit test [#8753](https://github.com/habitat-sh/habitat/pull/8753) ([mwrock](https://github.com/mwrock)) <!-- 1.6.673 -->
+- Bump parking_lot from 0.12.0 to 0.12.1 [#8750](https://github.com/habitat-sh/habitat/pull/8750) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.673 -->
+- Bump prost-build from 0.11.1 to 0.11.6 [#8749](https://github.com/habitat-sh/habitat/pull/8749) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.673 -->
+- Bump caps from 0.5.2 to 0.5.5 [#8748](https://github.com/habitat-sh/habitat/pull/8748) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.673 -->
+- Bump env_logger from 0.9.0 to 0.9.3 [#8751](https://github.com/habitat-sh/habitat/pull/8751) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.672 -->
+- Bump prometheus from 0.12.0 to 0.13.3 [#8747](https://github.com/habitat-sh/habitat/pull/8747) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.671 -->
+- Bump termcolor from 1.1.2 to 1.2.0 [#8744](https://github.com/habitat-sh/habitat/pull/8744) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.671 -->
+- Bump reqwest from 0.11.4 to 0.11.9 [#8745](https://github.com/habitat-sh/habitat/pull/8745) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.670 -->
+- remove checks for empty events in specwatcher tests [#8742](https://github.com/habitat-sh/habitat/pull/8742) ([mwrock](https://github.com/mwrock)) <!-- 1.6.669 -->
+- Bump rcgen from 0.9.3 to 0.10.0 [#8746](https://github.com/habitat-sh/habitat/pull/8746) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.668 -->
+- bump tokio and add dep contraints for winapi [#8743](https://github.com/habitat-sh/habitat/pull/8743) ([mwrock](https://github.com/mwrock)) <!-- 1.6.667 -->
+- get rid of traitobject and typemap deps [#8741](https://github.com/habitat-sh/habitat/pull/8741) ([mwrock](https://github.com/mwrock)) <!-- 1.6.666 -->
+- force basic rolling update/rollback e2e to terminate process [#8738](https://github.com/habitat-sh/habitat/pull/8738) ([mwrock](https://github.com/mwrock)) <!-- 1.6.665 -->
 - Bump mio from 0.8.5 to 0.8.6 [#8739](https://github.com/habitat-sh/habitat/pull/8739) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.664 -->
 - Bump notify from 4.0.17 to 5.0.0 [#8615](https://github.com/habitat-sh/habitat/pull/8615) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.663 -->
 - Bump blake2b_simd from 1.0.0 to 1.0.1 [#8736](https://github.com/habitat-sh/habitat/pull/8736) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.662 -->
