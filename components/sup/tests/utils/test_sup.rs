@@ -278,7 +278,7 @@ impl TestSup {
         let launcher_exe =
             find_exe("bio-launch").context("Failed to find 'bio-launch' executable")?;
 
-        let mut cmd = Command::new(&launcher_exe);
+        let mut cmd = Command::new(launcher_exe);
         let listen_host = "0.0.0.0";
 
         cmd.env(
