@@ -1,16 +1,34 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.685 -->
-## [1.6.685](https://github.com/habitat-sh/habitat/tree/1.6.685) (2023-03-03)
+<!-- latest_release 1.6.699 -->
+## [1.6.699](https://github.com/habitat-sh/habitat/tree/1.6.699) (2023-03-10)
 
 #### Merged Pull Requests
-- run arm builds in --release mode to reduce memory [#8774](https://github.com/habitat-sh/habitat/pull/8774) ([mwrock](https://github.com/mwrock))
+- Bump chrono from 0.4.19 to 0.4.23 [#8781](https://github.com/habitat-sh/habitat/pull/8781) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump chrono from 0.4.19 to 0.4.23 [#8781](https://github.com/habitat-sh/habitat/pull/8781) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.699 -->
+- Bump thiserror from 1.0.38 to 1.0.39 [#8786](https://github.com/habitat-sh/habitat/pull/8786) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.698 -->
+- Bump os_info from 3.0.6 to 3.6.0 [#8787](https://github.com/habitat-sh/habitat/pull/8787) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.698 -->
+- Bump winreg from 0.9.0 to 0.11.0 [#8785](https://github.com/habitat-sh/habitat/pull/8785) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.697 -->
+- Bump ctrlc from 3.2.3 to 3.2.5 [#8783](https://github.com/habitat-sh/habitat/pull/8783) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.696 -->
+- Bump valico from 3.6.0 to 3.6.1 [#8784](https://github.com/habitat-sh/habitat/pull/8784) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.695 -->
+- Bump async-trait from 0.1.64 to 0.1.66 [#8782](https://github.com/habitat-sh/habitat/pull/8782) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.694 -->
+- bumped buildkit timeout from 30 to 60  [#8776](https://github.com/habitat-sh/habitat/pull/8776) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.693 -->
+- Restore notify crate for all OSes [#8777](https://github.com/habitat-sh/habitat/pull/8777) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.692 -->
+- Correction to audit.toml used by `cargo audit`  [#8775](https://github.com/habitat-sh/habitat/pull/8775) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.691 -->
+- Bump paste from 1.0.11 to 1.0.12 [#8778](https://github.com/habitat-sh/habitat/pull/8778) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.691 -->
+- Bump serde_json from 1.0.93 to 1.0.94 [#8779](https://github.com/habitat-sh/habitat/pull/8779) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.690 -->
+- Bump hyper from 0.14.20 to 0.14.24 [#8780](https://github.com/habitat-sh/habitat/pull/8780) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.689 -->
+- Bump state from 0.5.2 to 0.5.3 [#8772](https://github.com/habitat-sh/habitat/pull/8772) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.688 -->
+- Bump actix-web from 4.3.0 to 4.3.1 [#8771](https://github.com/habitat-sh/habitat/pull/8771) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.688 -->
+- Bump pbr from 1.0.4 to 1.1.1 [#8769](https://github.com/habitat-sh/habitat/pull/8769) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.688 -->
+- Bump tokio-util from 0.7.3 to 0.7.7 [#8770](https://github.com/habitat-sh/habitat/pull/8770) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.687 -->
+- cargo audit github action [#8773](https://github.com/habitat-sh/habitat/pull/8773) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.686 -->
 - run arm builds in --release mode to reduce memory [#8774](https://github.com/habitat-sh/habitat/pull/8774) ([mwrock](https://github.com/mwrock)) <!-- 1.6.685 -->
 - Bump tokio from 1.25.0 to 1.26.0 [#8767](https://github.com/habitat-sh/habitat/pull/8767) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.684 -->
 - Bump env_logger from 0.9.3 to 0.10.0 [#8765](https://github.com/habitat-sh/habitat/pull/8765) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.684 -->
