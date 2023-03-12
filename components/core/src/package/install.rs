@@ -4,7 +4,6 @@ use super::{list::package_list_for_ident,
             metadata::{parse_key_value,
                        read_metafile,
                        Bind,
-                       BindMapping,
                        MetaFile,
                        PackageType},
             Identifiable,
@@ -20,7 +19,6 @@ use serde::{Deserialize,
 use std::{cmp::{Ordering,
                 PartialOrd},
           collections::{BTreeMap,
-                        HashMap,
                         HashSet},
           env,
           fmt,
@@ -82,10 +80,10 @@ impl PackageInstall {
                                   -> Result<PackageInstall>
         where T: AsRef<Path>
     {
-        let fs_root_path = fs_root_path.map_or(PathBuf::from("/"), |p| p.as_ref().into());
+        let fs_root_path = fs_root_path.map_or_else(|| PathBuf::from("/"), |p| p.as_ref().into());
         let package_root_path = fs::pkg_root_path(Some(&fs_root_path));
         if !package_root_path.exists() {
-            return Err(Error::PackageNotFound(ident.clone()));
+            return Err(Error::PackageNotFound(Box::new(ident.clone())));
         }
 
         let pl = package_list_for_ident(&package_root_path, ident)?;
@@ -97,7 +95,7 @@ impl PackageInstall {
                                     package_root_path,
                                     ident: ident.clone() })
             } else {
-                Err(Error::PackageNotFound(ident.clone()))
+                Err(Error::PackageNotFound(Box::new(ident.clone())))
             }
         } else {
             let latest: Option<PackageIdent> =
@@ -123,7 +121,7 @@ impl PackageInstall {
                                     package_root_path,
                                     ident: id.clone() })
             } else {
-                Err(Error::PackageNotFound(ident.clone()))
+                Err(Error::PackageNotFound(Box::new(ident.clone())))
             }
         }
     }
@@ -137,7 +135,7 @@ impl PackageInstall {
         let original_ident = ident;
         // If the PackageIndent is does not have a version, use a reasonable minimum version that
         // will be satisfied by any installed package with the same origin/name
-        let ident = if None == ident.version {
+        let ident = if ident.version.is_none() {
             PackageIdent::new(ident.origin.clone(),
                               ident.name.clone(),
                               Some("0".into()),
@@ -145,10 +143,10 @@ impl PackageInstall {
         } else {
             ident.clone()
         };
-        let fs_root_path = fs_root_path.map_or(PathBuf::from("/"), |p| p.as_ref().into());
+        let fs_root_path = fs_root_path.map_or_else(|| PathBuf::from("/"), |p| p.as_ref().into());
         let package_root_path = fs::pkg_root_path(Some(&fs_root_path));
         if !package_root_path.exists() {
-            return Err(Error::PackageNotFound(original_ident.clone()));
+            return Err(Error::PackageNotFound(Box::new(original_ident.clone())));
         }
 
         let pl = package_list_for_ident(&package_root_path, original_ident)?;
@@ -179,7 +177,7 @@ impl PackageInstall {
                                     package_root_path,
                                     ident: id.clone() })
             }
-            None => Err(Error::PackageNotFound(original_ident.clone())),
+            None => Err(Error::PackageNotFound(Box::new(original_ident.clone()))),
         }
     }
 
@@ -203,19 +201,13 @@ impl PackageInstall {
     }
 
     /// Determine what kind of package this is.
-    pub fn pkg_type(&self) -> Result<PackageType> {
-        match self.read_metafile(MetaFile::Type) {
+    pub fn package_type(&self) -> Result<PackageType> {
+        match self.read_metafile(MetaFile::PackageType) {
             Ok(body) => body.parse(),
-            Err(Error::MetaFileNotFound(MetaFile::Type)) => Ok(PackageType::Standalone),
+            Err(Error::MetaFileNotFound(MetaFile::PackageType)) => Ok(PackageType::Standard),
             Err(e) => Err(e),
         }
     }
-
-    /// Which services are contained in a composite package? Note that
-    /// these identifiers are *as given* in the initial `plan.sh` of
-    /// the composite, and not the fully-resolved identifiers you
-    /// would get from other "dependency" metadata files.
-    pub fn pkg_services(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::Services) }
 
     /// Constructs and returns a `HashMap` of environment variable/value key pairs of all
     /// environment variables needed to properly run a command from the context of this package.
@@ -302,30 +294,6 @@ impl PackageInstall {
                 Ok(binds)
             }
             Err(Error::MetaFileNotFound(MetaFile::BindsOptional)) => Ok(Vec::new()),
-            Err(e) => Err(e),
-        }
-    }
-
-    /// Returns the bind mappings for a composite package.
-    pub fn bind_map(&self) -> Result<HashMap<PackageIdent, Vec<BindMapping>>> {
-        match self.read_metafile(MetaFile::BindMap) {
-            Ok(body) => {
-                let mut bind_map = HashMap::new();
-                for line in body.lines() {
-                    let mut parts = line.split('=');
-                    let package = match parts.next() {
-                        Some(ident) => ident.parse()?,
-                        None => return Err(Error::MetaFileBadBind),
-                    };
-                    let binds: Result<Vec<BindMapping>> = match parts.next() {
-                        Some(binds) => binds.split_whitespace().map(str::parse).collect(),
-                        None => Err(Error::MetaFileBadBind),
-                    };
-                    bind_map.insert(package, binds?);
-                }
-                Ok(bind_map)
-            }
-            Err(Error::MetaFileNotFound(MetaFile::BindMap)) => Ok(HashMap::new()),
             Err(e) => Err(e),
         }
     }
@@ -580,7 +548,7 @@ impl PackageInstall {
         }
     }
 
-    pub fn installed_path(&self) -> &Path { &*self.installed_path }
+    pub fn installed_path(&self) -> &Path { &self.installed_path }
 
     /// Returns the user that the package is specified to run as
     /// or None if the package doesn't contain a SVC_USER Metafile
@@ -649,14 +617,12 @@ impl PackageInstall {
 
         // For now, all deps files but SERVICES need fully-qualified
         // package identifiers
-        let must_be_fully_qualified = { file != MetaFile::Services };
-
         match self.read_metafile(file) {
             Ok(body) => {
                 if !body.is_empty() {
                     for id in body.lines() {
                         let package = PackageIdent::from_str(id)?;
-                        if !package.fully_qualified() && must_be_fully_qualified {
+                        if !package.fully_qualified() {
                             return Err(Error::FullyQualifiedPackageIdentRequired(
                                 package.to_string(),
                             ));
@@ -783,60 +749,6 @@ mod test {
     }
 
     #[test]
-    fn reading_a_valid_bind_map_file_works() {
-        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
-        let package_install = testing_package_install("core/composite", fs_root.path());
-
-        // Create a BIND_MAP file for that package
-        let bind_map_contents = r#"
-core/foo=db:core/database fe:core/front-end be:core/back-end
-core/bar=pub:core/publish sub:core/subscribe
-        "#;
-        write_metafile(&package_install, MetaFile::BindMap, bind_map_contents);
-
-        // Grab the bind map from that package
-        let bind_map = package_install.bind_map().unwrap();
-
-        // Assert that it was interpreted correctly
-        let mut expected: HashMap<PackageIdent, Vec<BindMapping>> = HashMap::new();
-        expected.insert("core/foo".parse().unwrap(),
-                        vec!["db:core/database".parse().unwrap(),
-                             "fe:core/front-end".parse().unwrap(),
-                             "be:core/back-end".parse().unwrap(),]);
-        expected.insert("core/bar".parse().unwrap(),
-                        vec!["pub:core/publish".parse().unwrap(),
-                             "sub:core/subscribe".parse().unwrap(),]);
-
-        assert_eq!(expected, bind_map);
-    }
-
-    #[test]
-    fn reading_a_bad_bind_map_file_results_in_an_error() {
-        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
-        let package_install = testing_package_install("core/dud", fs_root.path());
-
-        // Create a BIND_MAP directory for that package
-        let bind_map_contents = "core/foo=db:this-is-not-an-identifier";
-        write_metafile(&package_install, MetaFile::BindMap, bind_map_contents);
-
-        // Grab the bind map from that package
-        let bind_map = package_install.bind_map();
-        assert!(bind_map.is_err());
-    }
-
-    /// Composite packages don't need to have a BIND_MAP file, and
-    /// standalone packages will never have them. This is OK.
-    #[test]
-    fn missing_bind_map_files_are_ok() {
-        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
-        let package_install = testing_package_install("core/no-binds", fs_root.path());
-
-        // Grab the bind map from that package
-        let bind_map = package_install.bind_map().unwrap();
-        assert!(bind_map.is_empty());
-    }
-
-    #[test]
     fn load_with_fully_qualified_ident_matching_target() {
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
@@ -861,8 +773,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -901,8 +813,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident = PackageIdent::from_str("dream-theater/systematic-chaos").unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -948,8 +860,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -968,8 +880,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -1004,8 +916,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -1045,8 +957,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident = PackageIdent::from_str("dream-theater/systematic-chaos").unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -1093,8 +1005,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {
@@ -1113,8 +1025,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
-            Err(Error::PackageNotFound(ref err_ident)) => {
-                assert_eq!(&ident, err_ident);
+            Err(Error::PackageNotFound(err_ident)) => {
+                assert_eq!(Box::new(ident), err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
             Ok(i) => {

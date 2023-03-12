@@ -50,15 +50,15 @@ pub async fn compile_for_package_install(package: &PackageInstall,
     cfg_renderer.compile(&pkg.name, &pkg, &pkg.svc_config_install_path, &ctx)?;
 
     if let Some(ref hook) = InstallHook::load(&pkg.name,
-                                              &fs::svc_hooks_path(&pkg.name),
-                                              &package.installed_path.join("hooks"),
+                                              fs::svc_hooks_path(&pkg.name),
+                                              package.installed_path.join("hooks"),
                                               feature_flags)
     {
         hook.compile(&pkg.name, &ctx)?;
     };
     if let Some(ref hook) = UninstallHook::load(&pkg.name,
-                                                &fs::svc_hooks_path(&pkg.name),
-                                                &package.installed_path.join("hooks"),
+                                                fs::svc_hooks_path(&pkg.name),
+                                                package.installed_path.join("hooks"),
                                                 feature_flags)
     {
         hook.compile(&pkg.name, &ctx)?;
@@ -178,6 +178,9 @@ mod test {
                              FS_ROOT_PATH},
                         package::PackageIdent},
                 templating::test_helpers::*};
+    #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                      target_arch = "x86_64")))]
+    use biome_core::package::metadata::MetaFile;
     use std::{collections::BTreeMap,
               env,
               fs::File,
@@ -215,8 +218,8 @@ mod test {
     pub fn toml_to_json(value: toml::Value) -> serde_json::Value {
         match value {
             toml::Value::String(s) => serde_json::Value::String(s),
-            toml::Value::Integer(i) => serde_json::Value::from(i as i64),
-            toml::Value::Float(i) => serde_json::Value::from(i as f64),
+            toml::Value::Integer(i) => serde_json::Value::from(i),
+            toml::Value::Float(i) => serde_json::Value::from(i),
             toml::Value::Boolean(b) => serde_json::Value::Bool(b),
             toml::Value::Datetime(s) => serde_json::Value::String(s.to_string()),
             toml::Value::Array(a) => toml_vec_to_json(a),
@@ -417,7 +420,14 @@ test: something
 
         let pkg_install =
             PackageInstall::new_from_parts(pg_id, root.clone(), root.clone(), root.clone());
-
+        // Platforms without standard package support require all packages to be native packages
+        #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
+                      target_arch = "x86_64")))]
+        {
+            create_with_content(pkg_install.installed_path()
+                                           .join(MetaFile::PackageType.to_string()),
+                                "native");
+        }
         let toml_path = root.join("default.toml");
         create_with_content(toml_path, "message = \"Hello\"");
         let hooks_path = root.join("hooks");

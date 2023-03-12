@@ -54,7 +54,7 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
 
     let local_cache_key_path = match henv::var(CACHE_KEY_PATH_ENV_VAR) {
         Ok(val) => PathBuf::from(val),
-        Err(_) => (&*CACHE_KEY_PATH).to_path_buf(),
+        Err(_) => (*CACHE_KEY_PATH).to_path_buf(),
     };
     if !local_cache_key_path.exists() {
         return Err(Error::FileNotFound(format!("{}\nRun `bio setup` to \
@@ -356,7 +356,7 @@ fn studio_target(windows: bool, target: target::PackageTarget) -> target::Packag
         target::X86_64_WINDOWS => target::X86_64_LINUX,
         #[cfg(feature = "supported_targets")]
         target::AARCH64_DARWIN => target::X86_64_LINUX,
-        #[cfg(feature = "aarch64-linux")]
+        #[cfg(feature = "supported_targets")]
         target::AARCH64_LINUX => panic!("{} studios are not supported", target::AARCH64_LINUX),
         // This is only needed for the case that we have no target enabled. In that case, we get a
         // non-exhaustive patterns error because the match statement is empty.

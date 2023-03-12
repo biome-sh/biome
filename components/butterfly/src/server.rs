@@ -748,7 +748,7 @@ impl Server {
                     rumor_heat.lock_rhw().purge(member_id_to_depart);
                     rumor_heat.lock_rhw()
                               .start_hot_rumor(RumorKey::new(RumorType::Member,
-                                                             &*member_id_to_depart,
+                                                             member_id_to_depart,
                                                              ""));
                 }
             }
@@ -1442,13 +1442,14 @@ mod tests {
     fn check_quorum_returns(val: bool) -> impl Fn(&str) -> bool { move |_: &str| val }
 
     fn mock_service(member: &Member) -> Service {
-        Service { member_id:     member.id.clone(),
-                  service_group: ServiceGroup::from_str("group.default").unwrap(),
-                  incarnation:   Default::default(),
-                  initialized:   Default::default(),
-                  pkg:           Default::default(),
-                  cfg:           Default::default(),
-                  sys:           Default::default(), }
+        Service { member_id:       member.id.clone(),
+                  service_group:   ServiceGroup::from_str("group.default").unwrap(),
+                  incarnation:     Default::default(),
+                  pkg_incarnation: Default::default(),
+                  initialized:     Default::default(),
+                  pkg:             Default::default(),
+                  cfg:             Default::default(),
+                  sys:             Default::default(), }
     }
 
     #[test]

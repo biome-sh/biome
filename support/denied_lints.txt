@@ -1,5 +1,4 @@
 clippy::assign_op_pattern
-clippy::blacklisted_name
 clippy::blocks_in_if_conditions
 clippy::bool_comparison
 clippy::cast_lossless
@@ -10,6 +9,7 @@ clippy::collapsible_if
 clippy::correctness
 clippy::cognitive_complexity
 clippy::deref_addrof
+clippy::disallowed_names
 clippy::expect_fun_call
 clippy::filter_map_next
 clippy::for_kv_map
@@ -54,7 +54,6 @@ clippy::single_match
 clippy::string_lit_as_bytes
 clippy::too_many_arguments
 clippy::toplevel_ref_arg
-clippy::trivially_copy_pass_by_ref
 clippy::try_err
 clippy::type_repetition_in_bounds
 clippy::unit_arg

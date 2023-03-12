@@ -559,11 +559,11 @@ impl Service {
             Service { spec,
                       sys,
                       cfg,
-                      config_renderer: CfgRenderer::new(&config_root)?,
+                      config_renderer: CfgRenderer::new(config_root)?,
                       health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
                       hooks: HookTable::load(&pkg.name,
-                                             &hooks_root,
-                                             svc_hooks_path(&service_group.service()),
+                                             hooks_root,
+                                             svc_hooks_path(service_group.service()),
                                              feature_flags),
                       last_election_status: ElectionStatus::None,
                       user_config_updated: false,
@@ -1093,7 +1093,7 @@ impl Service {
         (template_data_changed, template_update)
     }
 
-    pub fn to_rumor(&self, incarnation: u64) -> ServiceRumor {
+    pub fn to_rumor(&self, incarnation: u64, pkg_incarnation: u64) -> ServiceRumor {
         let exported = match self.cfg.to_exported(&self.pkg) {
             Ok(exported) => Some(exported),
             Err(err) => {
@@ -1109,6 +1109,7 @@ impl Service {
                                           self.sys.as_sys_info(),
                                           exported);
         rumor.incarnation = incarnation;
+        rumor.pkg_incarnation = pkg_incarnation;
         rumor
     }
 
@@ -1267,7 +1268,7 @@ impl Service {
         match self.hooks.run {
             Some(ref hook) => {
                 fs::copy(hook.path(), &svc_run)?;
-                Self::set_hook_permissions(&svc_run.to_str().unwrap())?;
+                Self::set_hook_permissions(svc_run.to_str().unwrap())?;
             }
             None => {
                 let run = self.pkg.path.join(hooks::RunHook::FILE_NAME);
@@ -1477,7 +1478,7 @@ impl Service {
                 None
             }
         };
-        let new_checksum = Blake2bHash::from_bytes(&contents);
+        let new_checksum = Blake2bHash::from_bytes(contents);
 
         if let Some(current_checksum) = current_checksum {
             if new_checksum == current_checksum {
@@ -1650,6 +1651,8 @@ impl<'a> Serialize for ServiceProxy<'a> {
 }
 
 #[cfg(test)]
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+          target_arch = "x86_64"))]
 mod tests {
     use super::*;
     use crate::test_helpers::*;
@@ -1704,6 +1707,9 @@ mod tests {
                                                             didn't"), &ServiceRestartConfig::default())
     }
 
+    // We only run this test case for x86 platforms as it is not worth the effort
+    // to test it on other platforms as the schema of a API response is likely to be the same
+    // across all non-x86_64 unix platforms.
     #[tokio::test]
     async fn service_proxy_conforms_to_the_schema() {
         let service_wrapper = initialize_test_service().await;

@@ -7,17 +7,16 @@ use clap::{value_t,
 use configopt::{ConfigOpt,
                 Error as ConfigOptError};
 use futures::stream::StreamExt;
+#[cfg(all(any(target_os = "linux", target_os = "windows"),
+              target_arch = "x86_64"))]
+use bio::cli::bio::pkg::ExportCommand as PkgExportCommand;
 use bio::{cli::{self,
                 gateway_util,
                 bio::{license::License,
                       origin::{Rbac,
                                RbacSet,
                                RbacShow},
-                      pkg::{ExportCommand as PkgExportCommand,
-                            PkgExec},
-                      sup::{BioSup,
-                            Secret,
-                            Sup},
+                      pkg::PkgExec,
                       svc::{self,
                             BulkLoad as SvcBulkLoad,
                             Load as SvcLoad,
@@ -69,7 +68,6 @@ use biome_core::{crypto::{init,
                              PackageIdent,
                              PackageTarget},
                    service::ServiceGroup,
-                   tls::ctl_gateway as ctl_gateway_tls,
                    url::default_bldr_url,
                    ChannelIdent};
 use biome_sup_client::{SrvClient,
@@ -97,6 +95,14 @@ use std::{collections::HashMap,
           string::ToString,
           thread};
 use tabwriter::TabWriter;
+
+#[cfg(not(target_os = "macos"))]
+use bio::cli::bio::sup::{BioSup,
+                         Secret,
+                         Sup};
+#[cfg(not(target_os = "macos"))]
+use biome_core::tls::ctl_gateway as ctl_gateway_tls;
+#[cfg(not(target_os = "macos"))]
 use webpki::DnsNameRef;
 
 /// Makes the --org CLI param optional when this env var is set
@@ -197,12 +203,15 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                              update your automation and processes accordingly.")?;
                     return command::launcher::start(ui, sup_run, &args_after_first(1)).await;
                 }
+                #[cfg(any(target_os = "macos",
+                          all(any(target_os = "linux", target_os = "windows"),
+                              target_arch = "x86_64")))]
                 Bio::Studio(studio) => {
                     return command::studio::enter::start(ui, studio.args()).await;
                 }
+                #[cfg(not(target_os = "macos"))]
                 Bio::Sup(sup) => {
                     match sup {
-                        #[cfg(not(target_os = "macos"))]
                         BioSup::Sup(sup) => {
                             // These commands are handled by the `bio-sup` or `bio-launch` binaries.
                             // We need to pass the subcommand that was issued to the underlying
@@ -210,7 +219,11 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             // command prefix and pass the rest of the args to underlying binary.
                             let args = args_after_first(2);
                             match sup {
-                                Sup::Bash | Sup::Sh | Sup::Term => {
+                                #[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
+                                Sup::Bash | Sup::Sh => {
+                                    return command::sup::start(ui, &args).await;
+                                }
+                                Sup::Term => {
                                     return command::sup::start(ui, &args).await;
                                 }
                                 Sup::Run(sup_run) => {
@@ -273,7 +286,11 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     return command::sup::start(ui, &args_after_first(1)).await;
                 }
                 Bio::Pkg(pkg) => {
+                    #[allow(clippy::collapsible_match)]
                     match pkg {
+                        // package export is not available on platforms that have no package support
+                        #[cfg(all(any(target_os = "linux", target_os = "windows"),
+                                  target_arch = "x86_64"))]
                         Pkg::Export(export) => {
                             match export {
                                 #[cfg(target_os = "linux")]
@@ -439,7 +456,7 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
             match matches.subcommand() {
                 ("binds", Some(m)) => sub_pkg_binds(m)?,
                 ("binlink", Some(m)) => sub_pkg_binlink(ui, m)?,
-                ("build", Some(m)) => sub_pkg_build(ui, m).await?,
+                ("build", Some(m)) => sub_pkg_build(ui, m, feature_flags).await?,
                 ("channels", Some(m)) => sub_pkg_channels(ui, m).await?,
                 ("config", Some(m)) => sub_pkg_config(m)?,
                 ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
@@ -781,7 +798,8 @@ fn bio_key_origins(m: &ArgMatches<'_>) -> Result<Vec<biome_core::origin::Origin>
      .collect()
 }
 
-async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+#[allow(unused_variables)]
+async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
     let plan_context = required_value_of(m, "PLAN_CONTEXT");
     let root = m.value_of("HAB_STUDIO_ROOT");
     let src = m.value_of("SRC_PATH");
@@ -797,10 +815,32 @@ async fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         }
     }
 
+    #[cfg(target_family = "unix")]
+    let native_package = if m.is_present("NATIVE_PACKAGE") {
+        if !feature_flags.contains(FeatureFlag::NATIVE_PACKAGE_SUPPORT) {
+            return Err(Error::ArgumentError(String::from("`--native-package` is \
+                                                          only available when \
+                                                          `HAB_FEAT_NATIVE_PACKAGE_SUPPORT` \
+                                                          is set")));
+        }
+        true
+    } else {
+        false
+    };
+    #[cfg(target_family = "windows")]
+    let native_package = false;
+
     let docker = m.is_present("DOCKER");
     let reuse = m.is_present("REUSE");
 
-    command::pkg::build::start(ui, plan_context, root, src, &origins, reuse, docker).await
+    command::pkg::build::start(ui,
+                               plan_context,
+                               root,
+                               src,
+                               &origins,
+                               native_package,
+                               reuse,
+                               docker).await
 }
 
 fn sub_pkg_config(m: &ArgMatches<'_>) -> Result<()> {
@@ -828,7 +868,7 @@ fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
     } else {
         command::pkg::DependencyRelation::Requires
     };
-    command::pkg::dependencies::start(&ident, scope, direction, &*FS_ROOT_PATH)
+    command::pkg::dependencies::start(&ident, scope, direction, &FS_ROOT_PATH)
 }
 
 async fn sub_pkg_download(ui: &mut UI,
@@ -872,7 +912,7 @@ async fn sub_pkg_download(ui: &mut UI,
 
 fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
-    command::pkg::env::start(&ident, &*FS_ROOT_PATH)
+    command::pkg::env::start(&ident, &FS_ROOT_PATH)
 }
 
 fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
@@ -916,7 +956,7 @@ async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
     command::pkg::uninstall::start(ui,
                                    &ident,
-                                   &*FS_ROOT_PATH,
+                                   &FS_ROOT_PATH,
                                    execute_strategy,
                                    mode,
                                    scope,
@@ -1110,8 +1150,8 @@ async fn sub_pkg_install(ui: &mut UI,
                                                      install_source,
                                                      PRODUCT,
                                                      VERSION,
-                                                     &*FS_ROOT_PATH,
-                                                     &cache_artifact_path(Some(&*FS_ROOT_PATH)),
+                                                     &FS_ROOT_PATH,
+                                                     &cache_artifact_path(Some(FS_ROOT_PATH.as_path())),
                                                      token.as_deref(),
                                                      &install_mode,
                                                      &local_package_usage,
@@ -1131,7 +1171,7 @@ async fn sub_pkg_install(ui: &mut UI,
 
 fn sub_pkg_path(m: &ArgMatches<'_>) -> Result<()> {
     let ident = required_pkg_ident_from_input(m)?;
-    command::pkg::path::start(&ident, &*FS_ROOT_PATH)
+    command::pkg::path::start(&ident, &FS_ROOT_PATH)
 }
 
 fn sub_pkg_list(m: &ArgMatches<'_>) -> Result<()> {
@@ -1146,7 +1186,7 @@ fn sub_pkg_provides(m: &ArgMatches<'_>) -> Result<()> {
     let full_releases = m.is_present("FULL_RELEASES");
     let full_paths = m.is_present("FULL_PATHS");
 
-    command::pkg::provides::start(filename, &*FS_ROOT_PATH, full_releases, full_paths)
+    command::pkg::provides::start(filename, &FS_ROOT_PATH, full_releases, full_paths)
 }
 
 async fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
@@ -1510,7 +1550,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
                         .map(ToString::to_string)
                         .unwrap_or_else(|| "UKNOWN".to_string()),))?;
     ui.status(Status::Creating, "service file")?;
-    File::open(&file)?.read_to_end(&mut buf)?;
+    File::open(file)?.read_to_end(&mut buf)?;
     match (service_group.org(), user_param_or_env(m)) {
         (Some(_org), Some(username)) => {
             // That Some(_org) bit is really "was an org specified for
@@ -1552,6 +1592,7 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
+#[cfg(not(target_os = "macos"))]
 async fn sub_sup_depart(member_id: String,
                         remote_sup: Option<&ResolvedListenCtlAddr>)
                         -> Result<()> {
@@ -1581,6 +1622,7 @@ async fn sub_sup_depart(member_id: String,
     Ok(())
 }
 
+#[cfg(not(target_os = "macos"))]
 async fn sub_sup_restart(remote_sup: Option<&ResolvedListenCtlAddr>) -> Result<()> {
     let remote_sup = SrvClient::ctl_addr(remote_sup)?;
     let mut ui = ui::ui();
@@ -1604,6 +1646,7 @@ async fn sub_sup_restart(remote_sup: Option<&ResolvedListenCtlAddr>) -> Result<(
     Ok(())
 }
 
+#[cfg(not(target_os = "macos"))]
 fn sub_sup_secret_generate() -> Result<()> {
     let mut ui = ui::ui();
     let mut buf = String::new();
@@ -1612,6 +1655,7 @@ fn sub_sup_secret_generate() -> Result<()> {
     Ok(())
 }
 
+#[cfg(not(target_os = "macos"))]
 fn sub_sup_secret_generate_key(subject_alternative_name: DnsNameRef, path: PathBuf) -> Result<()> {
     Ok(ctl_gateway_tls::generate_self_signed_certificate_and_key(subject_alternative_name, path)
         .map_err(biome_core::Error::from)?)
@@ -1881,7 +1925,7 @@ fn idents_from_toml_file(ui: &mut UI, filename: &str) -> Result<Vec<PackageSet>>
     ui.status(Status::Using,
               format!("File {}, '{}'",
                       filename,
-                      toml_data.file_descriptor.unwrap_or_else(|| "".to_string())))?;
+                      toml_data.file_descriptor.unwrap_or_default()))?;
 
     for (target, target_array) in toml_data.targets {
         for package_set_value in target_array {

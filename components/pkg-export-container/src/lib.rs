@@ -118,7 +118,8 @@ impl Credentials {
                 Ok(Credentials { token })
             }
             RegistryType::Docker | RegistryType::Azure => {
-                Ok(Credentials { token: base64::encode(&format!("{}:{}", username, password)), })
+                Ok(Credentials { token: biome_core::base64::encode(format!("{}:{}",
+                                                                             username, password)), })
             }
         }
     }
@@ -242,6 +243,6 @@ fn create_docker_config_file(credentials: &Credentials,
         }
     });
 
-    util::write_file(&config, &serde_json::to_string(&json).unwrap())?;
+    util::write_file(config, &serde_json::to_string(&json).unwrap())?;
     Ok(())
 }

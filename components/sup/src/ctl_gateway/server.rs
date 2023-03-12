@@ -56,7 +56,8 @@ use std::{error,
           sync::{Arc,
                  Mutex},
           time::Duration};
-use tokio::{net::TcpListener,
+use tokio::{io::AsyncWrite,
+            net::TcpListener,
             task,
             time};
 use tokio_util::codec::Decoder;
@@ -133,9 +134,10 @@ pub struct CtlCommand {
     //
     // https://github.com/rust-lang/rust/issues/28796
     //
-    // This is now possible see https://github.com/habitat-sh/habitat/issues/6832
+    // TODO: This is now possible see https://github.com/habitat-sh/habitat/issues/6832
     // We held off on making the change to reduce the risk of a regression and to lump it in with
     // more general Future refactoring.
+    #[allow(clippy::type_complexity)]
     fun:     Box<dyn Fn(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()> + Send>,
 }
 
@@ -443,6 +445,10 @@ impl Future for SrvHandler {
                 SrvHandlerState::Sent => {
                     if let Some(timer) = self.timer.take() {
                         timer.observe_duration();
+                    }
+                    if let Err(err) = futures::ready!(Pin::new(self.io.get_mut()).poll_shutdown(cx))
+                    {
+                        return Poll::Ready(Err(HandlerError::from(err)));
                     }
                     trace!("OnMessage complete");
                     break;

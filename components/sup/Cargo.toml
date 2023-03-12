@@ -38,6 +38,7 @@ lazy_static = "*"
 libc = "*"
 log = "*"
 log4rs = "*"
+multimap = "*"
 notify = "*"
 num_cpus = "*"
 parking_lot = "*"
@@ -65,6 +66,7 @@ toml = { version = "*", features = ["preserve_order"]}
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
 tokio-util = { version = "*", features = ["full"] }
+uuid = { version = "*", features = ["v4"] }
 url = "*"
 valico = "*"
 
@@ -74,9 +76,8 @@ caps = "*"
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 biome-launcher-protocol = { path = "../launcher-protocol" }
-mio = { version = "*", features = ["os-ext"] }
-uuid = { version = "*", features = ["v4"] }
-winapi = { version = "*", features = ["namedpipeapi", "tlhelp32"] }
+mio = { version = "^0.8", features = ["os-ext"] }
+winapi = { version = "^0.3", features = ["namedpipeapi", "tlhelp32"] }
 
 [dev-dependencies]
 biome_core = { path = "../core" }
