@@ -193,18 +193,15 @@ enum InitializationState {
     Initialized,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Default, PartialEq, Eq)]
 pub enum RestartState {
+    #[default]
     None,
     NeedsRestart,
     NeedsImmediateRestart,
     Restarting,
     RestartingImmediately,
     Restarted,
-}
-
-impl Default for RestartState {
-    fn default() -> Self { RestartState::None }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -1651,8 +1648,8 @@ impl<'a> Serialize for ServiceProxy<'a> {
 }
 
 #[cfg(test)]
-#[cfg(all(any(target_os = "linux", target_os = "windows"),
-          target_arch = "x86_64"))]
+#[cfg(any(all(target_os = "linux", any(target_arch = "x86_64")),
+          all(target_os = "windows", target_arch = "x86_64"),))]
 mod tests {
     use super::*;
     use crate::test_helpers::*;
