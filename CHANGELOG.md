@@ -1,16 +1,30 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.712 -->
-## [1.6.712](https://github.com/habitat-sh/habitat/tree/1.6.712) (2023-03-17)
+<!-- latest_release 1.6.725 -->
+## [1.6.725](https://github.com/habitat-sh/habitat/tree/1.6.725) (2023-03-25)
 
 #### Merged Pull Requests
-- Bump walkdir from 2.3.2 to 2.3.3 [#8804](https://github.com/habitat-sh/habitat/pull/8804) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump openssl from 0.10.35 to 0.10.48 [#8820](https://github.com/habitat-sh/habitat/pull/8820) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump openssl from 0.10.35 to 0.10.48 [#8820](https://github.com/habitat-sh/habitat/pull/8820) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.725 -->
+- Bump pem from 1.1.1 to 2.0.0 [#8817](https://github.com/habitat-sh/habitat/pull/8817) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.724 -->
+- Bump regex from 1.7.1 to 1.7.2 [#8818](https://github.com/habitat-sh/habitat/pull/8818) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.723 -->
+- Bump async-trait from 0.1.66 to 0.1.67 [#8813](https://github.com/habitat-sh/habitat/pull/8813) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.722 -->
+- Bump multimap from 0.8.3 to 0.9.0 [#8815](https://github.com/habitat-sh/habitat/pull/8815) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.721 -->
+- Bump bitflags from 2.0.1 to 2.0.2 [#8816](https://github.com/habitat-sh/habitat/pull/8816) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.720 -->
+- Bump toml from 0.5.10 to 0.7.3 [#8796](https://github.com/habitat-sh/habitat/pull/8796) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.719 -->
+- Bump serde_test from 1.0.157 to 1.0.158 [#8809](https://github.com/habitat-sh/habitat/pull/8809) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.718 -->
+- Bump anyhow from 1.0.69 to 1.0.70 [#8810](https://github.com/habitat-sh/habitat/pull/8810) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.717 -->
+- Bump os_info from 3.6.0 to 3.7.0 [#8812](https://github.com/habitat-sh/habitat/pull/8812) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.716 -->
+- Bump dirs from 4.0.0 to 5.0.0 [#8808](https://github.com/habitat-sh/habitat/pull/8808) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.715 -->
+- Bump thiserror from 1.0.39 to 1.0.40 [#8807](https://github.com/habitat-sh/habitat/pull/8807) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.714 -->
+- Bump serde_test from 1.0.156 to 1.0.157 [#8806](https://github.com/habitat-sh/habitat/pull/8806) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.714 -->
+- Bump bimap from 0.6.2 to 0.6.3 [#8805](https://github.com/habitat-sh/habitat/pull/8805) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.713 -->
 - Bump walkdir from 2.3.2 to 2.3.3 [#8804](https://github.com/habitat-sh/habitat/pull/8804) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.712 -->
 - Jah/rust 1.68.0 [#8800](https://github.com/habitat-sh/habitat/pull/8800) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.711 -->
 - Bump bitflags from 2.0.0 to 2.0.1 [#8803](https://github.com/habitat-sh/habitat/pull/8803) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.710 -->
