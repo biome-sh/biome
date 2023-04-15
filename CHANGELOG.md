@@ -1,16 +1,24 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.733 -->
-## [1.6.733](https://github.com/habitat-sh/habitat/tree/1.6.733) (2023-03-29)
+<!-- latest_release 1.6.740 -->
+## [1.6.740](https://github.com/habitat-sh/habitat/tree/1.6.740) (2023-04-14)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.156 to 1.0.159 [#8827](https://github.com/habitat-sh/habitat/pull/8827) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- use rust 1.68.2 [#8844](https://github.com/habitat-sh/habitat/pull/8844) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- use rust 1.68.2 [#8844](https://github.com/habitat-sh/habitat/pull/8844) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.740 -->
+- Bump serde_yaml from 0.8.26 to 0.9.21 [#8836](https://github.com/habitat-sh/habitat/pull/8836) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.739 -->
+- bump h2 to 0.3.17 [#8843](https://github.com/habitat-sh/habitat/pull/8843) ([mwrock](https://github.com/mwrock)) <!-- 1.6.738 -->
+- Bump errno from 0.3.0 to 0.3.1 [#8840](https://github.com/habitat-sh/habitat/pull/8840) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.737 -->
+- Bump bitflags from 2.0.2 to 2.1.0 [#8841](https://github.com/habitat-sh/habitat/pull/8841) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.736 -->
+- Bump winreg from 0.11.0 to 0.50.0 [#8833](https://github.com/habitat-sh/habitat/pull/8833) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.735 -->
+- Bump futures from 0.3.27 to 0.3.28 [#8831](https://github.com/habitat-sh/habitat/pull/8831) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.735 -->
+- bump crossbeam-channel to 0.5.8 [#8839](https://github.com/habitat-sh/habitat/pull/8839) ([mwrock](https://github.com/mwrock)) <!-- 1.6.734 -->
 - Bump serde from 1.0.156 to 1.0.159 [#8827](https://github.com/habitat-sh/habitat/pull/8827) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.733 -->
 - fix flaky pkg uninstall e2e test  [#8823](https://github.com/habitat-sh/habitat/pull/8823) ([mwrock](https://github.com/mwrock)) <!-- 1.6.733 -->
 - Bump serde_test from 1.0.158 to 1.0.159 [#8829](https://github.com/habitat-sh/habitat/pull/8829) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.732 -->
