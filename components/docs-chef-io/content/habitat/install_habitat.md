@@ -7,8 +7,8 @@ gh_repo = "biome"
 [menu]
   [menu.biome]
     title = "Get Biome"
-    identifier = "habitat/get_started/installing-packages"
-    parent = "habitat/get_started"
+    identifier = "habitat/install/installing-packages"
+    parent = "habitat/install"
     weight = 10
 +++
 

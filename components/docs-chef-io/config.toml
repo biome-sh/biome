@@ -1,2 +1,79 @@
 [params.biome]
 gh_path = "https://github.com/habitat-sh/habitat/tree/main/components/docs-chef-io/content/"
+
+####
+# Biome Menu
+####
+
+[[menu.biome]]
+title = "Biome"
+identifier = "biome"
+
+  [[menu.biome]]
+  title = "Install Biome"
+  identifier = "habitat/install"
+  parent = "biome"
+  weight = 15
+
+  [[menu.biome]]
+  title = "Builder"
+  identifier = "habitat/builder"
+  parent = "biome"
+  weight = 20
+
+  [[menu.biome]]
+  title = "Origins"
+  identifier = "habitat/origins"
+  parent = "biome"
+  weight = 30
+
+  [[menu.biome]]
+  title = "Packages"
+  identifier = "habitat/packages"
+  parent = "biome"
+  weight = 40
+
+  [[menu.biome]]
+  title = "Plans"
+  identifier = "habitat/plans"
+  parent = "biome"
+  weight = 50
+
+  [[menu.biome]]
+  title = "Services"
+  identifier = "habitat/services"
+  parent = "biome"
+  weight = 60
+
+  [[menu.biome]]
+  title = "Supervisors"
+  identifier = "habitat/supervisors"
+  parent = "biome"
+  weight = 70
+
+  [[menu.biome]]
+  title = "Reference"
+  identifier = "habitat/reference"
+  parent = "biome"
+  weight = 90
+
+    [[menu.biome]]
+    title = "API"
+    identifier = "habitat/reference/api"
+    parent = "habitat/reference"
+
+  [[menu.biome]]
+  title = "Containers"
+  identifier = "habitat/containers"
+  parent = "biome"
+  weight = 200
+
+  [[menu.biome]]
+  title = "Diagrams"
+  identifier = "habitat/diagrams"
+  parent = "biome"
+  weight = 500
+
+####
+# End Biome Menu
+####
