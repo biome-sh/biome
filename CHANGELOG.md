@@ -1,16 +1,29 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.742 -->
-## [1.6.742](https://github.com/habitat-sh/habitat/tree/1.6.742) (2023-05-23)
+<!-- latest_release 1.6.751 -->
+## [1.6.751](https://github.com/habitat-sh/habitat/tree/1.6.751) (2023-06-09)
 
 #### Merged Pull Requests
-- Add get_started page [#8838](https://github.com/habitat-sh/habitat/pull/8838) ([IanMadd](https://github.com/IanMadd))
+- Bump serde_json from 1.0.95 to 1.0.96 [#8858](https://github.com/habitat-sh/habitat/pull/8858) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.95 to 1.0.96 [#8858](https://github.com/habitat-sh/habitat/pull/8858) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.751 -->
+- Bump pin-project from 1.0.12 to 1.1.0 [#8856](https://github.com/habitat-sh/habitat/pull/8856) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.751 -->
+- Bump url from 2.3.1 to 2.4.0 [#8857](https://github.com/habitat-sh/habitat/pull/8857) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.751 -->
+- Bump ctrlc from 3.2.5 to 3.4.0 [#8855](https://github.com/habitat-sh/habitat/pull/8855) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.750 -->
+- Bump log from 0.4.17 to 0.4.18 [#8851](https://github.com/habitat-sh/habitat/pull/8851) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.749 -->
+- Bump libc from 0.2.140 to 0.2.146 [#8852](https://github.com/habitat-sh/habitat/pull/8852) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.749 -->
+- Bump anyhow from 1.0.70 to 1.0.71 [#8850](https://github.com/habitat-sh/habitat/pull/8850) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.749 -->
+- Bump chrono from 0.4.24 to 0.4.26 [#8854](https://github.com/habitat-sh/habitat/pull/8854) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.748 -->
+- Bump xml-rs from 0.8.4 to 0.8.14 [#8849](https://github.com/habitat-sh/habitat/pull/8849) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.747 -->
+- replace plain test rust-toolchain with toml [#8848](https://github.com/habitat-sh/habitat/pull/8848) ([mwrock](https://github.com/mwrock)) <!-- 1.6.746 -->
+- add a rust-toolchain.toml to appease dependabot [#8847](https://github.com/habitat-sh/habitat/pull/8847) ([mwrock](https://github.com/mwrock)) <!-- 1.6.745 -->
+- Refactor Supervisor HTTP Gateway to eliminate service data inconsistencies [#8845](https://github.com/habitat-sh/habitat/pull/8845) ([atrniv](https://github.com/atrniv)) <!-- 1.6.744 -->
+- update yanked h2 v0.3.17 to 0.3.19 [#8846](https://github.com/habitat-sh/habitat/pull/8846) ([mwrock](https://github.com/mwrock)) <!-- 1.6.743 -->
 - Add get_started page [#8838](https://github.com/habitat-sh/habitat/pull/8838) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.742 -->
 - Docs Hab landing page [#8837](https://github.com/habitat-sh/habitat/pull/8837) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.741 -->
 - use rust 1.68.2 [#8844](https://github.com/habitat-sh/habitat/pull/8844) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.740 -->
