@@ -1,16 +1,39 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.751 -->
-## [1.6.751](https://github.com/habitat-sh/habitat/tree/1.6.751) (2023-06-09)
+<!-- latest_release 1.6.768 -->
+## [1.6.768](https://github.com/habitat-sh/habitat/tree/1.6.768) (2023-06-16)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.95 to 1.0.96 [#8858](https://github.com/habitat-sh/habitat/pull/8858) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump notify from 5.1.0 to 6.0.1 [#8883](https://github.com/habitat-sh/habitat/pull/8883) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump notify from 5.1.0 to 6.0.1 [#8883](https://github.com/habitat-sh/habitat/pull/8883) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.768 -->
+- Bump pem from 2.0.0 to 2.0.1 [#8885](https://github.com/habitat-sh/habitat/pull/8885) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.768 -->
+- Bump dirs from 5.0.0 to 5.0.1 [#8886](https://github.com/habitat-sh/habitat/pull/8886) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.768 -->
+- Bump serde_json from 1.0.96 to 1.0.97 [#8884](https://github.com/habitat-sh/habitat/pull/8884) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.767 -->
+- Bump tokio-util from 0.7.7 to 0.7.8 [#8880](https://github.com/habitat-sh/habitat/pull/8880) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.766 -->
+- Bump tokio from 1.27.0 to 1.28.2 [#8881](https://github.com/habitat-sh/habitat/pull/8881) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.765 -->
+- Bump ClementTsang/cargo-action from 0.0.3 to 0.0.4 [#8882](https://github.com/habitat-sh/habitat/pull/8882) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.764 -->
+- Bump serde_test from 1.0.159 to 1.0.164 [#8879](https://github.com/habitat-sh/habitat/pull/8879) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.764 -->
+- Bump log from 0.4.18 to 0.4.19 [#8877](https://github.com/habitat-sh/habitat/pull/8877) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.763 -->
+- increase timeout for named pipe creation in sup verify test [#8876](https://github.com/habitat-sh/habitat/pull/8876) ([mwrock](https://github.com/mwrock)) <!-- 1.6.762 -->
+- Bump tempfile from 3.5.0 to 3.6.0 [#8875](https://github.com/habitat-sh/habitat/pull/8875) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.761 -->
+- Bump hyper from 0.14.25 to 0.14.26 [#8873](https://github.com/habitat-sh/habitat/pull/8873) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.760 -->
+- Bump flate2 from 1.0.25 to 1.0.26 [#8872](https://github.com/habitat-sh/habitat/pull/8872) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.760 -->
+- Bump dns-lookup from 1.0.8 to 2.0.2 [#8874](https://github.com/habitat-sh/habitat/pull/8874) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.759 -->
+- Bump toml from 0.7.3 to 0.7.4 [#8871](https://github.com/habitat-sh/habitat/pull/8871) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.758 -->
+- Bump bitflags from 2.1.0 to 2.3.2 [#8870](https://github.com/habitat-sh/habitat/pull/8870) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.757 -->
+- Bump valico from 3.6.1 to 4.0.0 [#8867](https://github.com/habitat-sh/habitat/pull/8867) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.756 -->
+- Bump prost from 0.11.8 to 0.11.9 [#8868](https://github.com/habitat-sh/habitat/pull/8868) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.756 -->
+- Bump prost-build from 0.11.8 to 0.11.9 [#8866](https://github.com/habitat-sh/habitat/pull/8866) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.756 -->
+- Bump mio from 0.8.6 to 0.8.8 [#8865](https://github.com/habitat-sh/habitat/pull/8865) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.755 -->
+- Bump state from 0.5.3 to 0.6.0 [#8853](https://github.com/habitat-sh/habitat/pull/8853) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.754 -->
+- Bump base64 from 0.21.0 to 0.21.2 [#8859](https://github.com/habitat-sh/habitat/pull/8859) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.753 -->
+- Bump serde from 1.0.159 to 1.0.164 [#8860](https://github.com/habitat-sh/habitat/pull/8860) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.752 -->
 - Bump serde_json from 1.0.95 to 1.0.96 [#8858](https://github.com/habitat-sh/habitat/pull/8858) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.751 -->
 - Bump pin-project from 1.0.12 to 1.1.0 [#8856](https://github.com/habitat-sh/habitat/pull/8856) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.751 -->
 - Bump url from 2.3.1 to 2.4.0 [#8857](https://github.com/habitat-sh/habitat/pull/8857) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.751 -->
