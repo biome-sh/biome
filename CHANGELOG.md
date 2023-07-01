@@ -1,16 +1,28 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.770 -->
-## [1.6.770](https://github.com/habitat-sh/habitat/tree/1.6.770) (2023-06-21)
+<!-- latest_release 1.6.780 -->
+## [1.6.780](https://github.com/habitat-sh/habitat/tree/1.6.780) (2023-06-30)
 
 #### Merged Pull Requests
-- Bump openssl from 0.10.48 to 0.10.55 [#8890](https://github.com/habitat-sh/habitat/pull/8890) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio from 1.29.0 to 1.29.1 [#8902](https://github.com/habitat-sh/habitat/pull/8902) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump tokio from 1.29.0 to 1.29.1 [#8902](https://github.com/habitat-sh/habitat/pull/8902) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.780 -->
+- Bump num_cpus from 1.15.0 to 1.16.0 [#8903](https://github.com/habitat-sh/habitat/pull/8903) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.780 -->
+- Bump pin-project from 1.1.0 to 1.1.1 [#8904](https://github.com/habitat-sh/habitat/pull/8904) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.779 -->
+- Bump rustls-pemfile from 1.0.2 to 1.0.3 [#8901](https://github.com/habitat-sh/habitat/pull/8901) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.778 -->
+- Bump tokio from 1.28.2 to 1.29.0 [#8900](https://github.com/habitat-sh/habitat/pull/8900) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.777 -->
+- Bump bitflags from 2.3.2 to 2.3.3 [#8899](https://github.com/habitat-sh/habitat/pull/8899) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.776 -->
+- Bump hyper from 0.14.26 to 0.14.27 [#8898](https://github.com/habitat-sh/habitat/pull/8898) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.775 -->
+- Bump serde_yaml from 0.9.21 to 0.9.22 [#8893](https://github.com/habitat-sh/habitat/pull/8893) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.774 -->
+- Bump serde_json from 1.0.97 to 1.0.99 [#8895](https://github.com/habitat-sh/habitat/pull/8895) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.773 -->
+- Bump libc from 0.2.146 to 0.2.147 [#8892](https://github.com/habitat-sh/habitat/pull/8892) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.773 -->
+- Bump toml from 0.7.4 to 0.7.5 [#8896](https://github.com/habitat-sh/habitat/pull/8896) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.772 -->
+- add tests for http_gateway health sync [#8891](https://github.com/habitat-sh/habitat/pull/8891) ([mwrock](https://github.com/mwrock)) <!-- 1.6.771 -->
 - Bump openssl from 0.10.48 to 0.10.55 [#8890](https://github.com/habitat-sh/habitat/pull/8890) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.770 -->
 - Bump rcgen from 0.10.0 to 0.11.1 [#8887](https://github.com/habitat-sh/habitat/pull/8887) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.769 -->
 - Bump notify from 5.1.0 to 6.0.1 [#8883](https://github.com/habitat-sh/habitat/pull/8883) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.768 -->
