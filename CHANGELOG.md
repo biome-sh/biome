@@ -1,16 +1,31 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.780 -->
-## [1.6.780](https://github.com/habitat-sh/habitat/tree/1.6.780) (2023-06-30)
+<!-- latest_release 1.6.792 -->
+## [1.6.792](https://github.com/habitat-sh/habitat/tree/1.6.792) (2023-07-07)
 
 #### Merged Pull Requests
-- Bump tokio from 1.29.0 to 1.29.1 [#8902](https://github.com/habitat-sh/habitat/pull/8902) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde from 1.0.166 to 1.0.167 [#8919](https://github.com/habitat-sh/habitat/pull/8919) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.166 to 1.0.167 [#8919](https://github.com/habitat-sh/habitat/pull/8919) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.792 -->
+- Bump serde_test from 1.0.166 to 1.0.167 [#8918](https://github.com/habitat-sh/habitat/pull/8918) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.791 -->
+- Bump thiserror from 1.0.41 to 1.0.43 [#8920](https://github.com/habitat-sh/habitat/pull/8920) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.790 -->
+- update yanked hermit-abi crate and fix e2e test [#8913](https://github.com/habitat-sh/habitat/pull/8913) ([mwrock](https://github.com/mwrock)) <!-- 1.6.789 -->
+- Bump async-trait from 0.1.70 to 0.1.71 [#8917](https://github.com/habitat-sh/habitat/pull/8917) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.788 -->
+- Bump toml from 0.7.5 to 0.7.6 [#8916](https://github.com/habitat-sh/habitat/pull/8916) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.788 -->
+- Bump serde_json from 1.0.99 to 1.0.100 [#8914](https://github.com/habitat-sh/habitat/pull/8914) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.787 -->
+- Bump serde from 1.0.164 to 1.0.166 [#8908](https://github.com/habitat-sh/habitat/pull/8908) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.786 -->
+- Bump async-trait from 0.1.69 to 0.1.70 [#8912](https://github.com/habitat-sh/habitat/pull/8912) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.785 -->
+- Bump paste from 1.0.12 to 1.0.13 [#8909](https://github.com/habitat-sh/habitat/pull/8909) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.785 -->
+- Bump serde_test from 1.0.164 to 1.0.166 [#8910](https://github.com/habitat-sh/habitat/pull/8910) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.785 -->
+- Bump thiserror from 1.0.40 to 1.0.41 [#8911](https://github.com/habitat-sh/habitat/pull/8911) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.784 -->
+- CHEF-3466 Replace download links [#8907](https://github.com/habitat-sh/habitat/pull/8907) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.783 -->
+- Bump pin-project from 1.1.1 to 1.1.2 [#8905](https://github.com/habitat-sh/habitat/pull/8905) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.782 -->
+- Bump async-trait from 0.1.68 to 0.1.69 [#8906](https://github.com/habitat-sh/habitat/pull/8906) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.781 -->
 - Bump tokio from 1.29.0 to 1.29.1 [#8902](https://github.com/habitat-sh/habitat/pull/8902) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.780 -->
 - Bump num_cpus from 1.15.0 to 1.16.0 [#8903](https://github.com/habitat-sh/habitat/pull/8903) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.780 -->
 - Bump pin-project from 1.1.0 to 1.1.1 [#8904](https://github.com/habitat-sh/habitat/pull/8904) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.779 -->

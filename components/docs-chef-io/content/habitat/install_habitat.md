@@ -23,7 +23,7 @@ Biome for Linux requires a 64-bit processor with kernel 2.6.32 or later. On Linu
 
 Once you have downloaded the package, extract the bio binary with tar to `/usr/local/bin` or add its location to your `PATH` (e.g. `tar -xvzf bio.tgz -C /usr/local/bin --strip-components 1`).
 
-[Download Biome for Linux](https://www.chef.io/downloads/tools/habitat)
+[Download Biome for Linux](https://www.chef.io/downloads)
 
 ### Install Biome from the Command Line
 
@@ -47,7 +47,7 @@ Requires 64-bit processor running 10.9 or later
 
 Once you have downloaded the `bio` CLI, unzip it onto your machine. Unzipping to `/usr/local/bin` should place it on your `PATH`. In order to use the Biome Studio, you'll also need to install Docker for Mac.
 
-[Download Biome for Mac](https://www.chef.io/downloads/tools/habitat)
+[Download Biome for Mac](https://www.chef.io/downloads)
 
 [Download Docker for Mac](https://store.docker.com/editions/community/docker-ce-desktop-mac)
 
@@ -93,6 +93,6 @@ To use a Docker Biome Studio as an isolated environment, you'll also need to ins
 
 Docker for Windows requires 64-bit Windows 10 Pro, Enterprise, or Education editions (1607 Anniversary Update, Build 14393 or later) with Hyper-V enabled
 
-[Download Biome for Windows](https://www.chef.io/downloads/tools/habitat)
+[Download Biome for Windows](https://www.chef.io/downloads)
 
 [Download Docker for Windows](https://store.docker.com/editions/community/docker-ce-desktop-windows)
