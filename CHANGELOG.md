@@ -1,16 +1,28 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.797 -->
-## [1.6.797](https://github.com/habitat-sh/habitat/tree/1.6.797) (2023-07-14)
+<!-- latest_release 1.6.807 -->
+## [1.6.807](https://github.com/habitat-sh/habitat/tree/1.6.807) (2023-07-21)
 
 #### Merged Pull Requests
-- Bump tar from 0.4.38 to 0.4.39 [#8926](https://github.com/habitat-sh/habitat/pull/8926) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump async-trait from 0.1.71 to 0.1.72 [#8937](https://github.com/habitat-sh/habitat/pull/8937) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.652 -->
 ### Changes since 1.6.652 release
 
 #### Merged Pull Requests
+- Bump async-trait from 0.1.71 to 0.1.72 [#8937](https://github.com/habitat-sh/habitat/pull/8937) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.807 -->
+- Bump tempfile from 3.6.0 to 3.7.0 [#8938](https://github.com/habitat-sh/habitat/pull/8938) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.807 -->
+- Bump serde_yaml from 0.9.24 to 0.9.25 [#8939](https://github.com/habitat-sh/habitat/pull/8939) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.806 -->
+- Bump serde_test from 1.0.171 to 1.0.173 [#8935](https://github.com/habitat-sh/habitat/pull/8935) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.805 -->
+- Bump serde from 1.0.171 to 1.0.173 [#8936](https://github.com/habitat-sh/habitat/pull/8936) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.804 -->
+- Bump paste from 1.0.13 to 1.0.14 [#8933](https://github.com/habitat-sh/habitat/pull/8933) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.803 -->
+- Bump serde_yaml from 0.9.23 to 0.9.24 [#8934](https://github.com/habitat-sh/habitat/pull/8934) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.802 -->
+- Bump serde from 1.0.168 to 1.0.171 [#8928](https://github.com/habitat-sh/habitat/pull/8928) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.801 -->
+- Bump anyhow from 1.0.71 to 1.0.72 [#8929](https://github.com/habitat-sh/habitat/pull/8929) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.800 -->
+- Bump semver from 1.0.17 to 1.0.18 [#8931](https://github.com/habitat-sh/habitat/pull/8931) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.799 -->
+- Bump serde_json from 1.0.102 to 1.0.103 [#8932](https://github.com/habitat-sh/habitat/pull/8932) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.799 -->
+- Bump serde_yaml from 0.9.22 to 0.9.23 [#8930](https://github.com/habitat-sh/habitat/pull/8930) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.798 -->
 - Bump tar from 0.4.38 to 0.4.39 [#8926](https://github.com/habitat-sh/habitat/pull/8926) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.797 -->
 - Fixes license check for hab in studio setup code [#8924](https://github.com/habitat-sh/habitat/pull/8924) ([atrniv](https://github.com/atrniv)) <!-- 1.6.796 -->
 - Bump serde_json from 1.0.100 to 1.0.102 [#8925](https://github.com/habitat-sh/habitat/pull/8925) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.795 -->
