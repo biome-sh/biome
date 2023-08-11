@@ -563,6 +563,44 @@ impl HookCompileTable {
     }
 }
 
+// Queryable representation of a hook
+#[derive(Debug, Clone, Serialize)]
+pub struct HookQueryModel {
+    pub render_pair:     PathBuf,
+    pub stdout_log_path: PathBuf,
+    pub stderr_log_path: PathBuf,
+}
+
+// Queryable representation of all hooks of a service
+#[derive(Debug, Clone, Serialize)]
+pub struct HookTableQueryModel {
+    pub health_check: Option<HookQueryModel>,
+    pub init:         Option<HookQueryModel>,
+    pub file_updated: Option<HookQueryModel>,
+    pub reload:       Option<HookQueryModel>,
+    pub reconfigure:  Option<HookQueryModel>,
+    pub suitability:  Option<HookQueryModel>,
+    pub run:          Option<HookQueryModel>,
+    pub post_run:     Option<HookQueryModel>,
+    pub post_stop:    Option<HookQueryModel>,
+}
+
+impl HookTableQueryModel {
+    pub fn new(hook_table: &HookTable) -> HookTableQueryModel {
+        HookTableQueryModel {
+            health_check: hook_table.health_check.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            init: hook_table.init.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            file_updated: hook_table.file_updated.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            reload: hook_table.reload.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            reconfigure: hook_table.reconfigure.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            suitability: hook_table.suitability.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            run: hook_table.run.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            post_run: hook_table.post_run.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
+            post_stop: hook_table.post_stop.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() })
+        }
+    }
+}
+
 // Hooks wrapped in Arcs represent a possibly-temporary state while we
 // refactor hooks to be able to run asynchronously.
 #[derive(Debug, Default, Serialize)]
@@ -694,8 +732,8 @@ mod tests {
                          types::{GossipListenAddr,
                                  HttpListenAddr,
                                  ListenCtlAddr}};
-    #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
-                      target_arch = "x86_64")))]
+    #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
+                      all(target_os = "windows", target_arch = "x86_64"))))]
     use biome_core::package::metadata::MetaFile;
     use biome_core::{crypto::keys::KeyCache,
                        fs::CACHE_KEY_PATH,
@@ -759,9 +797,12 @@ mod tests {
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));
         // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
-                      target_arch = "x86_64")))]
+        // TODO: This is currently also needed on aarch64-linux until we publish official packages
+        #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
+                      all(target_os = "windows", target_arch = "x86_64"))))]
         {
+            tokio::fs::create_dir_all(pkg_install.installed_path()).await
+                                                                   .unwrap();
             create_with_content(pkg_install.installed_path()
                                            .join(MetaFile::PackageType.to_string()),
                                 "native");

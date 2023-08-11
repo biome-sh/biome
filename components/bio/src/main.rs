@@ -7,8 +7,9 @@ use clap::{value_t,
 use configopt::{ConfigOpt,
                 Error as ConfigOptError};
 use futures::stream::StreamExt;
-#[cfg(all(any(target_os = "linux", target_os = "windows"),
-              target_arch = "x86_64"))]
+#[cfg(any(all(target_os = "linux",
+                  any(target_arch = "x86_64", target_arch = "aarch64")),
+              all(target_os = "windows", target_arch = "x86_64"),))]
 use bio::cli::bio::pkg::ExportCommand as PkgExportCommand;
 use bio::{cli::{self,
                 gateway_util,
@@ -204,8 +205,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     return command::launcher::start(ui, sup_run, &args_after_first(1)).await;
                 }
                 #[cfg(any(target_os = "macos",
-                          all(any(target_os = "linux", target_os = "windows"),
-                              target_arch = "x86_64")))]
+                          any(all(target_os = "linux",
+                                  any(target_arch = "x86_64", target_arch = "aarch64")),
+                              all(target_os = "windows", target_arch = "x86_64"),)))]
                 Bio::Studio(studio) => {
                     return command::studio::enter::start(ui, studio.args()).await;
                 }
@@ -219,7 +221,10 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                             // command prefix and pass the rest of the args to underlying binary.
                             let args = args_after_first(2);
                             match sup {
-                                #[cfg(all(any(target_os = "linux", target_os = "windows"), target_arch = "x86_64"))]
+                                #[cfg(any(
+                                    all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
+                                    all(target_os = "windows", target_arch = "x86_64"),
+                                ))]
                                 Sup::Bash | Sup::Sh => {
                                     return command::sup::start(ui, &args).await;
                                 }
@@ -289,8 +294,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     #[allow(clippy::collapsible_match)]
                     match pkg {
                         // package export is not available on platforms that have no package support
-                        #[cfg(all(any(target_os = "linux", target_os = "windows"),
-                                  target_arch = "x86_64"))]
+                        #[cfg(any(all(target_os = "linux",
+                                      any(target_arch = "x86_64", target_arch = "aarch64")),
+                                  all(target_os = "windows", target_arch = "x86_64"),))]
                         Pkg::Export(export) => {
                             match export {
                                 #[cfg(target_os = "linux")]
@@ -335,9 +341,9 @@ async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 }
             }
         }
-        Err(e @ ConfigOptError::ConfigGenerated(_) | e @ ConfigOptError::ConfigFile(..)) => {
-            e.exit()
-        }
+        Err(e @ ConfigOptError::ConfigGenerated(_)
+            | e @ ConfigOptError::ConfigFile(..)
+            | e @ ConfigOptError::Toml(..)) => e.exit(),
         Err(_) => {
             // Completely ignore all other errors. They will be caught by the CLI parsing logic
             // below.

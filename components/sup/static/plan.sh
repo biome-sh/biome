@@ -5,7 +5,7 @@ pkg_name=bio-sup-static
 pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 pkg_deps=(core/busybox-static)
 pkg_build_deps=(
-  core/coreutils core/cacerts core/rust/"$(cat "$SRC_PATH/../../../rust-toolchain")" core/gcc
+  core/coreutils core/cacerts core/rust/"$(tail -n 1 "$SRC_PATH/../../rust-toolchain"  | cut -d'"' -f 2)" core/gcc
 )
 
 do_begin() {

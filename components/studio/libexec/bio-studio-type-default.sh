@@ -28,7 +28,7 @@ finish_setup() {
       # Import the secret origin key, required for signing packages
       info "Importing '$key' secret origin key"
       # shellcheck disable=2154
-      if key_text=$($bio origin key export --type secret "$key"); then
+      if key_text=$(HAB_LICENSE="$HAB_LICENSE" $bio origin key export --type secret "$key"); then
         printf -- "%s" "${key_text}" | _bio origin key import
       else
         echo "Error exporting $key key"
@@ -54,7 +54,7 @@ finish_setup() {
       fi
       # Attempt to import the public origin key, which can be used for local
       # package installations where the key may not yet be uploaded.
-      if key_text=$($bio origin key export --type public "$key" 2> /dev/null); then
+      if key_text=$(HAB_LICENSE="$HAB_LICENSE" $bio origin key export --type public "$key" 2> /dev/null); then
         info "Importing '$key' public origin key"
         printf -- "%s" "${key_text}" | _bio origin key import
       else
@@ -218,6 +218,18 @@ PROFILE_ENTER
   echo "${run_group}:x:42:${run_user}" >> "$HAB_STUDIO_ROOT"/etc/group
 
   studio_env_command="$coreutils_path/bin/env"
+
+  # This installs any additional packages before starting the studio.
+  # It is useful in scenarios where you have a newer version of a package
+  # and want biome to pick the newer locally installed version during 
+  # a studio build. We do exactly this during the package refresh process.
+  if [ -n "${HAB_STUDIO_INSTALL_PKGS:-}" ]; then
+    echo "Installing additional packages in studio"
+    deps=$(echo "$HAB_STUDIO_INSTALL_PKGS" | "$coreutils_path"/bin/tr ":" "\n")
+    for dep in $deps; do
+      _bio pkg install "$dep"
+    done
+  fi
 }
 
 # Intentionally using a subshell here so `unset` doesn't affect the
@@ -226,7 +238,8 @@ _bio() (
     # We remove a couple of env vars we do not want for this instance of the studio
     unset HAB_CACHE_KEY_PATH
     unset HAB_BLDR_CHANNEL
-    $bb env FS_ROOT="$HAB_STUDIO_ROOT" "$bio" "$@"
+    # Set the HAB_LICENSE because the license accepted files don't yet exist on the chroot filesystem
+    $bb env FS_ROOT="$HAB_STUDIO_ROOT" HAB_LICENSE="$HAB_LICENSE" "$bio" "$@"
 )
 
 _pkgpath_for() {

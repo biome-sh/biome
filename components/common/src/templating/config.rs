@@ -325,8 +325,8 @@ impl Cfg {
                     let mut buffer = String::new();
                     let mut deserializer = serde_json::Deserializer::from_str(&config);
                     let res = {
-                        let mut serializer = toml::Serializer::new(&mut buffer);
-                        serde_transcode::transcode(&mut deserializer, &mut serializer)
+                        let serializer = toml::Serializer::new(&mut buffer);
+                        serde_transcode::transcode(&mut deserializer, serializer)
                     };
                     (buffer, res)
                 };
@@ -385,7 +385,7 @@ impl Serialize for Cfg {
             }
         }
 
-        toml::ser::tables_last(&table, serializer)
+        serializer.collect_map(&table)
     }
 }
 
@@ -614,8 +614,8 @@ mod test {
                                   PackageInstall}},
                 templating::{context::RenderContext,
                              test_helpers::*}};
-    #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
-                      target_arch = "x86_64")))]
+    #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
+                      all(target_os = "windows", target_arch = "x86_64"),)))]
     use hcore::package::metadata::MetaFile;
     use std::{env,
               fs::{self,
@@ -1151,8 +1151,8 @@ mod test {
                             "config message is {{cfg.message}}");
 
         // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
-                      target_arch = "x86_64")))]
+        #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
+                      all(target_os = "windows", target_arch = "x86_64"))))]
         {
             create_with_content(pkg_dir.join(MetaFile::PackageType.to_string()), "native");
         }

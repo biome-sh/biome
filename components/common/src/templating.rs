@@ -178,8 +178,8 @@ mod test {
                              FS_ROOT_PATH},
                         package::PackageIdent},
                 templating::test_helpers::*};
-    #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
-                      target_arch = "x86_64")))]
+    #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
+                      all(target_os = "windows", target_arch = "x86_64"),)))]
     use biome_core::package::metadata::MetaFile;
     use std::{collections::BTreeMap,
               env,
@@ -286,8 +286,7 @@ mod test {
 
         assert_eq!(
                    r.ok().unwrap(),
-                   r#"---
-test: something
+                   r#"test: something
 "#.to_string()
         );
     }
@@ -421,9 +420,11 @@ test: something
         let pkg_install =
             PackageInstall::new_from_parts(pg_id, root.clone(), root.clone(), root.clone());
         // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(all(any(target_os = "linux", target_os = "windows"),
-                      target_arch = "x86_64")))]
+        #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
+                      all(target_os = "windows", target_arch = "x86_64"))))]
         {
+            tokio::fs::create_dir_all(pkg_install.installed_path()).await
+                                                                   .unwrap();
             create_with_content(pkg_install.installed_path()
                                            .join(MetaFile::PackageType.to_string()),
                                 "native");

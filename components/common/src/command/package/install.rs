@@ -110,7 +110,7 @@ pub struct LocalArchive {
 
 /// Encapsulate all possible sources we can install packages from.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(try_from = "&str", into = "String")]
+#[serde(try_from = "String", into = "String")]
 pub enum InstallSource {
     /// We can install from a package identifier
     Ident(PackageIdent, PackageTarget),
@@ -168,10 +168,10 @@ impl FromStr for InstallSource {
     }
 }
 
-impl std::convert::TryFrom<&str> for InstallSource {
+impl std::convert::TryFrom<String> for InstallSource {
     type Error = biome_core::Error;
 
-    fn try_from(s: &str) -> StdResult<Self, Self::Error> { InstallSource::from_str(s) }
+    fn try_from(s: String) -> StdResult<Self, Self::Error> { InstallSource::from_str(&s) }
 }
 
 impl std::fmt::Display for InstallSource {
@@ -221,28 +221,22 @@ impl AsRef<PackageIdent> for InstallSource {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub enum InstallMode {
+    #[default]
     Online,
     Offline,
 }
 
-impl Default for InstallMode {
-    fn default() -> Self { InstallMode::Online }
-}
-
 /// Governs how install hooks behave when loading packages
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum InstallHookMode {
     /// Run the install hook and all install hooks of dependent packages
     /// that have not yet been run or have previously failed
+    #[default]
     Run,
     /// Do not run any install hooks when loading a package
     Ignore,
-}
-
-impl Default for InstallHookMode {
-    fn default() -> Self { InstallHookMode::Run }
 }
 
 /// When querying Builder, we may not find a package that satisfies

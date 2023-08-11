@@ -146,7 +146,8 @@ EOT
 _bio() (
     unset HAB_CACHE_KEY_PATH
     # shellcheck disable=2154
-    $bb env FS_ROOT="$HAB_STUDIO_ROOT" "$bio" "$@"
+    # Set the HAB_LICENSE because the license accepted files don't yet exist on the chroot filesystem
+    $bb env FS_ROOT="$HAB_STUDIO_ROOT" HAB_LICENSE="$HAB_LICENSE" "$bio" "$@"
 )
 
 _pkgpath_for() {
@@ -154,5 +155,5 @@ _pkgpath_for() {
 }
 
 _outside_pkgpath_for() {
-  $bio pkg path "$1"
+  HAB_LICENSE="$HAB_LICENSE" $bio pkg path "$1"
 }

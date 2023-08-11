@@ -6,8 +6,8 @@ gh_repo = "biome"
 [menu]
   [menu.biome]
     title = "Set up the Biome CLI"
-    identifier = "habitat/get_started/bio-setup Install Biome"
-    parent = "habitat/get_started"
+    identifier = "habitat/install/bio-setup Install Biome"
+    parent = "habitat/install"
     weight = 20
 +++
 
