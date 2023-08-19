@@ -1,16 +1,29 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.827 -->
-## [1.6.827](https://github.com/habitat-sh/habitat/tree/1.6.827) (2023-08-10)
+<!-- latest_release 1.6.840 -->
+## [1.6.840](https://github.com/habitat-sh/habitat/tree/1.6.840) (2023-08-17)
 
 #### Merged Pull Requests
-- update changelog for release 1.6.826 [#8963](https://github.com/habitat-sh/habitat/pull/8963) ([atrniv](https://github.com/atrniv))
+- Bump tokio from 1.31.0 to 1.32.0 [#8976](https://github.com/habitat-sh/habitat/pull/8976) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump tokio from 1.31.0 to 1.32.0 [#8976](https://github.com/habitat-sh/habitat/pull/8976) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.840 -->
+- Bump anyhow from 1.0.74 to 1.0.75 [#8975](https://github.com/habitat-sh/habitat/pull/8975) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.839 -->
+- Bump thiserror from 1.0.46 to 1.0.47 [#8974](https://github.com/habitat-sh/habitat/pull/8974) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.838 -->
+- Bump flate2 from 1.0.26 to 1.0.27 [#8973](https://github.com/habitat-sh/habitat/pull/8973) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.837 -->
+- Bump serde_json from 1.0.104 to 1.0.105 [#8972](https://github.com/habitat-sh/habitat/pull/8972) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.836 -->
+- Bump thiserror from 1.0.44 to 1.0.46 [#8971](https://github.com/habitat-sh/habitat/pull/8971) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.835 -->
+- Bump anyhow from 1.0.72 to 1.0.74 [#8970](https://github.com/habitat-sh/habitat/pull/8970) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.834 -->
+- Rustfmt and Nightly Rust Bump to nightly-2023-08-15 [#8969](https://github.com/habitat-sh/habitat/pull/8969) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.833 -->
+- Fix Release Pipeline [#8964](https://github.com/habitat-sh/habitat/pull/8964) ([atrniv](https://github.com/atrniv)) <!-- 1.6.832 -->
+- Bump tokio from 1.29.1 to 1.31.0 [#8965](https://github.com/habitat-sh/habitat/pull/8965) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.831 -->
+- Bump bitflags from 2.3.3 to 2.4.0 [#8967](https://github.com/habitat-sh/habitat/pull/8967) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.830 -->
+- Bump log from 0.4.19 to 0.4.20 [#8968](https://github.com/habitat-sh/habitat/pull/8968) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.829 -->
+- Bump async-trait from 0.1.72 to 0.1.73 [#8966](https://github.com/habitat-sh/habitat/pull/8966) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.828 -->
 - update changelog for release 1.6.826 [#8963](https://github.com/habitat-sh/habitat/pull/8963) ([atrniv](https://github.com/atrniv)) <!-- 1.6.827 -->
 <!-- release_rollup -->
 
