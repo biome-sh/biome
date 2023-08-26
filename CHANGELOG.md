@@ -1,16 +1,29 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.840 -->
-## [1.6.840](https://github.com/habitat-sh/habitat/tree/1.6.840) (2023-08-17)
+<!-- latest_release 1.6.853 -->
+## [1.6.853](https://github.com/habitat-sh/habitat/tree/1.6.853) (2023-08-25)
 
 #### Merged Pull Requests
-- Bump tokio from 1.31.0 to 1.32.0 [#8976](https://github.com/habitat-sh/habitat/pull/8976) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Revert &quot;Bump ipc-channel from 0.15.0 to 0.17.0&quot; [#8989](https://github.com/habitat-sh/habitat/pull/8989) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Revert &quot;Bump ipc-channel from 0.15.0 to 0.17.0&quot; [#8989](https://github.com/habitat-sh/habitat/pull/8989) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.853 -->
+- Bump ipc-channel from 0.15.0 to 0.17.0 [#8988](https://github.com/habitat-sh/habitat/pull/8988) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.852 -->
+- use rustls-webpki instead of webpki [#8987](https://github.com/habitat-sh/habitat/pull/8987) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.851 -->
+- Bump serde from 1.0.185 to 1.0.186 [#8985](https://github.com/habitat-sh/habitat/pull/8985) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.850 -->
+- Bump pem from 3.0.1 to 3.0.2 [#8986](https://github.com/habitat-sh/habitat/pull/8986) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.849 -->
+- Bump notify from 6.1.0 to 6.1.1 [#8984](https://github.com/habitat-sh/habitat/pull/8984) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.848 -->
+- Bump petgraph from 0.6.3 to 0.6.4 [#8983](https://github.com/habitat-sh/habitat/pull/8983) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.847 -->
+- Bump serde from 1.0.184 to 1.0.185 [#8982](https://github.com/habitat-sh/habitat/pull/8982) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.846 -->
+- Bump notify from 6.0.1 to 6.1.0 [#8981](https://github.com/habitat-sh/habitat/pull/8981) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.845 -->
+- Bump serde from 1.0.183 to 1.0.184 [#8980](https://github.com/habitat-sh/habitat/pull/8980) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.844 -->
+- Bump cc from 1.0.82 to 1.0.83 [#8979](https://github.com/habitat-sh/habitat/pull/8979) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.843 -->
+- Bump winreg from 0.50.0 to 0.51.0 [#8978](https://github.com/habitat-sh/habitat/pull/8978) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.842 -->
+- Bump tempfile from 3.7.1 to 3.8.0 [#8977](https://github.com/habitat-sh/habitat/pull/8977) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.841 -->
 - Bump tokio from 1.31.0 to 1.32.0 [#8976](https://github.com/habitat-sh/habitat/pull/8976) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.840 -->
 - Bump anyhow from 1.0.74 to 1.0.75 [#8975](https://github.com/habitat-sh/habitat/pull/8975) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.839 -->
 - Bump thiserror from 1.0.46 to 1.0.47 [#8974](https://github.com/habitat-sh/habitat/pull/8974) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.838 -->
