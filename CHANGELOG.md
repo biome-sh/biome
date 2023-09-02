@@ -1,16 +1,24 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.853 -->
-## [1.6.853](https://github.com/habitat-sh/habitat/tree/1.6.853) (2023-08-25)
+<!-- latest_release 1.6.861 -->
+## [1.6.861](https://github.com/habitat-sh/habitat/tree/1.6.861) (2023-09-01)
 
 #### Merged Pull Requests
-- Revert &quot;Bump ipc-channel from 0.15.0 to 0.17.0&quot; [#8989](https://github.com/habitat-sh/habitat/pull/8989) ([jasonheath](https://github.com/jasonheath))
+- Bump url from 2.4.0 to 2.4.1 [#9001](https://github.com/habitat-sh/habitat/pull/9001) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump url from 2.4.0 to 2.4.1 [#9001](https://github.com/habitat-sh/habitat/pull/9001) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.861 -->
+- Bump tabwriter from 1.2.1 to 1.3.0 [#9002](https://github.com/habitat-sh/habitat/pull/9002) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.860 -->
+- Bump chrono from 0.4.26 to 0.4.28 [#9004](https://github.com/habitat-sh/habitat/pull/9004) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.859 -->
+- Update dependabot.yml [#9000](https://github.com/habitat-sh/habitat/pull/9000) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.858 -->
+- Bump errno from 0.3.2 to 0.3.3 [#8998](https://github.com/habitat-sh/habitat/pull/8998) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.857 -->
+- Bump base64 from 0.21.2 to 0.21.3 [#8993](https://github.com/habitat-sh/habitat/pull/8993) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.856 -->
+- Bump serde from 1.0.186 to 1.0.188 [#8995](https://github.com/habitat-sh/habitat/pull/8995) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.855 -->
+- Bump actix-rt from 2.8.0 to 2.9.0 [#8994](https://github.com/habitat-sh/habitat/pull/8994) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.854 -->
 - Revert &quot;Bump ipc-channel from 0.15.0 to 0.17.0&quot; [#8989](https://github.com/habitat-sh/habitat/pull/8989) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.853 -->
 - Bump ipc-channel from 0.15.0 to 0.17.0 [#8988](https://github.com/habitat-sh/habitat/pull/8988) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.852 -->
 - use rustls-webpki instead of webpki [#8987](https://github.com/habitat-sh/habitat/pull/8987) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.851 -->
