@@ -1,16 +1,32 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.867 -->
-## [1.6.867](https://github.com/habitat-sh/habitat/tree/1.6.867) (2023-09-08)
+<!-- latest_release 1.6.883 -->
+## [1.6.883](https://github.com/habitat-sh/habitat/tree/1.6.883) (2023-09-15)
 
 #### Merged Pull Requests
-- Properly update the nix crate [#9017](https://github.com/habitat-sh/habitat/pull/9017) ([jasonheath](https://github.com/jasonheath))
+- audit.toml maintenance [#9033](https://github.com/habitat-sh/habitat/pull/9033) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- audit.toml maintenance [#9033](https://github.com/habitat-sh/habitat/pull/9033) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.883 -->
+- Update to Prost 0.12.0 [#9029](https://github.com/habitat-sh/habitat/pull/9029) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.882 -->
+- Bump libc from 0.2.147 to 0.2.148 [#9030](https://github.com/habitat-sh/habitat/pull/9030) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.881 -->
+- Bump mktemp from 0.5.0 to 0.5.1 [#9021](https://github.com/habitat-sh/habitat/pull/9021) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.880 -->
+- Bump serde_json from 1.0.106 to 1.0.107 [#9032](https://github.com/habitat-sh/habitat/pull/9032) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.879 -->
+- defaulting open-pull-requests-limit [#9028](https://github.com/habitat-sh/habitat/pull/9028) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.878 -->
+- Bump ClementTsang/cargo-action from 0.0.4 to 0.0.5 [#9023](https://github.com/habitat-sh/habitat/pull/9023) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.877 -->
+- Bump toml from 0.7.6 to 0.8.0 [#9025](https://github.com/habitat-sh/habitat/pull/9025) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.876 -->
+- Bump rustls-webpki from 0.101.4 to 0.101.5 [#9026](https://github.com/habitat-sh/habitat/pull/9026) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.875 -->
+- Bump serde_json from 1.0.105 to 1.0.106 [#9022](https://github.com/habitat-sh/habitat/pull/9022) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.874 -->
+- Bump base64 from 0.21.3 to 0.21.4 [#9018](https://github.com/habitat-sh/habitat/pull/9018) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.873 -->
+- Bump chrono from 0.4.29 to 0.4.30 [#9015](https://github.com/habitat-sh/habitat/pull/9015) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.872 -->
+- Bump blake2b_simd from 1.0.1 to 1.0.2 [#9020](https://github.com/habitat-sh/habitat/pull/9020) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.871 -->
+- Bump bytes from 1.4.0 to 1.5.0 [#9014](https://github.com/habitat-sh/habitat/pull/9014) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.870 -->
+- Fix broken end-to-end test [#9024](https://github.com/habitat-sh/habitat/pull/9024) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.869 -->
+- Bump thiserror from 1.0.47 to 1.0.48 [#9006](https://github.com/habitat-sh/habitat/pull/9006) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.868 -->
 - Properly update the nix crate [#9017](https://github.com/habitat-sh/habitat/pull/9017) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.867 -->
 - Bump chrono from 0.4.28 to 0.4.29 [#9012](https://github.com/habitat-sh/habitat/pull/9012) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.866 -->
 - Bump actions/checkout from 3 to 4 [#9009](https://github.com/habitat-sh/habitat/pull/9009) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.865 -->
