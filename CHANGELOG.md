@@ -1,16 +1,24 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.883 -->
-## [1.6.883](https://github.com/habitat-sh/habitat/tree/1.6.883) (2023-09-15)
+<!-- latest_release 1.6.889 -->
+## [1.6.889](https://github.com/habitat-sh/habitat/tree/1.6.889) (2023-09-22)
 
 #### Merged Pull Requests
-- audit.toml maintenance [#9033](https://github.com/habitat-sh/habitat/pull/9033) ([jasonheath](https://github.com/jasonheath))
+- Bump rustls-webpki from 0.101.5 to 0.101.6 [#9042](https://github.com/habitat-sh/habitat/pull/9042) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump rustls-webpki from 0.101.5 to 0.101.6 [#9042](https://github.com/habitat-sh/habitat/pull/9042) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.889 -->
+- Bump rcgen from 0.11.1 to 0.11.2 [#9041](https://github.com/habitat-sh/habitat/pull/9041) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.888 -->
+- Bump tokio-util from 0.7.8 to 0.7.9 [#9040](https://github.com/habitat-sh/habitat/pull/9040) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.887 -->
+- Bump termcolor from 1.2.0 to 1.3.0 [#9039](https://github.com/habitat-sh/habitat/pull/9039) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.886 -->
+- Bump chrono from 0.4.30 to 0.4.31 [#9036](https://github.com/habitat-sh/habitat/pull/9036) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.885 -->
+- Bump dns-lookup from 2.0.2 to 2.0.3 [#9037](https://github.com/habitat-sh/habitat/pull/9037) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.885 -->
+- Bump prost-build from 0.12.0 to 0.12.1 [#9035](https://github.com/habitat-sh/habitat/pull/9035) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.885 -->
+- Bump prost-types from 0.12.0 to 0.12.1 [#9038](https://github.com/habitat-sh/habitat/pull/9038) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.884 -->
 - audit.toml maintenance [#9033](https://github.com/habitat-sh/habitat/pull/9033) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.883 -->
 - Update to Prost 0.12.0 [#9029](https://github.com/habitat-sh/habitat/pull/9029) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.882 -->
 - Bump libc from 0.2.147 to 0.2.148 [#9030](https://github.com/habitat-sh/habitat/pull/9030) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.881 -->
