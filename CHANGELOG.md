@@ -1,16 +1,22 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.898 -->
-## [1.6.898](https://github.com/habitat-sh/habitat/tree/1.6.898) (2023-10-06)
+<!-- latest_release 1.6.904 -->
+## [1.6.904](https://github.com/habitat-sh/habitat/tree/1.6.904) (2023-10-13)
 
 #### Merged Pull Requests
-- Bump byteorder from 1.4.3 to 1.5.0 [#9051](https://github.com/habitat-sh/habitat/pull/9051) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde from 1.0.188 to 1.0.189 [#9057](https://github.com/habitat-sh/habitat/pull/9057) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.188 to 1.0.189 [#9057](https://github.com/habitat-sh/habitat/pull/9057) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.904 -->
+- Bump semver from 1.0.19 to 1.0.20 [#9056](https://github.com/habitat-sh/habitat/pull/9056) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.903 -->
+- Bump regex from 1.9.6 to 1.10.0 [#9055](https://github.com/habitat-sh/habitat/pull/9055) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.902 -->
+- Bump tokio from 1.32.0 to 1.33.0 [#9054](https://github.com/habitat-sh/habitat/pull/9054) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.901 -->
+- Bump libc from 0.2.148 to 0.2.149 [#9053](https://github.com/habitat-sh/habitat/pull/9053) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.900 -->
+- Bump errno from 0.3.4 to 0.3.5 [#9052](https://github.com/habitat-sh/habitat/pull/9052) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.899 -->
 - Bump byteorder from 1.4.3 to 1.5.0 [#9051](https://github.com/habitat-sh/habitat/pull/9051) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.898 -->
 - Bump toml from 0.8.1 to 0.8.2 [#9050](https://github.com/habitat-sh/habitat/pull/9050) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.897 -->
 - Bump rcgen from 0.11.2 to 0.11.3 [#9049](https://github.com/habitat-sh/habitat/pull/9049) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.896 -->
