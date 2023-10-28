@@ -1,16 +1,23 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.912 -->
-## [1.6.912](https://github.com/habitat-sh/habitat/tree/1.6.912) (2023-10-20)
+<!-- latest_release 1.6.919 -->
+## [1.6.919](https://github.com/habitat-sh/habitat/tree/1.6.919) (2023-10-26)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.49 to 1.0.50 [#9065](https://github.com/habitat-sh/habitat/pull/9065) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tokio-util from 0.7.9 to 0.7.10 [#9073](https://github.com/habitat-sh/habitat/pull/9073) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump tokio-util from 0.7.9 to 0.7.10 [#9073](https://github.com/habitat-sh/habitat/pull/9073) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.919 -->
+- Bump serde_yaml from 0.9.25 to 0.9.26 [#9072](https://github.com/habitat-sh/habitat/pull/9072) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.918 -->
+- Bump rustls from 0.21.7 to 0.21.8 [#9070](https://github.com/habitat-sh/habitat/pull/9070) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.917 -->
+- Bump rustls-webpki from 0.101.6 to 0.101.7 [#9069](https://github.com/habitat-sh/habitat/pull/9069) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.916 -->
+- Bump mio from 0.8.8 to 0.8.9 [#9068](https://github.com/habitat-sh/habitat/pull/9068) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.915 -->
+- Bump base64 from 0.21.4 to 0.21.5 [#9067](https://github.com/habitat-sh/habitat/pull/9067) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.914 -->
+- Bump multimap from 0.9.0 to 0.9.1 [#9066](https://github.com/habitat-sh/habitat/pull/9066) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.913 -->
 - Bump thiserror from 1.0.49 to 1.0.50 [#9065](https://github.com/habitat-sh/habitat/pull/9065) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.912 -->
 - Bump rustix from 0.36.8 to 0.36.16 [#9064](https://github.com/habitat-sh/habitat/pull/9064) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.911 -->
 - Bump regex from 1.10.1 to 1.10.2 [#9063](https://github.com/habitat-sh/habitat/pull/9063) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.910 -->
