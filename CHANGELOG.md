@@ -1,16 +1,37 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.920 -->
-## [1.6.920](https://github.com/habitat-sh/habitat/tree/1.6.920) (2023-11-07)
+<!-- latest_release 1.6.935 -->
+## [1.6.935](https://github.com/habitat-sh/habitat/tree/1.6.935) (2023-12-01)
 
 #### Merged Pull Requests
-- toToml helper fix [#9081](https://github.com/habitat-sh/habitat/pull/9081) ([sajjaphani](https://github.com/sajjaphani))
+- Bump winreg from 0.51.0 to 0.52.0 [#9097](https://github.com/habitat-sh/habitat/pull/9097) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump winreg from 0.51.0 to 0.52.0 [#9097](https://github.com/habitat-sh/habitat/pull/9097) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.935 -->
+- Bump prost-build from 0.12.1 to 0.12.3 [#9095](https://github.com/habitat-sh/habitat/pull/9095) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.934 -->
+- Bump env_logger from 0.10.0 to 0.10.1 [#9096](https://github.com/habitat-sh/habitat/pull/9096) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.933 -->
+- Bump url from 2.4.1 to 2.5.0 [#9094](https://github.com/habitat-sh/habitat/pull/9094) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.932 -->
+- Bump prost-types from 0.12.1 to 0.12.3 [#9089](https://github.com/habitat-sh/habitat/pull/9089) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.931 -->
+- Bump tokio from 1.33.0 to 1.34.0 [#9092](https://github.com/habitat-sh/habitat/pull/9092) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.931 -->
+- Bump rustls from 0.21.8 to 0.21.9 [#9091](https://github.com/habitat-sh/habitat/pull/9091) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.931 -->
+- Bump percent-encoding from 2.3.0 to 2.3.1 [#9090](https://github.com/habitat-sh/habitat/pull/9090) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.930 -->
+- Bump rustls-pemfile from 1.0.3 to 1.0.4 [#9093](https://github.com/habitat-sh/habitat/pull/9093) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.929 -->
+- CHEF-3310: Ensure hab pkg install verifies all deps are installed [#9082](https://github.com/habitat-sh/habitat/pull/9082) ([atrniv](https://github.com/atrniv)) <!-- 1.6.928 -->
+- Bump openssl from 0.10.55 to 0.10.60 [#9088](https://github.com/habitat-sh/habitat/pull/9088) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.927 -->
+- Bump serde from 1.0.190 to 1.0.193 [#9083](https://github.com/habitat-sh/habitat/pull/9083) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.926 -->
+- bump release pipeline aarch64-darwin agent to macos 12 [#9087](https://github.com/habitat-sh/habitat/pull/9087) ([mwrock](https://github.com/mwrock)) <!-- 1.6.926 -->
+- Bump prost from 0.12.1 to 0.12.3 [#9085](https://github.com/habitat-sh/habitat/pull/9085) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.925 -->
+- Bump termcolor from 1.3.0 to 1.4.0 [#9084](https://github.com/habitat-sh/habitat/pull/9084) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.925 -->
+- Bump errno from 0.3.5 to 0.3.8 [#9086](https://github.com/habitat-sh/habitat/pull/9086) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.925 -->
+- Bump serde_json from 1.0.107 to 1.0.108 [#9078](https://github.com/habitat-sh/habitat/pull/9078) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.924 -->
+- Bump tempfile from 3.8.0 to 3.8.1 [#9074](https://github.com/habitat-sh/habitat/pull/9074) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.923 -->
+- Bump serde_yaml from 0.9.26 to 0.9.27 [#9075](https://github.com/habitat-sh/habitat/pull/9075) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.923 -->
+- Bump futures from 0.3.28 to 0.3.29 [#9076](https://github.com/habitat-sh/habitat/pull/9076) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.922 -->
+- bump ahash to pass cargo audit [#9080](https://github.com/habitat-sh/habitat/pull/9080) ([mwrock](https://github.com/mwrock)) <!-- 1.6.921 -->
 - toToml helper fix [#9081](https://github.com/habitat-sh/habitat/pull/9081) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.920 -->
 - Bump tokio-util from 0.7.9 to 0.7.10 [#9073](https://github.com/habitat-sh/habitat/pull/9073) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.919 -->
 - Bump serde_yaml from 0.9.25 to 0.9.26 [#9072](https://github.com/habitat-sh/habitat/pull/9072) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.918 -->
