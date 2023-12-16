@@ -1,16 +1,22 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.939 -->
-## [1.6.939](https://github.com/habitat-sh/habitat/tree/1.6.939) (2023-12-08)
+<!-- latest_release 1.6.945 -->
+## [1.6.945](https://github.com/habitat-sh/habitat/tree/1.6.945) (2023-12-13)
 
 #### Merged Pull Requests
-- Bump actions/labeler from 4.3.0 to 5.0.0 [#9104](https://github.com/habitat-sh/habitat/pull/9104) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- buildkite installer broke in last commit so use the previous commit [#9109](https://github.com/habitat-sh/habitat/pull/9109) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- buildkite installer broke in last commit so use the previous commit [#9109](https://github.com/habitat-sh/habitat/pull/9109) ([mwrock](https://github.com/mwrock)) <!-- 1.6.945 -->
+- Bump pem from 3.0.2 to 3.0.3 [#9108](https://github.com/habitat-sh/habitat/pull/9108) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.944 -->
+- Bump rustls from 0.21.9 to 0.21.10 [#9105](https://github.com/habitat-sh/habitat/pull/9105) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.943 -->
+- Bump tokio from 1.34.0 to 1.35.0 [#9106](https://github.com/habitat-sh/habitat/pull/9106) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.942 -->
+- Bump libc from 0.2.150 to 0.2.151 [#9107](https://github.com/habitat-sh/habitat/pull/9107) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.941 -->
+- Bump rustls-webpki from 0.101.7 to 0.102.0 [#9099](https://github.com/habitat-sh/habitat/pull/9099) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.940 -->
 - Bump actions/labeler from 4.3.0 to 5.0.0 [#9104](https://github.com/habitat-sh/habitat/pull/9104) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.939 -->
 - Bump mio from 0.8.9 to 0.8.10 [#9102](https://github.com/habitat-sh/habitat/pull/9102) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.938 -->
 - fix labeler action to comply with breaking config change [#9103](https://github.com/habitat-sh/habitat/pull/9103) ([mwrock](https://github.com/mwrock)) <!-- 1.6.937 -->
