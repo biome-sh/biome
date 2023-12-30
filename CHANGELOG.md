@@ -1,16 +1,23 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.954 -->
-## [1.6.954](https://github.com/habitat-sh/habitat/tree/1.6.954) (2023-12-22)
+<!-- latest_release 1.6.960 -->
+## [1.6.960](https://github.com/habitat-sh/habitat/tree/1.6.960) (2023-12-28)
 
 #### Merged Pull Requests
-- Bump serde_yaml from 0.9.27 to 0.9.29 [#9119](https://github.com/habitat-sh/habitat/pull/9119) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump tabwriter from 1.3.0 to 1.4.0 [#9125](https://github.com/habitat-sh/habitat/pull/9125) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump tabwriter from 1.3.0 to 1.4.0 [#9125](https://github.com/habitat-sh/habitat/pull/9125) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.960 -->
+- Bump tempfile from 3.8.1 to 3.9.0 [#9126](https://github.com/habitat-sh/habitat/pull/9126) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.959 -->
+- Bump actix-web from 4.4.0 to 4.4.1 [#9121](https://github.com/habitat-sh/habitat/pull/9121) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.958 -->
+- Bump ctrlc from 3.4.1 to 3.4.2 [#9122](https://github.com/habitat-sh/habitat/pull/9122) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.958 -->
+- Bump futures from 0.3.29 to 0.3.30 [#9120](https://github.com/habitat-sh/habitat/pull/9120) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.957 -->
+- Bump thiserror from 1.0.51 to 1.0.52 [#9123](https://github.com/habitat-sh/habitat/pull/9123) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.956 -->
+- Bump anyhow from 1.0.76 to 1.0.77 [#9124](https://github.com/habitat-sh/habitat/pull/9124) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.955 -->
 - Bump serde_yaml from 0.9.27 to 0.9.29 [#9119](https://github.com/habitat-sh/habitat/pull/9119) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.954 -->
 - Bump hyper from 0.14.27 to 1.1.0 [#9113](https://github.com/habitat-sh/habitat/pull/9113) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.953 -->
 - Bump rcgen from 0.11.3 to 0.12.0 [#9110](https://github.com/habitat-sh/habitat/pull/9110) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.952 -->
