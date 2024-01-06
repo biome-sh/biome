@@ -1,16 +1,28 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.960 -->
-## [1.6.960](https://github.com/habitat-sh/habitat/tree/1.6.960) (2023-12-28)
+<!-- latest_release 1.6.970 -->
+## [1.6.970](https://github.com/habitat-sh/habitat/tree/1.6.970) (2024-01-05)
 
 #### Merged Pull Requests
-- Bump tabwriter from 1.3.0 to 1.4.0 [#9125](https://github.com/habitat-sh/habitat/pull/9125) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.110 to 1.0.111 [#9140](https://github.com/habitat-sh/habitat/pull/9140) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.110 to 1.0.111 [#9140](https://github.com/habitat-sh/habitat/pull/9140) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.970 -->
+- Bump rustls-webpki from 0.102.0 to 0.102.1 [#9138](https://github.com/habitat-sh/habitat/pull/9138) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.969 -->
+- Bump thiserror from 1.0.55 to 1.0.56 [#9139](https://github.com/habitat-sh/habitat/pull/9139) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.968 -->
+- Bump serde_yaml from 0.9.29 to 0.9.30 [#9136](https://github.com/habitat-sh/habitat/pull/9136) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.967 -->
+- Bump async-trait from 0.1.76 to 0.1.77 [#9137](https://github.com/habitat-sh/habitat/pull/9137) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.967 -->
+- Bump serde_json from 1.0.109 to 1.0.110 [#9135](https://github.com/habitat-sh/habitat/pull/9135) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.966 -->
+- Bump semver from 1.0.20 to 1.0.21 [#9134](https://github.com/habitat-sh/habitat/pull/9134) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.965 -->
+- Bump serde from 1.0.193 to 1.0.194 [#9133](https://github.com/habitat-sh/habitat/pull/9133) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.964 -->
+- Bump async-trait from 0.1.75 to 0.1.76 [#9130](https://github.com/habitat-sh/habitat/pull/9130) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.963 -->
+- Bump thiserror from 1.0.52 to 1.0.55 [#9132](https://github.com/habitat-sh/habitat/pull/9132) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.963 -->
+- Bump anyhow from 1.0.77 to 1.0.79 [#9131](https://github.com/habitat-sh/habitat/pull/9131) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.962 -->
+- Bump serde_json from 1.0.108 to 1.0.109 [#9129](https://github.com/habitat-sh/habitat/pull/9129) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.961 -->
 - Bump tabwriter from 1.3.0 to 1.4.0 [#9125](https://github.com/habitat-sh/habitat/pull/9125) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.960 -->
 - Bump tempfile from 3.8.1 to 3.9.0 [#9126](https://github.com/habitat-sh/habitat/pull/9126) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.959 -->
 - Bump actix-web from 4.4.0 to 4.4.1 [#9121](https://github.com/habitat-sh/habitat/pull/9121) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.958 -->
