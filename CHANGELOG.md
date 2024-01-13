@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.970 -->
-## [1.6.970](https://github.com/habitat-sh/habitat/tree/1.6.970) (2024-01-05)
+<!-- latest_release 1.6.975 -->
+## [1.6.975](https://github.com/habitat-sh/habitat/tree/1.6.975) (2024-01-12)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.110 to 1.0.111 [#9140](https://github.com/habitat-sh/habitat/pull/9140) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump base64 from 0.21.6 to 0.21.7 [#9145](https://github.com/habitat-sh/habitat/pull/9145) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump base64 from 0.21.6 to 0.21.7 [#9145](https://github.com/habitat-sh/habitat/pull/9145) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.975 -->
+- Bump termcolor from 1.4.0 to 1.4.1 [#9144](https://github.com/habitat-sh/habitat/pull/9144) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.974 -->
+- Bump base64 from 0.21.5 to 0.21.6 [#9143](https://github.com/habitat-sh/habitat/pull/9143) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.973 -->
+- Bump serde from 1.0.194 to 1.0.195 [#9142](https://github.com/habitat-sh/habitat/pull/9142) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.972 -->
+- Bump libc from 0.2.151 to 0.2.152 [#9141](https://github.com/habitat-sh/habitat/pull/9141) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.971 -->
 - Bump serde_json from 1.0.110 to 1.0.111 [#9140](https://github.com/habitat-sh/habitat/pull/9140) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.970 -->
 - Bump rustls-webpki from 0.102.0 to 0.102.1 [#9138](https://github.com/habitat-sh/habitat/pull/9138) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.969 -->
 - Bump thiserror from 1.0.55 to 1.0.56 [#9139](https://github.com/habitat-sh/habitat/pull/9139) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.968 -->
