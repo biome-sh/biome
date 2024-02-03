@@ -1,16 +1,24 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.982 -->
-## [1.6.982](https://github.com/habitat-sh/habitat/tree/1.6.982) (2024-01-26)
+<!-- latest_release 1.6.989 -->
+## [1.6.989](https://github.com/habitat-sh/habitat/tree/1.6.989) (2024-02-01)
 
 #### Merged Pull Requests
-- Bump chrono from 0.4.32 to 0.4.33 [#9153](https://github.com/habitat-sh/habitat/pull/9153) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.152 to 0.2.153 [#9160](https://github.com/habitat-sh/habitat/pull/9160) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.152 to 0.2.153 [#9160](https://github.com/habitat-sh/habitat/pull/9160) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.989 -->
+- Bump env_logger from 0.10.2 to 0.11.1 [#9159](https://github.com/habitat-sh/habitat/pull/9159) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.988 -->
+- Bump serde_yaml from 0.9.30 to 0.9.31 [#9154](https://github.com/habitat-sh/habitat/pull/9154) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.987 -->
+- Bump serde_json from 1.0.111 to 1.0.113 [#9157](https://github.com/habitat-sh/habitat/pull/9157) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.987 -->
+- bump rust to 1.75 and resolve clippy violations [#9158](https://github.com/habitat-sh/habitat/pull/9158) ([mwrock](https://github.com/mwrock)) <!-- 1.6.986 -->
+- Bump serde from 1.0.195 to 1.0.196 [#9155](https://github.com/habitat-sh/habitat/pull/9155) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.985 -->
+- Bump rcgen from 0.12.0 to 0.12.1 [#9156](https://github.com/habitat-sh/habitat/pull/9156) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.984 -->
+- Bump pin-project from 1.1.3 to 1.1.4 [#9152](https://github.com/habitat-sh/habitat/pull/9152) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.983 -->
 - Bump chrono from 0.4.32 to 0.4.33 [#9153](https://github.com/habitat-sh/habitat/pull/9153) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.982 -->
 - Bump chrono from 0.4.31 to 0.4.32 [#9151](https://github.com/habitat-sh/habitat/pull/9151) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.981 -->
 - Bump shlex from 1.0.0 to 1.3.0 [#9150](https://github.com/habitat-sh/habitat/pull/9150) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.980 -->
