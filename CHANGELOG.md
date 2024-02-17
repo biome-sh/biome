@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.992 -->
-## [1.6.992](https://github.com/habitat-sh/habitat/tree/1.6.992) (2024-02-06)
+<!-- latest_release 1.6.997 -->
+## [1.6.997](https://github.com/habitat-sh/habitat/tree/1.6.997) (2024-02-14)
 
 #### Merged Pull Requests
-- Bump tempfile from 3.9.0 to 3.10.0 [#9164](https://github.com/habitat-sh/habitat/pull/9164) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump env_logger from 0.11.1 to 0.11.2 [#9169](https://github.com/habitat-sh/habitat/pull/9169) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump env_logger from 0.11.1 to 0.11.2 [#9169](https://github.com/habitat-sh/habitat/pull/9169) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.997 -->
+- Bump cc from 1.0.83 to 1.0.85 [#9168](https://github.com/habitat-sh/habitat/pull/9168) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.996 -->
+- Bump thiserror from 1.0.56 to 1.0.57 [#9166](https://github.com/habitat-sh/habitat/pull/9166) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.995 -->
+- Bump log4rs from 1.2.0 to 1.3.0 [#9167](https://github.com/habitat-sh/habitat/pull/9167) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.994 -->
+- Bump chrono from 0.4.33 to 0.4.34 [#9165](https://github.com/habitat-sh/habitat/pull/9165) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.993 -->
 - Bump tempfile from 3.9.0 to 3.10.0 [#9164](https://github.com/habitat-sh/habitat/pull/9164) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.992 -->
 - Bump actix-web from 4.4.1 to 4.5.1 [#9163](https://github.com/habitat-sh/habitat/pull/9163) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.991 -->
 - Bump tokio from 1.35.1 to 1.36.0 [#9162](https://github.com/habitat-sh/habitat/pull/9162) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.991 -->
