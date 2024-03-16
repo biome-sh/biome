@@ -323,9 +323,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.80"
+version = "1.0.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ad32ce52e4161730f7098c077cd2ed6229b5804ccf99e5366be1ab72a98b4e1"
+checksum = "0952808a6c2afd1aa8947271f3a60f1a6763c7b912d210184c5149b5cf147247"
 dependencies = [
  "backtrace",
 ]
@@ -750,11 +750,11 @@ dependencies = [
 
 [[package]]
 name = "ctrlc"
-version = "3.4.2"
+version = "3.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b467862cc8610ca6fc9a1532d7777cee0804e678ab45410897b9396495994a0b"
+checksum = "672465ae37dc1bc6380a6547a8883d5dd397b0f1faaad4f265726cc7042a5345"
 dependencies = [
- "nix 0.27.1",
+ "nix",
  "windows-sys 0.52.0",
 ]
 
@@ -1359,7 +1359,7 @@ dependencies = [
  "ipc-channel",
  "libc",
  "log 0.4.21",
- "nix 0.28.0",
+ "nix",
  "prost",
  "semver 1.0.22",
  "thiserror",
@@ -1507,7 +1507,7 @@ dependencies = [
  "libc",
  "log 0.4.21",
  "native-tls",
- "nix 0.28.0",
+ "nix",
  "owning_ref",
  "parking_lot",
  "pbr",
@@ -1550,7 +1550,7 @@ dependencies = [
  "libc",
  "log 0.4.21",
  "native-tls",
- "nix 0.28.0",
+ "nix",
  "num_cpus",
  "os_info",
  "paste",
@@ -1683,7 +1683,7 @@ dependencies = [
  "log4rs",
  "mio 0.8.11",
  "multimap 0.10.0",
- "nix 0.28.0",
+ "nix",
  "notify",
  "num_cpus",
  "parking_lot",
@@ -2439,17 +2439,6 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.27.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2eb04e9c688eff1c89d72b407f168cf79bb9e867a9d3323ed6c01519eb9cc053"
-dependencies = [
- "bitflags 2.4.2",
- "cfg-if 1.0.0",
- "libc",
-]
-
-[[package]]
-name = "nix"
 version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab2156c4fce2f8df6c499cc1c763e4394b7482525bf2a9701c9d79d215f519e4"
@@ -2609,13 +2598,13 @@ dependencies = [
 
 [[package]]
 name = "os_info"
-version = "3.7.0"
+version = "3.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "006e42d5b888366f1880eda20371fedde764ed2213dc8496f49622fa0c99cd5e"
+checksum = "52a07930afc1bd77ac9e1101dc18d3fc4986c6568e939c31d1c26657eb0ccbf5"
 dependencies = [
  "log 0.4.21",
  "serde",
- "winapi 0.3.9",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3827,18 +3816,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.57"
+version = "1.0.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e45bcbe8ed29775f228095caf2cd67af7a4ccf756ebff23a306bf3e8b47b24b"
+checksum = "03468839009160513471e86a034bb2c5c0e4baae3b43f79ffc55c4a5427b3297"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.57"
+version = "1.0.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a953cb265bef375dae3de6663da4d3804eee9682ea80d8e2542529b73c531c81"
+checksum = "c61f3ba182994efc43764a46c018c347bc492c79f024e705f46567b418f6d4f7"
 dependencies = [
  "proc-macro2",
  "quote",
