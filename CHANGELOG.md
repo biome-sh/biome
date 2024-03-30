@@ -1,16 +1,23 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1022 -->
-## [1.6.1022](https://github.com/habitat-sh/habitat/tree/1.6.1022) (2024-03-19)
+<!-- latest_release 1.6.1029 -->
+## [1.6.1029](https://github.com/habitat-sh/habitat/tree/1.6.1029) (2024-03-27)
 
 #### Merged Pull Requests
-- Bump bitflags from 2.4.2 to 2.5.0 [#9197](https://github.com/habitat-sh/habitat/pull/9197) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Update Netlify deploy [#9203](https://github.com/habitat-sh/habitat/pull/9203) ([IanMadd](https://github.com/IanMadd))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Update Netlify deploy [#9203](https://github.com/habitat-sh/habitat/pull/9203) ([IanMadd](https://github.com/IanMadd)) <!-- 1.6.1029 -->
+- bump mac release build to macos 11 [#9205](https://github.com/habitat-sh/habitat/pull/9205) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1028 -->
+- Bump async-trait from 0.1.78 to 0.1.79 [#9199](https://github.com/habitat-sh/habitat/pull/9199) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1027 -->
+- Bump regex from 1.10.3 to 1.10.4 [#9200](https://github.com/habitat-sh/habitat/pull/9200) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1026 -->
+- Bump bytes from 1.5.0 to 1.6.0 [#9201](https://github.com/habitat-sh/habitat/pull/9201) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1025 -->
+- Bump os_info from 3.8.1 to 3.8.2 [#9198](https://github.com/habitat-sh/habitat/pull/9198) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1024 -->
+- Bump serde_yaml from 0.9.33 to 0.9.34+deprecated [#9202](https://github.com/habitat-sh/habitat/pull/9202) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1023 -->
 - Bump bitflags from 2.4.2 to 2.5.0 [#9197](https://github.com/habitat-sh/habitat/pull/9197) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1022 -->
 - Bump serde_yaml from 0.9.32 to 0.9.33 [#9194](https://github.com/habitat-sh/habitat/pull/9194) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1021 -->
 - Bump os_info from 3.8.0 to 3.8.1 [#9195](https://github.com/habitat-sh/habitat/pull/9195) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1021 -->
