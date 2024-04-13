@@ -1,16 +1,24 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1034 -->
-## [1.6.1034](https://github.com/habitat-sh/habitat/tree/1.6.1034) (2024-04-05)
+<!-- latest_release 1.6.1041 -->
+## [1.6.1041](https://github.com/habitat-sh/habitat/tree/1.6.1041) (2024-04-10)
 
 #### Merged Pull Requests
-- Bump h2 from 0.3.24 to 0.3.26 [#9210](https://github.com/habitat-sh/habitat/pull/9210) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump anyhow from 1.0.81 to 1.0.82 [#9219](https://github.com/habitat-sh/habitat/pull/9219) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.826-->
 ### Changes since 1.6.826 release
 
 #### Merged Pull Requests
+- Bump anyhow from 1.0.81 to 1.0.82 [#9219](https://github.com/habitat-sh/habitat/pull/9219) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1041 -->
+- Bump pem from 3.0.3 to 3.0.4 [#9218](https://github.com/habitat-sh/habitat/pull/9218) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1040 -->
+- Bump cc from 1.0.91 to 1.0.92 [#9217](https://github.com/habitat-sh/habitat/pull/9217) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1039 -->
+- Bump cc from 1.0.90 to 1.0.91 [#9213](https://github.com/habitat-sh/habitat/pull/9213) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1038 -->
+- Bump prost-build from 0.12.3 to 0.12.4 [#9215](https://github.com/habitat-sh/habitat/pull/9215) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1037 -->
+- Bump widestring from 1.0.2 to 1.1.0 [#9212](https://github.com/habitat-sh/habitat/pull/9212) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1037 -->
+- Bump prost from 0.12.3 to 0.12.4 [#9216](https://github.com/habitat-sh/habitat/pull/9216) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1036 -->
+- add e2e test for adding peers via a peer-watch-file [#9211](https://github.com/habitat-sh/habitat/pull/9211) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1035 -->
 - Bump h2 from 0.3.24 to 0.3.26 [#9210](https://github.com/habitat-sh/habitat/pull/9210) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1034 -->
 - CHEF-9418: Fixes peer file watching behaviour [#9208](https://github.com/habitat-sh/habitat/pull/9208) ([atrniv](https://github.com/atrniv)) <!-- 1.6.1033 -->
 - Sean simmos progress/chef 11284 habitat docker [#9209](https://github.com/habitat-sh/habitat/pull/9209) ([sean-simmons-progress](https://github.com/sean-simmons-progress)) <!-- 1.6.1032 -->
