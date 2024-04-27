@@ -1,14 +1,34 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1041 -->
-## [1.6.1041](https://github.com/habitat-sh/habitat/tree/1.6.1041) (2024-04-10)
+<!-- latest_release 1.6.1048 -->
+## [1.6.1048](https://github.com/habitat-sh/habitat/tree/1.6.1048) (2024-04-26)
 
 #### Merged Pull Requests
-- Bump anyhow from 1.0.81 to 1.0.82 [#9219](https://github.com/habitat-sh/habitat/pull/9219) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump parking_lot from 0.12.1 to 0.12.2 [#9234](https://github.com/habitat-sh/habitat/pull/9234) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.826-->
-### Changes since 1.6.826 release
+<!-- release_rollup since=1.6.1041-->
+### Changes since 1.6.1041 release
+
+#### Merged Pull Requests
+- Bump parking_lot from 0.12.1 to 0.12.2 [#9234](https://github.com/habitat-sh/habitat/pull/9234) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1048 -->
+- Bump serde from 1.0.197 to 1.0.198 [#9231](https://github.com/habitat-sh/habitat/pull/9231) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1047 -->
+- README: fix master -&gt; main links [#9233](https://github.com/habitat-sh/habitat/pull/9233) ([spdfnet](https://github.com/spdfnet)) <!-- 1.6.1046 -->
+- Bump thiserror from 1.0.58 to 1.0.59 [#9232](https://github.com/habitat-sh/habitat/pull/9232) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1046 -->
+- Bump rustls-webpki from 0.102.2 to 0.102.3 [#9230](https://github.com/habitat-sh/habitat/pull/9230) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1045 -->
+- Bump cc from 1.0.92 to 1.0.95 [#9227](https://github.com/habitat-sh/habitat/pull/9227) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1044 -->
+- Bump serde_json from 1.0.115 to 1.0.116 [#9224](https://github.com/habitat-sh/habitat/pull/9224) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1044 -->
+- Rustfmt and Nightly Rust Bump to nightly-2024-04-22 [#9228](https://github.com/habitat-sh/habitat/pull/9228) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.1043 -->
+- Bump rustls from 0.21.10 to 0.21.11 [#9226](https://github.com/habitat-sh/habitat/pull/9226) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1043 -->
+- Bump async-trait from 0.1.79 to 0.1.80 [#9220](https://github.com/habitat-sh/habitat/pull/9220) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1043 -->
+- Bump chrono from 0.4.37 to 0.4.38 [#9222](https://github.com/habitat-sh/habitat/pull/9222) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1043 -->
+- Bump hyper from 1.2.0 to 1.3.1 [#9225](https://github.com/habitat-sh/habitat/pull/9225) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1043 -->
+- update changelog for 1.6.1041 release [#9229](https://github.com/habitat-sh/habitat/pull/9229) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1042 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.1041 -->
+
+## [1.6.1041](https://github.com/habitat-sh/habitat/tree/1.6.1041) (2024-04-10)
 
 #### Merged Pull Requests
 - Bump anyhow from 1.0.81 to 1.0.82 [#9219](https://github.com/habitat-sh/habitat/pull/9219) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1041 -->
@@ -244,9 +264,6 @@
 - Bump log from 0.4.19 to 0.4.20 [#8968](https://github.com/habitat-sh/habitat/pull/8968) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.829 -->
 - Bump async-trait from 0.1.72 to 0.1.73 [#8966](https://github.com/habitat-sh/habitat/pull/8966) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.828 -->
 - update changelog for release 1.6.826 [#8963](https://github.com/habitat-sh/habitat/pull/8963) ([atrniv](https://github.com/atrniv)) <!-- 1.6.827 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.826 -->
 
 ## [1.6.826](https://github.com/habitat-sh/habitat/tree/1.6.826) (2023-08-08)
 
