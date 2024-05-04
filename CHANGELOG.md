@@ -1,16 +1,22 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1048 -->
-## [1.6.1048](https://github.com/habitat-sh/habitat/tree/1.6.1048) (2024-04-26)
+<!-- latest_release 1.6.1052 -->
+## [1.6.1052](https://github.com/habitat-sh/habitat/tree/1.6.1052) (2024-05-02)
 
 #### Merged Pull Requests
-- Bump parking_lot from 0.12.1 to 0.12.2 [#9234](https://github.com/habitat-sh/habitat/pull/9234) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.0.95 to 1.0.96 [#9241](https://github.com/habitat-sh/habitat/pull/9241) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump cc from 1.0.95 to 1.0.96 [#9241](https://github.com/habitat-sh/habitat/pull/9241) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1052 -->
+- Bump base64 from 0.22.0 to 0.22.1 [#9240](https://github.com/habitat-sh/habitat/pull/9240) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1051 -->
+- Bump flate2 from 1.0.28 to 1.0.30 [#9239](https://github.com/habitat-sh/habitat/pull/9239) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1050 -->
+- Bump serde from 1.0.198 to 1.0.199 [#9237](https://github.com/habitat-sh/habitat/pull/9237) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1050 -->
+- Bump libc from 0.2.153 to 0.2.154 [#9238](https://github.com/habitat-sh/habitat/pull/9238) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1050 -->
+- Bump rustls from 0.21.11 to 0.21.12 [#9236](https://github.com/habitat-sh/habitat/pull/9236) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1049 -->
 - Bump parking_lot from 0.12.1 to 0.12.2 [#9234](https://github.com/habitat-sh/habitat/pull/9234) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1048 -->
 - Bump serde from 1.0.197 to 1.0.198 [#9231](https://github.com/habitat-sh/habitat/pull/9231) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1047 -->
 - README: fix master -&gt; main links [#9233](https://github.com/habitat-sh/habitat/pull/9233) ([spdfnet](https://github.com/spdfnet)) <!-- 1.6.1046 -->
