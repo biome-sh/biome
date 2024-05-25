@@ -1,16 +1,24 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1061 -->
-## [1.6.1061](https://github.com/habitat-sh/habitat/tree/1.6.1061) (2024-05-17)
+<!-- latest_release 1.6.1068 -->
+## [1.6.1068](https://github.com/habitat-sh/habitat/tree/1.6.1068) (2024-05-22)
 
 #### Merged Pull Requests
-- downgrading libc after yank of 0.2.154 [#9256](https://github.com/habitat-sh/habitat/pull/9256) ([mwrock](https://github.com/mwrock))
+- Bump rustls-pemfile from 1.0.4 to 2.1.2 [#9265](https://github.com/habitat-sh/habitat/pull/9265) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump rustls-pemfile from 1.0.4 to 2.1.2 [#9265](https://github.com/habitat-sh/habitat/pull/9265) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1068 -->
+- Bump cc from 1.0.97 to 1.0.98 [#9263](https://github.com/habitat-sh/habitat/pull/9263) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1067 -->
+- Bump rcgen from 0.12.1 to 0.13.1 [#9260](https://github.com/habitat-sh/habitat/pull/9260) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1066 -->
+- Bump libc from 0.2.153 to 0.2.155 [#9264](https://github.com/habitat-sh/habitat/pull/9264) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1065 -->
+- Bump thiserror from 1.0.60 to 1.0.61 [#9262](https://github.com/habitat-sh/habitat/pull/9262) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1064 -->
+- Bump prost-build from 0.12.4 to 0.12.6 [#9259](https://github.com/habitat-sh/habitat/pull/9259) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1063 -->
+- Bump actix-web from 4.5.1 to 4.6.0 [#9258](https://github.com/habitat-sh/habitat/pull/9258) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1063 -->
+- Bump anyhow from 1.0.83 to 1.0.86 [#9257](https://github.com/habitat-sh/habitat/pull/9257) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1062 -->
 - downgrading libc after yank of 0.2.154 [#9256](https://github.com/habitat-sh/habitat/pull/9256) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1061 -->
 - Bump rustls-webpki from 0.102.3 to 0.102.4 [#9255](https://github.com/habitat-sh/habitat/pull/9255) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1060 -->
 - Bump serde from 1.0.201 to 1.0.202 [#9254](https://github.com/habitat-sh/habitat/pull/9254) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1059 -->
