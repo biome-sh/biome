@@ -1,16 +1,18 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1073 -->
-## [1.6.1073](https://github.com/habitat-sh/habitat/tree/1.6.1073) (2024-05-31)
+<!-- latest_release 1.6.1075 -->
+## [1.6.1075](https://github.com/habitat-sh/habitat/tree/1.6.1075) (2024-06-07)
 
 #### Merged Pull Requests
-- Bump tokio from 1.37.0 to 1.38.0 [#9270](https://github.com/habitat-sh/habitat/pull/9270) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- CHEF-12227: vulnerable owning_ref crate [#9273](https://github.com/habitat-sh/habitat/pull/9273) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- CHEF-12227: vulnerable owning_ref crate [#9273](https://github.com/habitat-sh/habitat/pull/9273) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1075 -->
+- Bump tar from 0.4.40 to 0.4.41 [#9272](https://github.com/habitat-sh/habitat/pull/9272) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1074 -->
 - Bump tokio from 1.37.0 to 1.38.0 [#9270](https://github.com/habitat-sh/habitat/pull/9270) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1073 -->
 - Bump nix from 0.28.0 to 0.29.0 [#9267](https://github.com/habitat-sh/habitat/pull/9267) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1072 -->
 - Bump parking_lot from 0.12.2 to 0.12.3 [#9268](https://github.com/habitat-sh/habitat/pull/9268) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1071 -->
