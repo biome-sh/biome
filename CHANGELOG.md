@@ -1,16 +1,23 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1075 -->
-## [1.6.1075](https://github.com/habitat-sh/habitat/tree/1.6.1075) (2024-06-07)
+<!-- latest_release 1.6.1080 -->
+## [1.6.1080](https://github.com/habitat-sh/habitat/tree/1.6.1080) (2024-06-12)
 
 #### Merged Pull Requests
-- CHEF-12227: vulnerable owning_ref crate [#9273](https://github.com/habitat-sh/habitat/pull/9273) ([jasonheath](https://github.com/jasonheath))
+- Bump httparse from 1.9.2 to 1.9.3 [#9280](https://github.com/habitat-sh/habitat/pull/9280) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump httparse from 1.9.2 to 1.9.3 [#9280](https://github.com/habitat-sh/habitat/pull/9280) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1080 -->
+- Bump httparse from 1.8.0 to 1.9.2 [#9279](https://github.com/habitat-sh/habitat/pull/9279) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1079 -->
+- Revert &quot;fixes windows 7 support&quot; [#9271](https://github.com/habitat-sh/habitat/pull/9271) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1078 -->
+- Bump regex from 1.10.4 to 1.10.5 [#9278](https://github.com/habitat-sh/habitat/pull/9278) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1077 -->
+- Bump actix-web from 4.6.0 to 4.7.0 [#9277](https://github.com/habitat-sh/habitat/pull/9277) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1077 -->
+- Bump cc from 1.0.98 to 1.0.99 [#9276](https://github.com/habitat-sh/habitat/pull/9276) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1077 -->
+- Bump actix-rt from 2.9.0 to 2.10.0 [#9275](https://github.com/habitat-sh/habitat/pull/9275) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1076 -->
 - CHEF-12227: vulnerable owning_ref crate [#9273](https://github.com/habitat-sh/habitat/pull/9273) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1075 -->
 - Bump tar from 0.4.40 to 0.4.41 [#9272](https://github.com/habitat-sh/habitat/pull/9272) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1074 -->
 - Bump tokio from 1.37.0 to 1.38.0 [#9270](https://github.com/habitat-sh/habitat/pull/9270) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1073 -->
