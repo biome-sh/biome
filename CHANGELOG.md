@@ -1,16 +1,19 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1080 -->
-## [1.6.1080](https://github.com/habitat-sh/habitat/tree/1.6.1080) (2024-06-12)
+<!-- latest_release 1.6.1083 -->
+## [1.6.1083](https://github.com/habitat-sh/habitat/tree/1.6.1083) (2024-06-20)
 
 #### Merged Pull Requests
-- Bump httparse from 1.9.2 to 1.9.3 [#9280](https://github.com/habitat-sh/habitat/pull/9280) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump actix-web from 4.7.0 to 4.8.0 [#9285](https://github.com/habitat-sh/habitat/pull/9285) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump actix-web from 4.7.0 to 4.8.0 [#9285](https://github.com/habitat-sh/habitat/pull/9285) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1083 -->
+- Bump url from 2.5.0 to 2.5.2 [#9284](https://github.com/habitat-sh/habitat/pull/9284) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1082 -->
+- Bump httparse from 1.9.3 to 1.9.4 [#9283](https://github.com/habitat-sh/habitat/pull/9283) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1081 -->
 - Bump httparse from 1.9.2 to 1.9.3 [#9280](https://github.com/habitat-sh/habitat/pull/9280) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1080 -->
 - Bump httparse from 1.8.0 to 1.9.2 [#9279](https://github.com/habitat-sh/habitat/pull/9279) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1079 -->
 - Revert &quot;fixes windows 7 support&quot; [#9271](https://github.com/habitat-sh/habitat/pull/9271) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1078 -->
