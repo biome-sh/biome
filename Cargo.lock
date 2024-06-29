@@ -12,7 +12,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
- "log 0.4.21",
+ "log 0.4.22",
  "memchr",
  "pin-project-lite",
  "tokio",
@@ -32,7 +32,7 @@ dependencies = [
  "actix-utils",
  "ahash",
  "base64 0.22.1",
- "bitflags 2.5.0",
+ "bitflags 2.6.0",
  "bytes",
  "bytestring",
  "derive_more",
@@ -173,7 +173,7 @@ dependencies = [
  "futures-util",
  "itoa 1.0.1",
  "language-tags",
- "log 0.4.21",
+ "log 0.4.22",
  "mime",
  "once_cell",
  "pin-project-lite",
@@ -447,9 +447,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bitflags"
-version = "2.5.0"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf4b9d6a944f767f8e5e0db018570623c85f3d925ac718db4e06d0187adb21c1"
+checksum = "b048fb63fd8b5923fc5aa7b340d8e156aec7ec02f0c78fa8a6ddc2613f6f71de"
 
 [[package]]
 name = "blake2b_simd"
@@ -525,9 +525,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.99"
+version = "1.0.101"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96c51067fd44124faa7f870b4b1c969379ad32b2ba805aa959430ceaa384f695"
+checksum = "ac367972e516d45567c7eafc73d24e1c193dcf200a8d94e9db7b3d38b349572d"
 
 [[package]]
 name = "cfg-if"
@@ -605,7 +605,7 @@ source = "git+https://github.com/habitat-sh/configopt.git#98e4041a9922d6ebb5e548
 dependencies = [
  "colosseum",
  "configopt-derive",
- "lazy_static 1.4.0",
+ "lazy_static 1.5.0",
  "serde",
  "structopt",
  "toml 0.7.8",
@@ -926,7 +926,7 @@ version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a009aa4810eb158359dda09d0c87378e4bbb89b5a801f016885a4707ba24f7ea"
 dependencies = [
- "log 0.4.21",
+ "log 0.4.22",
  "regex 1.10.5",
 ]
 
@@ -940,7 +940,7 @@ dependencies = [
  "anstyle",
  "env_filter",
  "humantime",
- "log 0.4.21",
+ "log 0.4.22",
 ]
 
 [[package]]
@@ -949,7 +949,7 @@ version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a5019be18538406a43b5419a5501461f0c8b49ea7dfda0cfc32f4e51fc44be1"
 dependencies = [
- "log 0.4.21",
+ "log 0.4.22",
  "url",
 ]
 
@@ -1184,7 +1184,7 @@ checksum = "c1d9279ca822891c1a4dae06d185612cf8fc6acfe5dff37781b41297811b12ee"
 dependencies = [
  "cc",
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "rustversion",
  "winapi",
 ]
@@ -1248,7 +1248,7 @@ dependencies = [
  "anyhow",
  "atty",
  "base64 0.22.1",
- "bitflags 2.5.0",
+ "bitflags 2.6.0",
  "chrono",
  "clap",
  "configopt",
@@ -1264,9 +1264,9 @@ dependencies = [
  "biome_common",
  "biome_core",
  "handlebars 0.29.1",
- "lazy_static 1.4.0",
+ "lazy_static 1.5.0",
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "pbr",
  "rants",
  "reqwest",
@@ -1304,7 +1304,7 @@ dependencies = [
  "biome_core",
  "ipc-channel",
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "nix 0.29.0",
  "prost",
  "semver 1.0.23",
@@ -1323,7 +1323,7 @@ dependencies = [
  "biome_core",
  "ipc-channel",
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "prost",
  "serde",
  "thiserror",
@@ -1346,7 +1346,7 @@ dependencies = [
  "clap",
  "env_logger",
  "biome_butterfly",
- "log 0.4.21",
+ "log 0.4.22",
 ]
 
 [[package]]
@@ -1357,7 +1357,7 @@ dependencies = [
  "biome-sup-protocol",
  "biome_common",
  "biome_core",
- "log 0.4.21",
+ "log 0.4.22",
  "prost",
  "rustls",
  "termcolor",
@@ -1372,8 +1372,8 @@ dependencies = [
  "base64 0.22.1",
  "bytes",
  "biome_core",
- "lazy_static 1.4.0",
- "log 0.4.21",
+ "lazy_static 1.5.0",
+ "log 0.4.22",
  "prost",
  "prost-build",
  "rand",
@@ -1395,7 +1395,7 @@ dependencies = [
  "futures",
  "biome_core",
  "biome_http_client",
- "log 0.4.21",
+ "log 0.4.22",
  "pbr",
  "percent-encoding",
  "rand",
@@ -1418,8 +1418,8 @@ dependencies = [
  "env_logger",
  "biome_common",
  "biome_core",
- "lazy_static 1.4.0",
- "log 0.4.21",
+ "lazy_static 1.5.0",
+ "log 0.4.22",
  "mktemp",
  "parking_lot",
  "prometheus",
@@ -1442,16 +1442,16 @@ version = "0.0.0"
 dependencies = [
  "async-trait",
  "bimap",
- "bitflags 2.5.0",
+ "bitflags 2.6.0",
  "clap",
  "dirs",
  "glob",
  "biome_api_client",
  "biome_core",
  "handlebars 0.28.3",
- "lazy_static 1.4.0",
+ "lazy_static 1.5.0",
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "native-tls",
  "nix 0.29.0",
  "parking_lot",
@@ -1492,9 +1492,9 @@ dependencies = [
  "glob",
  "biome_win_users",
  "hex",
- "lazy_static 1.4.0",
+ "lazy_static 1.5.0",
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "native-tls",
  "nix 0.29.0",
  "num_cpus",
@@ -1535,7 +1535,7 @@ dependencies = [
  "env_proxy",
  "biome_core",
  "httparse",
- "log 0.4.21",
+ "log 0.4.22",
  "native-tls",
  "pem",
  "reqwest",
@@ -1557,9 +1557,9 @@ dependencies = [
  "biome_common",
  "biome_core",
  "handlebars 0.29.1",
- "lazy_static 1.4.0",
+ "lazy_static 1.5.0",
  "linked-hash-map",
- "log 0.4.21",
+ "log 0.4.22",
  "rusoto_core",
  "rusoto_credential",
  "rusoto_ecr",
@@ -1583,8 +1583,8 @@ dependencies = [
  "biome_common",
  "biome_core",
  "handlebars 0.29.1",
- "lazy_static 1.4.0",
- "log 0.4.21",
+ "lazy_static 1.5.0",
+ "log 0.4.22",
  "mktemp",
  "serde",
  "serde_json",
@@ -1623,9 +1623,9 @@ dependencies = [
  "biome_core",
  "biome_http_client",
  "hyper 1.3.1",
- "lazy_static 1.4.0",
+ "lazy_static 1.5.0",
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "log4rs",
  "mio",
  "multimap",
@@ -1669,7 +1669,7 @@ name = "biome_win_users"
 version = "0.0.0"
 dependencies = [
  "cc",
- "log 0.4.21",
+ "log 0.4.22",
  "widestring 1.1.0",
  "winapi",
 ]
@@ -1949,7 +1949,7 @@ dependencies = [
  "bincode",
  "crossbeam-channel",
  "fnv",
- "lazy_static 1.4.0",
+ "lazy_static 1.5.0",
  "libc",
  "mio",
  "rand",
@@ -2048,9 +2048,9 @@ checksum = "76f033c7ad61445c5b347c7382dd1237847eb1bce590fe50365dcb33d546be73"
 
 [[package]]
 name = "lazy_static"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "libc"
@@ -2124,14 +2124,14 @@ version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e19e8d5c34a3e0e2223db8e060f9e8264aeeb5c5fc64a4ee9965c062211c024b"
 dependencies = [
- "log 0.4.21",
+ "log 0.4.22",
 ]
 
 [[package]]
 name = "log"
-version = "0.4.21"
+version = "0.4.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90ed8c1e510134f979dbc4f070f87d4313098b704861a105fe34231c70a3901c"
+checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
 dependencies = [
  "serde",
 ]
@@ -2155,7 +2155,7 @@ dependencies = [
  "fnv",
  "humantime",
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "log-mdc",
  "once_cell",
  "parking_lot",
@@ -2269,7 +2269,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4a650543ca06a924e8b371db273b2756685faae30f8487da1b56505a8f78b0c"
 dependencies = [
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "wasi",
  "windows-sys 0.48.0",
 ]
@@ -2299,7 +2299,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8614eb2c83d59d1c8cc974dd3f920198647674a0a035e1af1fa58707e317466"
 dependencies = [
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "openssl",
  "openssl-probe",
  "openssl-sys",
@@ -2315,7 +2315,7 @@ version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab2156c4fce2f8df6c499cc1c763e4394b7482525bf2a9701c9d79d215f519e4"
 dependencies = [
- "bitflags 2.5.0",
+ "bitflags 2.6.0",
  "cfg-if",
  "cfg_aliases 0.1.1",
  "libc",
@@ -2327,7 +2327,7 @@ version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71e2746dc3a24dd78b3cfcb7be93368c6de9963d30f43a6a73998a9cf4b17b46"
 dependencies = [
- "bitflags 2.5.0",
+ "bitflags 2.6.0",
  "cfg-if",
  "cfg_aliases 0.2.1",
  "libc",
@@ -2349,14 +2349,14 @@ version = "6.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6205bd8bb1e454ad2e27422015fb5e4f2bcc7e08fa8f27058670d208324a4d2d"
 dependencies = [
- "bitflags 2.5.0",
+ "bitflags 2.6.0",
  "crossbeam-channel",
  "filetime",
  "fsevent-sys",
  "inotify",
  "kqueue",
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "mio",
  "walkdir",
  "windows-sys 0.48.0",
@@ -2417,7 +2417,7 @@ version = "0.10.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79a4c6c3a2b158f7f8f2a2fc5a969fa3a068df6fc9dbb4a43845436e3af7c800"
 dependencies = [
- "bitflags 2.5.0",
+ "bitflags 2.6.0",
  "cfg-if",
  "foreign-types",
  "libc",
@@ -2486,7 +2486,7 @@ version = "3.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ae99c7fa6dd38c7cafe1ec085e804f8f555a2f8659b0dbe03f1f9963a9b51092"
 dependencies = [
- "log 0.4.21",
+ "log 0.4.22",
  "serde",
  "windows-sys 0.52.0",
 ]
@@ -2719,7 +2719,7 @@ checksum = "3d33c28a30771f7f96db69893f78b857f7450d7e0237e9c8fc6427a81bae7ed1"
 dependencies = [
  "cfg-if",
  "fnv",
- "lazy_static 1.4.0",
+ "lazy_static 1.5.0",
  "memchr",
  "parking_lot",
  "protobuf",
@@ -2745,7 +2745,7 @@ dependencies = [
  "bytes",
  "heck 0.4.0",
  "itertools",
- "log 0.4.21",
+ "log 0.4.22",
  "multimap",
  "once_cell",
  "petgraph",
@@ -2852,7 +2852,7 @@ source = "git+https://github.com/habitat-sh/rants.git#9f268782e17c93d35e24ca433f
 dependencies = [
  "bytes",
  "futures",
- "log 0.4.21",
+ "log 0.4.22",
  "native-tls",
  "nom",
  "pin-project",
@@ -2983,8 +2983,8 @@ dependencies = [
  "hyper-tls",
  "ipnet",
  "js-sys",
- "lazy_static 1.4.0",
- "log 0.4.21",
+ "lazy_static 1.5.0",
+ "log 0.4.22",
  "mime",
  "native-tls",
  "percent-encoding",
@@ -3054,8 +3054,8 @@ dependencies = [
  "http 0.2.8",
  "hyper 0.14.28",
  "hyper-tls",
- "lazy_static 1.4.0",
- "log 0.4.21",
+ "lazy_static 1.5.0",
+ "log 0.4.22",
  "rusoto_credential",
  "rusoto_signature",
  "rustc_version 0.4.0",
@@ -3112,7 +3112,7 @@ dependencies = [
  "hmac",
  "http 0.2.8",
  "hyper 0.14.28",
- "log 0.4.21",
+ "log 0.4.22",
  "md-5",
  "percent-encoding",
  "pin-project-lite",
@@ -3153,7 +3153,7 @@ version = "0.38.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ea3e1a662af26cd7a3ba09c0297a31af215563ecf42817c98df621387f4e949"
 dependencies = [
- "bitflags 2.5.0",
+ "bitflags 2.6.0",
  "errno",
  "libc",
  "linux-raw-sys",
@@ -3166,7 +3166,7 @@ version = "0.21.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f56a14d1f48b391359b22f731fd4bd7e43c97f3c50eee276f3aa09c94784d3e"
 dependencies = [
- "log 0.4.21",
+ "log 0.4.22",
  "ring 0.17.5",
  "rustls-webpki 0.101.7",
  "sct",
@@ -3245,7 +3245,7 @@ version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f05ba609c234e60bee0d547fe94a4c7e9da733d1c962cf6e59efa4cd9c8bc75"
 dependencies = [
- "lazy_static 1.4.0",
+ "lazy_static 1.5.0",
  "winapi",
 ]
 
@@ -3365,9 +3365,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.117"
+version = "1.0.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "455182ea6142b14f93f4bc5320a2b31c1f266b66a4a5c858b013302a5d8cbfc3"
+checksum = "d947f6b3163d8857ea16c4fa0dd4840d52f3041039a85decd46867eb1abef2e4"
 dependencies = [
  "indexmap",
  "itoa 1.0.1",
@@ -3552,7 +3552,7 @@ version = "0.3.15"
 source = "git+https://github.com/habitat-sh/structopt.git#63c56f42ae330b15f44a86c160b0cf6868b90a6f"
 dependencies = [
  "clap",
- "lazy_static 1.4.0",
+ "lazy_static 1.5.0",
  "structopt-derive",
 ]
 
@@ -3701,7 +3701,7 @@ version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6b53e329000edc2b34dbe8545fd20e55a333362d0a321909685a19bd28c3f1b"
 dependencies = [
- "lazy_static 1.4.0",
+ "lazy_static 1.5.0",
 ]
 
 [[package]]
@@ -3810,7 +3810,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
- "log 0.4.21",
+ "log 0.4.22",
  "pin-project-lite",
  "tokio",
 ]
@@ -3911,7 +3911,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a400e31aa60b9d44a52a8ee0343b5b18566b03a8321e0d321f695cf56e940160"
 dependencies = [
  "cfg-if",
- "log 0.4.21",
+ "log 0.4.22",
  "pin-project-lite",
  "tracing-core",
 ]
@@ -4118,7 +4118,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ce8a968cb1cd110d136ff8b819a556d6fb6d919363c61534f6860c7eb172ba0"
 dependencies = [
- "log 0.4.21",
+ "log 0.4.22",
  "try-lock",
 ]
 
@@ -4145,8 +4145,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "580aa3a91a63d23aac5b6b267e2d13cb4f363e31dce6c352fca4752ae12e479f"
 dependencies = [
  "bumpalo",
- "lazy_static 1.4.0",
- "log 0.4.21",
+ "lazy_static 1.5.0",
+ "log 0.4.22",
  "proc-macro2",
  "quote",
  "syn 1.0.104",
@@ -4545,7 +4545,7 @@ source = "git+https://github.com/habitat-sh/rust-zmq?branch=v0.9.2-symlinks-remo
 dependencies = [
  "bitflags 1.3.2",
  "libc",
- "log 0.4.21",
+ "log 0.4.22",
  "zmq-sys",
 ]
 
