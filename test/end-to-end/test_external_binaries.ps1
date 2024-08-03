@@ -1,12 +1,16 @@
 Describe "`bio` correctly executes external binaries" {
     It "container exporter help" {
-        $out = bio pkg export container --help
+        $le = "`n"
+        if ($IsWindows) {
+            $le = "`r`n"
+        }
+        $out = (bio pkg export container --help | Out-String)
         $LastExitCode | Should -Be 0
-        "Creates a container image from a set of Biome packages (and optionally pushes to a remote repository)" | Should -BeIn $out
+        $out | Should -BeLike "*Creates a container image from a set of Biome packages (and optionally pushes to a remote${le}repository)*"
 
-        $out = bio pkg export docker --help
+        $out = (bio pkg export docker --help | Out-String)
         $LastExitCode | Should -Be 0
-        "Creates a container image from a set of Biome packages (and optionally pushes to a remote repository)" | Should -BeIn $out
+        $out | Should -BeLike "*Creates a container image from a set of Biome packages (and optionally pushes to a remote${le}repository)*"
     }
 
     It "cf exporter help" {

@@ -1,16 +1,31 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1108 -->
-## [1.6.1108](https://github.com/habitat-sh/habitat/tree/1.6.1108) (2024-07-23)
+<!-- latest_release 1.6.1117 -->
+## [1.6.1117](https://github.com/habitat-sh/habitat/tree/1.6.1117) (2024-08-02)
 
 #### Merged Pull Requests
-- Bump openssl from 0.10.64 to 0.10.66 [#9323](https://github.com/habitat-sh/habitat/pull/9323) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.121 to 1.0.122 [#9343](https://github.com/habitat-sh/habitat/pull/9343) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.121 to 1.0.122 [#9343](https://github.com/habitat-sh/habitat/pull/9343) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1117 -->
+- Bump bytes from 1.6.1 to 1.7.1 [#9342](https://github.com/habitat-sh/habitat/pull/9342) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1116 -->
+- fix external binary test when help is multiline [#9338](https://github.com/habitat-sh/habitat/pull/9338) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1115 -->
+- Bump tokio from 1.38.1 to 1.39.2 [#9337](https://github.com/habitat-sh/habitat/pull/9337) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1115 -->
+- Bump toml from 0.8.17 to 0.8.19 [#9340](https://github.com/habitat-sh/habitat/pull/9340) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1115 -->
+- Bump serde_json from 1.0.120 to 1.0.121 [#9336](https://github.com/habitat-sh/habitat/pull/9336) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1114 -->
+- use CreateEnvironmentBlock from windows-sys instead of winapi [#9334](https://github.com/habitat-sh/habitat/pull/9334) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1113 -->
+- Bump toml from 0.8.16 to 0.8.17 [#9335](https://github.com/habitat-sh/habitat/pull/9335) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1113 -->
+- Agadgil/e2e test failure container export [#9325](https://github.com/habitat-sh/habitat/pull/9325) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1112 -->
+- Bump rustls-webpki from 0.102.5 to 0.102.6 [#9324](https://github.com/habitat-sh/habitat/pull/9324) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1111 -->
+- Bump toml from 0.8.14 to 0.8.16 [#9332](https://github.com/habitat-sh/habitat/pull/9332) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1111 -->
+- Bump env_logger from 0.11.3 to 0.11.5 [#9331](https://github.com/habitat-sh/habitat/pull/9331) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1111 -->
+- Bump mio from 1.0.0 to 1.0.1 [#9328](https://github.com/habitat-sh/habitat/pull/9328) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1111 -->
+- Bump cc from 1.1.5 to 1.1.7 [#9333](https://github.com/habitat-sh/habitat/pull/9333) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1110 -->
+- CHEF-12417: Remove hab bldr job commands [#9302](https://github.com/habitat-sh/habitat/pull/9302) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1109 -->
 - Bump openssl from 0.10.64 to 0.10.66 [#9323](https://github.com/habitat-sh/habitat/pull/9323) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1108 -->
 - Bump mio from 0.8.11 to 1.0.0 [#9319](https://github.com/habitat-sh/habitat/pull/9319) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1107 -->
 - Removed dependency on crate `env` [#9322](https://github.com/habitat-sh/habitat/pull/9322) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1106 -->
