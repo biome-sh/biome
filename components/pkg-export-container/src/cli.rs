@@ -1,7 +1,8 @@
 use crate::{engine,
             BioHartIdParser,
             RegistryType,
-            UrlValueParser};
+            UrlValueParser,
+            VERSION};
 use clap::{builder::Str,
            value_parser,
            Arg,
@@ -10,11 +11,8 @@ use clap::{builder::Str,
 use biome_common::PROGRAM_NAME;
 use biome_core::url::default_bldr_url;
 
-/// The version of this library and program when built.
-const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-
 /// Create the Clap CLI for the container exporter
-pub fn cli() -> Command {
+pub(crate) fn cli() -> Command {
     let name: &str = &PROGRAM_NAME;
     let about = "Creates a container image from a set of Biome packages (and optionally pushes \
                  to a remote repository)";

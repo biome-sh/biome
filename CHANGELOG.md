@@ -1,16 +1,26 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1117 -->
-## [1.6.1117](https://github.com/habitat-sh/habitat/tree/1.6.1117) (2024-08-02)
+<!-- latest_release 1.6.1124 -->
+## [1.6.1124](https://github.com/habitat-sh/habitat/tree/1.6.1124) (2024-08-08)
 
 #### Merged Pull Requests
-- Bump serde_json from 1.0.121 to 1.0.122 [#9343](https://github.com/habitat-sh/habitat/pull/9343) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde from 1.0.204 to 1.0.205 [#9352](https://github.com/habitat-sh/habitat/pull/9352) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump serde from 1.0.204 to 1.0.205 [#9352](https://github.com/habitat-sh/habitat/pull/9352) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1124 -->
+- Bump cc from 1.1.7 to 1.1.8 [#9351](https://github.com/habitat-sh/habitat/pull/9351) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1123 -->
+- `pkg-export-container`: Remove `pub` visibilty [#9321](https://github.com/habitat-sh/habitat/pull/9321) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1122 -->
+- Bump tempfile from 3.11.0 to 3.12.0 [#9350](https://github.com/habitat-sh/habitat/pull/9350) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1121 -->
+- Bump serde_test from 1.0.176 to 1.0.177 [#9349](https://github.com/habitat-sh/habitat/pull/9349) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1120 -->
+- Bump tempfile from 3.10.1 to 3.11.0 [#9344](https://github.com/habitat-sh/habitat/pull/9344) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1120 -->
+- Bump rustls-pemfile from 2.1.2 to 2.1.3 [#9345](https://github.com/habitat-sh/habitat/pull/9345) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1120 -->
+- Bump regex from 1.10.5 to 1.10.6 [#9346](https://github.com/habitat-sh/habitat/pull/9346) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1120 -->
+- Apply Automate License in e2e event stream test [#9348](https://github.com/habitat-sh/habitat/pull/9348) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1119 -->
+- Bump flate2 from 1.0.30 to 1.0.31 [#9347](https://github.com/habitat-sh/habitat/pull/9347) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1118 -->
 - Bump serde_json from 1.0.121 to 1.0.122 [#9343](https://github.com/habitat-sh/habitat/pull/9343) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1117 -->
 - Bump bytes from 1.6.1 to 1.7.1 [#9342](https://github.com/habitat-sh/habitat/pull/9342) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1116 -->
 - fix external binary test when help is multiline [#9338](https://github.com/habitat-sh/habitat/pull/9338) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1115 -->
