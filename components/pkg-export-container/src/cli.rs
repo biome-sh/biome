@@ -1,14 +1,17 @@
 use crate::{engine,
-            BioHartIdParser,
             RegistryType,
-            UrlValueParser,
             VERSION};
 use clap::{builder::Str,
            value_parser,
            Arg,
            ArgAction,
            Command};
-use biome_common::PROGRAM_NAME;
+use biome_common::{cli::clap_validators::{BioPackageInstallSourceValueParser,
+                                            UrlValueParser},
+                     consts::{DEFAULT_HAB_LAUNCHER_PKG_IDENT,
+                              DEFAULT_HAB_PKG_IDENT,
+                              DEFAULT_HAB_SUP_PKG_IDENT},
+                     PROGRAM_NAME};
 use biome_core::url::default_bldr_url;
 
 /// Create the Clap CLI for the container exporter
@@ -54,8 +57,8 @@ fn add_base_packages_args(cmd: Command) -> Command {
         Arg::new("HAB_PKG")
             .long("bio-pkg")
             .value_name("HAB_PKG")
-            .default_value(super::DEFAULT_HAB_IDENT)
-            .value_parser(BioHartIdParser)
+            .default_value(DEFAULT_HAB_PKG_IDENT)
+            .value_parser(BioPackageInstallSourceValueParser)
             .help(
                 "Biome CLI package identifier (ex: acme/redis) or filepath to a Biome \
                          artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart) \
@@ -66,8 +69,8 @@ fn add_base_packages_args(cmd: Command) -> Command {
         Arg::new("HAB_LAUNCHER_PKG")
             .long("launcher-pkg")
             .value_name("HAB_LAUNCHER_PKG")
-            .default_value(super::DEFAULT_LAUNCHER_IDENT)
-            .value_parser(BioHartIdParser)
+            .default_value(DEFAULT_HAB_LAUNCHER_PKG_IDENT)
+            .value_parser(BioPackageInstallSourceValueParser)
             .help(
                 "Launcher package identifier (ex: biome/bio-launcher) or filepath to a \
                          Biome artifact (ex: \
@@ -79,8 +82,8 @@ fn add_base_packages_args(cmd: Command) -> Command {
         Arg::new("HAB_SUP_PKG")
             .long("sup-pkg")
             .value_name("HAB_SUP_PKG")
-            .default_value(super::DEFAULT_SUP_IDENT)
-            .value_parser(BioHartIdParser)
+            .default_value(DEFAULT_HAB_SUP_PKG_IDENT)
+            .value_parser(BioPackageInstallSourceValueParser)
             .help(
                 "Supervisor package identifier (ex: biome/bio-sup) or filepath to a \
                  Biome artifact (ex: \

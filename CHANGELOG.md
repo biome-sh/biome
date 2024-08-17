@@ -1,16 +1,27 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1124 -->
-## [1.6.1124](https://github.com/habitat-sh/habitat/tree/1.6.1124) (2024-08-08)
+<!-- latest_release 1.6.1133 -->
+## [1.6.1133](https://github.com/habitat-sh/habitat/tree/1.6.1133) (2024-08-17)
 
 #### Merged Pull Requests
-- Bump serde from 1.0.204 to 1.0.205 [#9352](https://github.com/habitat-sh/habitat/pull/9352) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump serde_json from 1.0.124 to 1.0.125 [#9362](https://github.com/habitat-sh/habitat/pull/9362) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump serde_json from 1.0.124 to 1.0.125 [#9362](https://github.com/habitat-sh/habitat/pull/9362) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1133 -->
+- Bump libc from 0.2.155 to 0.2.156 [#9364](https://github.com/habitat-sh/habitat/pull/9364) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1132 -->
+- Bump cc from 1.1.10 to 1.1.11 [#9360](https://github.com/habitat-sh/habitat/pull/9360) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1131 -->
+- Bump ctrlc from 3.4.4 to 3.4.5 [#9359](https://github.com/habitat-sh/habitat/pull/9359) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1130 -->
+- Bump serde from 1.0.206 to 1.0.207 [#9357](https://github.com/habitat-sh/habitat/pull/9357) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1129 -->
+- Bump mio from 1.0.1 to 1.0.2 [#9358](https://github.com/habitat-sh/habitat/pull/9358) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1128 -->
+- clap-4 support for `pkg-export-tar` [#9316](https://github.com/habitat-sh/habitat/pull/9316) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1127 -->
+- Bump serde from 1.0.205 to 1.0.206 [#9355](https://github.com/habitat-sh/habitat/pull/9355) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1126 -->
+- Bump actix-web from 4.8.0 to 4.9.0 [#9354](https://github.com/habitat-sh/habitat/pull/9354) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1126 -->
+- Bump cc from 1.1.8 to 1.1.10 [#9356](https://github.com/habitat-sh/habitat/pull/9356) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1126 -->
+- Bump serde_json from 1.0.122 to 1.0.124 [#9353](https://github.com/habitat-sh/habitat/pull/9353) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1125 -->
 - Bump serde from 1.0.204 to 1.0.205 [#9352](https://github.com/habitat-sh/habitat/pull/9352) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1124 -->
 - Bump cc from 1.1.7 to 1.1.8 [#9351](https://github.com/habitat-sh/habitat/pull/9351) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1123 -->
 - `pkg-export-container`: Remove `pub` visibilty [#9321](https://github.com/habitat-sh/habitat/pull/9321) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1122 -->
