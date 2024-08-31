@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1139 -->
-## [1.6.1139](https://github.com/habitat-sh/habitat/tree/1.6.1139) (2024-08-21)
+<!-- latest_release 1.6.1144 -->
+## [1.6.1144](https://github.com/habitat-sh/habitat/tree/1.6.1144) (2024-08-28)
 
 #### Merged Pull Requests
-- Bump flate2 from 1.0.31 to 1.0.32 [#9369](https://github.com/habitat-sh/habitat/pull/9369) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rustls-webpki from 0.102.6 to 0.102.7 [#9375](https://github.com/habitat-sh/habitat/pull/9375) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump rustls-webpki from 0.102.6 to 0.102.7 [#9375](https://github.com/habitat-sh/habitat/pull/9375) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1144 -->
+- Bump serde from 1.0.208 to 1.0.209 [#9373](https://github.com/habitat-sh/habitat/pull/9373) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1143 -->
+- Bump cc from 1.1.13 to 1.1.15 [#9374](https://github.com/habitat-sh/habitat/pull/9374) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1142 -->
+- Bump flate2 from 1.0.32 to 1.0.33 [#9370](https://github.com/habitat-sh/habitat/pull/9370) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1141 -->
+- Bump serde_json from 1.0.125 to 1.0.127 [#9372](https://github.com/habitat-sh/habitat/pull/9372) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1140 -->
 - Bump flate2 from 1.0.31 to 1.0.32 [#9369](https://github.com/habitat-sh/habitat/pull/9369) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1139 -->
 - Bump libc from 0.2.157 to 0.2.158 [#9368](https://github.com/habitat-sh/habitat/pull/9368) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1138 -->
 - Bump tokio from 1.39.2 to 1.39.3 [#9367](https://github.com/habitat-sh/habitat/pull/9367) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1137 -->
