@@ -1,16 +1,26 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1144 -->
-## [1.6.1144](https://github.com/habitat-sh/habitat/tree/1.6.1144) (2024-08-28)
+<!-- latest_release 1.6.1153 -->
+## [1.6.1153](https://github.com/habitat-sh/habitat/tree/1.6.1153) (2024-09-06)
 
 #### Merged Pull Requests
-- Bump rustls-webpki from 0.102.6 to 0.102.7 [#9375](https://github.com/habitat-sh/habitat/pull/9375) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- remove install hook to fix linux e2e test [#9387](https://github.com/habitat-sh/habitat/pull/9387) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- remove install hook to fix linux e2e test [#9387](https://github.com/habitat-sh/habitat/pull/9387) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1153 -->
+- fix regression breaking pathing of scaffolding dependencies and add test for linux [#9386](https://github.com/habitat-sh/habitat/pull/9386) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1152 -->
+- Bump cc from 1.1.15 to 1.1.16 [#9383](https://github.com/habitat-sh/habitat/pull/9383) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1151 -->
+- Bump serde_json from 1.0.127 to 1.0.128 [#9385](https://github.com/habitat-sh/habitat/pull/9385) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1150 -->
+- Bump tokio-util from 0.7.11 to 0.7.12 [#9384](https://github.com/habitat-sh/habitat/pull/9384) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1149 -->
+- Bump async-trait from 0.1.81 to 0.1.82 [#9382](https://github.com/habitat-sh/habitat/pull/9382) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1148 -->
+- use mac os 12 in release pipeline to fix broken mac builds [#9381](https://github.com/habitat-sh/habitat/pull/9381) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1147 -->
+- Studio can build against downgraded channels [#9282](https://github.com/habitat-sh/habitat/pull/9282) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1147 -->
+- Bump tokio from 1.39.3 to 1.40.0 [#9378](https://github.com/habitat-sh/habitat/pull/9378) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1146 -->
+- Bump prost-build from 0.13.1 to 0.13.2 [#9379](https://github.com/habitat-sh/habitat/pull/9379) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1145 -->
 - Bump rustls-webpki from 0.102.6 to 0.102.7 [#9375](https://github.com/habitat-sh/habitat/pull/9375) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1144 -->
 - Bump serde from 1.0.208 to 1.0.209 [#9373](https://github.com/habitat-sh/habitat/pull/9373) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1143 -->
 - Bump cc from 1.1.13 to 1.1.15 [#9374](https://github.com/habitat-sh/habitat/pull/9374) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1142 -->
