@@ -1,16 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1153 -->
-## [1.6.1153](https://github.com/habitat-sh/habitat/tree/1.6.1153) (2024-09-06)
+<!-- latest_release 1.6.1157 -->
+## [1.6.1157](https://github.com/habitat-sh/habitat/tree/1.6.1157) (2024-09-12)
 
 #### Merged Pull Requests
-- remove install hook to fix linux e2e test [#9387](https://github.com/habitat-sh/habitat/pull/9387) ([mwrock](https://github.com/mwrock))
+- clap-v4 support for RST Reader [#9380](https://github.com/habitat-sh/habitat/pull/9380) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- clap-v4 support for RST Reader [#9380](https://github.com/habitat-sh/habitat/pull/9380) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1157 -->
+- Bump rustls-webpki from 0.102.7 to 0.102.8 [#9392](https://github.com/habitat-sh/habitat/pull/9392) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1156 -->
+- Bump serde from 1.0.209 to 1.0.210 [#9388](https://github.com/habitat-sh/habitat/pull/9388) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1155 -->
+- Bump cc from 1.1.16 to 1.1.18 [#9389](https://github.com/habitat-sh/habitat/pull/9389) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1155 -->
+- Bump anyhow from 1.0.86 to 1.0.87 [#9390](https://github.com/habitat-sh/habitat/pull/9390) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1154 -->
 - remove install hook to fix linux e2e test [#9387](https://github.com/habitat-sh/habitat/pull/9387) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1153 -->
 - fix regression breaking pathing of scaffolding dependencies and add test for linux [#9386](https://github.com/habitat-sh/habitat/pull/9386) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1152 -->
 - Bump cc from 1.1.15 to 1.1.16 [#9383](https://github.com/habitat-sh/habitat/pull/9383) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1151 -->
