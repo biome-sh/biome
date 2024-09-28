@@ -1,16 +1,23 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1161 -->
-## [1.6.1161](https://github.com/habitat-sh/habitat/tree/1.6.1161) (2024-09-19)
+<!-- latest_release 1.6.1166 -->
+## [1.6.1166](https://github.com/habitat-sh/habitat/tree/1.6.1166) (2024-09-27)
 
 #### Merged Pull Requests
-- Bump cc from 1.1.19 to 1.1.21 [#9398](https://github.com/habitat-sh/habitat/pull/9398) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump flate2 from 1.0.33 to 1.0.34 [#9410](https://github.com/habitat-sh/habitat/pull/9410) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump flate2 from 1.0.33 to 1.0.34 [#9410](https://github.com/habitat-sh/habitat/pull/9410) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1166 -->
+- Bump tar from 0.4.41 to 0.4.42 [#9409](https://github.com/habitat-sh/habitat/pull/9409) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1165 -->
+- Bump libc from 0.2.158 to 0.2.159 [#9408](https://github.com/habitat-sh/habitat/pull/9408) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1165 -->
+- Bump async-trait from 0.1.82 to 0.1.83 [#9407](https://github.com/habitat-sh/habitat/pull/9407) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1164 -->
+- Bump prost-build from 0.13.2 to 0.13.3 [#9403](https://github.com/habitat-sh/habitat/pull/9403) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1163 -->
+- Bump thiserror from 1.0.63 to 1.0.64 [#9405](https://github.com/habitat-sh/habitat/pull/9405) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1163 -->
+- Bump prost from 0.13.2 to 0.13.3 [#9404](https://github.com/habitat-sh/habitat/pull/9404) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1162 -->
 - Bump cc from 1.1.19 to 1.1.21 [#9398](https://github.com/habitat-sh/habitat/pull/9398) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1161 -->
 - Bump bytes from 1.7.1 to 1.7.2 [#9399](https://github.com/habitat-sh/habitat/pull/9399) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1160 -->
 - Bump anyhow from 1.0.87 to 1.0.89 [#9396](https://github.com/habitat-sh/habitat/pull/9396) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1159 -->
