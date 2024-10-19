@@ -3,13 +3,14 @@ $pkg_origin = "biome"
 $pkg_maintainer = "The Biome Maintainers <humans@biome.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_deps=@(
-    "core/visual-cpp-redist-2015"
+    "core/visual-cpp-redist-2022"
 )
 $pkg_bin_dirs = @("bin")
 $pkg_build_deps = @(
-    "core/visual-cpp-build-tools-2015",
+    "core/visual-build-tools-2022",
     "core/rust/$((ConvertFrom-StringData (Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")[1]).channel.Replace('"', ''))",
     "core/cacerts",
+    "core/windows-11-sdk",
     "core/protobuf"
 )
 
@@ -57,7 +58,7 @@ function Invoke-Build {
 function Invoke-Install {
     Write-BuildLine "$HAB_CACHE_SRC_PATH/$pkg_dirname"
     Copy-Item "$env:CARGO_TARGET_DIR/release/bio.exe" "$pkg_prefix/bin/bio.exe"
-    Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*.dll" "$pkg_prefix/bin"
+    Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2022")/bin/*.dll" "$pkg_prefix/bin"
 }
 
 function Invoke-Clean {

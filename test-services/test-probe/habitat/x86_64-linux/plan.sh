@@ -6,7 +6,7 @@ pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 pkg_license=("Apache-2.0")
 pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc
-          core/gcc-libs
+          core/gcc-base
           core/procps-ng
           core/bash)
 pkg_build_deps=(core/coreutils
