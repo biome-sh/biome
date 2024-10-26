@@ -13,30 +13,6 @@ Describe "`bio` correctly executes external binaries" {
         $out | Should -BeLike "*Creates a container image from a set of Biome packages (and optionally pushes to a remote${le}repository)*"
     }
 
-    It "cf exporter help" {
-        # The cf exporter is only available on linux
-        if ($IsLinux) {
-            $out = bio pkg export cf --help
-            $LastExitCode | Should -Be 0
-            "Biome Package CFize - Create a Cloud Foundry ready Docker image from a given package." | Should -BeIn $out
-        } else {
-            bio pkg export cf --help
-            $LastExitCode | Should -Be 1
-        }
-    }
-
-    It "mesos exporter help" {
-        # The mesos exporter is only available on linux
-        if ($IsLinux) {
-            $out = bio pkg export mesos --help
-            $LastExitCode | Should -Be 0
-            "Biome Package Mesosize - Create a Mesos application from a set of Biome packages" | Should -BeIn $out
-        } else {
-            bio pkg export mesos --help
-            $LastExitCode | Should -Be 1
-        }
-    }
-
     It "tar exporter help" {
         $out = bio pkg export tar --help
         $LastExitCode | Should -Be 0
