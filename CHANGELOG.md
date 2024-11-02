@@ -1,16 +1,24 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1189 -->
-## [1.6.1189](https://github.com/habitat-sh/habitat/tree/1.6.1189) (2024-10-24)
+<!-- latest_release 1.6.1195 -->
+## [1.6.1195](https://github.com/habitat-sh/habitat/tree/1.6.1195) (2024-11-01)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.64 to 1.0.65 [#9440](https://github.com/habitat-sh/habitat/pull/9440) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump thiserror from 1.0.65 to 1.0.66 [#9450](https://github.com/habitat-sh/habitat/pull/9450) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump thiserror from 1.0.65 to 1.0.66 [#9450](https://github.com/habitat-sh/habitat/pull/9450) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1195 -->
+- fix e2e ssl cert file tests when not set [#9447](https://github.com/habitat-sh/habitat/pull/9447) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1194 -->
+- Bump serde from 1.0.213 to 1.0.214 [#9446](https://github.com/habitat-sh/habitat/pull/9446) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1193 -->
+- Bump notify from 6.1.1 to 7.0.0 [#9443](https://github.com/habitat-sh/habitat/pull/9443) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1192 -->
+- Bump pin-project from 1.1.6 to 1.1.7 [#9441](https://github.com/habitat-sh/habitat/pull/9441) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1192 -->
+- Bump regex from 1.11.0 to 1.11.1 [#9442](https://github.com/habitat-sh/habitat/pull/9442) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1192 -->
+- extend timeout for darwin install verify tests [#9445](https://github.com/habitat-sh/habitat/pull/9445) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1191 -->
+- Ignore `SSL_CERT_FILE` from runtime env if set [#9444](https://github.com/habitat-sh/habitat/pull/9444) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1190 -->
 - Bump thiserror from 1.0.64 to 1.0.65 [#9440](https://github.com/habitat-sh/habitat/pull/9440) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1189 -->
 - Bump tokio from 1.40.0 to 1.41.0 [#9439](https://github.com/habitat-sh/habitat/pull/9439) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1188 -->
 - Bump anyhow from 1.0.90 to 1.0.91 [#9438](https://github.com/habitat-sh/habitat/pull/9438) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1188 -->
