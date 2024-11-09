@@ -1,16 +1,32 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1195 -->
-## [1.6.1195](https://github.com/habitat-sh/habitat/tree/1.6.1195) (2024-11-01)
+<!-- latest_release 1.6.1208 -->
+## [1.6.1208](https://github.com/habitat-sh/habitat/tree/1.6.1208) (2024-11-08)
 
 #### Merged Pull Requests
-- Bump thiserror from 1.0.65 to 1.0.66 [#9450](https://github.com/habitat-sh/habitat/pull/9450) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump libc from 0.2.161 to 0.2.162 [#9464](https://github.com/habitat-sh/habitat/pull/9464) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump libc from 0.2.161 to 0.2.162 [#9464](https://github.com/habitat-sh/habitat/pull/9464) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1208 -->
+- Bump tokio from 1.41.0 to 1.41.1 [#9463](https://github.com/habitat-sh/habitat/pull/9463) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1208 -->
+- Bump tempfile from 3.13.0 to 3.14.0 [#9462](https://github.com/habitat-sh/habitat/pull/9462) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1207 -->
+- removing some dead docs and code [#9461](https://github.com/habitat-sh/habitat/pull/9461) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1206 -->
+- Bump anyhow from 1.0.92 to 1.0.93 [#9460](https://github.com/habitat-sh/habitat/pull/9460) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1205 -->
+- Agadgil/chef 15608 probe ping [#9420](https://github.com/habitat-sh/habitat/pull/9420) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 1.6.1204 -->
+- fix windows studio test by pulling hab packages from stable [#9459](https://github.com/habitat-sh/habitat/pull/9459) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1203 -->
+- Bump cc from 1.1.34 to 1.1.36 [#9457](https://github.com/habitat-sh/habitat/pull/9457) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1202 -->
+- Bump url from 2.5.2 to 2.5.3 [#9455](https://github.com/habitat-sh/habitat/pull/9455) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1201 -->
+- Bump thiserror from 1.0.67 to 1.0.68 [#9456](https://github.com/habitat-sh/habitat/pull/9456) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1200 -->
+- Bump cc from 1.1.31 to 1.1.34 [#9451](https://github.com/habitat-sh/habitat/pull/9451) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1199 -->
+- Bump thiserror from 1.0.66 to 1.0.67 [#9452](https://github.com/habitat-sh/habitat/pull/9452) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1198 -->
+- Stops setting permissions in ensure_path_permissions when we reach pkgs directory [#9449](https://github.com/habitat-sh/habitat/pull/9449) ([jasonheath](https://github.com/jasonheath)) <!-- 1.6.1198 -->
+- Bump anyhow from 1.0.91 to 1.0.92 [#9453](https://github.com/habitat-sh/habitat/pull/9453) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1198 -->
+- Bump tar from 0.4.42 to 0.4.43 [#9454](https://github.com/habitat-sh/habitat/pull/9454) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1197 -->
+- install additional pkgs from env [#9448](https://github.com/habitat-sh/habitat/pull/9448) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.1196 -->
 - Bump thiserror from 1.0.65 to 1.0.66 [#9450](https://github.com/habitat-sh/habitat/pull/9450) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1195 -->
 - fix e2e ssl cert file tests when not set [#9447](https://github.com/habitat-sh/habitat/pull/9447) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1194 -->
 - Bump serde from 1.0.213 to 1.0.214 [#9446](https://github.com/habitat-sh/habitat/pull/9446) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1193 -->

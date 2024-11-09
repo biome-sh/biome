@@ -1746,6 +1746,19 @@ try {
 
     Set-BioBin
 
+    # This installs any additional packages required for building.
+    # It is useful in scenarios where you have a newer version of a package
+    # and want Biome to use the newer, locally installed version during
+    # a studio build. We do exactly this during the package refresh process with `bio-auto-build`.
+    if (-not [string]::IsNullOrEmpty($env:HAB_STUDIO_INSTALL_PKGS)) {
+        Write-BuildLine "Installing additional packages in bootstrap studio"
+        $deps = $env:HAB_STUDIO_INSTALL_PKGS -split ";"
+        foreach ($dep in $deps) {
+            Write-BuildLine "Installing $dep"
+            & $HAB_BIN pkg install "$dep"
+        }
+    }
+
     # Download and resolve the depdencies
     # Create initial package arrays
     Initialize-DependencyList
