@@ -1,16 +1,23 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1208 -->
-## [1.6.1208](https://github.com/habitat-sh/habitat/tree/1.6.1208) (2024-11-08)
+<!-- latest_release 1.6.1215 -->
+## [1.6.1215](https://github.com/habitat-sh/habitat/tree/1.6.1215) (2024-11-15)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.161 to 0.2.162 [#9464](https://github.com/habitat-sh/habitat/pull/9464) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.0 to 1.2.1 [#9473](https://github.com/habitat-sh/habitat/pull/9473) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1041-->
 ### Changes since 1.6.1041 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.0 to 1.2.1 [#9473](https://github.com/habitat-sh/habitat/pull/9473) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1215 -->
+- Bump flate2 from 1.0.34 to 1.0.35 [#9474](https://github.com/habitat-sh/habitat/pull/9474) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1214 -->
+- ignore derivative and instant unmaintained crates in audits [#9472](https://github.com/habitat-sh/habitat/pull/9472) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1213 -->
+- Bump cc from 1.1.37 to 1.2.0 [#9471](https://github.com/habitat-sh/habitat/pull/9471) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1212 -->
+- fix dep resolution with HAB_STUDIO_INSTALL_PKGS [#9467](https://github.com/habitat-sh/habitat/pull/9467) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.1211 -->
+- Bump serde from 1.0.214 to 1.0.215 [#9468](https://github.com/habitat-sh/habitat/pull/9468) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1210 -->
+- Bump cc from 1.1.36 to 1.1.37 [#9466](https://github.com/habitat-sh/habitat/pull/9466) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1209 -->
 - Bump libc from 0.2.161 to 0.2.162 [#9464](https://github.com/habitat-sh/habitat/pull/9464) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1208 -->
 - Bump tokio from 1.41.0 to 1.41.1 [#9463](https://github.com/habitat-sh/habitat/pull/9463) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1208 -->
 - Bump tempfile from 3.13.0 to 3.14.0 [#9462](https://github.com/habitat-sh/habitat/pull/9462) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1207 -->
