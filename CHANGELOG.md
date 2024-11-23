@@ -1,14 +1,29 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1215 -->
-## [1.6.1215](https://github.com/habitat-sh/habitat/tree/1.6.1215) (2024-11-15)
+<!-- latest_release 1.6.1223 -->
+## [1.6.1223](https://github.com/habitat-sh/habitat/tree/1.6.1223) (2024-11-23)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.0 to 1.2.1 [#9473](https://github.com/habitat-sh/habitat/pull/9473) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- bump url from yanked 2.5.3 to 2.5.4 [#9483](https://github.com/habitat-sh/habitat/pull/9483) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
-<!-- release_rollup since=1.6.1041-->
-### Changes since 1.6.1041 release
+<!-- release_rollup since=1.6.1215-->
+### Changes since 1.6.1215 release
+
+#### Merged Pull Requests
+- bump url from yanked 2.5.3 to 2.5.4 [#9483](https://github.com/habitat-sh/habitat/pull/9483) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1223 -->
+- Rustfmt and Nightly Rust Bump to nightly-2024-11-18 [#9478](https://github.com/habitat-sh/habitat/pull/9478) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 1.6.1222 -->
+- Bump hyper from 1.5.0 to 1.5.1 [#9480](https://github.com/habitat-sh/habitat/pull/9480) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1221 -->
+- Bump serde_json from 1.0.132 to 1.0.133 [#9477](https://github.com/habitat-sh/habitat/pull/9477) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1220 -->
+- Bump libc from 0.2.162 to 0.2.164 [#9476](https://github.com/habitat-sh/habitat/pull/9476) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1219 -->
+- Pipeline setup for aarch64-linux [#9326](https://github.com/habitat-sh/habitat/pull/9326) ([sajjaphani](https://github.com/sajjaphani)) <!-- 1.6.1218 -->
+- update environment variable doc to reflect HAB_REFRESH_CHANNEL [#9475](https://github.com/habitat-sh/habitat/pull/9475) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1217 -->
+- update changelog for hab 1.6.1215 [#9479](https://github.com/habitat-sh/habitat/pull/9479) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1216 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release 1.6.1215 -->
+
+## [1.6.1215](https://github.com/habitat-sh/habitat/tree/1.6.1215) (2024-11-15)
 
 #### Merged Pull Requests
 - Bump cc from 1.2.0 to 1.2.1 [#9473](https://github.com/habitat-sh/habitat/pull/9473) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1215 -->
@@ -224,9 +239,6 @@
 - Bump chrono from 0.4.37 to 0.4.38 [#9222](https://github.com/habitat-sh/habitat/pull/9222) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1043 -->
 - Bump hyper from 1.2.0 to 1.3.1 [#9225](https://github.com/habitat-sh/habitat/pull/9225) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1043 -->
 - update changelog for 1.6.1041 release [#9229](https://github.com/habitat-sh/habitat/pull/9229) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1042 -->
-<!-- release_rollup -->
-
-<!-- latest_stable_release 1.6.1041 -->
 
 ## [1.6.1041](https://github.com/habitat-sh/habitat/tree/1.6.1041) (2024-04-10)
 
