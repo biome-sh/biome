@@ -1,16 +1,24 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 1.6.1237 -->
-## [1.6.1237](https://github.com/habitat-sh/habitat/tree/1.6.1237) (2024-12-20)
+<!-- latest_release 2.0.1 -->
+## [2.0.1](https://github.com/habitat-sh/habitat/tree/2.0.1) (2024-12-27)
 
 #### Merged Pull Requests
-- Bump libc from 0.2.168 to 0.2.169 [#9512](https://github.com/habitat-sh/habitat/pull/9512) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump cc from 1.2.5 to 1.2.6 [#9523](https://github.com/habitat-sh/habitat/pull/9523) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump cc from 1.2.5 to 1.2.6 [#9523](https://github.com/habitat-sh/habitat/pull/9523) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.1 -->
+- start v2 and add release branches in expeditor config [#9521](https://github.com/habitat-sh/habitat/pull/9521) ([mwrock](https://github.com/mwrock)) <!-- 2.0.0 -->
+- refresh channel should only include core packages [#9510](https://github.com/habitat-sh/habitat/pull/9510) ([mwrock](https://github.com/mwrock)) <!-- 1.6.1242 -->
+- Bump anyhow from 1.0.94 to 1.0.95 [#9519](https://github.com/habitat-sh/habitat/pull/9519) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1241 -->
+- Bump env_logger from 0.11.5 to 0.11.6 [#9518](https://github.com/habitat-sh/habitat/pull/9518) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1240 -->
+- Bump serde_json from 1.0.133 to 1.0.134 [#9515](https://github.com/habitat-sh/habitat/pull/9515) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1239 -->
+- Bump rcgen from 0.13.1 to 0.13.2 [#9517](https://github.com/habitat-sh/habitat/pull/9517) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1239 -->
+- Bump os_info from 3.9.0 to 3.9.1 [#9516](https://github.com/habitat-sh/habitat/pull/9516) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1238 -->
 - Bump libc from 0.2.168 to 0.2.169 [#9512](https://github.com/habitat-sh/habitat/pull/9512) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1237 -->
 - Bump cc from 1.2.4 to 1.2.5 [#9511](https://github.com/habitat-sh/habitat/pull/9511) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1236 -->
 - Bump hyper from 1.5.1 to 1.5.2 [#9506](https://github.com/habitat-sh/habitat/pull/9506) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 1.6.1235 -->
