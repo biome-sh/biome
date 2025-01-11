@@ -1,16 +1,30 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.10 -->
-## [2.0.10](https://github.com/habitat-sh/habitat/tree/2.0.10) (2025-01-03)
+<!-- latest_release 2.0.21 -->
+## [2.0.21](https://github.com/habitat-sh/habitat/tree/2.0.21) (2025-01-10)
 
 #### Merged Pull Requests
-- bump powershell to 7.5.0 [#9542](https://github.com/habitat-sh/habitat/pull/9542) ([mwrock](https://github.com/mwrock))
+- Removes mesosize and cfize [#9557](https://github.com/habitat-sh/habitat/pull/9557) ([jasonheath](https://github.com/jasonheath))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Removes mesosize and cfize [#9557](https://github.com/habitat-sh/habitat/pull/9557) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.21 -->
+- Bump bitflags from 2.6.0 to 2.7.0 [#9560](https://github.com/habitat-sh/habitat/pull/9560) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.20 -->
+- Bump tokio from 1.42.0 to 1.43.0 [#9559](https://github.com/habitat-sh/habitat/pull/9559) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.19 -->
+- Rustfmt and Nightly Rust Bump to nightly-2025-01-09 [#9555](https://github.com/habitat-sh/habitat/pull/9555) ([chef-expeditor[bot]](https://github.com/chef-expeditor[bot])) <!-- 2.0.18 -->
+- set refresh-channel to LTS-2024 in verify [#9556](https://github.com/habitat-sh/habitat/pull/9556) ([mwrock](https://github.com/mwrock)) <!-- 2.0.17 -->
+- Bump petgraph from 0.7.0 to 0.7.1 [#9553](https://github.com/habitat-sh/habitat/pull/9553) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.16 -->
+- Bump winreg from 0.52.0 to 0.53.0 [#9554](https://github.com/habitat-sh/habitat/pull/9554) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.15 -->
+- Bump serde_json from 1.0.134 to 1.0.135 [#9550](https://github.com/habitat-sh/habitat/pull/9550) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.14 -->
+- Bump async-trait from 0.1.84 to 0.1.85 [#9551](https://github.com/habitat-sh/habitat/pull/9551) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.14 -->
+- Bump pin-project from 1.1.7 to 1.1.8 [#9549](https://github.com/habitat-sh/habitat/pull/9549) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.13 -->
+- Bump async-trait from 0.1.83 to 0.1.84 [#9543](https://github.com/habitat-sh/habitat/pull/9543) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.12 -->
+- Bump tabwriter from 1.4.0 to 1.4.1 [#9545](https://github.com/habitat-sh/habitat/pull/9545) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.12 -->
+- Bump os_info from 3.9.1 to 3.9.2 [#9544](https://github.com/habitat-sh/habitat/pull/9544) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.12 -->
+- release uploads aarch64 from x64 docker [#9546](https://github.com/habitat-sh/habitat/pull/9546) ([mwrock](https://github.com/mwrock)) <!-- 2.0.11 -->
 - bump powershell to 7.5.0 [#9542](https://github.com/habitat-sh/habitat/pull/9542) ([mwrock](https://github.com/mwrock)) <!-- 2.0.10 -->
 - Bump tempfile from 3.14.0 to 3.15.0 [#9540](https://github.com/habitat-sh/habitat/pull/9540) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.9 -->
 - Bump cc from 1.2.6 to 1.2.7 [#9539](https://github.com/habitat-sh/habitat/pull/9539) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.8 -->
