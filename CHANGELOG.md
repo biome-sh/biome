@@ -1,16 +1,24 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.21 -->
-## [2.0.21](https://github.com/habitat-sh/habitat/tree/2.0.21) (2025-01-10)
+<!-- latest_release 2.0.29 -->
+## [2.0.29](https://github.com/habitat-sh/habitat/tree/2.0.29) (2025-01-16)
 
 #### Merged Pull Requests
-- Removes mesosize and cfize [#9557](https://github.com/habitat-sh/habitat/pull/9557) ([jasonheath](https://github.com/jasonheath))
+- Bump bitflags from 2.7.0 to 2.8.0 [#9568](https://github.com/habitat-sh/habitat/pull/9568) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump bitflags from 2.7.0 to 2.8.0 [#9568](https://github.com/habitat-sh/habitat/pull/9568) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.29 -->
+- Bump dirs from 5.0.1 to 6.0.0 [#9567](https://github.com/habitat-sh/habitat/pull/9567) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.28 -->
+- Bump winreg from 0.53.0 to 0.55.0 [#9562](https://github.com/habitat-sh/habitat/pull/9562) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.27 -->
+- clap-v4 support for `hab` cli [#9330](https://github.com/habitat-sh/habitat/pull/9330) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.26 -->
+- pass release channel to HAB_STUDIO_SECRET_HAB_REFRESH_CHANNEL in windows release pipeline [#9566](https://github.com/habitat-sh/habitat/pull/9566) ([mwrock](https://github.com/mwrock)) <!-- 2.0.25 -->
+- Bump cc from 1.2.7 to 1.2.9 [#9563](https://github.com/habitat-sh/habitat/pull/9563) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.24 -->
+- Bump notify from 7.0.0 to 8.0.0 [#9564](https://github.com/habitat-sh/habitat/pull/9564) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.23 -->
+- powershell workaround for hab studio rm with powershell 7.5 and older windows os [#9561](https://github.com/habitat-sh/habitat/pull/9561) ([mwrock](https://github.com/mwrock)) <!-- 2.0.22 -->
 - Removes mesosize and cfize [#9557](https://github.com/habitat-sh/habitat/pull/9557) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.21 -->
 - Bump bitflags from 2.6.0 to 2.7.0 [#9560](https://github.com/habitat-sh/habitat/pull/9560) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.20 -->
 - Bump tokio from 1.42.0 to 1.43.0 [#9559](https://github.com/habitat-sh/habitat/pull/9559) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.19 -->

@@ -1,5 +1,5 @@
-use crate::{cli::KeyType,
-            error::Result};
+use crate::{error::Result,
+            key_type::KeyType};
 use biome_core::{crypto::keys::{KeyCache,
                                   KeyFile},
                    origin::Origin};
