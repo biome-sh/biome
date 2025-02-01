@@ -1,16 +1,22 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.32 -->
-## [2.0.32](https://github.com/habitat-sh/habitat/tree/2.0.32) (2025-01-21)
+<!-- latest_release 2.0.37 -->
+## [2.0.37](https://github.com/habitat-sh/habitat/tree/2.0.37) (2025-01-31)
 
 #### Merged Pull Requests
-- Bump cc from 1.2.9 to 1.2.10 [#9572](https://github.com/habitat-sh/habitat/pull/9572) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump rustls from 0.23.21 to 0.23.22 [#9580](https://github.com/habitat-sh/habitat/pull/9580) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump rustls from 0.23.21 to 0.23.22 [#9580](https://github.com/habitat-sh/habitat/pull/9580) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.37 -->
+- Bump httparse from 1.9.5 to 1.10.0 [#9576](https://github.com/habitat-sh/habitat/pull/9576) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.36 -->
+- Fixes USAGE here doc parsing issue in install.sh [#9575](https://github.com/habitat-sh/habitat/pull/9575) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.35 -->
+- Bump tempfile from 3.15.0 to 3.16.0 [#9578](https://github.com/habitat-sh/habitat/pull/9578) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.35 -->
+- Bump serde_json from 1.0.137 to 1.0.138 [#9577](https://github.com/habitat-sh/habitat/pull/9577) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.34 -->
+- Using rustls-0.23 and related dependencies [#9552](https://github.com/habitat-sh/habitat/pull/9552) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.33 -->
 - Bump cc from 1.2.9 to 1.2.10 [#9572](https://github.com/habitat-sh/habitat/pull/9572) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.32 -->
 - Bump serde_json from 1.0.135 to 1.0.137 [#9571](https://github.com/habitat-sh/habitat/pull/9571) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.32 -->
 - Bump semver from 1.0.24 to 1.0.25 [#9570](https://github.com/habitat-sh/habitat/pull/9570) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.31 -->
