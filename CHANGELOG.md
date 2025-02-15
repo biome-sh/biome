@@ -1,16 +1,27 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.37 -->
-## [2.0.37](https://github.com/habitat-sh/habitat/tree/2.0.37) (2025-01-31)
+<!-- latest_release 2.0.47 -->
+## [2.0.47](https://github.com/habitat-sh/habitat/tree/2.0.47) (2025-02-14)
 
 #### Merged Pull Requests
-- Bump rustls from 0.23.21 to 0.23.22 [#9580](https://github.com/habitat-sh/habitat/pull/9580) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Fixes for using rand crate with version 0.9 [#9594](https://github.com/habitat-sh/habitat/pull/9594) ([agadgil-progress](https://github.com/agadgil-progress))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Fixes for using rand crate with version 0.9 [#9594](https://github.com/habitat-sh/habitat/pull/9594) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.47 -->
+- Bump prost-types from 0.13.4 to 0.13.5 [#9592](https://github.com/habitat-sh/habitat/pull/9592) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.46 -->
+- Bump rustls from 0.23.22 to 0.23.23 [#9593](https://github.com/habitat-sh/habitat/pull/9593) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.46 -->
+- Bump toml from 0.8.19 to 0.8.20 [#9591](https://github.com/habitat-sh/habitat/pull/9591) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.45 -->
+- Bump blake2b_simd from 1.0.2 to 1.0.3 [#9587](https://github.com/habitat-sh/habitat/pull/9587) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.44 -->
+- Bump os_info from 3.9.2 to 3.10.0 [#9588](https://github.com/habitat-sh/habitat/pull/9588) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.43 -->
+- Bump pin-project from 1.1.8 to 1.1.9 [#9589](https://github.com/habitat-sh/habitat/pull/9589) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.42 -->
+- Bump async-trait from 0.1.85 to 0.1.86 [#9582](https://github.com/habitat-sh/habitat/pull/9582) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.41 -->
+- Bump cc from 1.2.10 to 1.2.13 [#9586](https://github.com/habitat-sh/habitat/pull/9586) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.40 -->
+- Bump hyper from 1.5.2 to 1.6.0 [#9579](https://github.com/habitat-sh/habitat/pull/9579) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.39 -->
+- Bump openssl from 0.10.69 to 0.10.70 [#9583](https://github.com/habitat-sh/habitat/pull/9583) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.38 -->
 - Bump rustls from 0.23.21 to 0.23.22 [#9580](https://github.com/habitat-sh/habitat/pull/9580) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.37 -->
 - Bump httparse from 1.9.5 to 1.10.0 [#9576](https://github.com/habitat-sh/habitat/pull/9576) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.36 -->
 - Fixes USAGE here doc parsing issue in install.sh [#9575](https://github.com/habitat-sh/habitat/pull/9575) ([jasonheath](https://github.com/jasonheath)) <!-- 2.0.35 -->
