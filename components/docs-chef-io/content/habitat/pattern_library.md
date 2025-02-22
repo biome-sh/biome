@@ -255,17 +255,6 @@ packages = [
   "habitat/builder-memcached",
 ]
 
-[[x86_64-linux-kernel2]]
-channel = "stable"
-packages = [
-  # Supervisor and prerequisites
-  "biome/bio-launcher",
-  "biome/bio",
-  "biome/bio-sup",
-
-  "biome/builder-worker"
-]
-
 [[x86_64-windows]]
 channel = "stable"
 packages = [

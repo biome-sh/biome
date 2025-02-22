@@ -20,5 +20,5 @@ case "$1" in
     shift
     bio pkg exec biome/bio-backline env "${secrets[@]}" bash --login -c "$@";;
   *)
-    echo "Unknown Studio Command" && exit 1;;
+    echo "Unknown Studio Command: ${1}" && exit 1;;
 esac

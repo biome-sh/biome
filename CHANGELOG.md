@@ -1,16 +1,26 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.47 -->
-## [2.0.47](https://github.com/habitat-sh/habitat/tree/2.0.47) (2025-02-14)
+<!-- latest_release 2.0.57 -->
+## [2.0.57](https://github.com/habitat-sh/habitat/tree/2.0.57) (2025-02-21)
 
 #### Merged Pull Requests
-- Fixes for using rand crate with version 0.9 [#9594](https://github.com/habitat-sh/habitat/pull/9594) ([agadgil-progress](https://github.com/agadgil-progress))
+- Bump handlebars from 6.2.0 to 6.3.1 [#9603](https://github.com/habitat-sh/habitat/pull/9603) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump handlebars from 6.2.0 to 6.3.1 [#9603](https://github.com/habitat-sh/habitat/pull/9603) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.57 -->
+- Using handlebars 6 [#9585](https://github.com/habitat-sh/habitat/pull/9585) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.56 -->
+- Bump serde_json from 1.0.138 to 1.0.139 [#9599](https://github.com/habitat-sh/habitat/pull/9599) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.55 -->
+- add kernel2 back to installer.sh [#9602](https://github.com/habitat-sh/habitat/pull/9602) ([mwrock](https://github.com/mwrock)) <!-- 2.0.54 -->
+- Bump anyhow from 1.0.95 to 1.0.96 [#9601](https://github.com/habitat-sh/habitat/pull/9601) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.53 -->
+- removes kernel2 support [#9590](https://github.com/habitat-sh/habitat/pull/9590) ([mwrock](https://github.com/mwrock)) <!-- 2.0.52 -->
+- Bump tempfile from 3.17.0 to 3.17.1 [#9597](https://github.com/habitat-sh/habitat/pull/9597) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.51 -->
+- fixes unknown studio command in hab pkg build -D [#9598](https://github.com/habitat-sh/habitat/pull/9598) ([mwrock](https://github.com/mwrock)) <!-- 2.0.50 -->
+- Bump cc from 1.2.13 to 1.2.14 [#9596](https://github.com/habitat-sh/habitat/pull/9596) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.49 -->
+- Bump tempfile from 3.16.0 to 3.17.0 [#9595](https://github.com/habitat-sh/habitat/pull/9595) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.48 -->
 - Fixes for using rand crate with version 0.9 [#9594](https://github.com/habitat-sh/habitat/pull/9594) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.47 -->
 - Bump prost-types from 0.13.4 to 0.13.5 [#9592](https://github.com/habitat-sh/habitat/pull/9592) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.46 -->
 - Bump rustls from 0.23.22 to 0.23.23 [#9593](https://github.com/habitat-sh/habitat/pull/9593) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.46 -->
