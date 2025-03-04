@@ -497,15 +497,13 @@ impl CensusGroup {
         self.changed_service_files.clear();
         for (_m_id, service_file_rumor) in service_file_rumors.iter() {
             let filename = service_file_rumor.filename.to_string();
-            let file = self.service_files
-                           .entry(filename.clone())
-                           .or_insert_with(ServiceFile::default);
+            let file = self.service_files.entry(filename.clone()).or_default();
 
             if service_file_rumor.incarnation > file.incarnation {
                 match service_file_rumor.body(key_cache) {
                     Ok(body) => {
                         self.changed_service_files.insert(filename.clone());
-                        file.filename = filename.clone();
+                        file.filename.clone_from(&filename);
                         file.incarnation = service_file_rumor.incarnation;
                         file.body = body;
                     }
@@ -922,7 +920,7 @@ mod tests {
     #[test]
     fn previous_peer_with_no_members() {
         let me = test_census_member("me", Health::Alive);
-        let members = vec![];
+        let members = [];
         assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me), None);
     }
 

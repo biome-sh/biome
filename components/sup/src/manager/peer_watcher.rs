@@ -49,7 +49,7 @@ impl PeerWatcher {
     }
 
     fn setup_watcher(path: PathBuf) -> Result<Arc<AtomicBool>> {
-        let have_events = Arc::new(AtomicBool::new(false));
+        let have_events = Arc::new(AtomicBool::new(true));
         let have_events_for_thread = Arc::clone(&have_events);
 
         ThreadBuilder::new().name(format!("peer-watcher-[{}]", path.display()))
@@ -105,10 +105,13 @@ impl PeerWatcher {
             self.have_events.store(false, Ordering::Relaxed);
             return Ok(Vec::new());
         }
+
         let file = File::open(&self.path).map_err(Error::Io)?;
         let reader = BufReader::new(file);
         let mut members: Vec<Member> = Vec::new();
-        for line in reader.lines().flatten() {
+
+        for line_result in reader.lines() {
+            let line = line_result.map_err(Error::Io)?;
             let peer_addr = if line.find(':').is_some() {
                 line
             } else {
@@ -128,6 +131,7 @@ impl PeerWatcher {
                                   ..Default::default() };
             members.push(member);
         }
+
         self.have_events.store(false, Ordering::Relaxed);
         Ok(members)
     }
@@ -171,8 +175,12 @@ mod tests {
         lock.unset();
         let watcher = PeerWatcher::run(path).unwrap();
 
-        assert!(!watcher.has_fs_events());
+        // The watcher always has events initially
+        assert!(watcher.has_fs_events());
+        // We verify that the watcher finds no peers, since the file doesn't exist
         assert_eq!(watcher.get_members().unwrap(), vec![]);
+        // The watcher now has no more events
+        assert!(!watcher.has_fs_events());
     }
 
     #[test]
@@ -212,7 +220,7 @@ mod tests {
         lock.unset();
         let mut members = peer_watcher_member_load_test(tmpdir.path(), &peer_lines).unwrap();
 
-        for mut member in &mut members {
+        for member in &mut members {
             member.id = String::new();
         }
         let member1 = Member { id: String::new(),
@@ -237,7 +245,7 @@ mod tests {
         lock.set("aarch64-darwin");
         let mut members = peer_watcher_member_load_test(tmpdir.path(), &peer_lines).unwrap();
         lock.unset();
-        for mut member in &mut members {
+        for member in &mut members {
             member.id = String::new();
         }
         let member1 = Member { id: String::new(),

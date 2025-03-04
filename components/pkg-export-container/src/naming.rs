@@ -26,7 +26,7 @@ macro_rules! safe {
 ///
 /// This is a value struct which captures the naming and tagging intentions for an image.
 #[derive(Debug, Default)]
-pub struct Naming {
+pub(crate) struct Naming {
     /// An optional custom image name which would override a computed default value.
     custom_image_name_template:  Option<String>,
     /// Whether or not to tag the image with a latest value.
@@ -47,27 +47,28 @@ pub struct Naming {
     // single new type.
     /// A URL to a custom Docker registry to publish to. This will be used as part of every tag
     /// before pushing.
-    pub registry_url:  Option<String>, // TODO (CM): Option<Url>
+    pub(crate) registry_url:  Option<String>, // TODO (CM): Option<Url>
     /// The type of registry we're publishing to. Ex: Amazon, Docker, Google, Azure.
-    pub registry_type: RegistryType,
+    pub(crate) registry_type: RegistryType,
 }
 
-impl From<&ArgMatches<'_>> for Naming {
+impl From<&ArgMatches> for Naming {
     fn from(matches: &ArgMatches) -> Self {
-        let registry_type =
-            clap::value_t!(matches.value_of("REGISTRY_TYPE"), RegistryType).unwrap_or_default();
+        let registry_type = *matches.get_one::<RegistryType>("REGISTRY_TYPE").unwrap();
 
         // TODO (CM): If registry_type is Docker, we must set this to
         // dockerhub. Otherwise, it MUST be present, because of how
         // clap is set up.
-        let registry_url = matches.value_of("REGISTRY_URL").map(ToString::to_string);
+        let registry_url = matches.get_one::<String>("REGISTRY_URL")
+                                  .map(ToString::to_string);
 
-        Naming { custom_image_name_template: matches.value_of("IMAGE_NAME")
+        Naming { custom_image_name_template: matches.get_one::<String>("IMAGE_NAME")
                                                     .map(ToString::to_string),
-                 include_latest_tag: !matches.is_present("NO_TAG_LATEST"),
-                 include_version_tag: !matches.is_present("NO_TAG_VERSION"),
-                 include_version_release_tag: !matches.is_present("NO_TAG_VERSION_RELEASE"),
-                 custom_tag_template: matches.value_of("TAG_CUSTOM").map(ToString::to_string),
+                 include_latest_tag: !matches.get_flag("TAG_LATEST"),
+                 include_version_tag: !matches.get_flag("TAG_VERSION"),
+                 include_version_release_tag: !matches.get_flag("TAG_VERSION_RELEASE"),
+                 custom_tag_template: matches.get_one::<String>("TAG_CUSTOM")
+                                             .map(ToString::to_string),
                  registry_url,
                  registry_type }
     }
@@ -97,17 +98,17 @@ impl From<&ArgMatches<'_>> for Naming {
 ///
 /// With future refactorings, this hopefully goes away, but for now
 /// we'll err on the side of explicitness.
-pub struct ImageIdentifiers {
+pub(crate) struct ImageIdentifiers {
     /// The bare name of an image, like "core/redis"
-    pub name:                 String,
+    pub(crate) name:                 String,
     /// A possibly empty `Vec` of bare tags, like "latest"
-    pub tags:                 Vec<String>,
+    pub(crate) tags:                 Vec<String>,
     /// A `Vec` containing the bare name concatenated with each bare
     /// tag (or just the bare name, if no tags), like
     /// "core/redis:latest".
     ///
     /// Guaranteed to have at least one member.
-    pub expanded_identifiers: Vec<String>,
+    pub(crate) expanded_identifiers: Vec<String>,
 }
 
 impl Naming {
@@ -118,10 +119,10 @@ impl Naming {
     /// Return the image name, along with a (possibly empty) vector of
     /// additional bare tags, and a vector containing "name:tag"
     /// identifiers (or just "name" if there are no tags).
-    pub fn image_identifiers(&self,
-                             ident: &FullyQualifiedPackageIdent,
-                             channel: &ChannelIdent)
-                             -> Result<ImageIdentifiers> {
+    pub(crate) fn image_identifiers(&self,
+                                    ident: &FullyQualifiedPackageIdent,
+                                    channel: &ChannelIdent)
+                                    -> Result<ImageIdentifiers> {
         let context = Self::rendering_context(ident, channel);
 
         let name = self.image_name(&context)?;
@@ -217,7 +218,7 @@ impl Naming {
     fn render<S>(template: &str, context: &S) -> Result<String>
         where S: Serialize
     {
-        Handlebars::new().template_render(template, context)
+        Handlebars::new().render_template(template, context)
                          .map_err(|err| anyhow!("{}", err))
                          .map(|s| s.to_lowercase())
     }

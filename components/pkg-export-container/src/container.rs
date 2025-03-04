@@ -36,7 +36,7 @@ const BUILD_REPORT_FILE_NAME: &str = "last_container_export.env";
 const OLD_BUILD_REPORT_FILE_NAME: &str = "last_docker_export.env";
 
 /// A built container image which exists locally.
-pub struct ContainerImage {
+pub(crate) struct ContainerImage {
     /// The image ID for this image.
     id:      String,
     /// The name of this image.
@@ -52,13 +52,13 @@ pub struct ContainerImage {
 
 impl ContainerImage {
     // TODO (CM): temporary; we shouldn't use this at all
-    pub fn workdir(&self) -> &Path { self.workdir.as_path() }
+    pub(crate) fn workdir(&self) -> &Path { self.workdir.as_path() }
 
-    pub fn expanded_identifiers(&self) -> &[String] { &self.expanded_identifiers }
+    pub(crate) fn expanded_identifiers(&self) -> &[String] { &self.expanded_identifiers }
 
-    pub fn name(&self) -> String { self.name.clone() }
+    pub(crate) fn name(&self) -> String { self.name.clone() }
 
-    pub fn tags(&self) -> Vec<String> { self.tags.clone() }
+    pub(crate) fn tags(&self) -> Vec<String> { self.tags.clone() }
 
     /// Create a build report with image metadata in the given path.
     ///
@@ -66,7 +66,7 @@ impl ContainerImage {
     ///
     /// * If the destination directory cannot be created
     /// * If the report file cannot be written
-    pub fn create_report<P: AsRef<Path>>(&self, ui: &mut UI, dst: P) -> Result<()> {
+    pub(crate) fn create_report<P: AsRef<Path>>(&self, ui: &mut UI, dst: P) -> Result<()> {
         let report = Self::report_path(&dst);
         ui.status(Status::Creating,
                   format!("build report {}", report.display()))?;
@@ -82,7 +82,7 @@ impl ContainerImage {
             "name_tags": name_tags.join(","),
         });
         util::write_file(&report,
-                         &Handlebars::new().template_render(BUILD_REPORT, &json)
+                         &Handlebars::new().render_template(BUILD_REPORT, &json)
                                            .map_err(|err| anyhow!("{}", err))?)?;
 
         Self::create_old_report(ui, dst);
@@ -131,7 +131,7 @@ impl ContainerImage {
 /// A build context for building a container
 ///
 /// (i.e. the `.` in `docker build -t foo .`)
-pub struct BuildContext(BuildRoot);
+pub(crate) struct BuildContext(BuildRoot);
 
 impl BuildContext {
     /// Builds a completed build root from a `BuildRoot`, performing any final tasks on the
@@ -141,7 +141,7 @@ impl BuildContext {
     ///
     /// * If any remaining tasks cannot be performed in the build root
     #[cfg(unix)]
-    pub fn from_build_root(build_root: BuildRoot, ui: &mut UI) -> Result<Self> {
+    pub(crate) fn from_build_root(build_root: BuildRoot, ui: &mut UI) -> Result<Self> {
         let context = BuildContext(build_root);
         context.add_users_and_groups(ui)?;
         context.create_entrypoint(ui)?;
@@ -151,7 +151,7 @@ impl BuildContext {
     }
 
     #[cfg(windows)]
-    pub fn from_build_root(build_root: BuildRoot, ui: &mut UI) -> Result<Self> {
+    pub(crate) fn from_build_root(build_root: BuildRoot, ui: &mut UI) -> Result<Self> {
         let context = BuildContext(build_root);
         context.create_dockerfile(ui)?;
 
@@ -168,7 +168,7 @@ impl BuildContext {
     /// # Errors
     ///
     /// * If the temporary work directory cannot be removed
-    pub fn destroy(self, ui: &mut UI) -> Result<()> { self.0.destroy(ui) }
+    pub(crate) fn destroy(self, ui: &mut UI) -> Result<()> { self.0.destroy(ui) }
 
     #[cfg(unix)]
     fn add_users_and_groups(&self, ui: &mut UI) -> Result<()> {
@@ -219,7 +219,7 @@ impl BuildContext {
         });
         let init = ctx.rootfs().join("init.sh");
         util::write_file(&init,
-                         &Handlebars::new().template_render(INIT_SH, &json)
+                         &Handlebars::new().render_template(INIT_SH, &json)
                                            .map_err(|err| anyhow!("{}", err))?)?;
         posix_perm::set_permissions(init.to_string_lossy().as_ref(), 0o0755)?;
         Ok(())
@@ -247,18 +247,18 @@ impl BuildContext {
             "packages": self.0.graph().reverse_topological_sort().iter().map(ToString::to_string).collect::<Vec<_>>(),
         });
         util::write_file(self.0.workdir().join("Dockerfile"),
-                         &Handlebars::new().template_render(DOCKERFILE, &json)
+                         &Handlebars::new().render_template(DOCKERFILE, &json)
                                            .map_err(|err| anyhow!("{}", err))?)?;
         Ok(())
     }
 
     /// Build the image locally using the provided naming policy.
-    pub fn export(&self,
-                  ui: &mut UI,
-                  naming: &Naming,
-                  memory: Option<&str>,
-                  engine: &dyn Engine)
-                  -> Result<ContainerImage> {
+    pub(crate) fn export(&self,
+                         ui: &mut UI,
+                         naming: &Naming,
+                         memory: Option<&str>,
+                         engine: &dyn Engine)
+                         -> Result<ContainerImage> {
         ui.status(Status::Creating, "image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
         let channel = self.0.ctx().channel();

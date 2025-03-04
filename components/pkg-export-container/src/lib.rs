@@ -1,11 +1,11 @@
-use crate::naming::Naming;
-pub use crate::{build::BuildSpec,
-                cli::cli,
-                container::{BuildContext,
-                            ContainerImage},
-                engine::{fail_if_buildah_and_multilayer,
-                         Engine},
-                error::Error};
+use crate::{build::BuildSpec,
+            cli::cli,
+            container::{BuildContext,
+                        ContainerImage},
+            engine::Engine,
+            error::Error,
+            naming::Naming};
+
 use anyhow::Result;
 use biome_common::ui::{Status,
                          UIWriter,
@@ -24,7 +24,13 @@ use std::{convert::TryFrom,
           path::Path,
           result,
           str::FromStr};
+
+#[cfg(not(windows))]
+use crate::engine::fail_if_buildah_and_multilayer;
+
+#[cfg(unix)]
 mod accounts;
+
 mod build;
 mod cli;
 mod container;
@@ -38,23 +44,35 @@ mod rootfs;
 mod util;
 
 /// The version of this library and program when built.
-pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 /// The Biome Package Identifier string for a Busybox package.
 const BUSYBOX_IDENT: &str = "core/busybox-static";
+
 /// The Biome Package Identifier string for SSL certificate authorities (CA) certificates package.
 const CACERTS_IDENT: &str = "core/cacerts";
 
-#[derive(Clone, Copy, Debug, Default)]
-pub enum RegistryType {
+// Default values of parameters
+#[cfg(unix)]
+const DEFAULT_BASE_IMAGE: &str = "scratch";
+#[cfg(windows)]
+const DEFAULT_BASE_IMAGE: &str = "mcr.microsoft.com/windows/servercore";
+
+#[cfg(unix)]
+const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
+
+#[cfg(unix)]
+const DEFAULT_HAB_UID: u32 = 84;
+
+#[cfg(unix)]
+const DEFAULT_HAB_GID: u32 = 84;
+
+#[derive(Clone, Copy, Debug, Default, clap::ValueEnum)]
+pub(crate) enum RegistryType {
     Amazon,
     Azure,
     #[default]
     Docker,
-}
-
-impl RegistryType {
-    fn variants() -> &'static [&'static str] { &["amazon", "azure", "docker"] }
 }
 
 impl FromStr for RegistryType {
@@ -85,12 +103,15 @@ impl fmt::Display for RegistryType {
 ///
 /// This is a value struct which references username and password values.
 #[derive(Debug)]
-pub struct Credentials {
-    pub token: String,
+pub(crate) struct Credentials {
+    token: String,
 }
 
 impl Credentials {
-    pub async fn new(registry_type: RegistryType, username: &str, password: &str) -> Result<Self> {
+    pub(crate) async fn new(registry_type: RegistryType,
+                            username: &str,
+                            password: &str)
+                            -> Result<Self> {
         match registry_type {
             RegistryType::Amazon => {
                 // The username and password should be valid IAM credentials
@@ -133,23 +154,25 @@ impl Credentials {
 /// * Pushing the image to remote registry fails.
 /// * Parsing of credentials fails.
 /// * The image (tags) cannot be removed.
-pub async fn export_for_cli_matches(ui: &mut UI,
-                                    matches: &clap::ArgMatches<'_>)
-                                    -> Result<Option<ContainerImage>> {
+async fn export_for_cli_matches(ui: &mut UI,
+                                matches: &clap::ArgMatches)
+                                -> Result<Option<ContainerImage>> {
     os::ensure_proper_docker_platform()?;
 
+    #[cfg(not(windows))]
     fail_if_buildah_and_multilayer(matches)?;
 
     let spec = BuildSpec::try_from(matches)?;
     let naming = Naming::from(matches);
     let engine: Box<dyn Engine> = TryFrom::try_from(matches)?;
-    let memory = matches.value_of("MEMORY_LIMIT");
+    let memory = matches.get_one::<String>("MEMORY_LIMIT");
 
     ui.begin(format!("Building a container image with: {}",
                      spec.idents_or_archives.join(", ")))?;
 
     let build_context = BuildContext::from_build_root(spec.create(ui).await?, ui)?;
-    let container_image = build_context.export(ui, &naming, memory, engine.as_ref())?;
+    let container_image =
+        build_context.export(ui, &naming, memory.map(String::as_str), engine.as_ref())?;
 
     build_context.destroy(ui)?;
     ui.end(format!("Container image '{}' created with tags: {}",
@@ -158,11 +181,11 @@ pub async fn export_for_cli_matches(ui: &mut UI,
 
     container_image.create_report(ui, env::current_dir()?.join("results"))?;
 
-    if matches.is_present("PUSH_IMAGE") {
+    if matches.get_flag("PUSH_IMAGE") {
         let credentials = Credentials::new(naming.registry_type,
-                                           matches.value_of("REGISTRY_USERNAME")
+                                           matches.get_one::<String>("REGISTRY_USERNAME")
                                                   .expect("Username not specified"),
-                                           matches.value_of("REGISTRY_PASSWORD")
+                                           matches.get_one::<String>("REGISTRY_PASSWORD")
                                                   .expect("Password not specified")).await?;
         push_image(ui,
                    engine.as_ref(),
@@ -170,7 +193,7 @@ pub async fn export_for_cli_matches(ui: &mut UI,
                    &credentials,
                    naming.registry_url.as_deref())?;
     }
-    if matches.is_present("RM_IMAGE") {
+    if matches.get_flag("RM_IMAGE") {
         remove_image(ui, engine.as_ref(), &container_image)?;
         Ok(None)
     } else {
@@ -242,4 +265,12 @@ fn create_docker_config_file(credentials: &Credentials,
 
     util::write_file(config, &serde_json::to_string(&json).unwrap())?;
     Ok(())
+}
+
+/// cli_driver: Public API for the package
+pub async fn cli_driver(ui: &mut UI) -> Result<()> {
+    let cli = cli();
+    let m = cli.get_matches();
+    debug!("clap cli args: {:?}", m);
+    export_for_cli_matches(ui, &m).await.map(|_| ())
 }

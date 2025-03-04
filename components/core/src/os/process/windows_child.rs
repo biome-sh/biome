@@ -61,7 +61,6 @@ use winapi::{shared::{minwindef::{BOOL,
                                       PROCESS_INFORMATION,
                                       STARTUPINFOW},
                   synchapi,
-                  userenv,
                   winbase::{CREATE_NEW_PROCESS_GROUP,
                             CREATE_UNICODE_ENVIRONMENT,
                             FILE_FLAG_FIRST_PIPE_INSTANCE,
@@ -95,7 +94,7 @@ use winapi::{shared::{minwindef::{BOOL,
                           PHANDLE,
                           READ_CONTROL,
                           WRITE_DAC}}};
-
+use windows_sys::Win32::System::Environment;
 lazy_static::lazy_static! {
     static ref CREATE_PROCESS_LOCK: Mutex<()> = Mutex::new(());
 }
@@ -425,7 +424,7 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
         let mut reject_remote_clients_flag = PIPE_REJECT_REMOTE_CLIENTS;
         loop {
             tries += 1;
-            let key: u64 = rand::thread_rng().gen();
+            let key: u64 = rand::rng().random();
             name = format!(r"\\.\pipe\__rust_anonymous_pipe1__.{}.{}",
                            processthreadsapi::GetCurrentProcessId(),
                            key);
@@ -718,7 +717,7 @@ impl RawHandle {
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         let mut read = 0;
-        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         let res = cvt(unsafe {
             fileapi::ReadFile(self.0,
                               buf.as_mut_ptr() as LPVOID,
@@ -744,7 +743,7 @@ impl RawHandle {
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize> {
         let mut read = 0;
-        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         let res = unsafe {
             let mut overlapped: OVERLAPPED = mem::zeroed();
             overlapped.u.s_mut().Offset = offset as u32;
@@ -769,7 +768,7 @@ impl RawHandle {
                                   buf: &mut [u8],
                                   overlapped: *mut OVERLAPPED)
                                   -> io::Result<Option<usize>> {
-        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         let mut amt = 0;
         let res = cvt(fileapi::ReadFile(self.0,
                                         buf.as_ptr() as LPVOID,
@@ -834,7 +833,7 @@ impl RawHandle {
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         let mut amt = 0;
-        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         cvt(unsafe {
             fileapi::WriteFile(self.0,
                                buf.as_ptr() as LPVOID,
@@ -849,7 +848,7 @@ impl RawHandle {
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn write_at(&self, buf: &[u8], offset: u64) -> io::Result<usize> {
         let mut written = 0;
-        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         unsafe {
             let mut overlapped: OVERLAPPED = mem::zeroed();
             overlapped.u.s_mut().Offset = offset as u32;
@@ -993,8 +992,10 @@ fn create_user_environment(token: HANDLE,
                            -> io::Result<Vec<u16>> {
     unsafe {
         let mut new_env: Vec<u16> = Vec::new();
-        let mut block: LPVOID = ptr::null_mut();
-        cvt(userenv::CreateEnvironmentBlock(&mut block, token, FALSE))?;
+        let mut block = ptr::null_mut();
+        cvt(Environment::CreateEnvironmentBlock(&mut block,
+                                                token as isize,
+                                                FALSE))?;
         let mut tail: u32 = MAXDWORD;
         let mut offset = 0;
         let mut part = ParsePart::Key;
@@ -1037,7 +1038,7 @@ fn create_user_environment(token: HANDLE,
                 }
             }
         }
-        cvt(userenv::DestroyEnvironmentBlock(block))?;
+        cvt(Environment::DestroyEnvironmentBlock(block))?;
 
         let len = new_env.len();
         new_env.truncate(len - 1);

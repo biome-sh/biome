@@ -13,12 +13,17 @@ use thiserror::Error;
 pub(crate) fn ensure_proper_docker_platform() -> Result<(), Error> {
     match DockerOS::current() {
         DockerOS::Windows => Ok(()),
-        other => Err(Error::DockerNotInWindowsMode(other)),
+        other => {
+            if let DockerOS::Unknown(ref s) = other {
+                debug!("Unknown Docker OS: {}", s);
+            }
+            Err(Error::DockerNotInWindowsMode(other))
+        }
     }
 }
 
 #[derive(Debug, Error)]
-pub enum Error {
+pub(crate) enum Error {
     #[error("Only Windows container export is supported; please set your Docker daemon to \
              Windows container mode.\n\nThe Docker daemon is currently set for: {0:?}")]
     DockerNotInWindowsMode(DockerOS),
@@ -27,7 +32,7 @@ pub enum Error {
 /// Describes the OS of the containers the Docker daemon is currently
 /// configured to manage.
 #[derive(Clone, Debug)]
-pub enum DockerOS {
+pub(crate) enum DockerOS {
     /// Docker daemon is managing Linux containers
     Linux,
     /// Docker daemon is managing Windows containers
@@ -45,7 +50,7 @@ impl DockerOS {
     /// it is currently running in.
     fn current() -> DockerOS {
         let mut cmd = Command::new(docker::command_path().expect("Unable to locate docker"));
-        cmd.arg("version").arg("--format='{{.Server.Os}}'");
+        cmd.arg("version").arg("--format={{.Server.Os}}");
         debug!("Running command: {:?}", cmd);
         let result = cmd.output().expect("Docker command failed to spawn");
         let result = String::from_utf8_lossy(&result.stdout);

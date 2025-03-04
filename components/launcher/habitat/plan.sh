@@ -4,7 +4,7 @@ pkg_origin=biome
 pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(core/glibc
-          core/gcc-libs)
+          core/gcc-base)
 pkg_build_deps=(core/coreutils
                 core/rust/"$(tail -n 1 "$SRC_PATH/../../rust-toolchain"  | cut -d'"' -f 2)"
                 core/gcc
@@ -13,10 +13,11 @@ pkg_build_deps=(core/coreutils
 pkg_bin_dirs=(bin)
 bin="bio-launch"
 
-# Temporary hardcoding version because of issue:
-# https://github.com/habitat-sh/habitat/issues/7847
+# Use the number of commits from the start of this repository
+# to the current HEAD as the version for our pkg_version
 pkg_version() {
-  echo 11122
+  git config --global --add safe.directory /src
+  git rev-list "$(git rev-parse HEAD)" --count
 }
 
 do_before() {
@@ -29,13 +30,13 @@ do_prepare() {
   # Can be either `--release` or `--debug` to determine cargo build strategy
   build_line "Building artifacts with \`${cargo_build_mode#--}' mode"
 
-  export rustc_target="x86_64-unknown-linux-gnu"
+  export rustc_target="${pkg_target%%-*}-unknown-linux-gnu"
   build_line "Setting rustc_target=$rustc_target"
 
   # Used by Cargo to use a pristine, isolated directory for all compilation
   export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"
   build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
-
+  
   export PLAN_VERSION="${pkg_version}"
   build_line "Setting PLAN_VERSION=$PLAN_VERSION"
 

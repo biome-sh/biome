@@ -35,7 +35,7 @@ packages for `stable` below in `HAB_BLDR_CHANNEL` if that is required.
 
 ```
 env HAB_BLDR_CHANNEL=stable HAB_ORIGIN=core \
-bio studio run "for component in bio plan-build backline studio launcher sup pkg-export-tar pkg-export-docker pkg-mesosize pkg-cfize; do build components/\$component; done"
+bio studio run "for component in bio plan-build backline studio launcher sup pkg-export-tar pkg-export-docker; do build components/\$component; done"
 ######################################################################
 # Before uploading, ensure only your intended hart files are present #
 ######################################################################

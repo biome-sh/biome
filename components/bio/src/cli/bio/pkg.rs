@@ -63,7 +63,7 @@ pub struct PkgPath {
 
 /// Displays the binds for a service
 #[derive(ConfigOpt, StructOpt)]
-#[structopt(name = "binds", no_version)]
+#[structopt(name = "binds", no_version, settings = &[AppSettings::ArgRequiredElseHelp])]
 pub struct PkgBinds {
     #[structopt(flatten)]
     pkg_ident: PkgIdent,
@@ -348,6 +348,13 @@ pub struct PkgBuild {
     /// Uses a Dockerized Studio for the build
     #[structopt(name = "DOCKER", short = "D", long = "docker")]
     docker:          bool,
+    /// Channel used to retrieve plan dependencies for Chef supported origins
+    #[structopt(name = "REFRESH_CHANNEL",
+                short = "f",
+                long = "refresh-channel",
+                env = "HAB_REFRESH_CHANNEL",
+                default_value = "stable")]
+    refresh_channel: Option<String>,
 }
 
 /// Bulk Uploads Biome Artifacts to a Depot from a local directory
@@ -523,8 +530,7 @@ pub struct PkgInstall {
     offline:               bool,
     /// Do not use locally-installed packages when a corresponding package cannot be installed
     /// from Builder
-    #[structopt(long = "ignore-local",
-                hidden = !FEATURE_FLAGS.contains(FeatureFlag::IGNORE_LOCAL))]
+    #[structopt(long = "ignore-local")]
     ignore_local:          bool,
 }
 
@@ -535,18 +541,12 @@ pub struct PkgInstall {
 #[derive(ConfigOpt, StructOpt)]
 #[structopt(name = "export", aliases = &["e", "ex", "exp", "expo", "expor"], no_version)]
 pub enum ExportCommand {
-    #[cfg(target_os = "linux")]
-    /// Cloud Foundry exporter
-    Cf(ExternalCommandArgs),
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     /// Container exporter
     Container(ExternalCommandArgs),
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     #[structopt(settings = &[AppSettings::Hidden])]
     Docker(ExternalCommandArgs),
-    /// Mesos exporter
-    #[cfg(target_os = "linux")]
-    Mesos(ExternalCommandArgs),
     /// Tar exporter
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     Tar(ExternalCommandArgs),

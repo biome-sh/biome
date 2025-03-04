@@ -1,5 +1,5 @@
 # Keep plans in a correct build order
-PLANS := components/bio components/launcher components/sup components/plan-build components/backline components/studio components/pkg-export-container components/pkg-cfize components/pkg-export-tar components/pkg-mesosize
+PLANS := components/bio components/launcher components/sup components/plan-build components/backline components/studio components/pkg-export-container components/pkg-export-tar
 
 .DEFAULT_GOAL := all
 all: tomlcheck shellcheck rendercheck build

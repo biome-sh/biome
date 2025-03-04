@@ -57,7 +57,8 @@ use log::debug;
 use reqwest::StatusCode;
 use serde::{Deserialize,
             Serialize};
-use std::{convert::TryFrom,
+use std::{collections::VecDeque,
+          convert::TryFrom,
           fs::{self,
                File},
           io::{self,
@@ -131,7 +132,7 @@ impl FromStr for InstallSource {
         if path.is_file() {
             // Is it really an archive? If it can produce an
             // identifer, we'll say "yes".
-            let mut archive = PackageArchive::new(path)?;
+            let archive = PackageArchive::new(path)?;
             let target = archive.target()?;
             match archive.ident() {
                 Ok(ident) => {
@@ -250,10 +251,6 @@ pub enum InstallHookMode {
 /// package to satisfy a dependency, or if we should ignore it, thus
 /// giving the user the opportunity to try installing from another
 /// channel.
-///
-/// Usage of this is currently hidden behind the IGNORE_LOCAL feature
-/// flag, as there is still some question as to the best way to solve
-/// this.
 #[derive(Debug, Eq, PartialEq)]
 pub enum LocalPackageUsage {
     /// Use locally-installed packages if they satisfy the desired
@@ -454,23 +451,8 @@ impl<'a> InstallTask<'a> {
         let target_ident = self.determine_latest_from_ident(ui, (ident, target), token)
                                .await?;
 
-        match self.installed_package(&target_ident) {
-            Some(package_install) => {
-                // The installed package was found on disk
-                ui.status(Status::Using, &target_ident)?;
-                if self.install_hook_mode != InstallHookMode::Ignore {
-                    check_install_hooks(ui, &package_install, self.fs_root_path).await?;
-                }
-                ui.end(format!("Install of {} complete with {} new packages installed.",
-                               &target_ident, 0))?;
-                Ok(package_install)
-            }
-            None => {
-                // No installed package was found
-                self.install_package(ui, (&target_ident, target), token)
-                    .await
-            }
-        }
+        self.install_package(ui, (&target_ident, target), token)
+            .await
     }
 
     /// Given an archive on disk, ensure that it is properly installed
@@ -484,24 +466,14 @@ impl<'a> InstallTask<'a> {
     {
         ui.begin(format!("Installing {}", local_archive.path.display()))?;
         let target_ident = FullyQualifiedPackageIdent::try_from(&local_archive.ident)?;
-        match self.installed_package(&target_ident) {
-            Some(package_install) => {
-                // The installed package was found on disk
-                ui.status(Status::Using, &target_ident)?;
-                if self.install_hook_mode != InstallHookMode::Ignore {
-                    check_install_hooks(ui, &package_install, self.fs_root_path).await?;
-                }
-                ui.end(format!("Install of {} complete with {} new packages installed.",
-                               &target_ident, 0))?;
-                Ok(package_install)
-            }
-            None => {
-                // No installed package was found
-                self.store_artifact_in_cache(&target_ident, &local_archive.path)?;
-                self.install_package(ui, (&target_ident, local_archive.target), token)
-                    .await
-            }
+
+        // If there is no installed package, copy the artifact to the cache before installing
+        if self.installed_package(&target_ident).is_none() {
+            self.store_artifact_in_cache(&target_ident, &local_archive.path)?;
         }
+
+        self.install_package(ui, (&target_ident, local_archive.target), token)
+            .await
     }
 
     async fn determine_latest_from_ident<T>(&self,
@@ -555,7 +527,7 @@ impl<'a> InstallTask<'a> {
 
             match (latest_local, latest_remote) {
                 (Ok(local), Some(remote)) => {
-                    if local > remote {
+                    if local > remote && !self.ignore_locally_installed_packages() {
                         // Return the latest identifier reported by
                         // the Builder API *unless* there is a newer
                         // version found installed locally.
@@ -570,8 +542,6 @@ impl<'a> InstallTask<'a> {
                 }
                 (Ok(local), None) => {
                     if self.ignore_locally_installed_packages() {
-                        // This is the behavior that is currently
-                        // governed by the IGNORE_LOCAL feature-flag
                         self.recommend_channels(ui, (&ident, target), token).await?;
                         ui.warn(format!("Locally-installed package '{}' would satisfy '{}', \
                                          but we are ignoring that as directed",
@@ -608,13 +578,34 @@ impl<'a> InstallTask<'a> {
                                 -> Result<PackageInstall>
         where T: UIWriter
     {
-        // TODO (CM): rename artifact to archive
-        let mut artifact = self.get_cached_artifact(ui, (ident, target), token).await?;
+        let mut artifacts_to_install;
 
-        // Ensure that all transitive dependencies, as well as the
-        // original package itself, are cached locally.
-        let dependencies = artifact.tdeps()?;
-        let mut artifacts_to_install = Vec::with_capacity(dependencies.len() + 1);
+        let dependencies = match self.installed_package(ident) {
+            Some(package_install) => {
+                // The installed package was found on disk
+                ui.status(Status::Using, ident)?;
+
+                // Get the transitive deps of the package
+                let tdeps = package_install.tdeps()?;
+                artifacts_to_install = VecDeque::with_capacity(tdeps.len());
+                tdeps
+            }
+            None => {
+                // Get the artifact if it's not already installed
+                let artifact = self.get_cached_artifact(ui, (ident, target), token).await?;
+
+                // Get the transitive deps of the artifact
+                let tdeps = artifact.tdeps()?;
+                artifacts_to_install = VecDeque::with_capacity(tdeps.len() + 1);
+
+                // The package we're actually trying to install goes last; we
+                // want to ensure that its dependencies get installed before
+                // it does.
+                artifacts_to_install.push_back(artifact);
+                tdeps
+            }
+        };
+
         // TODO fn: I'd prefer this list to be a `Vec<FullyQualifiedPackageIdent>` but that
         // requires a conversion that could fail (i.e. returns a `Result<...>`). Should be
         // possible though.
@@ -624,17 +615,13 @@ impl<'a> InstallTask<'a> {
             {
                 ui.status(Status::Using, dependency)?;
             } else {
-                artifacts_to_install.push(self.get_cached_artifact(
+                artifacts_to_install.push_front(self.get_cached_artifact(
                     ui,
                     (&FullyQualifiedPackageIdent::try_from(dependency)?, target),
                     token,
                 ).await?);
             }
         }
-        // The package we're actually trying to install goes last; we
-        // want to ensure that its dependencies get installed before
-        // it does.
-        artifacts_to_install.push(artifact);
 
         // Ensure all uninstalled artifacts get installed
         for artifact in artifacts_to_install.iter_mut() {
@@ -777,7 +764,7 @@ impl<'a> InstallTask<'a> {
         for file in glob::glob(&glob_path).expect("glob pattern should compile")
                                           .filter_map(StdResult::ok)
         {
-            let mut artifact = PackageArchive::new(&file)?;
+            let artifact = PackageArchive::new(&file)?;
             let artifact_ident = artifact.ident().ok();
             if artifact_ident.is_none() {
                 continue;

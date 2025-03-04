@@ -439,12 +439,14 @@ fn test_bio_svc_load_flag_ordering() {
     assert!(!load.force);
     assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
 
-    let bio = Bio::try_from_iter_with_configopt(&["bio", "svc", "load", "--force", "core/redis"]).unwrap();
+    let bio = Bio::try_from_iter_with_configopt(&["bio", "svc", "load", "--force", "core/redis"])
+        .unwrap();
     let load = extract_bio_svc_load(bio);
     assert!(load.force);
     assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
 
-    let bio = Bio::try_from_iter_with_configopt(&["bio", "svc", "load", "core/redis", "--force"]).unwrap();
+    let bio = Bio::try_from_iter_with_configopt(&["bio", "svc", "load", "core/redis", "--force"])
+        .unwrap();
     let load = extract_bio_svc_load(bio);
     assert!(load.force);
     assert_eq!(load.pkg_ident.pkg_ident(), pkg_ident);
@@ -452,7 +454,8 @@ fn test_bio_svc_load_flag_ordering() {
 
 #[test]
 fn test_bio_svc_update_empty_binds() {
-    let bio = Bio::try_from_iter_with_configopt(&["bio", "svc", "update", "core/redis", "--bind"]).unwrap();
+    let bio = Bio::try_from_iter_with_configopt(&["bio", "svc", "update", "core/redis", "--bind"])
+        .unwrap();
     let update = extract_bio_svc_update(bio);
     assert_eq!(update.bind, Some(vec![]));
 

@@ -24,6 +24,7 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     APIClient(api_client::Error),
     ArgumentError(String),
+    BuilderBuildFunctionsRemoved,
     ButterflyError(String),
     CacheSslCertError(String),
     CannotParseBinlinkBinaryName(PathBuf),
@@ -33,7 +34,10 @@ pub enum Error {
     CannotRemovePackage(hcore::package::PackageIdent, usize),
     CommandNotFoundInPkg((String, String)),
     CliConfig(cli_config::Error),
+
+    #[cfg(feature = "v2")]
     ConfigOpt(configopt::Error),
+
     CryptoCLI(String),
     CtlClient(SrvClientError),
     CtrlcError(ctrlc::Error),
@@ -49,7 +53,7 @@ pub enum Error {
     BiomeCommon(common::Error),
     BiomeCore(hcore::Error),
     // Boxed due to clippy::large_enum_variant
-    HandlebarsRenderError(Box<handlebars::TemplateRenderError>),
+    HandlebarsRenderError(Box<handlebars::RenderError>),
     InvalidDnsName(String),
     IO(io::Error),
     JobGroupPromoteOrDemote(api_client::Error, bool /* promote */),
@@ -83,6 +87,11 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::APIClient(ref e) => e.to_string(),
             Error::ArgumentError(ref e) => e.to_string(),
+            Error::BuilderBuildFunctionsRemoved => {
+                "Public Builder Build Functions are no longer supported.\nPlease reach out to your \
+                 account team if you were using this feature."
+                                                              .to_string()
+            }
             Error::ButterflyError(ref e) => e.to_string(),
             Error::CacheSslCertError(ref e) => format!("Cannot cache SSL_CERT_FILE: {}", e),
             Error::CannotParseBinlinkBinaryName(ref p) => {
@@ -106,7 +115,11 @@ impl fmt::Display for Error {
                         c, p)
             }
             Error::CliConfig(ref err) => format!("{}", err),
+
+            // TODO: Remove after `v2` is removed
+            #[cfg(feature = "v2")]
             Error::ConfigOpt(ref err) => format!("{}", err),
+
             Error::CryptoCLI(ref e) => e.to_string(),
             Error::CtlClient(ref e) => e.to_string(),
             Error::CtrlcError(ref err) => format!("{}", err),
@@ -228,6 +241,7 @@ impl From<cli_config::Error> for Error {
     fn from(err: cli_config::Error) -> Self { Error::CliConfig(err) }
 }
 
+#[cfg(feature = "v2")]
 impl From<configopt::Error> for Error {
     fn from(err: configopt::Error) -> Self { Error::ConfigOpt(err) }
 }
@@ -244,10 +258,8 @@ impl From<HashMap<PackageIdent, Error>> for Error {
     fn from(errors: HashMap<PackageIdent, Error>) -> Self { Error::ErrorPerIdent(errors) }
 }
 
-impl From<handlebars::TemplateRenderError> for Error {
-    fn from(err: handlebars::TemplateRenderError) -> Error {
-        Error::HandlebarsRenderError(Box::new(err))
-    }
+impl From<handlebars::RenderError> for Error {
+    fn from(err: handlebars::RenderError) -> Error { Error::HandlebarsRenderError(Box::new(err)) }
 }
 
 impl From<io::Error> for Error {

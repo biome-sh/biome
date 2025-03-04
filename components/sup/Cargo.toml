@@ -16,10 +16,17 @@ doc = false
 
 [dependencies]
 bytes = "*"
-actix-web = { version = "*", default-features = false, features = [ "rustls" ] }
+actix-web = { version = "*", default-features = false, features = [
+  "rustls-0_23",
+] }
+actix-http = { version = "3", features = [ "rustls-0_23" ]}
 actix-rt = "*"
 byteorder = "*"
-clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [ "suggestions", "color", "unstable" ] }
+clap = { git = "https://github.com/habitat-sh/clap.git", branch = "v2-master", features = [
+  "suggestions",
+  "color",
+  "unstable",
+] }
 configopt = { git = "https://github.com/habitat-sh/configopt.git" }
 cpu-time = "*"
 derivative = "*"
@@ -47,13 +54,15 @@ prometheus = "*"
 prost = { version = "*", features = ["prost-derive"] }
 prost-types = "*"
 rand = "*"
-rants = { git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
+rants = { version = "0.6.1", git = "https://github.com/habitat-sh/rants.git", features = [
+  "native-tls",
+] }
 regex = "*"
 rustls = "*"
 rustls-pemfile = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
-serde_json = { version = "*", features = [ "preserve_order" ] }
+serde_json = { version = "*", features = ["preserve_order"] }
 serde_yaml = "*"
 serde-transcode = "*"
 state = "*"
@@ -62,7 +71,7 @@ tempfile = "*"
 termcolor = "*"
 thiserror = "*"
 anyhow = { version = "*", features = ["backtrace"] }
-toml = { version = "*", features = ["preserve_order"]}
+toml = { version = "*", features = ["preserve_order"] }
 tokio = { version = "*", features = ["full"] }
 tokio-rustls = "*"
 tokio-util = { version = "0.7", features = ["full"] }
@@ -76,7 +85,7 @@ caps = "*"
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 biome-launcher-protocol = { path = "../launcher-protocol" }
-mio = { version = "^0.8", features = ["os-ext"] }
+mio = { version = "^1.0", features = ["os-ext"] }
 winapi = { version = "^0.3", features = ["namedpipeapi", "tlhelp32"] }
 
 [dev-dependencies]
@@ -85,7 +94,7 @@ hyper = "*"
 reqwest = { version = "*", features = ["json"] }
 
 [target.'cfg(not(windows))'.dev-dependencies]
-nix = "*"
+nix = { version = "*", features = ["signal", "user"] }
 
 [build-dependencies]
 prost-build = "*"

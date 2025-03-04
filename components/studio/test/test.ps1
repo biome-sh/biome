@@ -11,8 +11,8 @@ $env:HAB_LICENSE = "accept-no-persist"
 
 bio pkg install core/powershell
 bio pkg install core/7zip
-bio pkg install biome/bio
-bio pkg install biome/bio-plan-build-ps1
+bio pkg install biome/bio --channel stable
+bio pkg install biome/bio-plan-build-ps1 --channel stable
 
 mkdir "bin/powershell" | Out-Null
 mkdir "bin/bio" | Out-Null

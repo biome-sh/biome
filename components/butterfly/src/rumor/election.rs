@@ -23,7 +23,8 @@ use crate::{error::{Error,
                     Rumor,
                     RumorPayload,
                     RumorType}};
-use std::{fmt,
+use std::{convert::TryFrom,
+          fmt,
           ops::{Deref,
                 DerefMut}};
 
@@ -140,7 +141,7 @@ impl FromProto<ProtoRumor> for Election {
                       term:          payload.term.unwrap_or(0),
                       suitability:   payload.suitability.unwrap_or(0),
                       status:        payload.status
-                                            .and_then(ElectionStatus::from_i32)
+                                            .and_then(|es| ElectionStatus::try_from(es).ok())
                                             .unwrap_or(ElectionStatus::Running),
                       votes:         payload.votes, })
     }
@@ -170,8 +171,16 @@ impl Rumor for Election {
             *self = other;
             true
         } else if other.term == self.term && self.status == ElectionStatus::Finished {
-            debug!("stored rumor is finished and received rumor is for same term; nothing to do");
-            false
+            if other.status == ElectionStatus::Finished {
+                debug!("stored rumor is finished and received rumor is for same term; nothing to \
+                        do");
+                false
+            } else {
+                debug!("stored rumor is finished and received rumor is for same term; Received \
+                        rumor is not 'Finished'. Taking their votes and sharing ourselves.");
+                self.steal_votes(&mut other);
+                true
+            }
         } else if self.term > other.term {
             debug!("stored rumor represents a newer term than received; keep sharing it");
             true

@@ -253,6 +253,15 @@ impl PackageInstall {
             env.insert(key, rooted_path);
         }
 
+        // Since some of the packages that depend upon OpenSSL set this environment in the
+        // `RUNTIME_ENVIRONMENT`. We need to work around that in case the user really *wants* to
+        // set `SSL_CERT_FILE` to  custom value (eg. in corporate firewall environments). Then our
+        // *default* set `SSL_CERT_FILE` (pointing to `core/cacerts`) package should be ignored.
+        let ssl_cert_file_from_env = std::env::var("SSL_CERT_FILE").ok();
+        if ssl_cert_file_from_env.is_some() {
+            env.remove("SSL_CERT_FILE");
+        }
+
         Ok(env)
     }
 
@@ -506,9 +515,7 @@ impl PackageInstall {
             paths.push(p);
         }
 
-        let ordered_pkgs = self.load_deps()?
-                               .into_iter()
-                               .chain(self.load_tdeps()?.into_iter());
+        let ordered_pkgs = self.load_deps()?.into_iter().chain(self.load_tdeps()?);
         for pkg in ordered_pkgs {
             for p in pkg.paths()? {
                 if seen.contains(&p) {
@@ -1091,7 +1098,7 @@ mod test {
             &pkg_install,
             MetaFile::Path,
             env::join_paths(
-                vec![
+                [
                     pkg_prefix_for(&pkg_install).join("bin"),
                     pkg_prefix_for(&other_pkg_install).join("bin"),
                     pkg_prefix_for(&other_pkg_install).join("sbin"),
@@ -1117,9 +1124,9 @@ mod test {
         // Create `RUNTIME_ENVIROMENT` metafile which has path entries from another package to
         // replicate certain older packages
         let path_val =
-            env::join_paths(vec![pkg_prefix_for(&pkg_install).join("bin"),
-                                 pkg_prefix_for(&other_pkg_install).join("bin"),
-                                 pkg_prefix_for(&other_pkg_install).join("sbin"),].iter()).unwrap();
+            env::join_paths([pkg_prefix_for(&pkg_install).join("bin"),
+                             pkg_prefix_for(&other_pkg_install).join("bin"),
+                             pkg_prefix_for(&other_pkg_install).join("sbin")].iter()).unwrap();
         write_metafile(&pkg_install,
                        MetaFile::RuntimeEnvironment,
                        &format!("PATH={}\n", path_val.to_string_lossy().as_ref()));
@@ -1284,10 +1291,10 @@ mod test {
         expected.insert(
                         "PSModulePath".to_string(),
                         env::join_paths(vec![
-            fs::fs_rooted_path(&pkg_prefix_for(&pkg_install).join("/should/not/be/ignored"), &fs_root_path),
+            fs::fs_rooted_path(&PathBuf::from("/should/not/be/ignored"), &fs_root_path),
             PathBuf::from("c:/my/dir"),
             fs::fs_rooted_path(
-                &pkg_prefix_for(&pkg_install).join("/should/really/not/be/ignored"),
+                &PathBuf::from("/should/really/not/be/ignored"),
                 &fs_root_path,
             ),
         ]).unwrap()

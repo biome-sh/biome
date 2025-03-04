@@ -732,8 +732,9 @@ mod tests {
                          types::{GossipListenAddr,
                                  HttpListenAddr,
                                  ListenCtlAddr}};
-    #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
-                      all(target_os = "windows", target_arch = "x86_64"))))]
+    #[cfg(not(any(all(target_os = "linux",
+                          any(target_arch = "x86_64", target_arch = "aarch64")),
+                      all(target_os = "windows", target_arch = "x86_64"),)))]
     use biome_core::package::metadata::MetaFile;
     use biome_core::{crypto::keys::KeyCache,
                        fs::CACHE_KEY_PATH,
@@ -797,8 +798,8 @@ mod tests {
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));
         // Platforms without standard package support require all packages to be native packages
-        // TODO: This is currently also needed on aarch64-linux until we publish official packages
-        #[cfg(not(any(all(target_os = "linux", any(target_arch = "x86_64")),
+        #[cfg(not(any(all(target_os = "linux",
+                          any(target_arch = "x86_64", target_arch = "aarch64")),
                       all(target_os = "windows", target_arch = "x86_64"))))]
         {
             tokio::fs::create_dir_all(pkg_install.installed_path()).await
@@ -897,13 +898,15 @@ mod tests {
                                                        .as_ref()
                                                        .map(convert::AsRef::as_ref)
                                                        .expect("no init hook??"));
+        let init_hook_content_normalized = init_hook_content.replace('\r', "");
         let expected_init_hook = "#!/bin/bash\n\necho \"The message is Hello\"\n";
         let expected_run_hook = "#!/bin/bash\n\necho \"Running a program\"\n";
-        assert_eq!(init_hook_content, expected_init_hook);
+        assert_eq!(init_hook_content_normalized, expected_init_hook);
 
         // Verify run hook
         let run_hook_content = file_content(hook_table.run.as_ref().expect("no run hook??"));
-        assert_eq!(run_hook_content, expected_run_hook);
+        let run_hook_content_normalized = run_hook_content.replace('\r', "");
+        assert_eq!(run_hook_content_normalized, expected_run_hook);
 
         // Recompiling again results in no changes
         assert!(!hook_table.compile(&service_group, &ctx).changed());
@@ -913,11 +916,13 @@ mod tests {
                                                        .as_ref()
                                                        .map(convert::AsRef::as_ref)
                                                        .expect("no init hook??"));
-        assert_eq!(init_hook_content, expected_init_hook);
+        let init_hook_content_normalized = init_hook_content.replace('\r', "");
+        assert_eq!(init_hook_content_normalized, expected_init_hook);
 
         // Re-Verify run hook
         let run_hook_content = file_content(hook_table.run.as_ref().expect("no run hook??"));
-        assert_eq!(run_hook_content, expected_run_hook);
+        let run_hook_content_normalized = run_hook_content.replace('\r', "");
+        assert_eq!(run_hook_content_normalized, expected_run_hook);
     }
 
     #[test]

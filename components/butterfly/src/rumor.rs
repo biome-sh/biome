@@ -27,6 +27,7 @@ use prost::Message as ProstMessage;
 use serde::Serialize;
 use std::{collections::{hash_map::Entry,
                         HashMap},
+          convert::TryFrom,
           default::Default,
           fmt,
           result,
@@ -253,6 +254,14 @@ mod storage {
         }
     }
 
+    impl<'a, E: ElectionRumor> IterableGuard<'a, RumorMap<E>> {
+        pub fn get_member_id(&self, service_group: &str) -> Option<&str> {
+            self.get(service_group)
+                .map(|sg| sg.get(E::const_id()).map(ElectionRumor::member_id))
+                .unwrap_or(None)
+        }
+    }
+
     /// Allows ergonomic use of the guard for accessing the guarded `RumorMap`:
     /// ```
     /// # use biome_butterfly::rumor::{Departure,
@@ -310,8 +319,7 @@ mod storage {
         /// * `RumorStore::list` (write)
         pub fn insert_rsw(&self, rumor: R) -> bool {
             let mut list = self.list.write();
-            let rumors = list.entry(String::from(rumor.key()))
-                             .or_insert_with(HashMap::new);
+            let rumors = list.entry(String::from(rumor.key())).or_default();
             let kind_ignored_count =
                 IGNORED_RUMOR_COUNT.with_label_values(&[&rumor.kind().to_string()]);
             // Result reveals if there was a change so we can increment the counter if needed.
@@ -451,8 +459,7 @@ mod storage {
 
         #[test]
         fn update_counter_overflows_safely() {
-            let rs = RumorStore::<()> { update_counter:
-                                            Arc::new(AtomicUsize::new(usize::max_value())),
+            let rs = RumorStore::<()> { update_counter: Arc::new(AtomicUsize::new(usize::MAX)),
                                         ..Default::default() };
             rs.increment_update_counter();
             assert_eq!(rs.get_update_counter(), 0);
@@ -477,7 +484,7 @@ pub struct RumorEnvelope {
 impl RumorEnvelope {
     pub fn decode(bytes: &[u8]) -> Result<Self> {
         let proto = ProtoRumor::decode(bytes)?;
-        let r#type = RumorType::from_i32(proto.r#type).ok_or(Error::ProtocolMismatch("type"))?;
+        let r#type = RumorType::try_from(proto.r#type).or(Err(Error::ProtocolMismatch("type")))?;
         let from_id = proto.from_id
                            .clone()
                            .ok_or(Error::ProtocolMismatch("from-id"))?;
