@@ -9,7 +9,7 @@ BIO_BINARY_URL=https://github.com/biome-sh/biome/releases/download/bio-1.6.42/bi
 BIO_BINARY_SHA256="2f18fc905330783f70f52d6c9a7f103b4b4c3122159e6c4e3e26507c842016c1"
 BIO_BINARY_PATH=/usr/local/bio-1.6.42/bin/bio
 
-if echo "$BIO_BINARY_SHA256 $BIO_BINARY_PATH" | sha256sum --check --status; then
+if echo "$BIO_BINARY_SHA256 $BIO_BINARY_PATH" | sha256sum -c; then
     echo "Biome bootstrap binary is already installed."
 else
     echo "Downloading Biome bootstrap binary."
