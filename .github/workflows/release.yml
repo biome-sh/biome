@@ -27,6 +27,7 @@ jobs:
         env:
           HAB_ORIGIN: biome
           HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
+          HAB_STUDIO_SECRET_HAB_BDLR_CHANNEL: LTS-2024
         run: |
           bio studio run 'make -f ci/Makefile setup'
 
@@ -34,6 +35,7 @@ jobs:
         env:
           HAB_ORIGIN: biome
           HAB_AUTH_TOKEN: ${{ secrets.HAB_AUTH_TOKEN }}
+          HAB_STUDIO_SECRET_HAB_BDLR_CHANNEL: LTS-2024
         run: |
           bio studio run 'make -f ci/Makefile all dist upload'
 
