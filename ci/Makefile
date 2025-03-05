@@ -57,13 +57,13 @@ promote-stable/%:
 #	@bio pkg install -fb ya/pre-commit
 
 /hab/bin/tomlcheck:
-	@bio pkg install -fb ya/tomlcheck
+	@bio pkg install -fb ya/tomlcheck -c stable
 
 /hab/bin/shellcheck:
 	@bio pkg install -fb core/shellcheck
 
 /hab/bin/bio-plan-%:
-	@bio pkg install -fb biome/bio-sdk
+	@bio pkg install -fb biome/bio-sdk -c stable
 
 # Studio guard: fail build if we are not in studio
 /.studio:
