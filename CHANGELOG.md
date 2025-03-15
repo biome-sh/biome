@@ -1,16 +1,27 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 2.0.60 -->
-## [2.0.60](https://github.com/habitat-sh/habitat/tree/2.0.60) (2025-02-25)
+<!-- latest_release 2.0.71 -->
+## [2.0.71](https://github.com/habitat-sh/habitat/tree/2.0.71) (2025-03-14)
 
 #### Merged Pull Requests
-- Bump log from 0.4.25 to 0.4.26 [#9607](https://github.com/habitat-sh/habitat/pull/9607) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump reqwest from 0.12.12 to 0.12.14 [#9621](https://github.com/habitat-sh/habitat/pull/9621) ([dependabot[bot]](https://github.com/dependabot[bot]))
 <!-- latest_release -->
 
 <!-- release_rollup since=1.6.1215-->
 ### Changes since 1.6.1215 release
 
 #### Merged Pull Requests
+- Bump reqwest from 0.12.12 to 0.12.14 [#9621](https://github.com/habitat-sh/habitat/pull/9621) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.71 -->
+- Fixed issues with indices in `eachAlive` helper [#9620](https://github.com/habitat-sh/habitat/pull/9620) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.70 -->
+- Bump pin-project from 1.1.9 to 1.1.10 [#9618](https://github.com/habitat-sh/habitat/pull/9618) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.69 -->
+- Bump bytes from 1.10.0 to 1.10.1 [#9619](https://github.com/habitat-sh/habitat/pull/9619) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.68 -->
+- Fixed dependencies for `hab-auto-build` [#9612](https://github.com/habitat-sh/habitat/pull/9612) ([agadgil-progress](https://github.com/agadgil-progress)) <!-- 2.0.67 -->
+- fixes cargo audit errors [#9615](https://github.com/habitat-sh/habitat/pull/9615) ([mwrock](https://github.com/mwrock)) <!-- 2.0.66 -->
+- Bump libc from 0.2.169 to 0.2.171 [#9616](https://github.com/habitat-sh/habitat/pull/9616) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.65 -->
+- Bump cc from 1.2.14 to 1.2.16 [#9610](https://github.com/habitat-sh/habitat/pull/9610) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.64 -->
+- Bump ring from 0.17.8 to 0.17.13 [#9613](https://github.com/habitat-sh/habitat/pull/9613) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.63 -->
+- remove leating tilde in container exporter dockerfile templates [#9614](https://github.com/habitat-sh/habitat/pull/9614) ([mwrock](https://github.com/mwrock)) <!-- 2.0.62 -->
+- downgrade native-tls [#9611](https://github.com/habitat-sh/habitat/pull/9611) ([mwrock](https://github.com/mwrock)) <!-- 2.0.61 -->
 - Bump log from 0.4.25 to 0.4.26 [#9607](https://github.com/habitat-sh/habitat/pull/9607) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.60 -->
 - Bump serde from 1.0.217 to 1.0.218 [#9604](https://github.com/habitat-sh/habitat/pull/9604) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.59 -->
 - Bump pem from 3.0.4 to 3.0.5 [#9605](https://github.com/habitat-sh/habitat/pull/9605) ([dependabot[bot]](https://github.com/dependabot[bot])) <!-- 2.0.58 -->
