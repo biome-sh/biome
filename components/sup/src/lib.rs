@@ -4,10 +4,10 @@
 //! Biome contains two main components:
 //!
 //! * `bio-plan-build`, takes a plan ('plan.sh'), a description of how to build a piece of software,
-//! written in [bash](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html), which produces an atomic
-//! package.
-//! * `bio-sup`, a run-time executable that knows how to download, install, serve, and
-//! manage services defined in packages.
+//!   written in [bash](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html), which produces an atomic
+//!   package.
+//! * `bio-sup`, a run-time executable that knows how to download, install, serve, and manage
+//!   services defined in packages.
 //!
 //! # bio-plan-build
 //!
