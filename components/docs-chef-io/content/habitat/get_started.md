@@ -29,7 +29,7 @@ Before getting started with this tutorial, you will need:
 
 1. If you haven't already done so, run `bio cli setup` and follow the instructions. This will configure the Bio CLI to work with your origin on the Biome Builder SaaS.
 
-   You will need to provide the origin you created in your Builder account and a personal access token, which you can generate in your [Profile page in Biome Builder](https://bldr.habitat.sh/#/profile).
+   You will need to provide the origin you created in your Builder account and a personal access token, which you can generate in your [Profile page in Biome Builder](https://bldr.biome.sh/#/profile).
 
 ## Fork and Clone the Biome sample-node-app repository
 
@@ -46,7 +46,7 @@ Edit the plan file to use your origin:
 1. Open the `sample-node-app/habitat/plan.sh` file with your editor of choice.
 1. Update the value of `pkg_origin` with the name of the origin in your Biome Builder account.
 
-Note the `pkg_deps` setting. This lists dependencies that your package requires at runtime. This Node.js application requires the [`core/node` package](https://bldr.habitat.sh/#/pkgs/core/node/latest), which is maintained by the Biome Core maintainers. You can see a full list of core packages in the [core-plans](https://github.com/habitat-sh/core-plans) repository, or by searching for **core** in Biome Builder.
+Note the `pkg_deps` setting. This lists dependencies that your package requires at runtime. This Node.js application requires the [`core/node` package](https://bldr.biome.sh/#/pkgs/core/node/latest), which is maintained by the Biome Core maintainers. You can see a full list of core packages in the [core-plans](https://github.com/habitat-sh/core-plans) repository, or by searching for **core** in Biome Builder.
 
 See the [plan settings]({{< relref "/habitat/plan_settings" >}}) documentation for more information about the settings in a plan file.
 
@@ -142,7 +142,7 @@ Add your package to your Builder origin and then connect that package to your cl
 
    The `pkg_origin` setting in the `plan.sh` file should be set to your origin.
 
-1. Log in to your account in [Biome Builder](https://bldr.habitat.sh) and select your origin.
+1. Log in to your account in [Biome Builder](https://bldr.biome.sh) and select your origin.
 1. Create a new package by selecting **Create Package**.
 
    The name of the package you create must match the package name defined by the `pkg_name` setting in the `plan.sh` file.
@@ -230,7 +230,7 @@ From here you can try updating the service by making a change to the sample-node
       sup-log
       ```
 
-1. In [Biome Builder](https://bldr.habitat.sh/), select **Build latest version** of your package again, then **View the output**, and select the **View build job** button ({{< svg file="/static/images/habitat/builder-view-build-job-icon.svg" >}}).
+1. In [Biome Builder](https://bldr.biome.sh/), select **Build latest version** of your package again, then **View the output**, and select the **View build job** button ({{< svg file="/static/images/habitat/builder-view-build-job-icon.svg" >}}).
 
    {{< note >}}
 

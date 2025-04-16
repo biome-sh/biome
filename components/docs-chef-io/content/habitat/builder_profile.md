@@ -30,7 +30,7 @@ You need to set a few things up before you can get started with Biome Builder:
 
 Biome Builder automatically creates your account the first time you sign in using the GitHub authentication process. You'll also need to authorize the Biome Builder application in Github.
 
-Head over to the Biome Builder sign-in page at [https://bldr.habitat.sh/#/sign-in](https://bldr.habitat.sh/#/sign-in) to get started.
+Head over to the Biome Builder sign-in page at [https://bldr.biome.sh/#/sign-in](https://bldr.biome.sh/#/sign-in) to get started.
 
 1. To sign in with an existing GitHub account, select **Sign in with GitHub**
 1. If you need to set up a GitHub account, select the **Sign up here** link

@@ -5,7 +5,7 @@ use url::Url;
 /// Default Builder URL environment variable
 pub const BLDR_URL_ENVVAR: &str = "HAB_BLDR_URL";
 /// Default Builder URL
-pub const DEFAULT_BLDR_URL: &str = "https://bldr.habitat.sh";
+pub const DEFAULT_BLDR_URL: &str = "https://bldr.biome.sh";
 /// Legacy environment variable for defining a default Builder endpoint
 const LEGACY_BLDR_URL_ENVVAR: &str = "HAB_DEPOT_URL";
 

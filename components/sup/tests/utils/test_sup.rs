@@ -287,7 +287,7 @@ impl TestSup {
         )
         // .env("HAB_INTERPRETER_IDENT", format!("{}/{}", origin, pkg_name))
         .env("HAB_SUP_BINARY", &sup_exe)
-        .env(BLDR_URL_ENVVAR, "https://bldr.habitat.sh")
+        .env(BLDR_URL_ENVVAR, "https://bldr.biome.sh")
         .env("HAB_BLDR_CHANNEL", "dev")
         .arg("run")
         .arg("--listen-gossip")

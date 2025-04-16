@@ -20,7 +20,7 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_CACHE_KEY_PATH` | build system, Supervisor | `/hab/cache/keys` if running as root; `$HOME/.hab/cache/keys` if running as non-root | Cache directory for origin signing keys |
 | `HAB_CTL_SECRET` | Supervisor | no default | Shared secret used for [communicating with a Supervisor]({{< relref "sup_remote_control" >}}). |
 | `HAB_BLDR_CHANNEL` | build system, Supervisor | `stable` | Set the Biome Builder channel you are subscribing to, to a specific channel. Defaults to `stable`.
-| `HAB_BLDR_URL` | build system, Supervisor | `https://bldr.habitat.sh` | Sets an alternate default endpoint for communicating with Builder. Used by the Biome build system and the Supervisor |
+| `HAB_BLDR_URL` | build system, Supervisor | `https://bldr.biome.sh` | Sets an alternate default endpoint for communicating with Builder. Used by the Biome build system and the Supervisor |
 | `HAB_DOCKER_OPTS` | build system | no default | When running a Studio on a platform that uses Docker (macOS), additional command line options to pass to the `docker` command. |
 | `HAB_INTERNAL_BLDR_CHANNEL` | build system, Supervisor, exporters | `stable` | Channel from which Biome-specific packages (e.g., `biome/bio-sup`, `biome/bio-launcher`, etc.) are downloaded on-demand when first called. Generally of use only for those developing Biome. Only applies to Biome-specific packages, and nothing else. |
 | `HAB_LICENSE` | build system, Supervisor, exporters | no default | Used to accept the [Chef EULA]({{< relref "chef_license#chef-eula" >}}). See [Accepting the Chef License]({{< relref "chef_license_accept#habitat" >}}) for valid values. |

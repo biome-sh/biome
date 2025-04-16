@@ -12,7 +12,7 @@
     "binds": [
       "router:builder-router.default"
     ],
-    "bldr_url": "https://bldr.habitat.sh",
+    "bldr_url": "https://bldr.biome.sh",
     "cfg": {
       "api": {
         "features_enabled": "jobsrv",

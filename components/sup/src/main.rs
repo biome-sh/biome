@@ -733,7 +733,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
-                                           String::from("https://bldr.habitat.sh"),
+                                           String::from("https://bldr.biome.sh"),
                                        update_channel:             ChannelIdent::default(),
                                        gossip_listen:              GossipListenAddr::default(),
                                        ctl_listen:                 ListenCtlAddr::default(),
@@ -806,7 +806,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        service_restart_config: ServiceRestartConfig::default(),
                                        custom_state_path: None,
                                        key_cache: KeyCache::new(temp_dir_str),
-                                       update_url: String::from("https://bldr.habitat.sh"),
+                                       update_url: String::from("https://bldr.biome.sh"),
                                        update_channel: ChannelIdent::default(),
                                        gossip_listen:
                                            GossipListenAddr::from_str("1.2.3.4:4321").unwrap(),
@@ -849,7 +849,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
-                                           String::from("https://bldr.habitat.sh"),
+                                           String::from("https://bldr.biome.sh"),
                                        update_channel:             ChannelIdent::default(),
                                        gossip_listen:
                                            GossipListenAddr::from_str("127.0.0.2:9638").unwrap(),
@@ -888,7 +888,7 @@ gpoVMSncu2jMIDZX63IkQII=
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
-                                           String::from("https://bldr.habitat.sh"),
+                                           String::from("https://bldr.biome.sh"),
                                        update_channel:             ChannelIdent::default(),
                                        gossip_listen:              GossipListenAddr::default(),
                                        ctl_listen:                 ListenCtlAddr::default(),
@@ -960,7 +960,7 @@ gpoVMSncu2jMIDZX63IkQII=
                     service_restart_config: ServiceRestartConfig::default(),
                     custom_state_path: None,
                     key_cache: KeyCache::new(&*CACHE_KEY_PATH),
-                    update_url: String::from("https://bldr.habitat.sh"),
+                    update_url: String::from("https://bldr.biome.sh"),
                     update_channel: ChannelIdent::default(),
                     gossip_listen: GossipListenAddr::default(),
                     ctl_listen: ListenCtlAddr::default(),
@@ -1141,7 +1141,7 @@ sys_ip_address = "7.8.9.0"
                                        service_restart_config: ServiceRestartConfig::default(),
                                        custom_state_path: None,
                                        key_cache: KeyCache::new(temp_dir_str),
-                                       update_url: String::from("https://bldr.habitat.sh"),
+                                       update_url: String::from("https://bldr.biome.sh"),
                                        update_channel: ChannelIdent::default(),
                                        gossip_listen:
                                            GossipListenAddr::from_str("1.2.3.4:4321").unwrap(),
@@ -1193,7 +1193,7 @@ sys_ip_address = "7.8.9.0"
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
-                                           String::from("https://bldr.habitat.sh"),
+                                           String::from("https://bldr.biome.sh"),
                                        update_channel:             ChannelIdent::default(),
                                        gossip_listen:
                                            GossipListenAddr::from_str("127.0.0.2:9638").unwrap(),
@@ -1241,7 +1241,7 @@ sys_ip_address = "7.8.9.0"
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
-                                           String::from("https://bldr.habitat.sh"),
+                                           String::from("https://bldr.biome.sh"),
                                        update_channel:             ChannelIdent::default(),
                                        gossip_listen:              GossipListenAddr::default(),
                                        ctl_listen:                 ListenCtlAddr::default(),
@@ -1293,7 +1293,7 @@ sys_ip_address = "7.8.9.0"
                                        service_restart_config: ServiceRestartConfig::default(),
                                        custom_state_path: None,
                                        key_cache: KeyCache::new(&*CACHE_KEY_PATH),
-                                       update_url: String::from("https://bldr.habitat.sh"),
+                                       update_url: String::from("https://bldr.biome.sh"),
                                        update_channel: ChannelIdent::default(),
                                        gossip_listen:
                                            GossipListenAddr::from_str("0.0.0.0:9638").unwrap(),
@@ -1402,7 +1402,7 @@ event_stream_server_certificate = "{}"
                     service_restart_config: ServiceRestartConfig::default(),
                     custom_state_path: None,
                     key_cache: KeyCache::new(&*CACHE_KEY_PATH),
-                    update_url: String::from("https://bldr.habitat.sh"),
+                    update_url: String::from("https://bldr.biome.sh"),
                     update_channel: ChannelIdent::default(),
                     gossip_listen: GossipListenAddr::default(),
                     ctl_listen: ListenCtlAddr::default(),
@@ -1592,7 +1592,7 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
                                        custom_state_path:          None,
                                        key_cache:                  KeyCache::new(&*CACHE_KEY_PATH),
                                        update_url:
-                                           String::from("https://bldr.habitat.sh"),
+                                           String::from("https://bldr.biome.sh"),
                                        update_channel:             ChannelIdent::default(),
                                        gossip_listen:
                                            GossipListenAddr::from_str("1.2.3.4:4321").unwrap(),

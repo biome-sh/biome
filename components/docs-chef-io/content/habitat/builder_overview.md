@@ -20,7 +20,7 @@ Biome Builder acts as the core of Chef's Application Delivery Enterprise hub. Bi
 * **Application Manifest** - The Application Manifest provides a single application directory, which includes---at a minimum---the compiled app artifact, dynamic links to all direct and transitive runtime dependencies ,and instructions to install and run the app.
 * **Deployment Channel Management** -  Pre-canned deployment channels that can be used as-is or a user can custom design their own channels. Apps that are deployed through Biome can subscribe to a channel and be auto-upgraded whenever the app is promoted.
 * **Origin Management** - Save your application delivery content in uniquely named spaces that you can control.
-* **Content Library** - Hundreds of pre-built [application delivery packages](https://bldr.habitat.sh/#/pkgs/core) and core dependencies, which makes it easy to get started with Biome.
+* **Content Library** - Hundreds of pre-built [application delivery packages](https://bldr.biome.sh/#/pkgs/core) and core dependencies, which makes it easy to get started with Biome.
 * **Custom Data and Reporting APIs** - Rich APIs enable the capability to export to CSV or JSON.
 * **DevOps Integration APIs** - Provides an API so that clients can find and download the necessary packages to run their applications. Additional APIs also enable easy integration with other popular DevOps tools, including Jenkins, Terraform, Artifactory, Hashi Vault, and many others.
 * **Role Based User Access** - Improves your organizations operational safety by letting you assign specific levels of access to each origin member.

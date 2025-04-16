@@ -156,7 +156,7 @@ keep_latest_packages = 1
 ### Receive updates from the specified release channel
 channel = "my-channel"
 
-### Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+### Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.biome.sh)
 bldr_url = "https://my-bldr.url"
 
 ### The service group with shared config and topology

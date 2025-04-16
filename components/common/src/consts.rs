@@ -10,4 +10,4 @@ pub const DEFAULT_HAB_SUP_PKG_IDENT: &str = "biome/bio-sup";
 pub const DEFAULT_HAB_LAUNCHER_PKG_IDENT: &str = "biome/bio-launcher";
 
 /// Default builder URL
-pub const DEFAULT_BUILDER_URL: &str = "https://bldr.habitat.sh";
+pub const DEFAULT_BUILDER_URL: &str = "https://bldr.biome.sh";

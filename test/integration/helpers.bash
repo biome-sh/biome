@@ -362,7 +362,7 @@ latest_from_builder() {
     local package_name
     local version
 
-    url_base="https://bldr.habitat.sh/v1/depot"
+    url_base="https://bldr.biome.sh/v1/depot"
 
     # Generate an appropriate URL based on our input
     case "${#parsed[@]}" in

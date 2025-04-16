@@ -40,7 +40,7 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
 @test "bio svc load: origin/name/version (standalone service)" {
@@ -59,7 +59,7 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
 @test "bio svc load: origin/name/version/release (standalone service)" {
@@ -78,7 +78,7 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
 @test "bio svc load: local hart file (standalone service)" {
@@ -102,7 +102,7 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
 @test "bio svc load: prefer local packages over pulling from Builder" {
@@ -133,7 +133,7 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 
     # Now, "reload" and change a few settings (chosen here arbitrarily)
     run ${bio} svc load --force --channel=unstable --strategy=at-once core/redis
@@ -146,7 +146,7 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy at-once # <-- changed!
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
 @test "bio svc load: loading an existing service without --force is an error" {
@@ -162,7 +162,7 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 
     # Now, try to load again, but without --force
     run ${bio} svc load --channel=unstable --strategy=at-once core/redis
@@ -175,7 +175,7 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
 @test "bio svc load: application and environment are properly set in a spec" {

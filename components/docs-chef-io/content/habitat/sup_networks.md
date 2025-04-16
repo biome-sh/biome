@@ -59,7 +59,7 @@ If your permanent peer Supervisors are not running any services, they will be le
 
 ## Pulling It All Together: A Robust Supervisor Network
 
-With all this, we can come up with a robust Biome network architecture. In fact, this is the same architecture the Biome team uses to run the public [Builder service](https://bldr.habitat.sh).
+With all this, we can come up with a robust Biome network architecture. In fact, this is the same architecture the Biome team uses to run the public [Builder service](https://bldr.biome.sh).
 
 ### Create the Bastion Ring
 

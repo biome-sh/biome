@@ -26,7 +26,7 @@ To start a Supervisor with the auto-update strategy, pass the `--strategy` argum
 to a Supervisor run command, and optionally specify the depot URL:
 
 ```bash
-bio sup run --strategy rolling --url https://bldr.habitat.sh
+bio sup run --strategy rolling --url https://bldr.biome.sh
 bio svc load <ORIGIN>/<NAME>
 ```
 

@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "https://bldr.habitat.sh/v1",
+      "url": "https://bldr.biome.sh/v1",
       "variables": {
         "rootUri": {
           "description": "The root URI for the particular installation of Builder\n",

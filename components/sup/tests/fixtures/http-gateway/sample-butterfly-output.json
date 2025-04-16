@@ -163,7 +163,7 @@
           "cfg": {
             "port": 80,
             "ssl-port": 443,
-            "url": "https://bldr.habitat.sh"
+            "url": "https://bldr.biome.sh"
           },
           "incarnation": 1,
           "initialized": false,
