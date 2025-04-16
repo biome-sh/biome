@@ -49,7 +49,7 @@ PLAN_CONTEXT=${1:-.}
 HAB_PLAN_FILENAME="plan.sh"
 # The default Biome Depot from where to download dependencies. If
 # `HAB_BLDR_URL` is set, this value is overridden.
-: "${HAB_BLDR_URL:=https://bldr.habitat.sh}"
+: "${HAB_BLDR_URL:=https://bldr.biome.sh}"
 # Export the Builder URL so all other programs and subshells use this same one
 export HAB_BLDR_URL
 # The default Biome channel from where to download dependencies. If

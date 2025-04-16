@@ -11,7 +11,7 @@ gh_repo = "biome"
     weight = 40
 +++
 
-While you can build and run Biome packages without sharing them on [Biome Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
+While you can build and run Biome packages without sharing them on [Biome Builder](https://bldr.biome.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
 
 > Note: Biome Builder can only build Linux based plans (`plan.sh`) at this time.
 
@@ -37,7 +37,7 @@ You can create your own origin in Builder or be invited to join an existing one.
 
 ## Set up Biome to Authenticate to Builder
 
-When you upload a package to Builder, you are required to supply an auth token as part of the `bio pkg upload` subcommand. You can generate a Biome personal access token via the Builder site [Profile page](https://bldr.habitat.sh/#/profile) for use with the `bio` command-line utility.
+When you upload a package to Builder, you are required to supply an auth token as part of the `bio pkg upload` subcommand. You can generate a Biome personal access token via the Builder site [Profile page](https://bldr.biome.sh/#/profile) for use with the `bio` command-line utility.
 
 Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable]({{< relref "environment_variables" >}}) to this value, so that any commands requiring authentication will use it.
 
@@ -179,7 +179,7 @@ To enable this functionality, do the following:
 
 ## Automated Builds
 
-By connecting a plan file in <a href="https://bldr.habitat.sh/#/sign-in" class="link-external" target="_blank">Biome Builder</a>, you can trigger both manual (via the web UI, or via the `bio` command line) as well as automated package rebuilds whenever a change is merged into the `master` branch of the repository containing your Biome plan, or when a dependent package updates (rebuilds).
+By connecting a plan file in <a href="https://bldr.biome.sh/#/sign-in" class="link-external" target="_blank">Biome Builder</a>, you can trigger both manual (via the web UI, or via the `bio` command line) as well as automated package rebuilds whenever a change is merged into the `master` branch of the repository containing your Biome plan, or when a dependent package updates (rebuilds).
 
 ### Connect a Plan
 

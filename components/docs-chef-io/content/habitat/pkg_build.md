@@ -32,7 +32,7 @@ bio origin key generate <ORIGIN>
 
 The `bio-origin` subcommand will place the origin key files, originname-_timestamp_.sig.key (the private key) and originname-_timestamp_.pub files (the public key), in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the Studio container, or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
 
-Because the private key is used to sign your artifact, it should not be shared freely; however, if anyone wants to download and use your artifact, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. If the origin's public key is not present, Biome attempts to download it from the Builder endpoint specified by the `--url` argument (https://bldr.habitat.sh by default) to `bio pkg install`.
+Because the private key is used to sign your artifact, it should not be shared freely; however, if anyone wants to download and use your artifact, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. If the origin's public key is not present, Biome attempts to download it from the Builder endpoint specified by the `--url` argument (https://bldr.biome.sh by default) to `bio pkg install`.
 
 ### Passing Origin Keys into the Studio
 

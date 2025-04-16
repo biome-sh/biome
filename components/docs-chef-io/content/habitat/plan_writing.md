@@ -151,7 +151,7 @@ The following sections describe each of these steps in more detail.
 
 #### Create your Package Identifier
 
-The origin is a place for you to set default privacy rules, store your packages, and collaborate with teammates. For example, the "core" origin is where the core maintainers of Biome share packages that are foundational to building other packages. If you would like to browse them, they are located in the [core-plans repo](https://github.com/habitat-sh/core-plans), and on [Biome Builder's Core Origin](https://bldr.habitat.sh/#/pkgs/core).
+The origin is a place for you to set default privacy rules, store your packages, and collaborate with teammates. For example, the "core" origin is where the core maintainers of Biome share packages that are foundational to building other packages. If you would like to browse them, they are located in the [core-plans repo](https://github.com/habitat-sh/core-plans), and on [Biome Builder's Core Origin](https://bldr.biome.sh/#/pkgs/core).
 
 Creating artifacts for a specific origin requires that you have access to the that origin's private key. The private origin key will be used to sign the artifact when it is built by the `bio plan build` command. Origin keys are kept in `$HOME/.hab/cache/keys` on the host machine when running `bio` as a non-root user and `/hab/cache/keys` when running as root (including in the studio). For more information on origin keys, see [Keys]({{< relref "keys" >}}).
 

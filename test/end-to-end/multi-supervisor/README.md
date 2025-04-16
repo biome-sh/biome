@@ -25,7 +25,7 @@ To run all test cases:
 
 This will build all the containers containing `biome/bio`,
 `biome/bio-sup`, and `biome/bio-launcher` packages from the specified
-channel in https://bldr.habitat.sh
+channel in https://bldr.biome.sh
 
 For additional background, read the comments in the files in this
 directory.

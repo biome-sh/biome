@@ -12,7 +12,7 @@
     "binds": [
       "router:builder-router.default"
     ],
-    "bldr_url": "https://bldr.habitat.sh",
+    "bldr_url": "https://bldr.biome.sh",
     "channel": "stable",
     "config_from": null,
     "desired_state": "Up",

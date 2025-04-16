@@ -59,4 +59,4 @@ You must invoke this build before starting a Windows release build.
 
 ### Releasing
 
-To release a new version of the supervisor, upload the new `.hart` file and then [promote it to stable in builder](https://bldr.habitat.sh/#/pkgs/biome/bio-launcher). If a new release contains important features or bug fixes, it will have to be communicated to the community and installed manually. Because of the nature of the launcher, this will require downtime in production environments, but it should be an exceedingly rare occurrence.
+To release a new version of the supervisor, upload the new `.hart` file and then [promote it to stable in builder](https://bldr.biome.sh/#/pkgs/biome/bio-launcher). If a new release contains important features or bug fixes, it will have to be communicated to the community and installed manually. Because of the nature of the launcher, this will require downtime in production environments, but it should be an exceedingly rare occurrence.

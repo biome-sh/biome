@@ -50,7 +50,7 @@ pub struct AuthToken {
 #[structopt(no_version)]
 pub struct BldrUrl {
     /// Specify an alternate Builder endpoint. If not specified, the value will be
-    /// taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    /// taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.biome.sh)
     // TODO (DM): This should probably use `env` and `default_value`
     #[structopt(name = "BLDR_URL", short = "u", long = "url")]
     pub value: Option<Url>,

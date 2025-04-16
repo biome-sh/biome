@@ -74,7 +74,7 @@ You can also develop your application if you are unsure of the infrastructure yo
 ## Next Steps
 
 - [Download and install the Biome CLI]({{< relref "/habitat/install_habitat" >}}).
-- [Create an account]({{< relref "/habitat/builder_account" >}}) on the [Biome Builder SaaS](https://bldr.habitat.sh).
+- [Create an account]({{< relref "/habitat/builder_account" >}}) on the [Biome Builder SaaS](https://bldr.biome.sh).
 - Try our [getting started guide](get_started) for Biome.
 
 ## Additional Resources

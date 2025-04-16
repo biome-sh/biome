@@ -48,14 +48,14 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
     ui.heading("Biome Builder Instance")?;
     ui.para(
         "Biome packages can be stored in either the public builder instance \
-         https://bldr.habitat.sh or in an on-premises builder depot instance. If \
+         https://bldr.biome.sh or in an on-premises builder depot instance. If \
          you do not set a builder URL now, the `bio` CLI will default to using \
          the public builder instance. This can be overridden at any time after setup.",
     )?;
     ui.br()?;
     if ask_default_builder_instance(ui)? {
         ui.para("Enter the url of your builder instance. The default is \
-                 https://bldr.habitat.sh. The configured endpoint can be overridden any time \
+                 https://bldr.biome.sh. The configured endpoint can be overridden any time \
                  with a `HAB_BLDR_URL` environment variable or a --url flag on the cli.")?;
         let mut url = prompt_url(ui)?;
 
@@ -87,7 +87,7 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
         ui.br()?;
         ui.para("Enter the name of your origin. If you plan to publish your packages publicly, \
                  we recommend that you select one that is not already in use on the Biome \
-                 build service found at https://bldr.habitat.sh/.")?;
+                 build service found at https://bldr.biome.sh/.")?;
         ui.para("Origins must begin with a lowercase letter or number. Allowed characters \
                  include lowercase letters, numbers, _, -. No more than 255 characters.")?;
         let mut origin = prompt_origin(ui);
@@ -135,7 +135,7 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
              to Builder, or checking the status of your build jobs from the Biome client will \
              require you to use an access token.")?;
     ui.para("The Biome Personal Access Token can be generated via the Builder  Profile page \
-             (https://bldr.habitat.sh/#/profile). Once you have generated your token, you can \
+             (https://bldr.biome.sh/#/profile). Once you have generated your token, you can \
              enter it here.")?;
     ui.para("If you would like to save your token for use by the Biome client, please enter \
              your access token. Otherwise, just enter No.")?;

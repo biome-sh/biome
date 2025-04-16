@@ -1747,7 +1747,7 @@ fn org_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
 
 /// Check to see if the user has passed in a Builder URL param.  If not, check the HAB_BLDR_URL env
 /// var. If not, check the CLI config to see if there is a default url set. If that's empty too,
-/// then we'll use the default (https://bldr.habitat.sh).
+/// then we'll use the default (https://bldr.biome.sh).
 fn bldr_url_from_matches(matches: &ArgMatches<'_>) -> Result<String> {
     match matches.value_of("BLDR_URL") {
         Some(url) => Ok(url.to_string()),

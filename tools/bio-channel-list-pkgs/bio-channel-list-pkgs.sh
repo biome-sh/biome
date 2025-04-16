@@ -12,7 +12,7 @@ main() {
   need_cmd jq
 
   # Set the default Builder URL
-  : "${HAB_BLDR_URL:=https://bldr.habitat.sh}"
+  : "${HAB_BLDR_URL:=https://bldr.biome.sh}"
   # Origin name is required
   origin="${1:-}"
   if [[ -z "$origin" ]]; then

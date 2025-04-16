@@ -68,7 +68,7 @@ if ($BldrUrl) {
 } elseif (Test-Path Env:\HAB_BLDR_URL) {
     $script:HAB_BLDR_URL = "$env:HAB_BLDR_URL"
 } else {
-    $script:HAB_BLDR_URL = "https://bldr.habitat.sh"
+    $script:HAB_BLDR_URL = "https://bldr.biome.sh"
 }
 # Export the Builder URL so all other programs and subshells use this same one
 $env:HAB_BLDR_URL = "$script:HAB_BLDR_URL"
