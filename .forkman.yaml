@@ -44,6 +44,7 @@ patterns:
   www.habitat.sh: www.habitat.sh
   forums.habitat.sh: forums.habitat.sh
   slack.habitat.sh: slack.habitat.sh
+  'https://bldr.habitat.sh': 'https://bldr.biome.sh'
   bldr.acceptance.habitat.sh: bldr.acceptance.habitat.sh
   bldr.habitat.sh: bldr.habitat.sh
 
