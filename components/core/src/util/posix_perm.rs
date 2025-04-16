@@ -69,7 +69,10 @@ pub(crate) fn ensure_path_permissions(path: &Path, permissions: u32) -> Result<(
     let euid = users::get_effective_uid();
     let egid = users::get_effective_gid();
     for ancestor in path.ancestors() {
-        if ancestor.ends_with(crate::fs::PKG_PATH) {
+        // This short circuit is vital. A specific instance is in the case of exporting containers
+        // where bio is rooted in /tmp. Without this check /tmp permissions will be changed and
+        // things that depend on /tmp having "1775/drwxrwxrwt" permissions will break.
+        if ancestor.ends_with(crate::fs::ROOT_PATH) {
             break;
         }
         if euid_egid_matches(&euid, &egid, ancestor) {
@@ -121,10 +124,7 @@ fn validate_raw_path(path: &str) -> Result<*mut c_char> {
 }
 
 fn chown(path: &str, uid: u32, gid: u32) -> Result<c_int> {
-    let r_path = match validate_raw_path(path) {
-        Ok(r) => r,
-        Err(e) => return Err(e),
-    };
+    let r_path = validate_raw_path(path)?;
 
     unsafe {
         let res = libc::chown(r_path, uid, gid);

@@ -596,7 +596,7 @@ fn is_supported_supervisor_version(version_output: &str) -> bool {
         .split_whitespace()                 // ["bio-sup", <version-number>]
         .last()                             // drop "bio-sup", keep <version-number>
         .unwrap()                           // split() always returns an 1+ element iterator
-        .split(|c| c == '/' || c == '-')    // strip "-dev" or "/build"
+        .split(['/', '-'])                  // strip "-dev" or "/build"
         .next()
     {
         debug!("Checking Supervisor version '{}' against requirement '{}'",

@@ -24,7 +24,7 @@ HAB_STUDIO_BACKLINE_PKG="$(< "$(bio pkg path biome/bio-backline)"/IDENT)"
 
 export HAB_STUDIO_BACKLINE_PKG
 
-sudo --preserve-env bin/bio-studio.sh new
+sudo --preserve-env bin/bio-studio-linux.sh new
 
 rm libexec/bio
 rm libexec/busybox

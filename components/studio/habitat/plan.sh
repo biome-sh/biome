@@ -28,7 +28,10 @@ do_prepare() {
 }
 
 do_build() {
-  cp -v "$SRC_PATH"/bin/bio-studio.sh bio-studio
+  # shellcheck disable=2154
+  kernel="${pkg_target#*-}"
+  kernel="${kernel%%-*}"  # Remove 'kernel2' part if exists
+  cp -v "$SRC_PATH"/bin/bio-studio-"${kernel}".sh bio-studio
   cp -v "$SRC_PATH"/libexec/bio-studio-profile.sh .
   cp -v "$SRC_PATH"/libexec/bio-studio-type-*.sh .
 

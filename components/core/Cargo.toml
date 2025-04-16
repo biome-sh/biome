@@ -9,6 +9,7 @@ build = "build.rs"
 [build-dependencies]
 base64 = "*"
 cc = "*"
+pem = "*"
 
 [dependencies]
 base64 = "*"
@@ -27,7 +28,7 @@ os_info = "*"
 paste = "*"
 pem = "*"
 pin-project = "*"
-rand = "*"
+rand = { version = "*", features = ["thread_rng"] }
 regex = "*"
 rcgen = "*"
 rustls = "*"
