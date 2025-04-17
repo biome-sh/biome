@@ -491,6 +491,437 @@ dependencies = [
 ]
 
 [[package]]
+name = "bio"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "base64 0.22.1",
+ "biome-sup-client",
+ "biome-sup-protocol",
+ "biome_api_client",
+ "biome_common",
+ "biome_core",
+ "bitflags 2.9.0",
+ "chrono",
+ "clap 2.33.1",
+ "clap 4.5.29",
+ "configopt",
+ "ctrlc",
+ "dirs",
+ "env_logger",
+ "flate2",
+ "futures",
+ "glob",
+ "handlebars",
+ "lazy_static",
+ "libc",
+ "log",
+ "pbr",
+ "rants",
+ "reqwest",
+ "retry",
+ "rustls 0.23.26",
+ "rustls-webpki 0.103.1",
+ "same-file",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "structopt",
+ "tabwriter",
+ "tar",
+ "tempfile",
+ "termcolor",
+ "thiserror 2.0.12",
+ "tokio",
+ "toml 0.8.20",
+ "url",
+ "uuid",
+ "walkdir",
+ "widestring 1.2.0",
+ "winapi",
+ "winreg",
+]
+
+[[package]]
+name = "biome-launcher"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "biome-launcher-protocol",
+ "biome_common",
+ "biome_core",
+ "env_logger",
+ "ipc-channel",
+ "libc",
+ "log",
+ "nix",
+ "prost",
+ "semver",
+ "thiserror 2.0.12",
+ "winapi",
+]
+
+[[package]]
+name = "biome-launcher-client"
+version = "0.0.0"
+dependencies = [
+ "bincode 2.0.1",
+ "biome-launcher-protocol",
+ "biome_common",
+ "biome_core",
+ "env_logger",
+ "ipc-channel",
+ "libc",
+ "log",
+ "prost",
+ "serde",
+ "thiserror 2.0.12",
+]
+
+[[package]]
+name = "biome-launcher-protocol"
+version = "0.0.0"
+dependencies = [
+ "bytes",
+ "prost",
+ "prost-build",
+ "serde",
+]
+
+[[package]]
+name = "biome-rst-reader"
+version = "0.0.0"
+dependencies = [
+ "biome_butterfly",
+ "clap 4.5.29",
+ "env_logger",
+ "log",
+]
+
+[[package]]
+name = "biome-sup-client"
+version = "0.0.0"
+dependencies = [
+ "biome-sup-protocol",
+ "biome_common",
+ "biome_core",
+ "futures",
+ "log",
+ "prost",
+ "rustls 0.23.26",
+ "termcolor",
+ "tokio",
+ "tokio-util",
+]
+
+[[package]]
+name = "biome-sup-protocol"
+version = "0.0.0"
+dependencies = [
+ "base64 0.22.1",
+ "biome_core",
+ "bytes",
+ "lazy_static",
+ "log",
+ "prost",
+ "prost-build",
+ "rand 0.9.0",
+ "serde",
+ "tempfile",
+ "tokio",
+ "tokio-util",
+ "toml 0.8.20",
+]
+
+[[package]]
+name = "biome_api_client"
+version = "0.0.0"
+dependencies = [
+ "biome_core",
+ "biome_http_client",
+ "broadcast",
+ "bytes",
+ "chrono",
+ "futures",
+ "log",
+ "pbr",
+ "percent-encoding",
+ "rand 0.9.0",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tee",
+ "tokio",
+ "tokio-util",
+ "url",
+]
+
+[[package]]
+name = "biome_butterfly"
+version = "0.1.0"
+dependencies = [
+ "biome_common",
+ "biome_core",
+ "byteorder",
+ "bytes",
+ "env_logger",
+ "lazy_static",
+ "log",
+ "mktemp",
+ "parking_lot",
+ "prometheus",
+ "prost",
+ "prost-build",
+ "rand 0.9.0",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "threadpool",
+ "toml 0.8.20",
+ "uuid",
+ "winapi",
+ "zmq",
+]
+
+[[package]]
+name = "biome_common"
+version = "0.0.0"
+dependencies = [
+ "async-trait",
+ "bimap",
+ "biome_api_client",
+ "biome_core",
+ "bitflags 2.9.0",
+ "clap 2.33.1",
+ "clap 4.5.29",
+ "dirs",
+ "glob",
+ "handlebars",
+ "lazy_static",
+ "libc",
+ "log",
+ "native-tls",
+ "nix",
+ "parking_lot",
+ "pbr",
+ "petgraph 0.8.1",
+ "regex",
+ "reqwest",
+ "retry",
+ "rustls 0.23.26",
+ "safer_owning_ref",
+ "serde",
+ "serde-transcode",
+ "serde_json",
+ "serde_yaml",
+ "tempfile",
+ "termcolor",
+ "thiserror 2.0.12",
+ "tokio",
+ "toml 0.8.20",
+ "url",
+ "uuid",
+ "valico",
+ "winapi",
+]
+
+[[package]]
+name = "biome_core"
+version = "0.0.0"
+dependencies = [
+ "base64 0.22.1",
+ "biome_win_users",
+ "blake2b_simd",
+ "caps",
+ "cc",
+ "chrono",
+ "ctrlc",
+ "dirs",
+ "dns-lookup",
+ "errno",
+ "glob",
+ "hex",
+ "lazy_static",
+ "libc",
+ "log",
+ "native-tls",
+ "nix",
+ "num_cpus",
+ "os_info",
+ "paste",
+ "pem",
+ "pin-project",
+ "rand 0.9.0",
+ "rcgen",
+ "regex",
+ "reqwest",
+ "rustls 0.23.26",
+ "rustls-pemfile",
+ "rustls-webpki 0.103.1",
+ "serde",
+ "serde_json",
+ "serde_test",
+ "sodiumoxide",
+ "tabwriter",
+ "tar",
+ "tempfile",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-rustls 0.26.2",
+ "toml 0.8.20",
+ "url",
+ "widestring 1.2.0",
+ "winapi",
+ "windows-acl",
+ "windows-sys 0.52.0",
+ "xz2",
+]
+
+[[package]]
+name = "biome_http_client"
+version = "0.0.0"
+dependencies = [
+ "base64 0.22.1",
+ "biome_core",
+ "env_proxy",
+ "httparse",
+ "log",
+ "native-tls",
+ "pem",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "url",
+]
+
+[[package]]
+name = "biome_pkg_export_container"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "base64 0.22.1",
+ "bio",
+ "biome_common",
+ "biome_core",
+ "clap 4.5.29",
+ "env_logger",
+ "handlebars",
+ "lazy_static",
+ "linked-hash-map",
+ "log",
+ "rusoto_core",
+ "rusoto_credential",
+ "rusoto_ecr",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "termcolor",
+ "thiserror 2.0.12",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "biome_pkg_export_tar"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "biome_common",
+ "biome_core",
+ "clap 4.5.29",
+ "env_logger",
+ "flate2",
+ "log",
+ "mktemp",
+ "tar",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
+name = "biome_sup"
+version = "0.0.0"
+dependencies = [
+ "actix-http",
+ "actix-rt",
+ "actix-web",
+ "anyhow",
+ "bio",
+ "biome-launcher-client",
+ "biome-launcher-protocol",
+ "biome-sup-protocol",
+ "biome_api_client",
+ "biome_butterfly",
+ "biome_common",
+ "biome_core",
+ "biome_http_client",
+ "byteorder",
+ "bytes",
+ "caps",
+ "clap 2.33.1",
+ "configopt",
+ "cpu-time",
+ "ctrlc",
+ "derivative",
+ "fs2",
+ "futures",
+ "glob",
+ "handlebars",
+ "hyper 1.6.0",
+ "lazy_static",
+ "libc",
+ "log",
+ "log4rs",
+ "mio",
+ "multimap",
+ "nix",
+ "notify",
+ "num_cpus",
+ "parking_lot",
+ "pin-project",
+ "prometheus",
+ "prost",
+ "prost-build",
+ "prost-types",
+ "rand 0.9.0",
+ "rants",
+ "regex",
+ "reqwest",
+ "rustls 0.23.26",
+ "rustls-pemfile",
+ "serde",
+ "serde-transcode",
+ "serde_derive",
+ "serde_json",
+ "serde_yaml",
+ "state",
+ "structopt",
+ "tempfile",
+ "termcolor",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-rustls 0.26.2",
+ "tokio-util",
+ "toml 0.8.20",
+ "url",
+ "uuid",
+ "valico",
+ "winapi",
+]
+
+[[package]]
+name = "biome_win_users"
+version = "0.0.0"
+dependencies = [
+ "cc",
+ "log",
+ "widestring 1.2.0",
+ "winapi",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1463,437 +1894,6 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
-]
-
-[[package]]
-name = "bio"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "base64 0.22.1",
- "bitflags 2.9.0",
- "chrono",
- "clap 2.33.1",
- "clap 4.5.29",
- "configopt",
- "ctrlc",
- "dirs",
- "env_logger",
- "flate2",
- "futures",
- "glob",
- "biome-sup-client",
- "biome-sup-protocol",
- "biome_api_client",
- "biome_common",
- "biome_core",
- "handlebars",
- "lazy_static",
- "libc",
- "log",
- "pbr",
- "rants",
- "reqwest",
- "retry",
- "rustls 0.23.26",
- "rustls-webpki 0.103.1",
- "same-file",
- "serde",
- "serde_json",
- "serde_yaml",
- "structopt",
- "tabwriter",
- "tar",
- "tempfile",
- "termcolor",
- "thiserror 2.0.12",
- "tokio",
- "toml 0.8.20",
- "url",
- "uuid",
- "walkdir",
- "widestring 1.2.0",
- "winapi",
- "winreg",
-]
-
-[[package]]
-name = "biome-launcher"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "env_logger",
- "biome-launcher-protocol",
- "biome_common",
- "biome_core",
- "ipc-channel",
- "libc",
- "log",
- "nix",
- "prost",
- "semver",
- "thiserror 2.0.12",
- "winapi",
-]
-
-[[package]]
-name = "biome-launcher-client"
-version = "0.0.0"
-dependencies = [
- "bincode 2.0.1",
- "env_logger",
- "biome-launcher-protocol",
- "biome_common",
- "biome_core",
- "ipc-channel",
- "libc",
- "log",
- "prost",
- "serde",
- "thiserror 2.0.12",
-]
-
-[[package]]
-name = "biome-launcher-protocol"
-version = "0.0.0"
-dependencies = [
- "bytes",
- "prost",
- "prost-build",
- "serde",
-]
-
-[[package]]
-name = "biome-rst-reader"
-version = "0.0.0"
-dependencies = [
- "clap 4.5.29",
- "env_logger",
- "biome_butterfly",
- "log",
-]
-
-[[package]]
-name = "biome-sup-client"
-version = "0.0.0"
-dependencies = [
- "futures",
- "biome-sup-protocol",
- "biome_common",
- "biome_core",
- "log",
- "prost",
- "rustls 0.23.26",
- "termcolor",
- "tokio",
- "tokio-util",
-]
-
-[[package]]
-name = "biome-sup-protocol"
-version = "0.0.0"
-dependencies = [
- "base64 0.22.1",
- "bytes",
- "biome_core",
- "lazy_static",
- "log",
- "prost",
- "prost-build",
- "rand 0.9.0",
- "serde",
- "tempfile",
- "tokio",
- "tokio-util",
- "toml 0.8.20",
-]
-
-[[package]]
-name = "biome_api_client"
-version = "0.0.0"
-dependencies = [
- "broadcast",
- "bytes",
- "chrono",
- "futures",
- "biome_core",
- "biome_http_client",
- "log",
- "pbr",
- "percent-encoding",
- "rand 0.9.0",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "tee",
- "tokio",
- "tokio-util",
- "url",
-]
-
-[[package]]
-name = "biome_butterfly"
-version = "0.1.0"
-dependencies = [
- "byteorder",
- "bytes",
- "env_logger",
- "biome_common",
- "biome_core",
- "lazy_static",
- "log",
- "mktemp",
- "parking_lot",
- "prometheus",
- "prost",
- "prost-build",
- "rand 0.9.0",
- "serde",
- "serde_json",
- "tempfile",
- "threadpool",
- "toml 0.8.20",
- "uuid",
- "winapi",
- "zmq",
-]
-
-[[package]]
-name = "biome_common"
-version = "0.0.0"
-dependencies = [
- "async-trait",
- "bimap",
- "bitflags 2.9.0",
- "clap 2.33.1",
- "clap 4.5.29",
- "dirs",
- "glob",
- "biome_api_client",
- "biome_core",
- "handlebars",
- "lazy_static",
- "libc",
- "log",
- "native-tls",
- "nix",
- "parking_lot",
- "pbr",
- "petgraph 0.8.1",
- "regex",
- "reqwest",
- "retry",
- "rustls 0.23.26",
- "safer_owning_ref",
- "serde",
- "serde-transcode",
- "serde_json",
- "serde_yaml",
- "tempfile",
- "termcolor",
- "thiserror 2.0.12",
- "tokio",
- "toml 0.8.20",
- "url",
- "uuid",
- "valico",
- "winapi",
-]
-
-[[package]]
-name = "biome_core"
-version = "0.0.0"
-dependencies = [
- "base64 0.22.1",
- "blake2b_simd",
- "caps",
- "cc",
- "chrono",
- "ctrlc",
- "dirs",
- "dns-lookup",
- "errno",
- "glob",
- "biome_win_users",
- "hex",
- "lazy_static",
- "libc",
- "log",
- "native-tls",
- "nix",
- "num_cpus",
- "os_info",
- "paste",
- "pem",
- "pin-project",
- "rand 0.9.0",
- "rcgen",
- "regex",
- "reqwest",
- "rustls 0.23.26",
- "rustls-pemfile",
- "rustls-webpki 0.103.1",
- "serde",
- "serde_json",
- "serde_test",
- "sodiumoxide",
- "tabwriter",
- "tar",
- "tempfile",
- "thiserror 2.0.12",
- "tokio",
- "tokio-rustls 0.26.2",
- "toml 0.8.20",
- "url",
- "widestring 1.2.0",
- "winapi",
- "windows-acl",
- "windows-sys 0.52.0",
- "xz2",
-]
-
-[[package]]
-name = "biome_http_client"
-version = "0.0.0"
-dependencies = [
- "base64 0.22.1",
- "env_proxy",
- "biome_core",
- "httparse",
- "log",
- "native-tls",
- "pem",
- "reqwest",
- "serde",
- "serde_json",
- "tempfile",
- "url",
-]
-
-[[package]]
-name = "biome_pkg_export_container"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "base64 0.22.1",
- "clap 4.5.29",
- "env_logger",
- "bio",
- "biome_common",
- "biome_core",
- "handlebars",
- "lazy_static",
- "linked-hash-map",
- "log",
- "rusoto_core",
- "rusoto_credential",
- "rusoto_ecr",
- "serde",
- "serde_json",
- "tempfile",
- "termcolor",
- "thiserror 2.0.12",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "biome_pkg_export_tar"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "clap 4.5.29",
- "env_logger",
- "flate2",
- "biome_common",
- "biome_core",
- "log",
- "mktemp",
- "tar",
- "tempfile",
- "tokio",
-]
-
-[[package]]
-name = "biome_sup"
-version = "0.0.0"
-dependencies = [
- "actix-http",
- "actix-rt",
- "actix-web",
- "anyhow",
- "byteorder",
- "bytes",
- "caps",
- "clap 2.33.1",
- "configopt",
- "cpu-time",
- "ctrlc",
- "derivative",
- "fs2",
- "futures",
- "glob",
- "bio",
- "biome-launcher-client",
- "biome-launcher-protocol",
- "biome-sup-protocol",
- "biome_api_client",
- "biome_butterfly",
- "biome_common",
- "biome_core",
- "biome_http_client",
- "handlebars",
- "hyper 1.6.0",
- "lazy_static",
- "libc",
- "log",
- "log4rs",
- "mio",
- "multimap",
- "nix",
- "notify",
- "num_cpus",
- "parking_lot",
- "pin-project",
- "prometheus",
- "prost",
- "prost-build",
- "prost-types",
- "rand 0.9.0",
- "rants",
- "regex",
- "reqwest",
- "rustls 0.23.26",
- "rustls-pemfile",
- "serde",
- "serde-transcode",
- "serde_derive",
- "serde_json",
- "serde_yaml",
- "state",
- "structopt",
- "tempfile",
- "termcolor",
- "thiserror 2.0.12",
- "tokio",
- "tokio-rustls 0.26.2",
- "tokio-util",
- "toml 0.8.20",
- "url",
- "uuid",
- "valico",
- "winapi",
-]
-
-[[package]]
-name = "biome_win_users"
-version = "0.0.0"
-dependencies = [
- "cc",
- "log",
- "widestring 1.2.0",
- "winapi",
 ]
 
 [[package]]
