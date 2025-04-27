@@ -5,17 +5,25 @@ set -eou pipefail
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
-BIO_BINARY_URL=https://github.com/biome-sh/biome/releases/download/bio-1.6.42/bio-1.6.42-x86_64-linux
-BIO_BINARY_SHA256="2f18fc905330783f70f52d6c9a7f103b4b4c3122159e6c4e3e26507c842016c1"
-BIO_BINARY_PATH=/usr/local/bio-1.6.42/bin/bio
+BIO_BINARY_URL=https://github.com/biome-sh/biome/releases/download/v2.0.107/bio-2.0.107-x86_64-linux
+BIO_BINARY_SHA256="07c73ec812679660253db828b5008232023cbad109f87a82307d06f97cc52e6c"
+BIO_BINARY_PATH=/usr/local/bio-2.0.107/bin/bio
 
-if echo "$BIO_BINARY_SHA256 $BIO_BINARY_PATH" | sha256sum -c; then
-    echo "Biome bootstrap binary is already installed."
+if [ -f "$BIO_BINARY_PATH" ]; then
+    echo "Biome bootstrap binary is already downloaded."
 else
     echo "Downloading Biome bootstrap binary."
     mkdir -p "$(dirname "$BIO_BINARY_PATH")"
     curl -sSL "$BIO_BINARY_URL" > "$BIO_BINARY_PATH"
+fi
+
+if echo "$BIO_BINARY_SHA256 $BIO_BINARY_PATH" | sha256sum -c; then
+    echo "Checksum validated."
     chmod +x "$BIO_BINARY_PATH"
+else
+    echo "Checksum failed. Removing executable flag"
+    chmod -x "$BIO_BINARY_PATH"
+    exit 1
 fi
 
 "$BIO_BINARY_PATH" pkg install -fb biome/bio
