@@ -1,2 +1,8 @@
-[registries.crates-io]
-protocol = "sparse"
+[target.x86_64-unknown-linux-musl]
+linker = "/opt/x86_64-linux-musl-cross/bin/x86_64-linux-musl-gcc"
+ar = "/opt/x86_64-linux-musl-cross/bin/x86_64-linux-musl-ar"
+
+[target.x86_64-unknown-linux-musl.env]
+CC_x86_64_unknown_linux_musl = "/opt/x86_64-linux-musl-cross/bin/x86_64-linux-musl-gcc"
+CXX_x86_64_unknown_linux_musl = "/opt/x86_64-linux-musl-cross/bin/x86_64-linux-musl-g++"
+AR_x86_64_unknown_linux_musl = "/opt/x86_64-linux-musl-cross/bin/x86_64-linux-musl-ar"
