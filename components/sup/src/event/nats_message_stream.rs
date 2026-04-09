@@ -1,15 +1,10 @@
-use crate::event::{Error,
-                   EventStreamConfig,
-                   Result};
-use futures::{channel::{mpsc as futures_mpsc,
-                        mpsc::UnboundedSender},
-              stream::StreamExt};
-use log::{error,
-          trace};
-use rants::{Client,
-            Subject,
-            error::Error as RantsError,
-            native_tls::TlsConnector};
+use crate::event::{Error, EventStreamConfig, Result};
+use futures::{
+    channel::{mpsc as futures_mpsc, mpsc::UnboundedSender},
+    stream::StreamExt,
+};
+use log::{error, trace};
+use rants::{Client, Subject, error::Error as RantsError, native_tls::TlsConnector};
 use tokio::time;
 
 /// The subject and payload of a NATS message.
@@ -24,7 +19,9 @@ impl NatsMessage {
         NatsMessage { subject, payload }
     }
 
-    pub fn payload(&self) -> &[u8] { self.payload.as_slice() }
+    pub fn payload(&self) -> &[u8] {
+        self.payload.as_slice()
+    }
 }
 
 /// A lightweight handle for the NATS message stream. All events are converted into a NatsMessage
@@ -36,24 +33,27 @@ pub struct NatsMessageStream(pub(super) UnboundedSender<NatsMessage>);
 
 impl NatsMessageStream {
     pub async fn new(supervisor_id: &str, config: EventStreamConfig) -> Result<NatsMessageStream> {
-        let EventStreamConfig { url,
-                                token,
-                                connect_method,
-                                server_certificate,
-                                .. } = config;
+        let EventStreamConfig {
+            url,
+            token,
+            connect_method,
+            server_certificate,
+            ..
+        } = config;
 
         let mut client = Client::new(vec![url]);
 
         // Configure the client connect message
-        client.connect_mut()
-              .await
-              .name(format!("hab_client_{}", supervisor_id))
-              .verbose(true)
-              .token(token.to_string());
+        client
+            .connect_mut()
+            .await
+            .name(format!("bio_client_{}", supervisor_id))
+            .verbose(true)
+            .token(token.to_string());
 
         // Configure the tls connector
         let mut tls_connector = TlsConnector::builder();
-        for certificate in habitat_core::tls::native_tls_wrapper::certificates(None)? {
+        for certificate in biome_core::tls::native_tls_wrapper::certificates(None)? {
             tls_connector.add_root_certificate(certificate);
         }
         if let Some(certificate) = server_certificate {
@@ -68,8 +68,9 @@ impl NatsMessageStream {
         // a future that will resolve when a connection is possible. Once we establish a
         // connection, the client will handle reconnecting if necessary.
         if let Some(timeout) = connect_method.into() {
-            time::timeout(timeout, client.connect()).await
-                                                    .map_err(|_| Error::ConnectNatsServer)?;
+            time::timeout(timeout, client.connect())
+                .await
+                .map_err(|_| Error::ConnectNatsServer)?;
         } else {
             let client = Client::clone(&client);
             tokio::spawn(async move { client.connect().await });
@@ -85,12 +86,16 @@ impl NatsMessageStream {
                     // processed or there is an error in publishing the message, the message will
                     // never be sent.
                     if let RantsError::NotConnected = e {
-                        trace!("Failed to publish message to subject '{}' because the client is \
+                        trace!(
+                            "Failed to publish message to subject '{}' because the client is \
                                 not connected",
-                               packet.subject);
+                            packet.subject
+                        );
                     } else {
-                        error!("Failed to publish message to subject '{}', err: {}",
-                               packet.subject, e);
+                        error!(
+                            "Failed to publish message to subject '{}', err: {}",
+                            packet.subject, e
+                        );
                     }
                 }
             }

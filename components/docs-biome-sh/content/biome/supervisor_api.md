@@ -1,0 +1,18 @@
++++
+title = "Biome Supervisor API"
+aliases = ["/biome/api/supervisor/"]
+date = 2019-03-06T17:25:30-07:00
+draft = false
+layout = "data-api"
+style_sheet = "/biome-api-styles.css"
+api_file_path = "/biome-api-docs/sup-api.json"
+return_page = "/biome/"
+description = "Biome Supervisor API documentation."
+
+[menu]
+  [menu.biome]
+    title = "Supervisor API"
+    parent = "biome/reference/api"
+    identifier = "biome/reference/api Supervisor API"
++++
+

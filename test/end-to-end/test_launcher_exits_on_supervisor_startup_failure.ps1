@@ -1,7 +1,7 @@
 # A simple test that the launcher doesn't go into a tight loop restarting the
 # supervisor if the supervisor fails to start up. To override and test
 # locally-built code, set overrides in the environment of the script.
-# See https://github.com/habitat-sh/habitat/blob/master/BUILDING.md#testing-changes
+# See https://github.com/biome-sh/biome/blob/master/BUILDING.md#testing-changes
 
 Add-Type -TypeDefinition (Get-Content "$PSScriptroot/../../.expeditor/scripts/end_to_end/SupervisorRunner.cs" | Out-String)
 
@@ -9,8 +9,8 @@ $env:FS_ROOT = (Join-Path ([System.IO.Path]::GetTempPath()) ([System.IO.Path]::G
 New-Item $env:FS_ROOT -ItemType Directory -Force
 
 # Installing the launcher here because FS_ROOT is an imperfect abstraction. It turns out that even
-# if FS_ROOT is in place, we still look for the launcher in `/hab` when we start up.
-hab pkg install chef/hab-launcher
+# if FS_ROOT is in place, we still look for the launcher in `/bio` when we start up.
+bio pkg install biome/bio-launcher
 
 Describe "Supervisor startup failure" {
     chmod -R a-w $env:FS_ROOT

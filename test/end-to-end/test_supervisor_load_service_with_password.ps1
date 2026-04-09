@@ -1,4 +1,4 @@
-$username = "hab_test"
+$username = "bio_test"
 $password = "Pass@word1"
 net user /add $username $password
 net localgroup administrators $username /add
@@ -6,18 +6,18 @@ Add-Type -TypeDefinition (Get-Content ".expeditor\scripts\end_to_end\LsaWrapper.
 $lsa_wrapper = New-Object -type LsaWrapper
 $lsa_wrapper.SetRight($username, "SeServiceLogonRight")
 
-$env:HAB_ORIGIN = "ci"
-hab origin key generate ci
-hab pkg build test/fixtures/windows_plans/dummy_svc_user
+$env:BIO_ORIGIN = "ci"
+bio origin key generate ci
+bio pkg build test/fixtures/windows_plans/dummy_svc_user
 . .\results\last_build.ps1
-hab pkg install .\results\$pkg_artifact
+bio pkg install .\results\$pkg_artifact
 
-hab pkg install core/windows-service
-Start-Service Habitat
+bio pkg install core/windows-service
+Start-Service Biome
 Wait-Supervisor -Timeout 45
 
-Describe "hab svc load" {
-    $loadOut = hab svc load ci/dummy --password $password
+Describe "bio svc load" {
+    $loadOut = bio svc load ci/dummy --password $password
     Wait-SupervisorService dummy -Timeout 20
 
     It "Succesfully loads service" {

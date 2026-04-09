@@ -1,9 +1,7 @@
 use crate::protocol;
 
-use super::{HandleResult,
-            Handler};
-use crate::{server::ServiceTable,
-            service};
+use super::{HandleResult, Handler};
+use crate::{server::ServiceTable, service};
 
 pub struct SpawnHandler;
 impl Handler for SpawnHandler {
@@ -13,7 +11,9 @@ impl Handler for SpawnHandler {
     fn handle(msg: Self::Message, services: &mut ServiceTable) -> HandleResult<Self::Reply> {
         match service::run(msg) {
             Ok(service) => {
-                let reply = protocol::SpawnOk { pid: service.id().into(), };
+                let reply = protocol::SpawnOk {
+                    pid: service.id().into(),
+                };
                 services.insert(service);
                 Ok(reply)
             }

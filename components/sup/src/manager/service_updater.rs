@@ -1,26 +1,21 @@
 mod package_update_worker;
 mod rolling_update_worker;
 
-use self::{package_update_worker::PackageUpdateWorker,
-           rolling_update_worker::RollingUpdateWorker};
-use crate::{census::CensusRing,
-            manager::service::{Service,
-                               UpdateStrategy}};
-use futures::future::{self,
-                      AbortHandle};
-use habitat_common::outputln;
-use habitat_core::{package::PackageIdent,
-                   service::ServiceGroup};
+use self::{
+    package_update_worker::PackageUpdateWorker, rolling_update_worker::RollingUpdateWorker,
+};
+use crate::{
+    census::CensusRing,
+    manager::service::{Service, UpdateStrategy},
+};
+use biome_common::outputln;
+use biome_core::{package::PackageIdent, service::ServiceGroup};
+use futures::future::{self, AbortHandle};
 use log::debug;
-use parking_lot::{Mutex,
-                  RwLock};
-use std::{self,
-          cmp::Ordering,
-          collections::HashMap,
-          fmt,
-          future::Future,
-          sync::Arc,
-          time::Duration};
+use parking_lot::{Mutex, RwLock};
+use std::{
+    self, cmp::Ordering, collections::HashMap, fmt, future::Future, sync::Arc, time::Duration,
+};
 
 static LOGKEY: &str = "SU";
 
@@ -28,13 +23,15 @@ static LOGKEY: &str = "SU";
 struct Worker(AbortHandle);
 
 impl Drop for Worker {
-    fn drop(&mut self) { self.0.abort(); }
+    fn drop(&mut self) {
+        self.0.abort();
+    }
 }
 
 /// A type representing a package ident and possibly an incarnation to update to
 #[derive(Clone)]
 pub struct IncarnatedPackageIdent {
-    pub ident:       PackageIdent,
+    pub ident: PackageIdent,
     pub incarnation: Option<u64>,
 }
 
@@ -58,23 +55,26 @@ impl fmt::Display for IncarnatedPackageIdent {
 /// has been published to a depot channel or installed to the local package cache. To use an update
 /// strategy, the supervisor must be configured to watch a depot for new versions.
 pub struct ServiceUpdater {
-    butterfly:   habitat_butterfly::Server,
+    butterfly: biome_butterfly::Server,
     census_ring: Arc<RwLock<CensusRing>>,
-    updates:     Arc<Mutex<HashMap<ServiceGroup, IncarnatedPackageIdent>>>,
-    workers:     HashMap<ServiceGroup, Worker>,
-    period:      Duration,
+    updates: Arc<Mutex<HashMap<ServiceGroup, IncarnatedPackageIdent>>>,
+    workers: HashMap<ServiceGroup, Worker>,
+    period: Duration,
 }
 
 impl ServiceUpdater {
-    pub fn new(butterfly: habitat_butterfly::Server,
-               census_ring: Arc<RwLock<CensusRing>>,
-               period: Duration)
-               -> Self {
-        ServiceUpdater { butterfly,
-                         census_ring,
-                         updates: Arc::default(),
-                         workers: HashMap::new(),
-                         period }
+    pub fn new(
+        butterfly: biome_butterfly::Server,
+        census_ring: Arc<RwLock<CensusRing>>,
+        period: Duration,
+    ) -> Self {
+        ServiceUpdater {
+            butterfly,
+            census_ring,
+            updates: Arc::default(),
+            workers: HashMap::new(),
+            period,
+        }
     }
 
     /// Register a service for updates. If the service has already
@@ -120,36 +120,44 @@ impl ServiceUpdater {
         self.updates.lock().get(service_group).cloned()
     }
 
-    fn at_once_worker(&mut self,
-                      service: &Service)
-                      -> impl Future<Output = ()> + Send + 'static + use<> {
-        debug!("'{}' service updater spawning at-once worker watching for changes to '{}' from \
+    fn at_once_worker(
+        &mut self,
+        service: &Service,
+    ) -> impl Future<Output = ()> + Send + 'static + use<> {
+        debug!(
+            "'{}' service updater spawning at-once worker watching for changes to '{}' from \
                 channel '{}'",
-               service.service_group,
-               service.spec_ident(),
-               service.channel());
+            service.service_group,
+            service.spec_ident(),
+            service.channel()
+        );
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
         let updates = Arc::clone(&self.updates);
         let package_update_worker = PackageUpdateWorker::new(service, self.period);
         async move {
             let new_ident = package_update_worker.update().await;
-            debug!("'{}' at-once updater found update from '{}' to '{}'",
-                   service_group, full_ident, new_ident);
+            debug!(
+                "'{}' at-once updater found update from '{}' to '{}'",
+                service_group, full_ident, new_ident
+            );
             Self::update_message(&new_ident, full_ident.as_ref());
             updates.lock().insert(service_group, new_ident);
         }
     }
 
-    fn rolling_worker(&mut self,
-                      service: &Service,
-                      census_ring: Arc<RwLock<CensusRing>>)
-                      -> impl Future<Output = ()> + Send + 'static + use<> {
-        debug!("'{}' service updater spawning rolling worker watching for changes to '{}' from \
+    fn rolling_worker(
+        &mut self,
+        service: &Service,
+        census_ring: Arc<RwLock<CensusRing>>,
+    ) -> impl Future<Output = ()> + Send + 'static + use<> {
+        debug!(
+            "'{}' service updater spawning rolling worker watching for changes to '{}' from \
                 channel '{}'",
-               service.service_group,
-               service.spec_ident(),
-               service.channel());
+            service.service_group,
+            service.spec_ident(),
+            service.channel()
+        );
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
         let updates = Arc::clone(&self.updates);
@@ -157,8 +165,10 @@ impl ServiceUpdater {
             RollingUpdateWorker::new(service, census_ring, self.butterfly.clone(), self.period);
         async move {
             let new_ident = worker.run().await;
-            debug!("'{}' rolling updater found update from '{}' to '{}'",
-                   service_group, full_ident, new_ident);
+            debug!(
+                "'{}' rolling updater found update from '{}' to '{}'",
+                service_group, full_ident, new_ident
+            );
             Self::update_message(&new_ident, full_ident.as_ref());
             updates.lock().insert(service_group, new_ident);
         }
@@ -169,17 +179,21 @@ impl ServiceUpdater {
             Ordering::Greater => outputln!("Updating from {} to {}", current_ident, new_ident),
             Ordering::Less => outputln!("Rolling back from {} to {}", current_ident, new_ident),
             Ordering::Equal => {
-                outputln!("New incarnation {} found for {}",
-                          new_ident.incarnation.unwrap_or_default(),
-                          new_ident.ident)
+                outputln!(
+                    "New incarnation {} found for {}",
+                    new_ident.incarnation.unwrap_or_default(),
+                    new_ident.ident
+                )
             }
         };
     }
 
     /// Make the worker abortable and spawn it
-    fn spawn_worker(&mut self,
-                    service_group: ServiceGroup,
-                    worker: impl Future<Output = ()> + Send + 'static) {
+    fn spawn_worker(
+        &mut self,
+        service_group: ServiceGroup,
+        worker: impl Future<Output = ()> + Send + 'static,
+    ) {
         let (worker, abort_handle) = future::abortable(worker);
         self.workers.insert(service_group, Worker(abort_handle));
         tokio::spawn(worker);

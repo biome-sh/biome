@@ -2,18 +2,17 @@
 //! for use in the clap layer of the application. This is not the final form for defaults.
 //! Eventually this will be composed of fully typed default values. But as a first step we
 //! need a spot to consolidate those values and help simplify some of the logic around them.
-use habitat_core::{self,
-                   os::process::{ShutdownSignal,
-                                 ShutdownTimeout},
-                   package::PackageIdent};
+use biome_core::{
+    self,
+    os::process::{ShutdownSignal, ShutdownTimeout},
+    package::PackageIdent,
+};
 use lazy_static::lazy_static;
-use std::{ffi::OsStr,
-          path::Path,
-          str::FromStr};
+use std::{ffi::OsStr, path::Path, str::FromStr};
 
-pub const RING_ENVVAR: &str = "HAB_RING";
-pub const RING_KEY_ENVVAR: &str = "HAB_RING_KEY";
-pub const CTL_SECRET_ENVVAR: &str = "HAB_CTL_SECRET";
+pub const RING_ENVVAR: &str = "BIO_RING";
+pub const RING_KEY_ENVVAR: &str = "BIO_RING_KEY";
+pub const CTL_SECRET_ENVVAR: &str = "BIO_CTL_SECRET";
 
 pub const LISTEN_HTTP_DEFAULT_PORT: u16 = 9631;
 pub const LISTEN_HTTP_DEFAULT_IP: &str = "0.0.0.0";
@@ -22,7 +21,7 @@ lazy_static! {
         format!("{}:{}", LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT);
 }
 
-pub const PACKAGE_TARGET_ENVVAR: &str = "HAB_PACKAGE_TARGET";
+pub const PACKAGE_TARGET_ENVVAR: &str = "BIO_PACKAGE_TARGET";
 lazy_static! {
     pub static ref SHUTDOWN_TIMEOUT_DEFAULT: String = ShutdownTimeout::default().to_string();
 }
@@ -34,11 +33,11 @@ lazy_static! {
     pub static ref SHUTDOWN_SIGNAL_DEFAULT: String = ShutdownSignal::default().to_string();
 }
 
-pub const BINLINK_DIR_ENVVAR: &str = "HAB_BINLINK_DIR";
+pub const BINLINK_DIR_ENVVAR: &str = "BIO_BINLINK_DIR";
 
 /// Default Binlink Dir
 #[cfg(target_os = "windows")]
-pub const DEFAULT_BINLINK_DIR: &str = "/hab/bin";
+pub const DEFAULT_BINLINK_DIR: &str = "/bio/bin";
 #[cfg(target_os = "linux")]
 pub const DEFAULT_BINLINK_DIR: &str = "/bin";
 #[cfg(target_os = "macos")]
@@ -49,15 +48,15 @@ pub fn is_toml_file(val: &str) -> bool {
     matches!(extension, Some("toml"))
 }
 
-pub fn file_into_idents(path: &str) -> Result<Vec<PackageIdent>, habitat_core::error::Error> {
+pub fn file_into_idents(path: &str) -> Result<Vec<PackageIdent>, biome_core::error::Error> {
     let s = std::fs::read_to_string(path).map_err(|_| {
-                habitat_core::error::Error::FileNotFound(format!("Could not open file {}", path))
-            })?;
+        biome_core::error::Error::FileNotFound(format!("Could not open file {}", path))
+    })?;
 
     s.lines().filter_map(line_to_ident).collect()
 }
 
-fn line_to_ident(line: &str) -> Option<Result<PackageIdent, habitat_core::error::Error>> {
+fn line_to_ident(line: &str) -> Option<Result<PackageIdent, biome_core::error::Error>> {
     let trimmed = line.split('#').next().unwrap_or("").trim();
     match trimmed.len() {
         0 => None,
@@ -81,10 +80,14 @@ mod tests {
         assert!(line_to_ident("   # foo").is_none());
         assert!(line_to_ident("\n\r# foo").is_none());
 
-        assert_eq!(line_to_ident("core/gzip").unwrap().unwrap(),
-                   PackageIdent::from_str("core/gzip").unwrap());
-        assert_eq!(line_to_ident("core/gzip #foo").unwrap().unwrap(),
-                   PackageIdent::from_str("core/gzip").unwrap());
+        assert_eq!(
+            line_to_ident("core/gzip").unwrap().unwrap(),
+            PackageIdent::from_str("core/gzip").unwrap()
+        );
+        assert_eq!(
+            line_to_ident("core/gzip #foo").unwrap().unwrap(),
+            PackageIdent::from_str("core/gzip").unwrap()
+        );
 
         assert!(line_to_ident("core").unwrap().is_err());
 

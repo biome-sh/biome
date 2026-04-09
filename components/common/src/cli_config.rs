@@ -2,24 +2,20 @@
 //! for more than simply CLI configuration. If the opportunity arose it would be useful to rename
 //! this to convey that it is general configuration.
 use crate::types::ResolvedListenCtlAddr;
-use habitat_core::{fs::{FS_ROOT_PATH,
-                        am_i_root},
-                   origin::Origin,
-                   tls::rustls_wrapper::{CertificateChainCli,
-                                         PrivateKeyCli,
-                                         RootCertificateStoreCli}};
+use biome_core::{
+    fs::{FS_ROOT_PATH, am_i_root},
+    origin::Origin,
+    tls::rustls_wrapper::{CertificateChainCli, PrivateKeyCli, RootCertificateStoreCli},
+};
 use log::debug;
-use rustls::{ClientConfig as TlsClientConfig,
-             Error as TLSError,
-             pki_types::PrivateKeyDer};
-use serde::{Deserialize,
-            Serialize};
-use std::{fs,
-          io,
-          path::{Path,
-                 PathBuf}};
+use rustls::{ClientConfig as TlsClientConfig, Error as TLSError, pki_types::PrivateKeyDer};
+use serde::{Deserialize, Serialize};
+use std::{
+    fs, io,
+    path::{Path, PathBuf},
+};
 
-const CLI_CONFIG_PATH_POSTFIX: &str = "hab/etc/cli.toml";
+const CLI_CONFIG_PATH_POSTFIX: &str = "bio/etc/cli.toml";
 
 lazy_static::lazy_static! {
 static ref CLI_CONFIG_PATH: PathBuf = cli_config_path();
@@ -47,16 +43,16 @@ pub enum Error {
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct CliConfig {
-    pub auth_token:                 Option<String>,
-    pub refresh_channel:            Option<String>,
-    pub origin:                     Option<Origin>,
-    pub ctl_secret:                 Option<String>,
-    pub listen_ctl:                 Option<ResolvedListenCtlAddr>,
-    pub ctl_client_certificate:     Option<CertificateChainCli>,
-    pub ctl_client_key:             Option<PrivateKeyCli>,
-    pub ctl_server_ca_certificate:  Option<RootCertificateStoreCli>,
+    pub auth_token: Option<String>,
+    pub refresh_channel: Option<String>,
+    pub origin: Option<Origin>,
+    pub ctl_secret: Option<String>,
+    pub listen_ctl: Option<ResolvedListenCtlAddr>,
+    pub ctl_client_certificate: Option<CertificateChainCli>,
+    pub ctl_client_key: Option<PrivateKeyCli>,
+    pub ctl_server_ca_certificate: Option<RootCertificateStoreCli>,
     pub ctl_server_name_indication: Option<String>,
-    pub bldr_url:                   Option<String>,
+    pub bldr_url: Option<String>,
 }
 
 impl CliConfig {
@@ -66,7 +62,9 @@ impl CliConfig {
     }
 
     /// Get a reference to the `CliConfig` cached at startup
-    pub fn cache() -> &'static Self { &CACHED_CLI_CONFIG }
+    pub fn cache() -> &'static Self {
+        &CACHED_CLI_CONFIG
+    }
 
     /// Load an up to date `CliConfig` from disk
     pub fn load() -> Result<Self, Error> {
@@ -89,8 +87,9 @@ impl CliConfig {
     }
 
     pub fn maybe_tls_client_config(self) -> Result<Option<TlsClientConfig>, TLSError> {
-        let server_ca_certificates = self.ctl_server_ca_certificate
-                                         .map(RootCertificateStoreCli::into_inner);
+        let server_ca_certificates = self
+            .ctl_server_ca_certificate
+            .map(RootCertificateStoreCli::into_inner);
         if let Some(server_certificates) = server_ca_certificates {
             let tls_config = TlsClientConfig::builder().with_root_certificates(server_certificates);
             if let Some(client_key) = self.ctl_client_key {
@@ -116,7 +115,7 @@ impl CliConfig {
 
 fn cli_config_path() -> PathBuf {
     if !am_i_root()
-       && let Some(home) = dirs::home_dir()
+        && let Some(home) = dirs::home_dir()
     {
         return home.join(format!(".{}", CLI_CONFIG_PATH_POSTFIX));
     }
@@ -138,11 +137,13 @@ mod tests {
 
     #[test]
     fn test_cli_config_serialization() {
-        let config = CliConfig { auth_token: Some("test_token".to_string()),
-                                 refresh_channel: Some("stable".to_string()),
-                                 origin: None,
-                                 bldr_url: Some("https://bldr.example.com".to_string()),
-                                 ..Default::default() };
+        let config = CliConfig {
+            auth_token: Some("test_token".to_string()),
+            refresh_channel: Some("stable".to_string()),
+            origin: None,
+            bldr_url: Some("https://bldr.example.com".to_string()),
+            ..Default::default()
+        };
 
         let toml_str = toml::ser::to_string(&config).expect("Failed to serialize config");
 
@@ -164,8 +165,10 @@ bldr_url = "https://bldr.example.com"
 
         assert_eq!(config.auth_token, Some("test_token".to_string()));
         assert_eq!(config.refresh_channel, Some("stable".to_string()));
-        assert_eq!(config.bldr_url,
-                   Some("https://bldr.example.com".to_string()));
+        assert_eq!(
+            config.bldr_url,
+            Some("https://bldr.example.com".to_string())
+        );
         assert!(config.origin.is_none());
     }
 }

@@ -1,49 +1,32 @@
-use super::{BindingMode,
-            Topology,
-            UpdateCondition,
-            UpdateStrategy};
-use crate::error::{Error,
-                   Result};
-use habitat_core::{ChannelIdent,
-                   fs::atomic_write,
-                   os::process::ShutdownTimeout,
-                   package::{PackageIdent,
-                             PackageInstall},
-                   service::{HealthCheckInterval,
-                             ServiceBind},
-                   url::DEFAULT_BLDR_URL,
-                   util};
-use habitat_sup_protocol::{self,
-                           net};
-use log::{debug,
-          warn};
-use serde::{self,
-            Deserialize,
-            Serialize};
-use std::{collections::HashSet,
-          convert::TryFrom,
-          fmt,
-          fs::{self,
-               File},
-          io::{BufReader,
-               Read},
-          path::{Path,
-                 PathBuf},
-          result,
-          str::FromStr};
+use super::{BindingMode, Topology, UpdateCondition, UpdateStrategy};
+use crate::error::{Error, Result};
+use biome_core::{
+    ChannelIdent,
+    fs::atomic_write,
+    os::process::ShutdownTimeout,
+    package::{PackageIdent, PackageInstall},
+    service::{HealthCheckInterval, ServiceBind},
+    url::DEFAULT_BLDR_URL,
+    util,
+};
+use biome_sup_protocol::{self, net};
+use log::{debug, warn};
+use serde::{self, Deserialize, Serialize};
+use std::{
+    collections::HashSet,
+    convert::TryFrom,
+    fmt,
+    fs::{self, File},
+    io::{BufReader, Read},
+    path::{Path, PathBuf},
+    result,
+    str::FromStr,
+};
 
 static DEFAULT_GROUP: &str = "default";
 const SPEC_FILE_EXT: &str = "spec";
 
-#[derive(Copy,
-         Clone,
-         Debug,
-         Default,
-         Deserialize,
-         Eq,
-         Hash,
-         PartialEq,
-         Serialize)]
+#[derive(Copy, Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum DesiredState {
     Down,
     #[default]
@@ -85,19 +68,19 @@ impl From<DesiredState> for i32 {
 #[serde(default = "ServiceSpec::deserialization_base")]
 pub struct ServiceSpec {
     #[serde(with = "util::serde::string")]
-    pub ident:                  PackageIdent,
-    pub group:                  String,
-    pub bldr_url:               String,
-    pub channel:                ChannelIdent,
-    pub topology:               Topology,
-    pub update_strategy:        UpdateStrategy,
-    pub update_condition:       UpdateCondition,
-    pub binds:                  Vec<ServiceBind>,
-    pub binding_mode:           BindingMode,
-    pub config_from:            Option<PathBuf>,
+    pub ident: PackageIdent,
+    pub group: String,
+    pub bldr_url: String,
+    pub channel: ChannelIdent,
+    pub topology: Topology,
+    pub update_strategy: UpdateStrategy,
+    pub update_condition: UpdateCondition,
+    pub binds: Vec<ServiceBind>,
+    pub binding_mode: BindingMode,
+    pub config_from: Option<PathBuf>,
     #[serde(with = "util::serde::string")]
-    pub desired_state:          DesiredState,
-    pub shutdown_timeout:       Option<ShutdownTimeout>,
+    pub desired_state: DesiredState,
+    pub shutdown_timeout: Option<ShutdownTimeout>,
     pub svc_encrypted_password: Option<String>,
     // it is important that the health check interval
     // is the last field to be serialized because it
@@ -107,33 +90,37 @@ pub struct ServiceSpec {
     // Note that there is an issue to ultimately fix this:
     // https://github.com/habitat-sh/habitat/issues/6469
     // and eliminate the need to keep this field last.
-    pub health_check_interval:  HealthCheckInterval,
+    pub health_check_interval: HealthCheckInterval,
 }
 
 impl ServiceSpec {
     pub fn new(ident: PackageIdent) -> Self {
         let channel = ChannelIdent::default();
 
-        Self { ident,
-               group: DEFAULT_GROUP.to_string(),
-               bldr_url: DEFAULT_BLDR_URL.to_string(),
-               channel,
-               topology: Topology::default(),
-               update_strategy: UpdateStrategy::default(),
-               update_condition: UpdateCondition::default(),
-               binds: Vec::default(),
-               binding_mode: BindingMode::Strict,
-               config_from: None,
-               desired_state: DesiredState::default(),
-               health_check_interval: HealthCheckInterval::default(),
-               svc_encrypted_password: None,
-               shutdown_timeout: None }
+        Self {
+            ident,
+            group: DEFAULT_GROUP.to_string(),
+            bldr_url: DEFAULT_BLDR_URL.to_string(),
+            channel,
+            topology: Topology::default(),
+            update_strategy: UpdateStrategy::default(),
+            update_condition: UpdateCondition::default(),
+            binds: Vec::default(),
+            binding_mode: BindingMode::Strict,
+            config_from: None,
+            desired_state: DesiredState::default(),
+            health_check_interval: HealthCheckInterval::default(),
+            svc_encrypted_password: None,
+            shutdown_timeout: None,
+        }
     }
 
     // This should only be used to provide a default value when deserializing. We intentially do not
     // implement `Default` because a default value for `PackageIdent` does not make sense and should
     // be removed.
-    fn deserialization_base() -> Self { Self::new(PackageIdent::default()) }
+    fn deserialization_base() -> Self {
+        Self::new(PackageIdent::default())
+    }
 
     fn to_toml_string(&self) -> Result<String> {
         if self.ident == PackageIdent::default() {
@@ -143,9 +130,8 @@ impl ServiceSpec {
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let file = File::open(&path).map_err(|err| {
-                                        Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)
-                                    })?;
+        let file = File::open(&path)
+            .map_err(|err| Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))?;
         let mut file = BufReader::new(file);
         let mut buf = String::new();
         file.read_to_string(&mut buf)
@@ -154,20 +140,20 @@ impl ServiceSpec {
     }
 
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
-        debug!("Writing service spec to '{}': {:?}",
-               path.as_ref().display(),
-               &self);
-        let dst_path = path.as_ref()
-                           .parent()
-                           .expect("Cannot determine parent directory for service spec");
-        fs::create_dir_all(dst_path).map_err(|err| {
-                                        Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)
-                                    })?;
+        debug!(
+            "Writing service spec to '{}': {:?}",
+            path.as_ref().display(),
+            &self
+        );
+        let dst_path = path
+            .as_ref()
+            .parent()
+            .expect("Cannot determine parent directory for service spec");
+        fs::create_dir_all(dst_path)
+            .map_err(|err| Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))?;
         let toml = self.to_toml_string()?;
-        atomic_write(path.as_ref(), toml).map_err(|err| {
-                                             Error::ServiceSpecFileIO(path.as_ref().to_path_buf(),
-                                                                      err)
-                                         })?;
+        atomic_write(path.as_ref(), toml)
+            .map_err(|err| Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))?;
         Ok(())
     }
 
@@ -175,7 +161,9 @@ impl ServiceSpec {
         PathBuf::from(format!("{}.{}", ident.name, SPEC_FILE_EXT))
     }
 
-    pub fn file(&self) -> PathBuf { Self::ident_file(&self.ident) }
+    pub fn file(&self) -> PathBuf {
+        Self::ident_file(&self.ident)
+    }
 
     /// Validates that all required package binds are present in service binds and all remaining
     /// service binds are optional package binds.
@@ -212,19 +200,19 @@ impl ServiceSpec {
         // If we have remaining service binds then they are neither required nor optional package
         // binds. In this case, return an `Err`.
         if !svc_binds.is_empty() {
-            return Err(Error::InvalidBinds(svc_binds.into_iter()
-                                                    .map(str::to_string)
-                                                    .collect()));
+            return Err(Error::InvalidBinds(
+                svc_binds.into_iter().map(str::to_string).collect(),
+            ));
         }
 
         Ok(())
     }
 
-    pub fn merge_svc_load(mut self, svc_load: habitat_sup_protocol::ctl::SvcLoad) -> Result<Self> {
-        self.ident =
-            svc_load.ident
-                    .ok_or_else(|| net::err(net::ErrCode::BadPayload, "No ident specified"))?
-                    .into();
+    pub fn merge_svc_load(mut self, svc_load: biome_sup_protocol::ctl::SvcLoad) -> Result<Self> {
+        self.ident = svc_load
+            .ident
+            .ok_or_else(|| net::err(net::ErrCode::BadPayload, "No ident specified"))?
+            .into();
         if let Some(group) = svc_load.group {
             self.group = group;
         }
@@ -240,26 +228,32 @@ impl ServiceSpec {
             if let Ok(topology) = Topology::try_from(topology) {
                 self.topology = topology;
             } else {
-                warn!("Unable to parse topology value from SvcLoad protocol message; ignoring: {}",
-                      topology);
+                warn!(
+                    "Unable to parse topology value from SvcLoad protocol message; ignoring: {}",
+                    topology
+                );
             }
         }
         if let Some(update_strategy) = svc_load.update_strategy {
             if let Ok(update_strategy) = UpdateStrategy::try_from(update_strategy) {
                 self.update_strategy = update_strategy;
             } else {
-                warn!("Unable to parse update strategy value from SvcLoad protocol message; \
+                warn!(
+                    "Unable to parse update strategy value from SvcLoad protocol message; \
                        ignoring: {}",
-                      update_strategy);
+                    update_strategy
+                );
             }
         }
         if let Some(update_condition) = svc_load.update_condition {
             if let Ok(update_condition) = UpdateCondition::try_from(update_condition) {
                 self.update_condition = update_condition;
             } else {
-                warn!("Unable to parse update condition value from SvcLoad protocol message; \
+                warn!(
+                    "Unable to parse update condition value from SvcLoad protocol message; \
                        ignoring: {}",
-                      update_condition);
+                    update_condition
+                );
             }
         }
         if let Some(list) = svc_load.binds {
@@ -269,9 +263,11 @@ impl ServiceSpec {
             if let Ok(binding_mode) = BindingMode::try_from(binding_mode) {
                 self.binding_mode = binding_mode;
             } else {
-                warn!("Unable to parse binding mode value from SvcLoad protocol message; \
+                warn!(
+                    "Unable to parse binding mode value from SvcLoad protocol message; \
                        ignoring: {}",
-                      binding_mode);
+                    binding_mode
+                );
             }
         }
         if let Some(config_from) = svc_load.config_from {
@@ -289,7 +285,7 @@ impl ServiceSpec {
         Ok(self)
     }
 
-    pub fn merge_svc_update(&mut self, svc_update: habitat_sup_protocol::ctl::SvcUpdate) {
+    pub fn merge_svc_update(&mut self, svc_update: biome_sup_protocol::ctl::SvcUpdate) {
         if let Some(group) = svc_update.group {
             self.group = group;
         }
@@ -303,27 +299,33 @@ impl ServiceSpec {
             if let Ok(topology) = Topology::try_from(topology) {
                 self.topology = topology;
             } else {
-                warn!("Unable to parse topology value from SvcUpdate protocol message; ignoring: \
+                warn!(
+                    "Unable to parse topology value from SvcUpdate protocol message; ignoring: \
                        {}",
-                      topology);
+                    topology
+                );
             }
         }
         if let Some(update_strategy) = svc_update.update_strategy {
             if let Ok(update_strategy) = UpdateStrategy::try_from(update_strategy) {
                 self.update_strategy = update_strategy;
             } else {
-                warn!("Unable to parse update strategy value from SvcUpdate protocol message; \
+                warn!(
+                    "Unable to parse update strategy value from SvcUpdate protocol message; \
                        ignoring: {}",
-                      update_strategy);
+                    update_strategy
+                );
             }
         }
         if let Some(update_condition) = svc_update.update_condition {
             if let Ok(update_condition) = UpdateCondition::try_from(update_condition) {
                 self.update_condition = update_condition;
             } else {
-                warn!("Unable to parse update condition value from SvcUpdate protocol message; \
+                warn!(
+                    "Unable to parse update condition value from SvcUpdate protocol message; \
                        ignoring: {}",
-                      update_condition);
+                    update_condition
+                );
             }
         }
         if let Some(list) = svc_update.binds {
@@ -333,9 +335,11 @@ impl ServiceSpec {
             if let Ok(binding_mode) = BindingMode::try_from(binding_mode) {
                 self.binding_mode = binding_mode;
             } else {
-                warn!("Unable to parse binding mode value from SvcUpdate protocol message; \
+                warn!(
+                    "Unable to parse binding mode value from SvcUpdate protocol message; \
                        ignoring: {}",
-                      binding_mode);
+                    binding_mode
+                );
             }
         }
         if let Some(svc_encrypted_password) = svc_update.svc_encrypted_password {
@@ -364,16 +368,16 @@ impl ServiceSpec {
     /// refer to the same service.
     ///
     /// Returning `None` indicates that no operation is required.
-    pub(crate) fn reconcile(old: Option<ServiceSpec>,
-                            new: Option<ServiceSpec>)
-                            -> Option<ServiceOperation> {
+    pub(crate) fn reconcile(
+        old: Option<ServiceSpec>,
+        new: Option<ServiceSpec>,
+    ) -> Option<ServiceOperation> {
         // We need to compare the old spec to the new spec, taking
         // into consideration the desired state of each. While we can
         // do that via pattern matching directly, it gets a little
         // hairy. Instead, we'll just extract the data we need into
         // one unified match statement and go from there.
-        use DesiredState::{Down,
-                           Up};
+        use DesiredState::{Down, Up};
 
         match (old.map(|o| (o.desired_state, o)),
                new.map(|n| (n.desired_state, n)))
@@ -396,17 +400,17 @@ impl ServiceSpec {
                 None
             }
 
-            // A running service's spec file was removed (e.g., hab
+            // A running service's spec file was removed (e.g., bio
             // svc unload)
             (Some((Up, old)), None)
-            // A running service was told to stop (e.g., hab svc stop)
+            // A running service was told to stop (e.g., bio svc stop)
             | (Some((Up, old)), Some((Down, _))) => {
                 Some(ServiceOperation::Stop(old))
             }
 
-            // A new spec file was added (e.g., hab svc load)
+            // A new spec file was added (e.g., bio svc load)
             (None, Some((Up, new)))
-            // A previously stopped service was started (e.g., hab svc start)
+            // A previously stopped service was started (e.g., bio svc start)
             | (Some((Down, _)), Some((Up, new))) => {
                 Some(ServiceOperation::Start(new))
             }
@@ -527,7 +531,7 @@ pub(crate) enum ServiceOperation {
     /// This can be seen as a refinement of `Update` that involves
     /// stopping and starting the service process as well.
     Restart {
-        to_stop:  ServiceSpec,
+        to_stop: ServiceSpec,
         to_start: ServiceSpec,
     },
 }
@@ -544,10 +548,10 @@ impl FromStr for ServiceSpec {
     }
 }
 
-impl TryFrom<habitat_sup_protocol::ctl::SvcLoad> for ServiceSpec {
+impl TryFrom<biome_sup_protocol::ctl::SvcLoad> for ServiceSpec {
     type Error = Error;
 
-    fn try_from(svc_load: habitat_sup_protocol::ctl::SvcLoad) -> Result<Self> {
+    fn try_from(svc_load: biome_sup_protocol::ctl::SvcLoad) -> Result<Self> {
         // We use the default `PackageIdent` here but `merge_svc_load` checks that
         // `svc_load.ident` is set so we will return an error if there is no ident.
         Self::new(PackageIdent::default()).merge_svc_load(svc_load)
@@ -556,24 +560,21 @@ impl TryFrom<habitat_sup_protocol::ctl::SvcLoad> for ServiceSpec {
 
 #[cfg(test)]
 mod tests {
-    use std::{fs::{self,
-                   File},
-              io::{BufReader,
-                   Read,
-                   Write},
-              iter::FromIterator,
-              path::{Path,
-                     PathBuf},
-              str::FromStr};
+    use std::{
+        fs::{self, File},
+        io::{BufReader, Read, Write},
+        iter::FromIterator,
+        path::{Path, PathBuf},
+        str::FromStr,
+    };
     use tempfile::TempDir;
 
-    use habitat_core::{package::PackageIdent,
-                       service::HealthCheckInterval};
+    use biome_core::{package::PackageIdent, service::HealthCheckInterval};
 
     use super::*;
     use crate::error::Error::*;
 
-    use habitat_sup_protocol::ctl::SvcLoad;
+    use biome_sup_protocol::ctl::SvcLoad;
     use std::convert::TryFrom;
 
     fn file_from_str<P: AsRef<Path>>(path: P, content: &str) {
@@ -615,20 +616,30 @@ mod tests {
             "#;
         let spec = ServiceSpec::from_str(toml).unwrap();
 
-        assert_eq!(spec.ident,
-                   PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap());
+        assert_eq!(
+            spec.ident,
+            PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap()
+        );
         assert_eq!(spec.group, String::from("jobs"));
         assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
         assert_eq!(spec.update_condition, UpdateCondition::Latest);
-        assert_eq!(spec.binds,
-                   vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
-                        ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),]);
-        assert_eq!(spec.config_from,
-                   Some(PathBuf::from("/only/for/development")));
-        assert_eq!(spec.health_check_interval,
-                   HealthCheckInterval::from_str("5").unwrap());
+        assert_eq!(
+            spec.binds,
+            vec![
+                ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
+                ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
+            ]
+        );
+        assert_eq!(
+            spec.config_from,
+            Some(PathBuf::from("/only/for/development"))
+        );
+        assert_eq!(
+            spec.health_check_interval,
+            HealthCheckInterval::from_str("5").unwrap()
+        );
     }
 
     #[test]
@@ -685,25 +696,37 @@ mod tests {
 
     #[test]
     fn service_spec_to_toml_string() {
-        let spec =
-            ServiceSpec { ident:                  PackageIdent::from_str("origin/name/1.2.3/\
-                                                                          20170223130020").unwrap(),
-                          group:                  String::from("jobs"),
-                          bldr_url:               String::from("http://example.com/depot"),
-                          channel:                ChannelIdent::unstable(),
-                          topology:               Topology::Leader,
-                          update_strategy:        UpdateStrategy::AtOnce,
-                          update_condition:       UpdateCondition::Latest,
-                          binds:                  vec![ServiceBind::from_str("cache:redis.cache@\
-                                                                              acmecorp").unwrap(),
-                                                       ServiceBind::from_str("db:postgres.app@\
-                                                                              acmecorp").unwrap(),],
-                          binding_mode:           BindingMode::Relaxed,
-                          health_check_interval:  HealthCheckInterval::from_str("123").unwrap(),
-                          config_from:            Some(PathBuf::from("/only/for/development")),
-                          desired_state:          DesiredState::Down,
-                          svc_encrypted_password: None,
-                          shutdown_timeout:       Some(ShutdownTimeout::from_str("10").unwrap()), };
+        let spec = ServiceSpec {
+            ident: PackageIdent::from_str(
+                "origin/name/1.2.3/\
+                                                                          20170223130020",
+            )
+            .unwrap(),
+            group: String::from("jobs"),
+            bldr_url: String::from("http://example.com/depot"),
+            channel: ChannelIdent::unstable(),
+            topology: Topology::Leader,
+            update_strategy: UpdateStrategy::AtOnce,
+            update_condition: UpdateCondition::Latest,
+            binds: vec![
+                ServiceBind::from_str(
+                    "cache:redis.cache@\
+                                                                              acmecorp",
+                )
+                .unwrap(),
+                ServiceBind::from_str(
+                    "db:postgres.app@\
+                                                                              acmecorp",
+                )
+                .unwrap(),
+            ],
+            binding_mode: BindingMode::Relaxed,
+            health_check_interval: HealthCheckInterval::from_str("123").unwrap(),
+            config_from: Some(PathBuf::from("/only/for/development")),
+            desired_state: DesiredState::Down,
+            svc_encrypted_password: None,
+            shutdown_timeout: Some(ShutdownTimeout::from_str("10").unwrap()),
+        };
         let toml = spec.to_toml_string().unwrap();
 
         assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#,));
@@ -760,24 +783,36 @@ mod tests {
         file_from_str(&path, toml);
         let spec = ServiceSpec::from_file(path).unwrap();
 
-        assert_eq!(spec.ident,
-                   PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap());
+        assert_eq!(
+            spec.ident,
+            PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap()
+        );
         assert_eq!(spec.group, String::from("jobs"));
         assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
-        assert_eq!(spec.binds,
-                   vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
-                        ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),]);
+        assert_eq!(
+            spec.binds,
+            vec![
+                ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
+                ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
+            ]
+        );
         assert_eq!(spec.channel, ChannelIdent::default());
-        assert_eq!(spec.config_from,
-                   Some(PathBuf::from("/only/for/development")));
+        assert_eq!(
+            spec.config_from,
+            Some(PathBuf::from("/only/for/development"))
+        );
 
-        assert_eq!(spec.binding_mode,
-                   BindingMode::Strict,
-                   "Strict is the default mode, if nothing was previously specified.");
-        assert_eq!(spec.health_check_interval,
-                   HealthCheckInterval::from_str("5").unwrap());
+        assert_eq!(
+            spec.binding_mode,
+            BindingMode::Strict,
+            "Strict is the default mode, if nothing was previously specified."
+        );
+        assert_eq!(
+            spec.health_check_interval,
+            HealthCheckInterval::from_str("5").unwrap()
+        );
     }
 
     #[test]
@@ -806,12 +841,10 @@ mod tests {
         let path = tmpdir.path().join("nope.spec");
 
         match ServiceSpec::from_file(&path) {
-            Err(e) => {
-                match e {
-                    ServiceSpecFileIO(p, _) => assert_eq!(path, p),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e {
+                ServiceSpecFileIO(p, _) => assert_eq!(path, p),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("File should not exist for read"),
         }
     }
@@ -854,25 +887,37 @@ mod tests {
     fn service_spec_to_file() {
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("name.spec");
-        let spec =
-            ServiceSpec { ident:                  PackageIdent::from_str("origin/name/1.2.3/\
-                                                                          20170223130020").unwrap(),
-                          group:                  String::from("jobs"),
-                          bldr_url:               String::from("http://example.com/depot"),
-                          channel:                ChannelIdent::unstable(),
-                          topology:               Topology::Leader,
-                          update_strategy:        UpdateStrategy::AtOnce,
-                          update_condition:       UpdateCondition::Latest,
-                          binds:                  vec![ServiceBind::from_str("cache:redis.cache@\
-                                                                              acmecorp").unwrap(),
-                                                       ServiceBind::from_str("db:postgres.app@\
-                                                                              acmecorp").unwrap(),],
-                          binding_mode:           BindingMode::Relaxed,
-                          health_check_interval:  HealthCheckInterval::from_str("23").unwrap(),
-                          config_from:            Some(PathBuf::from("/only/for/development")),
-                          desired_state:          DesiredState::Down,
-                          svc_encrypted_password: None,
-                          shutdown_timeout:       Some(ShutdownTimeout::default()), };
+        let spec = ServiceSpec {
+            ident: PackageIdent::from_str(
+                "origin/name/1.2.3/\
+                                                                          20170223130020",
+            )
+            .unwrap(),
+            group: String::from("jobs"),
+            bldr_url: String::from("http://example.com/depot"),
+            channel: ChannelIdent::unstable(),
+            topology: Topology::Leader,
+            update_strategy: UpdateStrategy::AtOnce,
+            update_condition: UpdateCondition::Latest,
+            binds: vec![
+                ServiceBind::from_str(
+                    "cache:redis.cache@\
+                                                                              acmecorp",
+                )
+                .unwrap(),
+                ServiceBind::from_str(
+                    "db:postgres.app@\
+                                                                              acmecorp",
+                )
+                .unwrap(),
+            ],
+            binding_mode: BindingMode::Relaxed,
+            health_check_interval: HealthCheckInterval::from_str("23").unwrap(),
+            config_from: Some(PathBuf::from("/only/for/development")),
+            desired_state: DesiredState::Down,
+            svc_encrypted_password: None,
+            shutdown_timeout: Some(ShutdownTimeout::default()),
+        };
         spec.to_file(&path).unwrap();
         let toml = string_from_file(path);
 
@@ -921,34 +966,43 @@ mod tests {
     fn testing_package_install() -> PackageInstall {
         let ident = if cfg!(target_os = "linux") {
             if cfg!(target_arch = "x86_64") {
-                PackageIdent::new("test-bind",
-                                  "test-bind",
-                                  Some("0.1.0"),
-                                  Some("20190219230309"))
+                PackageIdent::new(
+                    "test-bind",
+                    "test-bind",
+                    Some("0.1.0"),
+                    Some("20190219230309"),
+                )
             } else if cfg!(target_arch = "aarch64") {
-                PackageIdent::new("test-bind-native",
-                                  "test-bind-native-linux-aarch64",
-                                  Some("0.1.0"),
-                                  Some("20220701090436"))
+                PackageIdent::new(
+                    "test-bind-native",
+                    "test-bind-native-linux-aarch64",
+                    Some("0.1.0"),
+                    Some("20220701090436"),
+                )
             } else {
                 panic!("This is being run on a platform that's not currently supported");
             }
         } else if cfg!(target_os = "windows") {
-            PackageIdent::new("test-bind",
-                              "test-bind-win",
-                              Some("0.1.0"),
-                              Some("20190219231616"))
+            PackageIdent::new(
+                "test-bind",
+                "test-bind-win",
+                Some("0.1.0"),
+                Some("20190219231616"),
+            )
         } else {
             panic!("This is being run on a platform that's not currently supported");
         };
 
         let spec = ServiceSpec::new(ident);
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
-                                                            .join("fixtures")
-                                                            .join("pkgs");
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("pkgs");
 
-        PackageInstall::load(&spec.ident, Some(&path)).expect("PackageInstall should've loaded my \
-                                                               spec, but it didn't")
+        PackageInstall::load(&spec.ident, Some(&path)).expect(
+            "PackageInstall should've loaded my \
+                                                               spec, but it didn't",
+        )
     }
 
     #[test]
@@ -967,8 +1021,10 @@ mod tests {
         let package = testing_package_install();
 
         let mut spec = ServiceSpec::new(package.ident().clone());
-        spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap(),
-                          ServiceBind::from_str("storage:minio.app@acmecorp").unwrap(),];
+        spec.binds = vec![
+            ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap(),
+            ServiceBind::from_str("storage:minio.app@acmecorp").unwrap(),
+        ];
         if let Err(e) = spec.validate(&package) {
             panic!("Unexpected error returned: {:?}", e);
         }
@@ -982,12 +1038,10 @@ mod tests {
         let mut spec = ServiceSpec::new(package.ident().clone());
         spec.binds = vec![];
         match spec.validate(&package) {
-            Err(e) => {
-                match e {
-                    MissingRequiredBind(b) => assert_eq!(vec!["database".to_string()], b),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e {
+                MissingRequiredBind(b) => assert_eq!(vec!["database".to_string()], b),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("Spec should not validate"),
         }
     }
@@ -999,15 +1053,15 @@ mod tests {
         let package = testing_package_install();
 
         let mut spec = ServiceSpec::new(package.ident().clone());
-        spec.binds = vec![ServiceBind::from_str("backend:tomcat.app@acmecorp").unwrap(),
-                          ServiceBind::from_str("database:postgres.app@acmecorp").unwrap(),];
+        spec.binds = vec![
+            ServiceBind::from_str("backend:tomcat.app@acmecorp").unwrap(),
+            ServiceBind::from_str("database:postgres.app@acmecorp").unwrap(),
+        ];
         match spec.validate(&package) {
-            Err(e) => {
-                match e {
-                    InvalidBinds(b) => assert_eq!(vec!["backend".to_string()], b),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
+            Err(e) => match e {
+                InvalidBinds(b) => assert_eq!(vec!["backend".to_string()], b),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
             Ok(_) => panic!("Spec should not validate"),
         }
     }
@@ -1035,8 +1089,10 @@ mod tests {
         // basically ignored.
         let spec = ServiceSpec::from_str(toml).unwrap();
 
-        assert_eq!(spec.ident,
-                   PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap());
+        assert_eq!(
+            spec.ident,
+            PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap()
+        );
         assert_eq!(spec.group, String::from("jobs"));
 
         assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
@@ -1044,13 +1100,21 @@ mod tests {
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
 
         // Any app/env in binds are removed.
-        assert_eq!(spec.binds,
-                   vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
-                        ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),]);
-        assert_eq!(spec.config_from,
-                   Some(PathBuf::from("/only/for/development")));
-        assert_eq!(spec.health_check_interval,
-                   HealthCheckInterval::from_str("5").unwrap());
+        assert_eq!(
+            spec.binds,
+            vec![
+                ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
+                ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
+            ]
+        );
+        assert_eq!(
+            spec.config_from,
+            Some(PathBuf::from("/only/for/development"))
+        );
+        assert_eq!(
+            spec.health_check_interval,
+            HealthCheckInterval::from_str("5").unwrap()
+        );
     }
 
     #[test]
@@ -1138,12 +1202,13 @@ mod tests {
         use super::*;
 
         fn spec<S>(ident: S, desired_state: DesiredState) -> ServiceSpec
-            where S: AsRef<str>
+        where
+            S: AsRef<str>,
         {
-            let mut s = ServiceSpec::new(ident.as_ref()
-                                              .parse()
-                                              .expect("Couldn't create a testing spec from \
-                                                       given ident"));
+            let mut s = ServiceSpec::new(ident.as_ref().parse().expect(
+                "Couldn't create a testing spec from \
+                                                       given ident",
+            ));
             s.desired_state = desired_state;
             s
         }
@@ -1155,8 +1220,10 @@ mod tests {
             assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), None), None);
             assert_eq!(ServiceSpec::reconcile(None, Some(down_spec.clone())), None);
             assert_eq!(ServiceSpec::reconcile(None, Some(down_spec.clone())), None);
-            assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), Some(down_spec)),
-                       None);
+            assert_eq!(
+                ServiceSpec::reconcile(Some(down_spec.clone()), Some(down_spec)),
+                None
+            );
             assert_eq!(ServiceSpec::reconcile(None, None), None);
         }
 
@@ -1165,10 +1232,14 @@ mod tests {
             let up_spec = spec("core/starter", DesiredState::Up);
             let down_spec = spec("core/starter", DesiredState::Down);
 
-            assert_eq!(ServiceSpec::reconcile(Some(down_spec), Some(up_spec.clone())),
-                       Some(ServiceOperation::Start(up_spec.clone())));
-            assert_eq!(ServiceSpec::reconcile(None, Some(up_spec.clone())),
-                       Some(ServiceOperation::Start(up_spec)));
+            assert_eq!(
+                ServiceSpec::reconcile(Some(down_spec), Some(up_spec.clone())),
+                Some(ServiceOperation::Start(up_spec.clone()))
+            );
+            assert_eq!(
+                ServiceSpec::reconcile(None, Some(up_spec.clone())),
+                Some(ServiceOperation::Start(up_spec))
+            );
         }
 
         #[test]
@@ -1176,10 +1247,14 @@ mod tests {
             let up_spec = spec("core/stopper", DesiredState::Up);
             let down_spec = spec("core/stopper", DesiredState::Down);
 
-            assert_eq!(ServiceSpec::reconcile(Some(up_spec.clone()), Some(down_spec)),
-                       Some(ServiceOperation::Stop(up_spec.clone())));
-            assert_eq!(ServiceSpec::reconcile(Some(up_spec.clone()), None),
-                       Some(ServiceOperation::Stop(up_spec)));
+            assert_eq!(
+                ServiceSpec::reconcile(Some(up_spec.clone()), Some(down_spec)),
+                Some(ServiceOperation::Stop(up_spec.clone()))
+            );
+            assert_eq!(
+                ServiceSpec::reconcile(Some(up_spec.clone()), None),
+                Some(ServiceOperation::Stop(up_spec))
+            );
         }
 
         /// Edge case where we end up with identical specs;
@@ -1210,9 +1285,13 @@ mod tests {
                         s
                     };
 
-                    assert_eq!(ServiceSpec::reconcile(Some(running.clone()), Some(disk.clone())),
-                               Some(ServiceOperation::Restart { to_stop:  running,
-                                                                to_start: disk, }))
+                    assert_eq!(
+                        ServiceSpec::reconcile(Some(running.clone()), Some(disk.clone())),
+                        Some(ServiceOperation::Restart {
+                            to_stop: running,
+                            to_start: disk,
+                        })
+                    )
                 }
             };
             ($test_name:ident,update, $field:ident, $value:expr, $ops:expr) => {
@@ -1225,62 +1304,86 @@ mod tests {
                         s
                     };
 
-                    assert_eq!(ServiceSpec::reconcile(Some(running), Some(disk.clone())),
-                               Some(ServiceOperation::Update(disk, HashSet::from_iter($ops))));
+                    assert_eq!(
+                        ServiceSpec::reconcile(Some(running), Some(disk.clone())),
+                        Some(ServiceOperation::Update(disk, HashSet::from_iter($ops)))
+                    );
                 }
             };
         }
 
-        reconcile!(ident_causes_restart,
-                   restart,
-                   ident,
-                   "core/foo".parse().unwrap());
+        reconcile!(
+            ident_causes_restart,
+            restart,
+            ident,
+            "core/foo".parse().unwrap()
+        );
         reconcile!(group_causes_restart, restart, group, "prod".to_string());
         reconcile!(topology_causes_restart, restart, topology, Topology::Leader);
-        reconcile!(binds_causes_restart,
-                   restart,
-                   binds,
-                   vec![ServiceBind::new("foo", "blah.default".parse().unwrap())]);
-        reconcile!(binding_mode_causes_restart,
-                   restart,
-                   binding_mode,
-                   BindingMode::Relaxed);
-        reconcile!(config_from_causes_restart,
-                   restart,
-                   config_from,
-                   Some("blah.config".into()));
-        reconcile!(shutdown_timeout_causes_restart,
-                   restart,
-                   shutdown_timeout,
-                   Some(10.into()));
-        reconcile!(svc_encrypted_password_causes_restart,
-                   restart,
-                   svc_encrypted_password,
-                   Some("monkeys".to_string()));
-        reconcile!(health_check_interval_causes_restart,
-                   restart,
-                   health_check_interval,
-                   10000.into());
+        reconcile!(
+            binds_causes_restart,
+            restart,
+            binds,
+            vec![ServiceBind::new("foo", "blah.default".parse().unwrap())]
+        );
+        reconcile!(
+            binding_mode_causes_restart,
+            restart,
+            binding_mode,
+            BindingMode::Relaxed
+        );
+        reconcile!(
+            config_from_causes_restart,
+            restart,
+            config_from,
+            Some("blah.config".into())
+        );
+        reconcile!(
+            shutdown_timeout_causes_restart,
+            restart,
+            shutdown_timeout,
+            Some(10.into())
+        );
+        reconcile!(
+            svc_encrypted_password_causes_restart,
+            restart,
+            svc_encrypted_password,
+            Some("monkeys".to_string())
+        );
+        reconcile!(
+            health_check_interval_causes_restart,
+            restart,
+            health_check_interval,
+            10000.into()
+        );
 
-        reconcile!(bldr_url_causes_update,
-                   update,
-                   bldr_url,
-                   "http://mybuider.company.com".to_string(),
-                   vec![RefreshOperation::RestartUpdater]);
-        reconcile!(channel_causes_update,
-                   update,
-                   channel,
-                   "new_channel".into(),
-                   vec![RefreshOperation::RestartUpdater]);
-        reconcile!(update_strategy_causes_update,
-                   update,
-                   update_strategy,
-                   UpdateStrategy::AtOnce,
-                   vec![RefreshOperation::RestartUpdater]);
-        reconcile!(update_condition_causes_update,
-                   update,
-                   update_condition,
-                   UpdateCondition::TrackChannel,
-                   vec![RefreshOperation::RestartUpdater]);
+        reconcile!(
+            bldr_url_causes_update,
+            update,
+            bldr_url,
+            "http://mybuider.company.com".to_string(),
+            vec![RefreshOperation::RestartUpdater]
+        );
+        reconcile!(
+            channel_causes_update,
+            update,
+            channel,
+            "new_channel".into(),
+            vec![RefreshOperation::RestartUpdater]
+        );
+        reconcile!(
+            update_strategy_causes_update,
+            update,
+            update_strategy,
+            UpdateStrategy::AtOnce,
+            vec![RefreshOperation::RestartUpdater]
+        );
+        reconcile!(
+            update_condition_causes_update,
+            update,
+            update_condition,
+            UpdateCondition::TrackChannel,
+            vec![RefreshOperation::RestartUpdater]
+        );
     }
 }

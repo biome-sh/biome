@@ -155,7 +155,7 @@
     "env": {
       "BAZ": "QUUX",
       "FOO": "BAR",
-      "PATH": "/hab/pkgs/core/git/2.14.2/20171016215544/bin:/hab/pkgs/core/xz/5.2.2/20170513214327/bin:/hab/pkgs/core/perl/5.22.1/20170513213942/bin:/hab/pkgs/core/pcre/8.38/20170513213423/bin:/hab/pkgs/core/openssl/1.0.2l/20171014213633/bin:/hab/pkgs/core/openssh/7.5p1/20171014214153/bin:/hab/pkgs/core/openssh/7.5p1/20171014214153/sbin:/hab/pkgs/core/openssh/7.5p1/20171014214153/libexec:/hab/pkgs/core/ncurses/6.0/20170513213009/bin:/hab/pkgs/core/libcap/2.24/20170513213120/bin:/hab/pkgs/core/less/481/20170513213936/bin:/hab/pkgs/core/glibc/2.22/20170513201042/bin:/hab/pkgs/core/gettext/0.19.6/20170513214354/bin:/hab/pkgs/core/gdbm/1.11/20170513213716/bin:/hab/pkgs/core/expat/2.2.2/20171015103808/bin:/hab/pkgs/core/db/5.3.28/20170513213734/bin:/hab/pkgs/core/curl/7.54.1/20171014214153/bin:/hab/pkgs/core/coreutils/8.25/20170513213226/bin:/hab/pkgs/core/bzip2/1.0.6/20170513212938/bin:/hab/pkgs/core/attr/2.4.47/20170513213059/bin:/hab/pkgs/core/acl/2.2.52/20170513213108/bin:/hab/pkgs/core/busybox-static/1.24.2/20170513215502/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+      "PATH": "/bio/pkgs/core/git/2.14.2/20171016215544/bin:/bio/pkgs/core/xz/5.2.2/20170513214327/bin:/bio/pkgs/core/perl/5.22.1/20170513213942/bin:/bio/pkgs/core/pcre/8.38/20170513213423/bin:/bio/pkgs/core/openssl/1.0.2l/20171014213633/bin:/bio/pkgs/core/openssh/7.5p1/20171014214153/bin:/bio/pkgs/core/openssh/7.5p1/20171014214153/sbin:/bio/pkgs/core/openssh/7.5p1/20171014214153/libexec:/bio/pkgs/core/ncurses/6.0/20170513213009/bin:/bio/pkgs/core/libcap/2.24/20170513213120/bin:/bio/pkgs/core/less/481/20170513213936/bin:/bio/pkgs/core/glibc/2.22/20170513201042/bin:/bio/pkgs/core/gettext/0.19.6/20170513214354/bin:/bio/pkgs/core/gdbm/1.11/20170513213716/bin:/bio/pkgs/core/expat/2.2.2/20171015103808/bin:/bio/pkgs/core/db/5.3.28/20170513213734/bin:/bio/pkgs/core/curl/7.54.1/20171014214153/bin:/bio/pkgs/core/coreutils/8.25/20170513213226/bin:/bio/pkgs/core/bzip2/1.0.6/20170513212938/bin:/bio/pkgs/core/attr/2.4.47/20170513213059/bin:/bio/pkgs/core/acl/2.2.52/20170513213108/bin:/bio/pkgs/core/busybox-static/1.24.2/20170513215502/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
     },
     "exports": {
       "blah": "stuff.thing",
@@ -167,19 +167,19 @@
     "ident": "core/template-probe/0.1.0/20180315155739",
     "name": "template-probe",
     "origin": "core",
-    "path": "/hab/pkgs/core/template-probe/0.1.0/20180315155739",
+    "path": "/bio/pkgs/core/template-probe/0.1.0/20180315155739",
     "release": "20180315155739",
-    "svc_config_path": "/hab/svc/template-probe/config",
-    "svc_config_install_path": "/hab/svc/template-probe/config_install",
-    "svc_data_path": "/hab/svc/template-probe/data",
-    "svc_files_path": "/hab/svc/template-probe/files",
-    "svc_group": "hab",
-    "svc_path": "/hab/svc/template-probe",
-    "svc_pid_file": "/hab/svc/template-probe/PID",
-    "svc_run": "/hab/svc/template-probe/run",
-    "svc_static_path": "/hab/svc/template-probe/static",
-    "svc_user": "hab",
-    "svc_var_path": "/hab/svc/template-probe/var",
+    "svc_config_path": "/bio/svc/template-probe/config",
+    "svc_config_install_path": "/bio/svc/template-probe/config_install",
+    "svc_data_path": "/bio/svc/template-probe/data",
+    "svc_files_path": "/bio/svc/template-probe/files",
+    "svc_group": "bio",
+    "svc_path": "/bio/svc/template-probe",
+    "svc_pid_file": "/bio/svc/template-probe/PID",
+    "svc_run": "/bio/svc/template-probe/run",
+    "svc_static_path": "/bio/svc/template-probe/static",
+    "svc_user": "bio",
+    "svc_var_path": "/bio/svc/template-probe/var",
     "version": "0.1.0"
   },
   "cfg": {

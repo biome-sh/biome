@@ -1,32 +1,32 @@
 [Diagnostics.CodeAnalysis.SuppressMessage("PSUseCorrectCasing", '')]
 param ()
 
-# `build` is a built-in helper function that maps to `hab pkg exec chef/hab-plan-build`
-# rather than `hab pkg build` to avoid 'studio-in-studio' situations. Verify that the
+# `build` is a built-in helper function that maps to `bio pkg exec biome/bio-plan-build`
+# rather than `bio pkg build` to avoid 'studio-in-studio' situations. Verify that the
 # command functions. We assume that if the build succeeds (exits 0) we've passed this
-# test, and leave more detailed testing to the build output to e2e tests for hab-plan-build
-hab origin key generate $env:HAB_ORIGIN
+# test, and leave more detailed testing to the build output to e2e tests for bio-plan-build
+bio origin key generate $env:BIO_ORIGIN
 
 Describe "Studio build" {
     foreach($plan in @(
             "plan-in-root",
-            "plan-in-habitat",
+            "plan-in-biome",
             "plan-in-target",
-            "plan-in-habitat-target"
+            "plan-in-biome-target"
         )) {
         It "builds $plan" {
-            hab pkg build test/fixtures/$plan
+            bio pkg build test/fixtures/$plan
             $LASTEXITCODE | Should -Be 0
         }
     }
 
-    It "does not build plan-in-root-and-habitat" {
-        hab pkg build test/fixtures/plan-in-root-and-habitat
+    It "does not build plan-in-root-and-biome" {
+        bio pkg build test/fixtures/plan-in-root-and-biome
         $LASTEXITCODE | Should -Not -Be 0
     }
 
     It "does not build plan-in-none" {
-        hab pkg build test/fixtures/plan-in-none
+        bio pkg build test/fixtures/plan-in-none
         $LASTEXITCODE | Should -Not -Be 0
     }
 
@@ -41,7 +41,7 @@ Describe "Studio build" {
         Invoke-Build minimal-package
         . ./results/last_build.ps1
 
-        "/hab/cache/artifacts/$pkg_artifact" | Should -Exist
+        "/bio/cache/artifacts/$pkg_artifact" | Should -Exist
     }
 
     if($IsWindows) {
@@ -52,7 +52,7 @@ Describe "Studio build" {
             Push-Location x:\
             New-Item -Name $dir -ItemType Junction -target $cd.Path
             Set-Location $dir
-            hab pkg build test/fixtures/minimal-package
+            bio pkg build test/fixtures/minimal-package
             $exitCode = $LASTEXITCODE
             Pop-Location
 
@@ -64,17 +64,17 @@ Describe "Studio build" {
         Invoke-BuildAndInstall hook-extension-plan
         . ./results/last_build.ps1
 
-        "/hab/pkgs/$pkg_ident/hooks/install" | Should -Exist
+        "/bio/pkgs/$pkg_ident/hooks/install" | Should -Exist
     }
 
     It "fails when there are multiple extensions" {
-        hab pkg build test/fixtures/bad-hook-extension-plan
+        bio pkg build test/fixtures/bad-hook-extension-plan
         $LASTEXITCODE | Should -Not -Be 0
     }
 }
 
 Describe "working after success callback" {
-    $result = hab pkg build test/fixtures/after-success-plan
+    $result = bio pkg build test/fixtures/after-success-plan
     $exit = $LASTEXITCODE
     It "exits 0" {
         $exit | Should -Be 0
@@ -90,7 +90,7 @@ Describe "working after success callback" {
 }
 
 Describe "failing after success callback" {
-    $result = hab pkg build test/fixtures/broken-after-success-plan
+    $result = bio pkg build test/fixtures/broken-after-success-plan
     $exit = $LASTEXITCODE
     It "exits 0" {
         $exit | Should -Be 0
@@ -106,7 +106,7 @@ Describe "failing after success callback" {
 }
 
 Describe "working after failure callback" {
-    $result = hab pkg build test/fixtures/after-failure-plan
+    $result = bio pkg build test/fixtures/after-failure-plan
     $exit = $LASTEXITCODE
     It "exits 1" {
         $exit | Should -Be 1
@@ -122,7 +122,7 @@ Describe "working after failure callback" {
 }
 
 Describe "failing after failure callback" {
-    $result = hab pkg build test/fixtures/broken-after-failure-plan
+    $result = bio pkg build test/fixtures/broken-after-failure-plan
     $exit = $LASTEXITCODE
     It "exits 1" {
         $exit | Should -Be 1
@@ -139,14 +139,14 @@ Describe "failing after failure callback" {
 
 Describe "Consuming runtime variables of build dependency" {
     It "correctly sets up the environment" {
-        hab pkg build test/fixtures/runtime-env-plan
+        bio pkg build test/fixtures/runtime-env-plan
         $env:SOME_VAR = $null
         if ($IsMacOS) {
-            # macOS hab does not support -R (--reuse); studio reuse is
+            # macOS bio does not support -R (--reuse); studio reuse is
             # only available on Linux and Windows.
-            hab pkg build test/fixtures/runtime-env-consumer-plan
+            bio pkg build test/fixtures/runtime-env-consumer-plan
         } else {
-            hab pkg build test/fixtures/runtime-env-consumer-plan -R
+            bio pkg build test/fixtures/runtime-env-consumer-plan -R
         }
         $LASTEXITCODE | Should -Be 0
     }
@@ -157,29 +157,29 @@ Describe "Targeting different refresh channels" {
         It "Can target a downgraded channel" {
             Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade -RefreshChannel refresh2022q2
             . ./results/last_build.ps1
-            "/hab/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/glibc/2.34"
+            "/bio/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/glibc/2.34"
         }
 
         It "Can target default LTS-2024" {
             Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade -RefreshChannel LTS-2024
             . ./results/last_build.ps1
-            "/hab/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/glibc/2.36"
+            "/bio/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/glibc/2.36"
         }
     }
 
     if($IsWindows) {
-        hab studio run "hab pkg install core/libarchive"
+        bio studio run "bio pkg install core/libarchive"
 
         It "Can target a downgraded channel" {
             Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade -RefreshChannel refresh2022q2
             . ./results/last_build.ps1
-            "/hab/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/zlib/1.2.12"
+            "/bio/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/zlib/1.2.12"
         }
 
         It "Can target latest stable" {
             Invoke-BuildAndInstall -PackageName breakable-refresh-downgrade -RefreshChannel stable
             . ./results/last_build.ps1
-            "/hab/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/zlib/1.3"
+            "/bio/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/zlib/1.3"
         }
     }
 }

@@ -1,99 +1,60 @@
 // This contains code largely copy/pasted from the rust-lang/rust repo
 // We will need to create processes using different windows API calls in
-// order to be able to start habitat Supervisor services as different users.
+// order to be able to start biome Supervisor services as different users.
 
-use super::super::{super::crypto::dpapi::decrypt,
-                   users::get_current_username};
-use crate::error::{Error,
-                   Result};
-use habitat_win_users::sid::{self,
-                             Sid};
-use rand::{self,
-           RngExt};
-use std::{cmp,
-          collections::HashMap,
-          env,
-          ffi::{OsStr,
-                OsString},
-          fmt,
-          fs,
-          io::{self,
-               ErrorKind,
-               Read},
-          mem,
-          ops::Deref,
-          os::windows::ffi::OsStrExt,
-          path::Path,
-          ptr,
-          slice::from_raw_parts_mut,
-          sync::Mutex};
+use super::super::{super::crypto::dpapi::decrypt, users::get_current_username};
+use crate::error::{Error, Result};
+use biome_win_users::sid::{self, Sid};
+use rand::{self, RngExt};
+use std::{
+    cmp,
+    collections::HashMap,
+    env,
+    ffi::{OsStr, OsString},
+    fmt, fs,
+    io::{self, ErrorKind, Read},
+    mem,
+    ops::Deref,
+    os::windows::ffi::OsStrExt,
+    path::Path,
+    ptr,
+    slice::from_raw_parts_mut,
+    sync::Mutex,
+};
 use widestring::WideCString;
-use winapi::{shared::{minwindef::{BOOL,
-                                  DWORD,
-                                  FALSE,
-                                  HWINSTA,
-                                  LPVOID,
-                                  TRUE},
-                      windef::HDESK,
-                      winerror::{ERROR_ACCESS_DENIED,
-                                 ERROR_BROKEN_PIPE,
-                                 ERROR_HANDLE_EOF,
-                                 ERROR_INVALID_PARAMETER,
-                                 ERROR_IO_PENDING,
-                                 ERROR_LOGON_TYPE_NOT_GRANTED,
-                                 ERROR_PRIVILEGE_NOT_HELD}},
-             um::{fileapi::{self,
-                            CREATE_ALWAYS,
-                            CREATE_NEW,
-                            OPEN_ALWAYS,
-                            OPEN_EXISTING,
-                            TRUNCATE_EXISTING},
-                  handleapi::{self,
-                              INVALID_HANDLE_VALUE},
-                  ioapiset,
-                  minwinbase::{LPSECURITY_ATTRIBUTES,
-                               OVERLAPPED,
-                               SECURITY_ATTRIBUTES},
-                  namedpipeapi,
-                  processthreadsapi::{self,
-                                      LPPROCESS_INFORMATION,
-                                      LPSTARTUPINFOW,
-                                      PROCESS_INFORMATION,
-                                      STARTUPINFOW},
-                  synchapi,
-                  winbase::{CREATE_NEW_PROCESS_GROUP,
-                            CREATE_UNICODE_ENVIRONMENT,
-                            FILE_FLAG_FIRST_PIPE_INSTANCE,
-                            FILE_FLAG_OPEN_REPARSE_POINT,
-                            FILE_FLAG_OVERLAPPED,
-                            INFINITE,
-                            PIPE_ACCESS_INBOUND,
-                            PIPE_ACCESS_OUTBOUND,
-                            PIPE_READMODE_BYTE,
-                            PIPE_REJECT_REMOTE_CLIENTS,
-                            PIPE_TYPE_BYTE,
-                            PIPE_WAIT,
-                            SECURITY_SQOS_PRESENT,
-                            STARTF_USESTDHANDLES,
-                            STD_ERROR_HANDLE,
-                            STD_INPUT_HANDLE,
-                            STD_OUTPUT_HANDLE,
-                            WAIT_OBJECT_0},
-                  winnt::{ACCESS_MASK,
-                          FILE_GENERIC_WRITE,
-                          FILE_SHARE_DELETE,
-                          FILE_SHARE_READ,
-                          FILE_SHARE_WRITE,
-                          FILE_WRITE_DATA,
-                          GENERIC_READ,
-                          GENERIC_WRITE,
-                          HANDLE,
-                          LPCWSTR,
-                          LPWSTR,
-                          MAXDWORD,
-                          PHANDLE,
-                          READ_CONTROL,
-                          WRITE_DAC}}};
+use winapi::{
+    shared::{
+        minwindef::{BOOL, DWORD, FALSE, HWINSTA, LPVOID, TRUE},
+        windef::HDESK,
+        winerror::{
+            ERROR_ACCESS_DENIED, ERROR_BROKEN_PIPE, ERROR_HANDLE_EOF, ERROR_INVALID_PARAMETER,
+            ERROR_IO_PENDING, ERROR_LOGON_TYPE_NOT_GRANTED, ERROR_PRIVILEGE_NOT_HELD,
+        },
+    },
+    um::{
+        fileapi::{self, CREATE_ALWAYS, CREATE_NEW, OPEN_ALWAYS, OPEN_EXISTING, TRUNCATE_EXISTING},
+        handleapi::{self, INVALID_HANDLE_VALUE},
+        ioapiset,
+        minwinbase::{LPSECURITY_ATTRIBUTES, OVERLAPPED, SECURITY_ATTRIBUTES},
+        namedpipeapi,
+        processthreadsapi::{
+            self, LPPROCESS_INFORMATION, LPSTARTUPINFOW, PROCESS_INFORMATION, STARTUPINFOW,
+        },
+        synchapi,
+        winbase::{
+            CREATE_NEW_PROCESS_GROUP, CREATE_UNICODE_ENVIRONMENT, FILE_FLAG_FIRST_PIPE_INSTANCE,
+            FILE_FLAG_OPEN_REPARSE_POINT, FILE_FLAG_OVERLAPPED, INFINITE, PIPE_ACCESS_INBOUND,
+            PIPE_ACCESS_OUTBOUND, PIPE_READMODE_BYTE, PIPE_REJECT_REMOTE_CLIENTS, PIPE_TYPE_BYTE,
+            PIPE_WAIT, SECURITY_SQOS_PRESENT, STARTF_USESTDHANDLES, STD_ERROR_HANDLE,
+            STD_INPUT_HANDLE, STD_OUTPUT_HANDLE, WAIT_OBJECT_0,
+        },
+        winnt::{
+            ACCESS_MASK, FILE_GENERIC_WRITE, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE,
+            FILE_WRITE_DATA, GENERIC_READ, GENERIC_WRITE, HANDLE, LPCWSTR, LPWSTR, MAXDWORD,
+            PHANDLE, READ_CONTROL, WRITE_DAC,
+        },
+    },
+};
 use windows_sys::Win32::System::Environment;
 lazy_static::lazy_static! {
     static ref CREATE_PROCESS_LOCK: Mutex<()> = Mutex::new(());
@@ -101,34 +62,37 @@ lazy_static::lazy_static! {
 
 #[link(name = "user32")]
 unsafe extern "system" {
-    fn LogonUserW(lpszUsername: LPCWSTR,
-                  lpszDomain: LPCWSTR,
-                  lpszPassword: LPCWSTR,
-                  dwLogonType: DWORD,
-                  dwLogonProvider: DWORD,
-                  phToken: PHANDLE)
-                  -> BOOL;
+    fn LogonUserW(
+        lpszUsername: LPCWSTR,
+        lpszDomain: LPCWSTR,
+        lpszPassword: LPCWSTR,
+        dwLogonType: DWORD,
+        dwLogonProvider: DWORD,
+        phToken: PHANDLE,
+    ) -> BOOL;
 
-    fn CreateProcessAsUserW(hToken: HANDLE,
-                            lpApplicationName: LPCWSTR,
-                            lpCommandLine: LPWSTR,
-                            lpProcessAttributes: LPSECURITY_ATTRIBUTES,
-                            lpThreadAttributes: LPSECURITY_ATTRIBUTES,
-                            bInheritHandles: BOOL,
-                            dwCreationFlags: DWORD,
-                            lpEnvironment: LPVOID,
-                            lpCurrentDirectory: LPCWSTR,
-                            lpStartupInfo: LPSTARTUPINFOW,
-                            lpProcessInformation: LPPROCESS_INFORMATION)
-                            -> BOOL;
+    fn CreateProcessAsUserW(
+        hToken: HANDLE,
+        lpApplicationName: LPCWSTR,
+        lpCommandLine: LPWSTR,
+        lpProcessAttributes: LPSECURITY_ATTRIBUTES,
+        lpThreadAttributes: LPSECURITY_ATTRIBUTES,
+        bInheritHandles: BOOL,
+        dwCreationFlags: DWORD,
+        lpEnvironment: LPVOID,
+        lpCurrentDirectory: LPCWSTR,
+        lpStartupInfo: LPSTARTUPINFOW,
+        lpProcessInformation: LPPROCESS_INFORMATION,
+    ) -> BOOL;
 
     fn GetProcessWindowStation() -> HWINSTA;
 
-    fn OpenDesktopW(lpszDesktop: LPWSTR,
-                    dwFlags: DWORD,
-                    fInherit: BOOL,
-                    dwDesiredAccess: ACCESS_MASK)
-                    -> HDESK;
+    fn OpenDesktopW(
+        lpszDesktop: LPWSTR,
+        dwFlags: DWORD,
+        fInherit: BOOL,
+        dwDesiredAccess: ACCESS_MASK,
+    ) -> HDESK;
 }
 
 const HANDLE_FLAG_INHERIT: DWORD = 0x0000_0001;
@@ -141,8 +105,8 @@ enum ParsePart {
 }
 
 struct ServiceCredential {
-    pub user:     String,
-    pub domain:   String,
+    pub user: String,
+    pub domain: String,
     pub password: String,
 }
 
@@ -150,8 +114,9 @@ impl ServiceCredential {
     // TODO JB: fix this allow
     #[allow(clippy::needless_pass_by_value)]
     pub fn new<U, P>(svc_user: U, svc_encrypted_password: Option<P>) -> Result<Self>
-        where U: ToString,
-              P: ToString
+    where
+        U: ToString,
+        P: ToString,
     {
         let mut full_user = svc_user.to_string();
         let (domain, user) = match full_user.find('\\') {
@@ -165,16 +130,20 @@ impl ServiceCredential {
             Some(password) => decrypt(&password.to_string())?,
             None => String::new(),
         };
-        Ok(Self { user,
-                  domain,
-                  password: pass })
+        Ok(Self {
+            user,
+            domain,
+            password: pass,
+        })
     }
 
     pub fn is_current_user(&self) -> bool {
         self.user == get_current_username().ok().flatten().unwrap_or_default()
     }
 
-    pub fn user_wide(&self) -> WideCString { WideCString::from_str(self.user.as_str()).unwrap() }
+    pub fn user_wide(&self) -> WideCString {
+        WideCString::from_str(self.user.as_str()).unwrap()
+    }
 
     pub fn domain_wide(&self) -> WideCString {
         WideCString::from_str(self.domain.as_str()).unwrap()
@@ -192,18 +161,20 @@ pub struct Child {
 }
 
 impl Child {
-    pub fn spawn<U, P>(program: &str,
-                       args: &[&str],
-                       env: &HashMap<String, String>,
-                       svc_user: U,
-                       svc_encrypted_password: Option<P>)
-                       -> Result<Child>
-        where U: ToString,
-              P: ToString
+    pub fn spawn<U, P>(
+        program: &str,
+        args: &[&str],
+        env: &HashMap<String, String>,
+        svc_user: U,
+        svc_encrypted_password: Option<P>,
+    ) -> Result<Child>
+    where
+        U: ToString,
+        P: ToString,
     {
-        let mut os_env: HashMap<OsString, OsString> =
-            env::vars_os().map(|(key, val)| (mk_key(key.to_str().unwrap()), val))
-                          .collect();
+        let mut os_env: HashMap<OsString, OsString> = env::vars_os()
+            .map(|(key, val)| (mk_key(key.to_str().unwrap()), val))
+            .collect();
         for (k, v) in env {
             os_env.insert(mk_key(k.as_str()), OsString::from(v));
         }
@@ -217,8 +188,9 @@ impl Child {
                 // Split the value and test each path to see if the
                 // program exists.
                 for path in env::split_paths(&v) {
-                    let path = path.join(program)
-                                   .with_extension(env::consts::EXE_EXTENSION);
+                    let path = path
+                        .join(program)
+                        .with_extension(env::consts::EXE_EXTENSION);
                     if fs::metadata(&path).is_ok() {
                         res = Some(path.into_os_string());
                         break;
@@ -257,9 +229,11 @@ impl Child {
         // [1] https://github.com/rust-lang/rust/blob/1bd30ce2aac40c7698aa4a1b9520aa649ff2d1c5/src/libstd/sys/windows/process.rs#L179
         let _lock = CREATE_PROCESS_LOCK.lock().unwrap();
 
-        let mut pipes = StdioPipes { stdin:  None,
-                                     stdout: None,
-                                     stderr: None, };
+        let mut pipes = StdioPipes {
+            stdin: None,
+            stdout: None,
+            stderr: None,
+        };
 
         let stdin = null_stdio_handle()?;
         let stdout = stdio_piped_handle(STD_OUTPUT_HANDLE, &mut pipes.stdout)?;
@@ -280,12 +254,16 @@ impl Child {
         // the thread id valid, and we aren't keeping the thread handle
         // around to be able to close it later.
         unsafe { handleapi::CloseHandle(pi.hThread) };
-        Ok(Child { handle: Handle::new(pi.hProcess),
-                   stdout: pipes.stdout.map(ChildStdout::from_inner),
-                   stderr: pipes.stderr.map(ChildStderr::from_inner), })
+        Ok(Child {
+            handle: Handle::new(pi.hProcess),
+            stdout: pipes.stdout.map(ChildStdout::from_inner),
+            stderr: pipes.stderr.map(ChildStderr::from_inner),
+        })
     }
 
-    pub fn id(&self) -> u32 { unsafe { processthreadsapi::GetProcessId(self.handle.raw()) } }
+    pub fn id(&self) -> u32 {
+        unsafe { processthreadsapi::GetProcessId(self.handle.raw()) }
+    }
 
     pub fn kill(&mut self) -> io::Result<()> {
         cvt(unsafe { processthreadsapi::TerminateProcess(self.handle.raw(), 1) })?;
@@ -302,7 +280,10 @@ impl Child {
                 )));
             }
             let mut status = 0;
-            cvt(processthreadsapi::GetExitCodeProcess(self.handle.raw(), &mut status))?;
+            cvt(processthreadsapi::GetExitCodeProcess(
+                self.handle.raw(),
+                &mut status,
+            ))?;
             Ok(ExitStatus(status))
         }
     }
@@ -326,19 +307,27 @@ pub struct ExitStatus(DWORD);
 impl ExitStatus {
     // TODO JB: fix this allow
     #[allow(clippy::trivially_copy_pass_by_ref)]
-    pub fn success(&self) -> bool { self.0 == 0 }
+    pub fn success(&self) -> bool {
+        self.0 == 0
+    }
 
     // TODO JB: fix this allow
     #[allow(clippy::trivially_copy_pass_by_ref)]
-    pub fn code(&self) -> Option<i32> { Some(self.0 as i32) }
+    pub fn code(&self) -> Option<i32> {
+        Some(self.0 as i32)
+    }
 }
 
 impl From<DWORD> for ExitStatus {
-    fn from(u: DWORD) -> ExitStatus { ExitStatus(u) }
+    fn from(u: DWORD) -> ExitStatus {
+        ExitStatus(u)
+    }
 }
 
 impl fmt::Display for ExitStatus {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "exit code: {}", self.0) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "exit code: {}", self.0)
+    }
 }
 
 pub struct ChildStdout {
@@ -346,7 +335,9 @@ pub struct ChildStdout {
 }
 
 impl Read for ChildStdout {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> { self.inner.read(buf) }
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.inner.read(buf)
+    }
 
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
         self.inner.read_to_end(buf)
@@ -354,19 +345,27 @@ impl Read for ChildStdout {
 }
 
 impl AsInner<AnonPipe> for ChildStdout {
-    fn as_inner(&self) -> &AnonPipe { &self.inner }
+    fn as_inner(&self) -> &AnonPipe {
+        &self.inner
+    }
 }
 
 impl IntoInner<AnonPipe> for ChildStdout {
-    fn into_inner(self) -> AnonPipe { self.inner }
+    fn into_inner(self) -> AnonPipe {
+        self.inner
+    }
 }
 
 impl FromInner<AnonPipe> for ChildStdout {
-    fn from_inner(pipe: AnonPipe) -> ChildStdout { ChildStdout { inner: pipe } }
+    fn from_inner(pipe: AnonPipe) -> ChildStdout {
+        ChildStdout { inner: pipe }
+    }
 }
 
 impl fmt::Debug for ChildStdout {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { f.pad("ChildStdout { .. }") }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.pad("ChildStdout { .. }")
+    }
 }
 
 pub struct ChildStderr {
@@ -374,7 +373,9 @@ pub struct ChildStderr {
 }
 
 impl Read for ChildStderr {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> { self.inner.read(buf) }
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.inner.read(buf)
+    }
 
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
         self.inner.read_to_end(buf)
@@ -382,19 +383,27 @@ impl Read for ChildStderr {
 }
 
 impl AsInner<AnonPipe> for ChildStderr {
-    fn as_inner(&self) -> &AnonPipe { &self.inner }
+    fn as_inner(&self) -> &AnonPipe {
+        &self.inner
+    }
 }
 
 impl IntoInner<AnonPipe> for ChildStderr {
-    fn into_inner(self) -> AnonPipe { self.inner }
+    fn into_inner(self) -> AnonPipe {
+        self.inner
+    }
 }
 
 impl FromInner<AnonPipe> for ChildStderr {
-    fn from_inner(pipe: AnonPipe) -> ChildStderr { ChildStderr { inner: pipe } }
+    fn from_inner(pipe: AnonPipe) -> ChildStderr {
+        ChildStderr { inner: pipe }
+    }
 }
 
 impl fmt::Debug for ChildStderr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { f.pad("ChildStderr { .. }") }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.pad("ChildStderr { .. }")
+    }
 }
 
 pub struct AnonPipe {
@@ -402,7 +411,7 @@ pub struct AnonPipe {
 }
 
 pub struct Pipes {
-    pub ours:   AnonPipe,
+    pub ours: AnonPipe,
     pub theirs: AnonPipe,
 }
 
@@ -425,12 +434,15 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
         loop {
             tries += 1;
             let key: u64 = rand::rng().random();
-            name = format!(r"\\.\pipe\__rust_anonymous_pipe1__.{}.{}",
-                           processthreadsapi::GetCurrentProcessId(),
-                           key);
-            let wide_name = OsStr::new(&name).encode_wide()
-                                             .chain(Some(0))
-                                             .collect::<Vec<_>>();
+            name = format!(
+                r"\\.\pipe\__rust_anonymous_pipe1__.{}.{}",
+                processthreadsapi::GetCurrentProcessId(),
+                key
+            );
+            let wide_name = OsStr::new(&name)
+                .encode_wide()
+                .chain(Some(0))
+                .collect::<Vec<_>>();
             let mut flags = FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED;
             if ours_readable {
                 flags |= PIPE_ACCESS_INBOUND;
@@ -438,17 +450,16 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
                 flags |= PIPE_ACCESS_OUTBOUND;
             }
 
-            let handle = namedpipeapi::CreateNamedPipeW(wide_name.as_ptr(),
-                                                        flags,
-                                                        PIPE_TYPE_BYTE
-                                                        | PIPE_READMODE_BYTE
-                                                        | PIPE_WAIT
-                                                        | reject_remote_clients_flag,
-                                                        1,
-                                                        4096,
-                                                        4096,
-                                                        0,
-                                                        ptr::null_mut());
+            let handle = namedpipeapi::CreateNamedPipeW(
+                wide_name.as_ptr(),
+                flags,
+                PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | reject_remote_clients_flag,
+                1,
+                4096,
+                4096,
+                0,
+                ptr::null_mut(),
+            );
 
             // We pass the FILE_FLAG_FIRST_PIPE_INSTANCE flag above, and we're
             // also just doing a best effort at selecting a unique name. If
@@ -474,7 +485,7 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
                     if raw_os_err == Some(ERROR_ACCESS_DENIED as i32) {
                         continue;
                     } else if reject_remote_clients_flag != 0
-                              && raw_os_err == Some(ERROR_INVALID_PARAMETER as i32)
+                        && raw_os_err == Some(ERROR_INVALID_PARAMETER as i32)
                     {
                         reject_remote_clients_flag = 0;
                         tries -= 1;
@@ -499,30 +510,44 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
         opts.read(!ours_readable);
         opts.share_mode(0);
         let theirs = File::open(Path::new(&name), &opts)?;
-        let theirs = AnonPipe { inner: theirs.into_handle(), };
+        let theirs = AnonPipe {
+            inner: theirs.into_handle(),
+        };
 
-        Ok(Pipes { ours:   AnonPipe { inner: ours },
-                   theirs: AnonPipe { inner: theirs.into_handle(), }, })
+        Ok(Pipes {
+            ours: AnonPipe { inner: ours },
+            theirs: AnonPipe {
+                inner: theirs.into_handle(),
+            },
+        })
     }
 }
 
 impl AnonPipe {
-    pub fn handle(&self) -> &Handle { &self.inner }
+    pub fn handle(&self) -> &Handle {
+        &self.inner
+    }
 
-    pub fn into_handle(self) -> Handle { self.inner }
+    pub fn into_handle(self) -> Handle {
+        self.inner
+    }
 
-    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> { self.inner.read(buf) }
+    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
+        self.inner.read(buf)
+    }
 
     pub fn read_to_end(&self, buf: &mut Vec<u8>) -> io::Result<usize> {
         self.inner.read_to_end(buf)
     }
 
-    pub fn write(&self, buf: &[u8]) -> io::Result<usize> { self.inner.write(buf) }
+    pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
+        self.inner.write(buf)
+    }
 }
 
 struct StdioPipes {
     #[allow(dead_code)]
-    pub stdin:  Option<AnonPipe>,
+    pub stdin: Option<AnonPipe>,
     pub stdout: Option<AnonPipe>,
     pub stderr: Option<AnonPipe>,
 }
@@ -530,46 +555,56 @@ struct StdioPipes {
 #[derive(Clone)]
 pub struct OpenOptions {
     // generic
-    read:                bool,
-    write:               bool,
-    append:              bool,
-    truncate:            bool,
-    create:              bool,
-    create_new:          bool,
+    read: bool,
+    write: bool,
+    append: bool,
+    truncate: bool,
+    create: bool,
+    create_new: bool,
     // system-specific
-    custom_flags:        u32,
-    access_mode:         Option<DWORD>,
-    attributes:          DWORD,
-    share_mode:          DWORD,
-    security_qos_flags:  DWORD,
+    custom_flags: u32,
+    access_mode: Option<DWORD>,
+    attributes: DWORD,
+    share_mode: DWORD,
+    security_qos_flags: DWORD,
     security_attributes: usize, // FIXME: should be a reference
 }
 
 impl OpenOptions {
     pub fn new() -> OpenOptions {
-        OpenOptions { // generic
-                      read:                false,
-                      write:               false,
-                      append:              false,
-                      truncate:            false,
-                      create:              false,
-                      create_new:          false,
-                      // system-specific
-                      custom_flags:        0,
-                      access_mode:         None,
-                      share_mode:          FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-                      attributes:          0,
-                      security_qos_flags:  0,
-                      security_attributes: 0, }
+        OpenOptions {
+            // generic
+            read: false,
+            write: false,
+            append: false,
+            truncate: false,
+            create: false,
+            create_new: false,
+            // system-specific
+            custom_flags: 0,
+            access_mode: None,
+            share_mode: FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+            attributes: 0,
+            security_qos_flags: 0,
+            security_attributes: 0,
+        }
     }
 
-    pub fn read(&mut self, read: bool) { self.read = read; }
+    pub fn read(&mut self, read: bool) {
+        self.read = read;
+    }
 
-    pub fn write(&mut self, write: bool) { self.write = write; }
+    pub fn write(&mut self, write: bool) {
+        self.write = write;
+    }
 
-    pub fn share_mode(&mut self, share_mode: u32) { self.share_mode = share_mode; }
+    pub fn share_mode(&mut self, share_mode: u32) {
+        self.share_mode = share_mode;
+    }
 
-    pub fn attributes(&mut self, attrs: u32) { self.attributes = attrs; }
+    pub fn attributes(&mut self, attrs: u32) {
+        self.attributes = attrs;
+    }
 
     pub fn security_attributes(&mut self, attrs: LPSECURITY_ATTRIBUTES) {
         self.security_attributes = attrs as usize;
@@ -619,18 +654,18 @@ impl OpenOptions {
 
     fn get_flags_and_attributes(&self) -> DWORD {
         self.custom_flags
-        | self.attributes
-        | self.security_qos_flags
-        | if self.security_qos_flags != 0 {
-            SECURITY_SQOS_PRESENT
-        } else {
-            0
-        }
-        | if self.create_new {
-            FILE_FLAG_OPEN_REPARSE_POINT
-        } else {
-            0
-        }
+            | self.attributes
+            | self.security_qos_flags
+            | if self.security_qos_flags != 0 {
+                SECURITY_SQOS_PRESENT
+            } else {
+                0
+            }
+            | if self.create_new {
+                FILE_FLAG_OPEN_REPARSE_POINT
+            } else {
+                0
+            }
     }
 }
 
@@ -642,22 +677,28 @@ impl File {
     pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {
         let path = to_u16s(path)?;
         let handle = unsafe {
-            fileapi::CreateFileW(path.as_ptr(),
-                                 opts.get_access_mode()?,
-                                 opts.share_mode,
-                                 opts.security_attributes as *mut _,
-                                 opts.get_creation_mode()?,
-                                 opts.get_flags_and_attributes(),
-                                 ptr::null_mut())
+            fileapi::CreateFileW(
+                path.as_ptr(),
+                opts.get_access_mode()?,
+                opts.share_mode,
+                opts.security_attributes as *mut _,
+                opts.get_creation_mode()?,
+                opts.get_flags_and_attributes(),
+                ptr::null_mut(),
+            )
         };
         if handle == INVALID_HANDLE_VALUE {
             Err(io::Error::last_os_error())
         } else {
-            Ok(File { handle: Handle::new(handle), })
+            Ok(File {
+                handle: Handle::new(handle),
+            })
         }
     }
 
-    pub fn into_handle(self) -> Handle { self.handle }
+    pub fn into_handle(self) -> Handle {
+        self.handle
+    }
 }
 
 pub struct Handle(RawHandle);
@@ -669,14 +710,18 @@ unsafe impl Send for RawHandle {}
 unsafe impl Sync for RawHandle {}
 
 impl Handle {
-    pub fn new(handle: HANDLE) -> Handle { Handle(RawHandle::new(handle)) }
+    pub fn new(handle: HANDLE) -> Handle {
+        Handle(RawHandle::new(handle))
+    }
 
     pub fn new_event(manual: bool, init: bool) -> io::Result<Handle> {
         unsafe {
-            let event = synchapi::CreateEventW(ptr::null_mut(),
-                                               i32::from(manual),
-                                               i32::from(init),
-                                               ptr::null());
+            let event = synchapi::CreateEventW(
+                ptr::null_mut(),
+                i32::from(manual),
+                i32::from(init),
+                ptr::null(),
+            );
             if event.is_null() {
                 Err(io::Error::last_os_error())
             } else {
@@ -695,7 +740,9 @@ impl Handle {
 impl Deref for Handle {
     type Target = RawHandle;
 
-    fn deref(&self) -> &RawHandle { &self.0 }
+    fn deref(&self) -> &RawHandle {
+        &self.0
+    }
 }
 
 impl Drop for Handle {
@@ -707,11 +754,15 @@ impl Drop for Handle {
 }
 
 impl RawHandle {
-    pub fn new(handle: HANDLE) -> RawHandle { RawHandle(handle) }
+    pub fn new(handle: HANDLE) -> RawHandle {
+        RawHandle(handle)
+    }
 
     // TODO JB: fix this allow
     #[allow(clippy::trivially_copy_pass_by_ref)]
-    pub fn raw(&self) -> HANDLE { self.0 }
+    pub fn raw(&self) -> HANDLE {
+        self.0
+    }
 
     // TODO JB: fix this allow
     #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -719,11 +770,13 @@ impl RawHandle {
         let mut read = 0;
         let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         let res = cvt(unsafe {
-            fileapi::ReadFile(self.0,
-                              buf.as_mut_ptr() as LPVOID,
-                              len,
-                              &mut read,
-                              ptr::null_mut())
+            fileapi::ReadFile(
+                self.0,
+                buf.as_mut_ptr() as LPVOID,
+                len,
+                &mut read,
+                ptr::null_mut(),
+            )
         });
 
         match res {
@@ -748,11 +801,13 @@ impl RawHandle {
             let mut overlapped: OVERLAPPED = mem::zeroed();
             overlapped.u.s_mut().Offset = offset as u32;
             overlapped.u.s_mut().OffsetHigh = (offset >> 32) as u32;
-            cvt(fileapi::ReadFile(self.0,
-                                  buf.as_mut_ptr() as LPVOID,
-                                  len,
-                                  &mut read,
-                                  &mut overlapped))
+            cvt(fileapi::ReadFile(
+                self.0,
+                buf.as_mut_ptr() as LPVOID,
+                len,
+                &mut read,
+                &mut overlapped,
+            ))
         };
         match res {
             Ok(_) => Ok(read as usize),
@@ -764,10 +819,11 @@ impl RawHandle {
     // TODO JB: fix this allow
     #[allow(clippy::trivially_copy_pass_by_ref)]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn read_overlapped(&self,
-                                  buf: &mut [u8],
-                                  overlapped: *mut OVERLAPPED)
-                                  -> io::Result<Option<usize>> {
+    pub unsafe fn read_overlapped(
+        &self,
+        buf: &mut [u8],
+        overlapped: *mut OVERLAPPED,
+    ) -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         let mut amt = 0;
         let res = cvt(unsafe {
@@ -790,10 +846,11 @@ impl RawHandle {
     // TODO JB: fix this allow
     #[allow(clippy::trivially_copy_pass_by_ref)]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn overlapped_result(&self,
-                                    overlapped: *mut OVERLAPPED,
-                                    wait: bool)
-                                    -> io::Result<usize> {
+    pub unsafe fn overlapped_result(
+        &self,
+        overlapped: *mut OVERLAPPED,
+        wait: bool,
+    ) -> io::Result<usize> {
         let mut bytes = 0;
         let wait = if wait { TRUE } else { FALSE };
         let res =
@@ -802,7 +859,7 @@ impl RawHandle {
             Ok(_) => Ok(bytes as usize),
             Err(e) => {
                 if e.raw_os_error() == Some(ERROR_HANDLE_EOF as i32)
-                   || e.raw_os_error() == Some(ERROR_BROKEN_PIPE as i32)
+                    || e.raw_os_error() == Some(ERROR_BROKEN_PIPE as i32)
                 {
                     Ok(0)
                 } else {
@@ -831,11 +888,13 @@ impl RawHandle {
         let mut amt = 0;
         let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         cvt(unsafe {
-            fileapi::WriteFile(self.0,
-                               buf.as_ptr() as LPVOID,
-                               len,
-                               &mut amt,
-                               ptr::null_mut())
+            fileapi::WriteFile(
+                self.0,
+                buf.as_ptr() as LPVOID,
+                len,
+                &mut amt,
+                ptr::null_mut(),
+            )
         })?;
         Ok(amt as usize)
     }
@@ -849,63 +908,72 @@ impl RawHandle {
             let mut overlapped: OVERLAPPED = mem::zeroed();
             overlapped.u.s_mut().Offset = offset as u32;
             overlapped.u.s_mut().OffsetHigh = (offset >> 32) as u32;
-            cvt(fileapi::WriteFile(self.0,
-                                   buf.as_ptr() as LPVOID,
-                                   len,
-                                   &mut written,
-                                   &mut overlapped))?;
+            cvt(fileapi::WriteFile(
+                self.0,
+                buf.as_ptr() as LPVOID,
+                len,
+                &mut written,
+                &mut overlapped,
+            ))?;
         }
         Ok(written as usize)
     }
 }
 
 impl Read for &RawHandle {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> { (**self).read(buf) }
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        (**self).read(buf)
+    }
 
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
         unsafe { read_to_end_uninitialized(self, buf) }
     }
 }
 
-fn create_process(command: LPWSTR,
-                  flags: DWORD,
-                  env: &HashMap<OsString, OsString>,
-                  si: LPSTARTUPINFOW,
-                  pi: LPPROCESS_INFORMATION)
-                  -> io::Result<i32> {
+fn create_process(
+    command: LPWSTR,
+    flags: DWORD,
+    env: &HashMap<OsString, OsString>,
+    si: LPSTARTUPINFOW,
+    pi: LPPROCESS_INFORMATION,
+) -> io::Result<i32> {
     let (envp, _data) = make_envp(env)?;
 
     unsafe {
-        cvt(processthreadsapi::CreateProcessW(ptr::null(),
-                                              command,
-                                              ptr::null_mut(),
-                                              ptr::null_mut(),
-                                              TRUE,
-                                              flags,
-                                              envp,
-                                              ptr::null(),
-                                              si,
-                                              pi))
+        cvt(processthreadsapi::CreateProcessW(
+            ptr::null(),
+            command,
+            ptr::null_mut(),
+            ptr::null_mut(),
+            TRUE,
+            flags,
+            envp,
+            ptr::null(),
+            si,
+            pi,
+        ))
     }
 }
 
-fn create_process_as_user(credential: &ServiceCredential,
-                          command: LPWSTR,
-                          flags: DWORD,
-                          env: &HashMap<String, String>,
-                          si: LPSTARTUPINFOW,
-                          pi: LPPROCESS_INFORMATION)
-                          -> Result<i32> {
+fn create_process_as_user(
+    credential: &ServiceCredential,
+    command: LPWSTR,
+    flags: DWORD,
+    env: &HashMap<String, String>,
+    si: LPSTARTUPINFOW,
+    pi: LPPROCESS_INFORMATION,
+) -> Result<i32> {
     unsafe {
         let mut token = ptr::null_mut();
 
-        match cvt(LogonUserW(credential.user_wide().as_ptr(),
-                             credential.domain_wide().as_ptr(),
-                             credential.password_wide().as_ptr(),
-                             LOGON32_LOGON_SERVICE,
-                             0,
-                             &mut token))
-        {
+        match cvt(LogonUserW(
+            credential.user_wide().as_ptr(),
+            credential.domain_wide().as_ptr(),
+            credential.password_wide().as_ptr(),
+            LOGON32_LOGON_SERVICE,
+            0,
+            &mut token,
+        )) {
             Ok(_) => {}
             Err(ref err) if err.raw_os_error() == Some(ERROR_LOGON_TYPE_NOT_GRANTED as i32) => {
                 return Err(Error::LogonTypeNotGranted);
@@ -916,64 +984,67 @@ fn create_process_as_user(credential: &ServiceCredential,
         let station = GetProcessWindowStation();
 
         let desktop = WideCString::from_str("default").unwrap();
-        let hdesk = OpenDesktopW(desktop.into_raw(),
-                                 0,
-                                 FALSE,
-                                 READ_CONTROL
-                                 | WRITE_DAC
-                                 | sid::DESKTOP_WRITEOBJECTS
-                                 | sid::DESKTOP_READOBJECTS);
+        let hdesk = OpenDesktopW(
+            desktop.into_raw(),
+            0,
+            FALSE,
+            READ_CONTROL | WRITE_DAC | sid::DESKTOP_WRITEOBJECTS | sid::DESKTOP_READOBJECTS,
+        );
         if hdesk.is_null() {
-            return Err(Error::OpenDesktopFailed(format!("Failed calling \
+            return Err(Error::OpenDesktopFailed(format!(
+                "Failed calling \
                                                          OpenDesktopW: {}",
-                                                        io::Error::last_os_error())));
+                io::Error::last_os_error()
+            )));
         }
 
         let sid = Sid::logon_sid_from_token(token)?;
-        sid.add_to_user_object(station as HANDLE,
-                               sid::CONTAINER_INHERIT_ACE
-                               | sid::INHERIT_ONLY_ACE
-                               | sid::OBJECECT_INHERIT_ACE,
-                               sid::GENERIC_READ
-                               | sid::GENERIC_WRITE
-                               | sid::GENERIC_EXECUTE
-                               | sid::GENERIC_ALL)?;
-        sid.add_to_user_object(station as HANDLE,
-                               sid::NO_PROPAGATE_INHERIT_ACE,
-                               sid::WINSTA_ALL_ACCESS
-                               | sid::DELETE
-                               | sid::READ_CONTROL
-                               | sid::WRITE_DAC
-                               | sid::WRITE_OWNER)?;
-        sid.add_to_user_object(hdesk as HANDLE,
-                               0,
-                               sid::DESKTOP_CREATEMENU
-                               | sid::DESKTOP_CREATEWINDOW
-                               | sid::DESKTOP_ENUMERATE
-                               | sid::DESKTOP_HOOKCONTROL
-                               | sid::DESKTOP_JOURNALPLAYBACK
-                               | sid::DESKTOP_JOURNALRECORD
-                               | sid::DESKTOP_READOBJECTS
-                               | sid::DESKTOP_SWITCHDESKTOP
-                               | sid::DESKTOP_WRITEOBJECTS
-                               | sid::DELETE
-                               | sid::READ_CONTROL
-                               | sid::WRITE_DAC
-                               | sid::WRITE_OWNER)?;
+        sid.add_to_user_object(
+            station as HANDLE,
+            sid::CONTAINER_INHERIT_ACE | sid::INHERIT_ONLY_ACE | sid::OBJECECT_INHERIT_ACE,
+            sid::GENERIC_READ | sid::GENERIC_WRITE | sid::GENERIC_EXECUTE | sid::GENERIC_ALL,
+        )?;
+        sid.add_to_user_object(
+            station as HANDLE,
+            sid::NO_PROPAGATE_INHERIT_ACE,
+            sid::WINSTA_ALL_ACCESS
+                | sid::DELETE
+                | sid::READ_CONTROL
+                | sid::WRITE_DAC
+                | sid::WRITE_OWNER,
+        )?;
+        sid.add_to_user_object(
+            hdesk as HANDLE,
+            0,
+            sid::DESKTOP_CREATEMENU
+                | sid::DESKTOP_CREATEWINDOW
+                | sid::DESKTOP_ENUMERATE
+                | sid::DESKTOP_HOOKCONTROL
+                | sid::DESKTOP_JOURNALPLAYBACK
+                | sid::DESKTOP_JOURNALRECORD
+                | sid::DESKTOP_READOBJECTS
+                | sid::DESKTOP_SWITCHDESKTOP
+                | sid::DESKTOP_WRITEOBJECTS
+                | sid::DELETE
+                | sid::READ_CONTROL
+                | sid::WRITE_DAC
+                | sid::WRITE_OWNER,
+        )?;
 
         let mut os_env = create_user_environment(token, &mut env.clone())?;
-        match cvt(CreateProcessAsUserW(token,
-                                       ptr::null(),
-                                       command,
-                                       ptr::null_mut(),
-                                       ptr::null_mut(),
-                                       TRUE,
-                                       flags,
-                                       os_env.as_mut_ptr() as LPVOID,
-                                       ptr::null(),
-                                       si,
-                                       pi))
-        {
+        match cvt(CreateProcessAsUserW(
+            token,
+            ptr::null(),
+            command,
+            ptr::null_mut(),
+            ptr::null_mut(),
+            TRUE,
+            flags,
+            os_env.as_mut_ptr() as LPVOID,
+            ptr::null(),
+            si,
+            pi,
+        )) {
             Ok(process) => Ok(process),
             Err(ref err) if err.raw_os_error() == Some(ERROR_PRIVILEGE_NOT_HELD as i32) => {
                 Err(Error::PrivilegeNotHeld)
@@ -983,18 +1054,21 @@ fn create_process_as_user(credential: &ServiceCredential,
     }
 }
 
-fn create_user_environment(token: HANDLE,
-                           env: &mut HashMap<String, String>)
-                           -> io::Result<Vec<u16>> {
+fn create_user_environment(
+    token: HANDLE,
+    env: &mut HashMap<String, String>,
+) -> io::Result<Vec<u16>> {
     unsafe {
         let mut new_env: Vec<u16> = Vec::new();
         let mut block = ptr::null_mut();
         // clippy sees this cast an unnecessary but the compiler disagrees
         // In the fight between clippy and the compiler, back the compiler
         #[allow(clippy::unnecessary_cast)]
-        cvt(Environment::CreateEnvironmentBlock(&mut block,
-                                                token as *mut std::ffi::c_void,
-                                                FALSE))?;
+        cvt(Environment::CreateEnvironmentBlock(
+            &mut block,
+            token as *mut std::ffi::c_void,
+            FALSE,
+        ))?;
         let mut tail: u32 = MAXDWORD;
         let mut offset = 0;
         let mut part = ParsePart::Key;
@@ -1062,7 +1136,10 @@ fn cvt(i: i32) -> io::Result<i32> {
 
 fn ensure_no_nuls<T: AsRef<OsStr>>(str: T) -> io::Result<T> {
     if str.as_ref().encode_wide().any(|b| b == 0) {
-        Err(io::Error::new(ErrorKind::InvalidInput, "nul byte found in provided data"))
+        Err(io::Error::new(
+            ErrorKind::InvalidInput,
+            "nul byte found in provided data",
+        ))
     } else {
         Ok(str)
     }
@@ -1137,13 +1214,17 @@ fn make_envp(env: &HashMap<OsString, OsString>) -> io::Result<(LPVOID, Vec<u16>)
     Ok((blk.as_mut_ptr() as LPVOID, blk))
 }
 
-fn mk_key(s: &str) -> OsString { OsString::from(s.to_ascii_uppercase()) }
+fn mk_key(s: &str) -> OsString {
+    OsString::from(s.to_ascii_uppercase())
+}
 
 fn null_stdio_handle() -> Result<Handle> {
     let size = mem::size_of::<SECURITY_ATTRIBUTES>();
-    let mut sa = SECURITY_ATTRIBUTES { nLength:              size as DWORD,
-                                       lpSecurityDescriptor: ptr::null_mut(),
-                                       bInheritHandle:       1, };
+    let mut sa = SECURITY_ATTRIBUTES {
+        nLength: size as DWORD,
+        lpSecurityDescriptor: ptr::null_mut(),
+        bInheritHandle: 1,
+    };
     let mut opts = OpenOptions::new();
     opts.read(true);
     opts.write(false);
@@ -1191,9 +1272,11 @@ fn stdio_piped_handle(stdio_id: DWORD, pipe: &mut Option<AnonPipe>) -> io::Resul
     let pipes = anon_pipe(ours_readable)?;
     *pipe = Some(pipes.ours);
     cvt(unsafe {
-        handleapi::SetHandleInformation(pipes.theirs.handle().raw(),
-                                        HANDLE_FLAG_INHERIT,
-                                        HANDLE_FLAG_INHERIT)
+        handleapi::SetHandleInformation(
+            pipes.theirs.handle().raw(),
+            HANDLE_FLAG_INHERIT,
+            HANDLE_FLAG_INHERIT,
+        )
     })?;
     Ok(pipes.theirs.into_handle())
 }
@@ -1202,9 +1285,11 @@ fn to_u16s<S: AsRef<OsStr>>(s: S) -> io::Result<Vec<u16>> {
     fn inner(s: &OsStr) -> io::Result<Vec<u16>> {
         let mut maybe_result: Vec<u16> = s.encode_wide().collect();
         if maybe_result.contains(&0) {
-            return Err(io::Error::new(io::ErrorKind::InvalidInput,
-                                      "strings passed to WinAPI cannot contain \
-                                       NULs"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "strings passed to WinAPI cannot contain \
+                                       NULs",
+            ));
         }
         maybe_result.push(0);
         Ok(maybe_result)
@@ -1213,29 +1298,33 @@ fn to_u16s<S: AsRef<OsStr>>(s: S) -> io::Result<Vec<u16>> {
 }
 
 fn zeroed_startupinfo() -> STARTUPINFOW {
-    STARTUPINFOW { cb:              0,
-                   lpReserved:      ptr::null_mut(),
-                   lpDesktop:       ptr::null_mut(),
-                   lpTitle:         ptr::null_mut(),
-                   dwX:             0,
-                   dwY:             0,
-                   dwXSize:         0,
-                   dwYSize:         0,
-                   dwXCountChars:   0,
-                   dwYCountChars:   0,
-                   dwFillAttribute: 0,
-                   dwFlags:         0,
-                   wShowWindow:     0,
-                   cbReserved2:     0,
-                   lpReserved2:     ptr::null_mut(),
-                   hStdInput:       INVALID_HANDLE_VALUE,
-                   hStdOutput:      INVALID_HANDLE_VALUE,
-                   hStdError:       INVALID_HANDLE_VALUE, }
+    STARTUPINFOW {
+        cb: 0,
+        lpReserved: ptr::null_mut(),
+        lpDesktop: ptr::null_mut(),
+        lpTitle: ptr::null_mut(),
+        dwX: 0,
+        dwY: 0,
+        dwXSize: 0,
+        dwYSize: 0,
+        dwXCountChars: 0,
+        dwYCountChars: 0,
+        dwFillAttribute: 0,
+        dwFlags: 0,
+        wShowWindow: 0,
+        cbReserved2: 0,
+        lpReserved2: ptr::null_mut(),
+        hStdInput: INVALID_HANDLE_VALUE,
+        hStdOutput: INVALID_HANDLE_VALUE,
+        hStdError: INVALID_HANDLE_VALUE,
+    }
 }
 
 fn zeroed_process_information() -> PROCESS_INFORMATION {
-    PROCESS_INFORMATION { hProcess:    ptr::null_mut(),
-                          hThread:     ptr::null_mut(),
-                          dwProcessId: 0,
-                          dwThreadId:  0, }
+    PROCESS_INFORMATION {
+        hProcess: ptr::null_mut(),
+        hThread: ptr::null_mut(),
+        dwProcessId: 0,
+        dwThreadId: 0,
+    }
 }

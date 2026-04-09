@@ -3,13 +3,13 @@ if ($IsMacOS) {
 } else {
     $pkgChannel = "stable"
 }
-hab pkg install core/nginx --channel $pkgChannel
+bio pkg install core/nginx --channel $pkgChannel
 
-$job = Start-Job { hab sup run }
+$job = Start-Job { bio sup run }
 Wait-Supervisor -Timeout 120
 
-Describe 'hab svc load' {
-    $loadOut = hab svc load core/nginx
+Describe 'bio svc load' {
+    $loadOut = bio svc load core/nginx
     Wait-SupervisorService nginx -Timeout 20
 
     It 'Successfully loads service' {
@@ -31,7 +31,7 @@ Describe 'hab svc load' {
     }
 
     AfterAll {
-        hab svc unload core/nginx
+        bio svc unload core/nginx
         Wait-SupervisorServiceUnload nginx -Timeout 20
         Stop-Job -Job $job
         Remove-Job -Job $job
@@ -40,16 +40,16 @@ Describe 'hab svc load' {
 
 if ($IsLinux) {
 
-    # To test perms on /hab/svc and# /hab/svc/$SERVICE/{hooks,logs} we blow
+    # To test perms on /bio/svc and# /bio/svc/$SERVICE/{hooks,logs} we blow
     # away that hierarchy at this point to start clean
-    (bash -c 'rm -rf /hab/svc')
+    (bash -c 'rm -rf /bio/svc')
 
-    $job = Start-Job { bash -c 'umask 077; hab sup run' }
+    $job = Start-Job { bash -c 'umask 077; bio sup run' }
     Wait-Supervisor -Timeout 120
 
-    Describe 'hab svc load on Linux with umask 077' {
+    Describe 'bio svc load on Linux with umask 077' {
 
-        $loadOut = hab svc load core/nginx
+        $loadOut = bio svc load core/nginx
         Wait-SupervisorService nginx -Timeout 20
 
         It 'Successfully loads service' {
@@ -74,18 +74,18 @@ if ($IsLinux) {
         }
 
         It 'nginx is running with umask 0077' {
-            $out = (grep Umask /proc/$(pgrep hab-sup)/status)
+            $out = (grep Umask /proc/$(pgrep bio-sup)/status)
             $out | Should -Match 'Umask:\s+0077'
         }
 
         It 'has correct permissions on the explicitly managed svc directories' {
-            $out = (bash -c "stat --format '%A' /hab/svc")
+            $out = (bash -c "stat --format '%A' /bio/svc")
             ($out | Out-String) | Should -Match 'drwxr-xr-x'
 
-            $out = (bash -c "stat --format '%A' /hab/svc/nginx/hooks")
+            $out = (bash -c "stat --format '%A' /bio/svc/nginx/hooks")
             ($out | Out-String) | Should -Match 'drwxr-xr-x'
 
-            $out = (bash -c "stat --format '%A' /hab/svc/nginx/logs")
+            $out = (bash -c "stat --format '%A' /bio/svc/nginx/logs")
             ($out | Out-String) | Should -Match 'drwxr-xr-x'
         }
 
@@ -93,7 +93,7 @@ if ($IsLinux) {
             $out = (bash -c "stat --format '%A' /")
             ($out | Out-String) | Should -Match 'drwxr-xr-x'
 
-            $out = (bash -c "stat --format '%A' /hab")
+            $out = (bash -c "stat --format '%A' /bio")
             ($out | Out-String) | Should -Match 'drwxr-xr-x'
 
             # The specific motivation for this test is that the removal of the
@@ -104,7 +104,7 @@ if ($IsLinux) {
         }
 
         AfterAll {
-            hab svc unload core/nginx
+            bio svc unload core/nginx
             Wait-SupervisorServiceUnload nginx -Timeout 20
             Stop-Job -Job $job
             Remove-Job -Job $job

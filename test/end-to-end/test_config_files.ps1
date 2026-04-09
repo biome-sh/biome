@@ -1,18 +1,18 @@
-$configPath = "/hab/sup/default/config"
-$supConfig = "/hab/sup/default/config/sup.toml"
-$supBadConfig = "/hab/sup/default/config/bad_sup.toml"
+$configPath = "/bio/sup/default/config"
+$supConfig = "/bio/sup/default/config/sup.toml"
+$supBadConfig = "/bio/sup/default/config/bad_sup.toml"
 
 Describe "reading from supervisor and service config files" {
     Remove-Item -Force -Recurse -ErrorAction Ignore $supConfig
     New-Item -ItemType directory -Force -Path $configPath
 
-    It "Supervisor starts with output of 'hab sup run --generate-config'" {
+    It "Supervisor starts with output of 'bio sup run --generate-config'" {
         # Run this twice. The first time the output is polluted with installing the launcher.
-        $out = hab sup run --generate-config
-        $out = hab sup run --generate-config
+        $out = bio sup run --generate-config
+        $out = bio sup run --generate-config
         Set-Content -Path $supConfig -Force -Value $out
         Get-Content -Path $supConfig | Should -Contain "###  The listen address for the Gossip Gateway."
-        $supLog = New-SupervisorLogFile("supervisor_starts_with_output_of_hab_sup_run_--generate-config")
+        $supLog = New-SupervisorLogFile("supervisor_starts_with_output_of_bio_sup_run_--generate-config")
         Start-Supervisor -LogFile $supLog -Timeout 45
     }
 
@@ -27,7 +27,7 @@ Describe "reading from supervisor and service config files" {
         Start-Sleep -Seconds 3
 
         $out = Get-Content -Path $supLog
-        $out | Should -Contain "hab-sup(MR): Starting gossip-listener on $address"
+        $out | Should -Contain "bio-sup(MR): Starting gossip-listener on $address"
     }
 
     Stop-Supervisor

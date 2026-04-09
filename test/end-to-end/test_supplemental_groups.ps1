@@ -1,14 +1,14 @@
 # This test is Linux only, as it deals with Linux-specific functionality
 
-# The habitat-testing/supplemental-group-tester package has an `init`
+# The biome-testing/supplemental-group-tester package has an `init`
 # hook (run by the Supervisor) and a `run` hook (run by the Launcher)
 # that both try to read a single file `/tmp/supplemental-group-tester-file`.
 #
-# The package has service user and group of `hab`.
+# The package has service user and group of `bio`.
 #
-# The testing file should not be directly readable by the `hab` user
+# The testing file should not be directly readable by the `bio` user
 # or group, but should instead be readable by some other group. The
-# `hab` user should be made a member of that group. If all goes well,
+# `bio` user should be made a member of that group. If all goes well,
 # then both the `init` and `run` hooks should be able to read this
 # file, allowing them to progress. A successful `init` hook run will
 # allow the `run` hook to begin, and a successful file check in the
@@ -28,14 +28,14 @@ Remove-Item "$sentinel_file" -Force -ErrorAction SilentlyContinue
 "Hello World" | Out-File -FilePath $test_file
 
 # Create a new group, give the file to that group, prevent non-group
-# members from accessing the file, and add the `hab` user to the
+# members from accessing the file, and add the `bio` user to the
 # group.
 #
 # Dropping back to raw Unix utilities for all this, for convenience.
 groupadd $supplemental_group
 chgrp $supplemental_group $test_file
 chown 740 $test_file
-usermod -G $supplemental_group hab
+usermod -G $supplemental_group bio
 
 Describe "supplemental group behavior" {
     AfterAll {
@@ -48,8 +48,8 @@ Describe "supplemental group behavior" {
     It "should be able to run a service that depends on supplemental groups being set" {
         # Install the package first so we don't have to wait during
         # the load.
-        hab pkg install "habitat-testing/supplemental-group-tester" --channel=stable
-        Load-SupervisorService "habitat-testing/supplemental-group-tester"
+        bio pkg install "biome-testing/supplemental-group-tester" --channel=stable
+        Load-SupervisorService "biome-testing/supplemental-group-tester"
 
         # The service should not be able to come up if supplemental
         # groups are not properly passed in the Supervisor and the

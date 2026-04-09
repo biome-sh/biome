@@ -18,7 +18,7 @@ function Write-BuildLine {
     }
 }
 
-function Get-HabPackagePath {
+function Get-BioPackagePath {
     <#
 .SYNOPSIS
 Returns the path for the desired build or runtime direct package dependency
@@ -28,34 +28,34 @@ on stdout from the resolved dependency set.
 The package identity of the path to retrieve.
 
 .EXAMPLE
-Get-HabPackagePath "acme/nginx"
-# /hab/pkgs/acme/nginx/1.8.0/20150911120000
+Get-BioPackagePath "acme/nginx"
+# /bio/pkgs/acme/nginx/1.8.0/20150911120000
 
 .EXAMPLE
-Get-HabPackagePath "zlib"
-# /hab/pkgs/acme/zlib/1.2.8/20151216221001
+Get-BioPackagePath "zlib"
+# /bio/pkgs/acme/zlib/1.2.8/20151216221001
 
 .EXAMPLE
-Get-HabPackagePath "glibc/2.22"
-# /hab/pkgs/acme/glibc/2.22/20151216221001
+Get-BioPackagePath "glibc/2.22"
+# /bio/pkgs/acme/glibc/2.22/20151216221001
 #>
     param($Identity)
 
     foreach($e in $pkg_all_deps_resolved) {
-        if(("/$(Resolve-HabPkgPath $e)/").Contains("/$Identity/")) {
+        if(("/$(Resolve-BioPkgPath $e)/").Contains("/$Identity/")) {
             return $e
         }
     }
-    Write-Error "Get-HabPackagePath '$Identity' did not find a suitable installed package`nResolved package set: ${pkg_all_deps_resolved}"
+    Write-Error "Get-BioPackagePath '$Identity' did not find a suitable installed package`nResolved package set: ${pkg_all_deps_resolved}"
 }
 
-function Resolve-HabPkgPath($unresolved) {
-    $unresolved.Replace("$(Resolve-Path $HAB_PKG_PATH)\", "").Replace("\", "/")
+function Resolve-BioPkgPath($unresolved) {
+    $unresolved.Replace("$(Resolve-Path $BIO_PKG_PATH)\", "").Replace("\", "/")
 }
 
 # Returns the path with the studio directory stripped.
-# So c:\hab\studios\my-studio\hab\pkgs would unroot to
-# \hab\pkgs
+# So c:\bio\studios\my-studio\bio\pkgs would unroot to
+# \bio\pkgs
 function Get-UnrootedPath($path) {
     # Make sure $path is absolute and cannonicalized
     Push-Location $originalPath

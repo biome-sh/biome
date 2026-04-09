@@ -1,0 +1,11 @@
+
+*.*~
+*~
+
+resources/
+public/
+
+biome-web-docs/
+.hugo_build.lock
+*.work
+*.work.sum

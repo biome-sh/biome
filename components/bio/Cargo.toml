@@ -1,0 +1,81 @@
+[package]
+name = "bio"
+version = "0.0.0"
+edition = "2024"
+authors = ["The Biome Maintainers <humans@biome.sh>"]
+build = "../build-biome.rs"
+workspace = "../../"
+
+[[bin]]
+name = "bio"
+doc = false
+
+[dependencies]
+# Please keep these alphabetized
+anyhow = { version = "*", features = ["backtrace"] }
+base64 = "*"
+bitflags = "*"
+chrono = { version = "*", features = ["serde"] }
+clap_complete = "*"
+clap_v4 = { version = "4", package = "clap", features = ["env", "derive", "string", "wrap_help"] }
+ctrlc = "*"
+dirs = "*"
+env_logger = "*"
+flate2 = "*"
+futures = { version = "*" }
+glob = "*"
+bio-common-derive = { path = "../common-derive" }
+biome_api_client = { path = "../builder-api-client" }
+biome_common = { path = "../common" }
+biome_core = { path = "../core" }
+biome-sup-client = { path = "../sup-client" }
+biome-sup-protocol = { path = "../sup-protocol", default-features = false }
+handlebars = { version = "*", default-features = false }
+lazy_static = "*"
+libc = "*"
+log = "0.4"
+pbr = "*"
+rants = { version = "0.6.1", git = "https://github.com/habitat-sh/rants.git", features = ["native-tls"] }
+# reqwest 0.13.0 changed the default TLS support from native-tls to rustls
+# this feature configuration is about using the features that were in effect
+# when our code was still locked to 0.12.8 (so reqwest defaults + our additions)
+reqwest = { version = "*", default-features = false, features = [
+    "blocking",
+    "charset",
+    "http2",
+    "json",
+    "native-tls-no-alpn",
+    "stream",
+    "system-proxy",
+] }
+retry = { git = "https://github.com/habitat-sh/retry", features = ["asynchronous"] }
+rustls = "*"
+rustls-webpki = { version = "*", features = ["alloc"] }
+same-file = "*"
+serde = { version = "*", features = ["derive"] }
+serde_json = { version = "*", features = ["preserve_order"] }
+serde_yaml = "*"
+tabwriter = "*"
+tar = "*"
+tempfile = "*"
+termcolor = "*"
+thiserror = "*"
+tokio = { version = "*", features = ["full"] }
+toml = { version = "*", features = ["preserve_order"] }
+url = { version = "*", features = ["serde"] }
+walkdir = "*"
+
+[dependencies.uuid]
+version = "*"
+features = ["v4"]
+
+[target.'cfg(windows)'.dependencies]
+widestring = "*"
+winapi = { version = "^0.3", features = ["winuser", "windef"] }
+winreg = "*"
+
+[features]
+aarch64-linux = ["biome_core/aarch64-linux"]
+default = ["supported_targets"]
+functional = []
+supported_targets = ["biome_core/supported_targets"]

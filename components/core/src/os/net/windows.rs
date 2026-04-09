@@ -12,8 +12,9 @@ pub fn hostname() -> io::Result<String> {
             return Err(io::Error::last_os_error());
         }
     }
-    let bytes = buf[0..len as usize].iter()
-                                    .map(|&byte| byte as u8)
-                                    .collect::<Vec<u8>>();
+    let bytes = buf[0..len as usize]
+        .iter()
+        .map(|&byte| byte as u8)
+        .collect::<Vec<u8>>();
     Ok(String::from_utf8_lossy(&bytes).into_owned())
 }

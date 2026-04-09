@@ -1,23 +1,23 @@
-use crate::error::{Error,
-                   Result};
-use habitat_win_users::sid::Sid;
+use crate::error::{Error, Result};
+use biome_win_users::sid::Sid;
 use std::path::Path;
 use widestring::WideCString;
-use winapi::{shared::{minwindef::DWORD,
-                      ntdef::NULL,
-                      winerror::ERROR_SUCCESS},
-             um::{accctrl::SE_FILE_OBJECT,
-                  aclapi::SetNamedSecurityInfoW,
-                  winnt::{DACL_SECURITY_INFORMATION,
-                          FILE_ALL_ACCESS,
-                          PACL,
-                          PROTECTED_DACL_SECURITY_INFORMATION,
-                          PSID}}};
+use winapi::{
+    shared::{minwindef::DWORD, ntdef::NULL, winerror::ERROR_SUCCESS},
+    um::{
+        accctrl::SE_FILE_OBJECT,
+        aclapi::SetNamedSecurityInfoW,
+        winnt::{
+            DACL_SECURITY_INFORMATION, FILE_ALL_ACCESS, PACL, PROTECTED_DACL_SECURITY_INFORMATION,
+            PSID,
+        },
+    },
+};
 use windows_acl::acl::ACL;
 
 #[derive(PartialEq, Debug)]
 pub struct PermissionEntry {
-    pub sid:         Sid,
+    pub sid: Sid,
     pub access_mask: DWORD,
 }
 
@@ -25,41 +25,52 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &[PermissionEntry]) -> 
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
         None => {
-            return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())));
+            return Err(Error::PermissionFailed(format!(
+                "Invalid path {:?}",
+                &path.as_ref()
+            )));
         }
     };
 
     let ret = unsafe {
-        SetNamedSecurityInfoW(WideCString::from_str(s_path).unwrap().into_raw(),
-                              SE_FILE_OBJECT,
-                              DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
-                              NULL as PSID,
-                              NULL as PSID,
-                              NULL as PACL,
-                              NULL as PACL)
+        SetNamedSecurityInfoW(
+            WideCString::from_str(s_path).unwrap().into_raw(),
+            SE_FILE_OBJECT,
+            DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
+            NULL as PSID,
+            NULL as PSID,
+            NULL as PACL,
+            NULL as PACL,
+        )
     };
     if ret != ERROR_SUCCESS {
-        return Err(Error::PermissionFailed(format!("OS error resetting \
+        return Err(Error::PermissionFailed(format!(
+            "OS error resetting \
                                                     permissions {}",
-                                                   ret)));
+            ret
+        )));
     }
 
     let mut acl = match ACL::from_file_path(s_path, false) {
         Ok(acl) => acl,
         Err(e) => {
-            return Err(Error::PermissionFailed(format!("OS error {} retrieving \
+            return Err(Error::PermissionFailed(format!(
+                "OS error {} retrieving \
                                                         ACLs from path path {:?}",
-                                                       e,
-                                                       &path.as_ref())));
+                e,
+                &path.as_ref()
+            )));
         }
     };
 
     for entry in entries {
         if let Err(e) = acl.allow(entry.sid.raw.as_ptr() as PSID, true, entry.access_mask) {
-            return Err(Error::PermissionFailed(format!("OS error {} setting \
+            return Err(Error::PermissionFailed(format!(
+                "OS error {} setting \
                                                         permissions for {}",
-                                                       e,
-                                                       entry.sid.to_string()?)));
+                e,
+                entry.sid.to_string()?
+            )));
         }
     }
     Ok(())
@@ -71,42 +82,50 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &[PermissionEntry]) -> 
 /// user. In nearly all Supervisor scenarios where we need to adjust permissions,
 /// this is the desired ACL state.
 pub fn harden_path<T: AsRef<Path>>(path: T) -> Result<()> {
-    let entries = vec![PermissionEntry { sid:         Sid::from_current_user()?,
-                                         access_mask: FILE_ALL_ACCESS, },
-                       PermissionEntry { sid:         Sid::built_in_administrators()?,
-                                         access_mask: FILE_ALL_ACCESS, },
-                       PermissionEntry { sid:         Sid::local_system()?,
-                                         access_mask: FILE_ALL_ACCESS, },];
+    let entries = vec![
+        PermissionEntry {
+            sid: Sid::from_current_user()?,
+            access_mask: FILE_ALL_ACCESS,
+        },
+        PermissionEntry {
+            sid: Sid::built_in_administrators()?,
+            access_mask: FILE_ALL_ACCESS,
+        },
+        PermissionEntry {
+            sid: Sid::local_system()?,
+            access_mask: FILE_ALL_ACCESS,
+        },
+    ];
     set_permissions(path.as_ref(), &entries)
 }
 
 #[cfg(test)]
 mod tests {
-    use std::{fs::File,
-              io::Write,
-              path::Path};
+    use std::{fs::File, io::Write, path::Path};
 
-    use tempfile::{Builder,
-                   NamedTempFile};
+    use tempfile::{Builder, NamedTempFile};
     use winapi::um::winnt::FILE_ALL_ACCESS;
     use windows_acl::helper;
 
-    use habitat_win_users::sid;
+    use biome_win_users::sid;
 
     use super::*;
     use crate::error::Error;
 
     #[test]
     fn set_permissions_ok_test() {
-        let tmp_dir = Builder::new().prefix("foo")
-                                    .tempdir()
-                                    .expect("create temp dir");
+        let tmp_dir = Builder::new()
+            .prefix("foo")
+            .tempdir()
+            .expect("create temp dir");
         let file_path = tmp_dir.path().join("test.txt");
         let mut tmp_file = File::create(&file_path).expect("create temp file");
         writeln!(tmp_file, "foobar123").expect("write temp file");
 
-        let entries = vec![PermissionEntry { sid:         sid::Sid::from_current_user().unwrap(),
-                                             access_mask: FILE_ALL_ACCESS, }];
+        let entries = vec![PermissionEntry {
+            sid: sid::Sid::from_current_user().unwrap(),
+            access_mask: FILE_ALL_ACCESS,
+        }];
 
         assert!(set_permissions(&file_path, &entries).is_ok());
 
@@ -129,8 +148,10 @@ mod tests {
     fn set_permissions_fail_test() {
         let badpath = Path::new("this_file_should_never_exist_deadbeef");
 
-        let entries = vec![PermissionEntry { sid:         sid::Sid::from_current_user().unwrap(),
-                                             access_mask: FILE_ALL_ACCESS, }];
+        let entries = vec![PermissionEntry {
+            sid: sid::Sid::from_current_user().unwrap(),
+            access_mask: FILE_ALL_ACCESS,
+        }];
 
         match set_permissions(badpath, &entries) {
             Ok(_) => {
@@ -138,8 +159,10 @@ mod tests {
             }
             Err(Error::PermissionFailed(_)) => { /* OK */ }
             Err(e) => {
-                panic!("Got unexpected error setting permissions a non-existent file: {:?}",
-                       e);
+                panic!(
+                    "Got unexpected error setting permissions a non-existent file: {:?}",
+                    e
+                );
             }
         }
     }

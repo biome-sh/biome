@@ -1,27 +1,19 @@
-use crate::{cli_config::CliConfig,
-            error::Error,
-            util};
+use crate::{cli_config::CliConfig, error::Error, util};
 
 use native_tls::Certificate;
-use serde::{Deserialize,
-            Serialize};
-use std::{collections::HashMap,
-          fmt,
-          fs,
-          io,
-          net::{IpAddr,
-                Ipv4Addr,
-                SocketAddr,
-                SocketAddrV4,
-                ToSocketAddrs},
-          num::ParseIntError,
-          ops::{Deref,
-                DerefMut},
-          option,
-          path::PathBuf,
-          result,
-          str::FromStr,
-          time::Duration};
+use serde::{Deserialize, Serialize};
+use std::{
+    collections::HashMap,
+    fmt, fs, io,
+    net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs},
+    num::ParseIntError,
+    ops::{Deref, DerefMut},
+    option,
+    path::PathBuf,
+    result,
+    str::FromStr,
+    time::Duration,
+};
 
 /// Bundles up information about the user and group that a supervised
 /// service should be run as. If the Supervisor itself is running with
@@ -35,13 +27,13 @@ use std::{collections::HashMap,
 #[derive(Debug, Default)]
 pub struct UserInfo {
     /// Windows required, Linux optional
-    pub username:  Option<String>,
+    pub username: Option<String>,
     /// Linux preferred
-    pub uid:       Option<u32>,
+    pub uid: Option<u32>,
     /// Linux optional
     pub groupname: Option<String>,
     /// Linux preferred
-    pub gid:       Option<u32>,
+    pub gid: Option<u32>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -60,9 +52,11 @@ impl FromStr for EventStreamMetaPair {
                 Ok(Self(String::from(*key), String::from(*value)))
             }
             _ => {
-                let e = format!("Invalid key-value pair given (must be '='-delimited pair of \
+                let e = format!(
+                    "Invalid key-value pair given (must be '='-delimited pair of \
                                  non-empty strings): {}",
-                                s);
+                    s
+                );
                 Err(io::Error::new(io::ErrorKind::InvalidInput, e))
             }
         }
@@ -70,18 +64,24 @@ impl FromStr for EventStreamMetaPair {
 }
 
 impl fmt::Display for EventStreamMetaPair {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}={} ", self.0, self.1) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}={} ", self.0, self.1)
+    }
 }
 
 impl std::convert::TryFrom<String> for EventStreamMetaPair {
     type Error = Error;
 
-    fn try_from(s: String) -> Result<Self, Self::Error> { Ok(EventStreamMetaPair::from_str(&s)?) }
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Ok(EventStreamMetaPair::from_str(&s)?)
+    }
 }
 
 #[allow(clippy::from_over_into)]
 impl Into<String> for EventStreamMetaPair {
-    fn into(self) -> String { self.to_string() }
+    fn into(self) -> String {
+        self.to_string()
+    }
 }
 
 /// Captures arbitrary key-value pair metadata to attach to all events
@@ -91,19 +91,24 @@ pub struct EventStreamMetadata(HashMap<String, String>);
 
 #[allow(clippy::from_over_into)]
 impl Into<HashMap<String, String>> for EventStreamMetadata {
-    fn into(self) -> HashMap<String, String> { self.0 }
+    fn into(self) -> HashMap<String, String> {
+        self.0
+    }
 }
 
 impl From<HashMap<String, String>> for EventStreamMetadata {
-    fn from(map: HashMap<String, String>) -> Self { Self(map) }
+    fn from(map: HashMap<String, String>) -> Self {
+        Self(map)
+    }
 }
 
 impl From<Vec<EventStreamMetaPair>> for EventStreamMetadata {
     fn from(pairs: Vec<EventStreamMetaPair>) -> Self {
-        pairs.into_iter()
-             .map(|p| (p.0, p.1))
-             .collect::<HashMap<_, _>>()
-             .into()
+        pairs
+            .into_iter()
+            .map(|p| (p.0, p.1))
+            .collect::<HashMap<_, _>>()
+            .into()
     }
 }
 
@@ -125,10 +130,10 @@ impl EventStreamToken {
     /// The name of the Clap argument we'll use for arguments of this type.
     pub const ARG_NAME: &'static str = "EVENT_STREAM_TOKEN";
     // Ideally, we'd like to take advantage of
-    // `habitat_core::env::Config` trait, but that currently requires
+    // `biome_core::env::Config` trait, but that currently requires
     // a `Default` implementation, and there isn't really a legitimate
     // default value right now.
-    pub const ENVVAR: &'static str = "HAB_AUTOMATE_AUTH_TOKEN";
+    pub const ENVVAR: &'static str = "BIO_AUTOMATE_AUTH_TOKEN";
 }
 
 impl EventStreamToken {
@@ -153,7 +158,9 @@ impl FromStr for EventStreamToken {
 }
 
 impl fmt::Display for EventStreamToken {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 /// The event stream connection method.
@@ -172,9 +179,11 @@ impl EventStreamConnectMethod {
     /// The name of the Clap argument.
     pub const ARG_NAME: &'static str = "EVENT_STREAM_CONNECT_TIMEOUT";
     /// The environment variable to set this value.
-    pub const ENVVAR: &'static str = "HAB_EVENT_STREAM_CONNECT_TIMEOUT";
+    pub const ENVVAR: &'static str = "BIO_EVENT_STREAM_CONNECT_TIMEOUT";
 
-    pub fn from_0() -> Self { Self::Timeout { secs: 0 } }
+    pub fn from_0() -> Self {
+        Self::Timeout { secs: 0 }
+    }
 }
 
 impl FromStr for EventStreamConnectMethod {
@@ -208,7 +217,9 @@ impl From<EventStreamConnectMethod> for u64 {
 }
 
 impl fmt::Display for EventStreamConnectMethod {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", u64::from(*self)) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", u64::from(*self))
+    }
 }
 
 #[allow(clippy::from_over_into)]
@@ -227,7 +238,7 @@ impl Into<Option<Duration>> for EventStreamConnectMethod {
 // these proxy types.
 #[serde(try_from = "String", into = "PathBuf")]
 pub struct EventStreamServerCertificate {
-    path:        PathBuf,
+    path: PathBuf,
     certificate: Certificate,
 }
 
@@ -248,8 +259,10 @@ impl FromStr for EventStreamServerCertificate {
     fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
         let path = PathBuf::from_str(s).expect("Infallible conversion");
         let contents = fs::read(&path)?;
-        Ok(EventStreamServerCertificate { path,
-                                          certificate: Certificate::from_pem(&contents)? })
+        Ok(EventStreamServerCertificate {
+            path,
+            certificate: Certificate::from_pem(&contents)?,
+        })
     }
 }
 
@@ -263,19 +276,25 @@ impl std::convert::TryFrom<String> for EventStreamServerCertificate {
 
 #[allow(clippy::from_over_into)]
 impl Into<Certificate> for EventStreamServerCertificate {
-    fn into(self) -> Certificate { self.certificate }
+    fn into(self) -> Certificate {
+        self.certificate
+    }
 }
 
 #[allow(clippy::from_over_into)]
 impl Into<PathBuf> for EventStreamServerCertificate {
-    fn into(self) -> PathBuf { self.path }
+    fn into(self) -> PathBuf {
+        self.path
+    }
 }
 
 impl fmt::Debug for EventStreamServerCertificate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "EventStreamServerCertificate {{ path: {:?} }}",
-               self.path)
+        write!(
+            f,
+            "EventStreamServerCertificate {{ path: {:?} }}",
+            self.path
+        )
     }
 }
 
@@ -302,7 +321,7 @@ impl PartialEq<EventStreamServerCertificate> for EventStreamServerCertificate {
 #[serde(try_from = "String", into = "String")]
 pub struct ResolvedListenCtlAddr {
     domain: String,
-    addr:   ListenCtlAddr,
+    addr: ListenCtlAddr,
 }
 
 impl FromStr for ResolvedListenCtlAddr {
@@ -311,8 +330,10 @@ impl FromStr for ResolvedListenCtlAddr {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (domain, addr) =
             util::resolve_socket_addr_with_default_port(s, ListenCtlAddr::DEFAULT_PORT)?;
-        Ok(Self { domain,
-                  addr: ListenCtlAddr::from(addr) })
+        Ok(Self {
+            domain,
+            addr: ListenCtlAddr::from(addr),
+        })
     }
 }
 
@@ -323,24 +344,32 @@ impl std::fmt::Display for ResolvedListenCtlAddr {
 }
 
 impl Default for ResolvedListenCtlAddr {
-    fn default() -> Self { ListenCtlAddr::default_as_str().parse().unwrap() }
+    fn default() -> Self {
+        ListenCtlAddr::default_as_str().parse().unwrap()
+    }
 }
 
 impl ResolvedListenCtlAddr {
-    pub fn addr(&self) -> SocketAddr { self.addr.into() }
+    pub fn addr(&self) -> SocketAddr {
+        self.addr.into()
+    }
 
-    pub fn domain(&self) -> &str { &self.domain }
+    pub fn domain(&self) -> &str {
+        &self.domain
+    }
 }
 
 impl From<ResolvedListenCtlAddr> for ListenCtlAddr {
-    fn from(r: ResolvedListenCtlAddr) -> Self { r.addr }
+    fn from(r: ResolvedListenCtlAddr) -> Self {
+        r.addr
+    }
 }
 
-habitat_core::impl_try_from_string_and_into_string!(ResolvedListenCtlAddr);
+biome_core::impl_try_from_string_and_into_string!(ResolvedListenCtlAddr);
 
-habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug, Deserialize, Serialize)]
+biome_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug, Deserialize, Serialize)]
                                      pub GossipListenAddr,
-                                     HAB_LISTEN_GOSSIP,
+                                     BIO_LISTEN_GOSSIP,
                                      0, 0, 0, 0, Self::DEFAULT_PORT);
 
 impl GossipListenAddr {
@@ -351,8 +380,10 @@ impl GossipListenAddr {
     /// 127.0.0.1. This turns out to be much simpler than the cascade of changes that would
     /// be involved in not setting up a gossip listener at all.
     pub fn local_only() -> Self {
-        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 2),
-                                                          Self::DEFAULT_PORT)))
+        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(
+            Ipv4Addr::new(127, 0, 0, 2),
+            Self::DEFAULT_PORT,
+        )))
     }
 
     /// Generate an address at which a server configured with this
@@ -374,46 +405,60 @@ impl GossipListenAddr {
 impl Deref for GossipListenAddr {
     type Target = SocketAddr;
 
-    fn deref(&self) -> &SocketAddr { &self.0 }
+    fn deref(&self) -> &SocketAddr {
+        &self.0
+    }
 }
 
 impl DerefMut for GossipListenAddr {
-    fn deref_mut(&mut self) -> &mut SocketAddr { &mut self.0 }
+    fn deref_mut(&mut self) -> &mut SocketAddr {
+        &mut self.0
+    }
 }
 
 impl ToSocketAddrs for GossipListenAddr {
     type Iter = option::IntoIter<SocketAddr>;
 
-    fn to_socket_addrs(&self) -> io::Result<Self::Iter> { self.0.to_socket_addrs() }
+    fn to_socket_addrs(&self) -> io::Result<Self::Iter> {
+        self.0.to_socket_addrs()
+    }
 }
 
-habitat_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy, Deserialize, Serialize)]
+biome_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy, Deserialize, Serialize)]
                                      pub HttpListenAddr,
-                                     HAB_LISTEN_HTTP,
+                                     BIO_LISTEN_HTTP,
                                      0, 0, 0, 0, 9631);
 impl HttpListenAddr {
-    pub fn new(ip: IpAddr, port: u16) -> Self { Self(SocketAddr::new(ip, port)) }
+    pub fn new(ip: IpAddr, port: u16) -> Self {
+        Self(SocketAddr::new(ip, port))
+    }
 }
 
 impl Deref for HttpListenAddr {
     type Target = SocketAddr;
 
-    fn deref(&self) -> &SocketAddr { &self.0 }
+    fn deref(&self) -> &SocketAddr {
+        &self.0
+    }
 }
 
 impl DerefMut for HttpListenAddr {
-    fn deref_mut(&mut self) -> &mut SocketAddr { &mut self.0 }
+    fn deref_mut(&mut self) -> &mut SocketAddr {
+        &mut self.0
+    }
 }
 
 impl ToSocketAddrs for HttpListenAddr {
     type Iter = option::IntoIter<SocketAddr>;
 
-    fn to_socket_addrs(&self) -> io::Result<Self::Iter> { self.0.to_socket_addrs() }
+    fn to_socket_addrs(&self) -> io::Result<Self::Iter> {
+        self.0.to_socket_addrs()
+    }
 }
 
-habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug, Deserialize, Serialize)]
+biome_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug, Deserialize, Serialize)]
                                      pub ListenCtlAddr,
-                                     HAB_LISTEN_CTL,
+                                     BIO_LISTEN_CTL,
                                      Ipv4Addr::LOCALHOST, Self::DEFAULT_PORT);
 
 impl ListenCtlAddr {
@@ -423,9 +468,13 @@ impl ListenCtlAddr {
         ListenCtlAddr(SocketAddr::V4(SocketAddrV4::new(ip, port)))
     }
 
-    pub fn ip(&self) -> IpAddr { self.0.ip() }
+    pub fn ip(&self) -> IpAddr {
+        self.0.ip()
+    }
 
-    pub fn port(&self) -> u16 { self.0.port() }
+    pub fn port(&self) -> u16 {
+        self.0.port()
+    }
 
     /// Return the default ListenCtlAddr as a string.
     /// This overrides the macro-generated method to consider
@@ -442,7 +491,9 @@ impl ListenCtlAddr {
 }
 
 impl AsRef<SocketAddr> for ListenCtlAddr {
-    fn as_ref(&self) -> &SocketAddr { &self.0 }
+    fn as_ref(&self) -> &SocketAddr {
+        &self.0
+    }
 }
 
 #[cfg(test)]
@@ -453,7 +504,9 @@ mod tests {
         use super::*;
 
         #[test]
-        fn cannot_parse_from_empty_string() { assert!("".parse::<EventStreamToken>().is_err()) }
+        fn cannot_parse_from_empty_string() {
+            assert!("".parse::<EventStreamToken>().is_err())
+        }
     }
 
     mod gossip_listen_addr {
@@ -470,8 +523,9 @@ mod tests {
         #[test]
         fn local_addr_for_gossip_listen_addr_returns_same_ip_for_a_specified_address() {
             let mut listen_addr = GossipListenAddr::default();
-            listen_addr.0
-                       .set_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)));
+            listen_addr
+                .0
+                .set_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)));
             assert!(!listen_addr.0.ip().is_loopback());
 
             let local_addr = listen_addr.local_addr();
@@ -480,18 +534,16 @@ mod tests {
     }
 
     mod env_config {
-        use habitat_core::{env::Config as EnvConfig,
-                           locked_env_var};
-        use std::{env,
-                  num::ParseIntError,
-                  result,
-                  str::FromStr};
+        use biome_core::{env::Config as EnvConfig, locked_env_var};
+        use std::{env, num::ParseIntError, result, str::FromStr};
 
         #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
         struct Thingie(u64);
 
         impl Default for Thingie {
-            fn default() -> Self { Thingie(2112) }
+            fn default() -> Self {
+                Thingie(2112)
+            }
         }
 
         impl FromStr for Thingie {
@@ -503,23 +555,23 @@ mod tests {
             }
         }
 
-        locked_env_var!(HAB_TESTING_THINGIE, lock_hab_testing_thingie);
+        locked_env_var!(BIO_TESTING_THINGIE, lock_bio_testing_thingie);
 
         impl EnvConfig for Thingie {
-            const ENVVAR: &'static str = "HAB_TESTING_THINGIE";
+            const ENVVAR: &'static str = "BIO_TESTING_THINGIE";
         }
 
         #[test]
         fn no_env_var_yields_default() {
-            let _envvar = lock_hab_testing_thingie();
-            assert!(env::var("HAB_TESTING_THINGIE").is_err()); // it's not set
+            let _envvar = lock_bio_testing_thingie();
+            assert!(env::var("BIO_TESTING_THINGIE").is_err()); // it's not set
             assert_eq!(Thingie::configured_value(), Thingie(2112));
             assert_eq!(Thingie::configured_value(), Thingie::default());
         }
 
         #[test]
         fn parsable_env_var_yields_parsed_value() {
-            let envvar = lock_hab_testing_thingie();
+            let envvar = lock_bio_testing_thingie();
             envvar.set("123");
             assert_eq!(Thingie::configured_value(), Thingie(123));
             assert_ne!(Thingie::configured_value(), Thingie::default());
@@ -527,7 +579,7 @@ mod tests {
 
         #[test]
         fn unparsable_env_var_yields_default() {
-            let envvar = lock_hab_testing_thingie();
+            let envvar = lock_bio_testing_thingie();
             envvar.set("I'm not a number");
             assert_eq!(Thingie::configured_value(), Thingie::default());
         }

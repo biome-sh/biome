@@ -21,23 +21,25 @@ pub fn lookup_fqdn(hostname: &str) -> io::Result<String> {
     #[cfg(windows)]
     let flags = winapi::shared::ws2def::AI_CANONNAME;
 
-    let hints = dns_lookup::AddrInfoHints { flags,
-                                            ..dns_lookup::AddrInfoHints::default() };
+    let hints = dns_lookup::AddrInfoHints {
+        flags,
+        ..dns_lookup::AddrInfoHints::default()
+    };
 
     // If 'hints.flags' includes the AI_CANONNAME flag, then the ai_canonname
     // field of the first of the addrinfo structures in the returned list is set
     // to point to the official name of the host.
     match dns_lookup::getaddrinfo(Some(hostname), None, Some(hints))?.next() {
-        Some(first_result) => {
-            match first_result {
-                Ok(f) => Ok(f.canonname.expect("Some(canonname) if requested")),
-                Err(e) => {
-                    debug!("lookup_fqdn() was unable to lookup the machine fqdn. {:?}",
-                           e);
-                    Ok(hostname.to_string())
-                }
+        Some(first_result) => match first_result {
+            Ok(f) => Ok(f.canonname.expect("Some(canonname) if requested")),
+            Err(e) => {
+                debug!(
+                    "lookup_fqdn() was unable to lookup the machine fqdn. {:?}",
+                    e
+                );
+                Ok(hostname.to_string())
             }
-        }
+        },
         _ => Ok(hostname.to_string()),
     }
 }
@@ -56,9 +58,11 @@ pub fn fqdn() -> Option<String> {
 fn test_fqdn_lookup() {
     let fqdn = lookup_fqdn("localhost");
     assert!(fqdn.is_ok());
-    assert_eq!(fqdn.unwrap(),
-               String::from("localhost"),
-               "the fqdn of localhost should be localhost");
+    assert_eq!(
+        fqdn.unwrap(),
+        String::from("localhost"),
+        "the fqdn of localhost should be localhost"
+    );
 }
 
 #[cfg(not(windows))]

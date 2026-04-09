@@ -2,7 +2,7 @@ version: '2'
 
 services:
   shell:
-    image: habitat/devshell
+    image: biomesh/devshell
     build: ./
     privileged: true
     volumes:
@@ -18,13 +18,13 @@ services:
     image: tianon/true
     command: /true
     volumes:
-      - /hab/cache/artifacts
+      - /bio/cache/artifacts
 
   cache_keys:
     image: tianon/true
     command: /true
     volumes:
-      - /hab/cache/keys
+      - /bio/cache/keys
 
   cargo:
     image: tianon/true
@@ -36,4 +36,4 @@ services:
     image: tianon/true
     command: /true
     volumes:
-      - /hab/etc
+      - /bio/etc

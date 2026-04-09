@@ -1,5 +1,0 @@
-# Default reviewers for all files
-* @habitat-sh/habitat-approvers
-
-# Documentation specific reviewers
-components/docs-chef-io @habitat-sh/docs-team

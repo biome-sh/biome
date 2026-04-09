@@ -15,11 +15,9 @@ use unix as implementation;
 pub mod exec;
 
 // Common platform-independent interface
-pub use implementation::{Pid,
-                         become_command,
-                         can_run_services_as_svc_user,
-                         current_pid,
-                         is_alive};
+pub use implementation::{
+    Pid, become_command, can_run_services_as_svc_user, current_pid, is_alive,
+};
 
 #[cfg(unix)]
 pub(crate) use unix::SignalCode;
@@ -27,17 +25,11 @@ pub(crate) use unix::SignalCode;
 pub use unix::signal;
 
 #[cfg(windows)]
-pub use windows::{handle_from_pid,
-                  terminate};
+pub use windows::{handle_from_pid, terminate};
 
-use crate::{error::Error,
-            util};
-use serde::{Deserialize,
-            Serialize};
-use std::{fmt,
-          result,
-          str::FromStr,
-          time::Duration};
+use crate::{error::Error, util};
+use serde::{Deserialize, Serialize};
+use std::{fmt, result, str::FromStr, time::Duration};
 
 /// This type encapsulates the number of seconds we should wait after
 /// send a shutdown signal to a process before we kill it.
@@ -48,29 +40,41 @@ pub struct ShutdownTimeout(u32);
 impl Default for ShutdownTimeout {
     /// Unless otherwise specified, the Supervisor will wait 8 seconds
     /// for a service to finish shutting down before killing it.
-    fn default() -> Self { 8.into() }
+    fn default() -> Self {
+        8.into()
+    }
 }
 
 impl FromStr for ShutdownTimeout {
     type Err = Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(ShutdownTimeout(s.parse()?)) }
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(ShutdownTimeout(s.parse()?))
+    }
 }
 
 impl fmt::Display for ShutdownTimeout {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 impl From<u32> for ShutdownTimeout {
-    fn from(seconds: u32) -> Self { ShutdownTimeout(seconds) }
+    fn from(seconds: u32) -> Self {
+        ShutdownTimeout(seconds)
+    }
 }
 
 impl From<ShutdownTimeout> for u32 {
-    fn from(timeout: ShutdownTimeout) -> Self { timeout.0 }
+    fn from(timeout: ShutdownTimeout) -> Self {
+        timeout.0
+    }
 }
 
 impl From<ShutdownTimeout> for Duration {
-    fn from(timeout: ShutdownTimeout) -> Self { Duration::from_secs(timeout.0.into()) }
+    fn from(timeout: ShutdownTimeout) -> Self {
+        Duration::from_secs(timeout.0.into())
+    }
 }
 
 // This defines a handful of Unix signals that we want to deal with,
@@ -148,25 +152,35 @@ pub struct ShutdownSignal(#[serde(with = "util::serde::string")] Signal);
 impl Default for ShutdownSignal {
     /// Unless otherwise specified, the Supervisor will shut down
     /// services by sending the `TERM` signal.
-    fn default() -> Self { Signal::TERM.into() }
+    fn default() -> Self {
+        Signal::TERM.into()
+    }
 }
 
 impl FromStr for ShutdownSignal {
     type Err = Error;
 
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> { Ok(ShutdownSignal(s.parse()?)) }
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
+        Ok(ShutdownSignal(s.parse()?))
+    }
 }
 
 impl fmt::Display for ShutdownSignal {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 impl From<Signal> for ShutdownSignal {
-    fn from(signal: Signal) -> Self { ShutdownSignal(signal) }
+    fn from(signal: Signal) -> Self {
+        ShutdownSignal(signal)
+    }
 }
 
 impl From<ShutdownSignal> for Signal {
-    fn from(shutdown_signal: ShutdownSignal) -> Self { shutdown_signal.0 }
+    fn from(shutdown_signal: ShutdownSignal) -> Self {
+        shutdown_signal.0
+    }
 }
 
 #[cfg(test)]
@@ -186,23 +200,27 @@ mod tests {
 
     #[test]
     fn signals_can_round_trip_through_parsing() {
-        for signal in &[Signal::HUP,
-                        Signal::INT,
-                        Signal::QUIT,
-                        Signal::ABRT,
-                        Signal::FPE,
-                        Signal::KILL,
-                        Signal::USR1,
-                        Signal::SEGV,
-                        Signal::USR2,
-                        Signal::ALRM,
-                        Signal::TERM,
-                        Signal::CHLD]
-        {
-            assert_eq!(*signal,
-                       signal.to_string()
-                             .parse::<Signal>()
-                             .expect("Couldn't parse back into a Signal!"));
+        for signal in &[
+            Signal::HUP,
+            Signal::INT,
+            Signal::QUIT,
+            Signal::ABRT,
+            Signal::FPE,
+            Signal::KILL,
+            Signal::USR1,
+            Signal::SEGV,
+            Signal::USR2,
+            Signal::ALRM,
+            Signal::TERM,
+            Signal::CHLD,
+        ] {
+            assert_eq!(
+                *signal,
+                signal
+                    .to_string()
+                    .parse::<Signal>()
+                    .expect("Couldn't parse back into a Signal!")
+            );
         }
     }
 }

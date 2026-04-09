@@ -1,62 +1,56 @@
 #[cfg(not(windows))]
-use crate::util::posix_perm::{self,
-                              set_permissions};
+use crate::util::posix_perm::{self, set_permissions};
 #[cfg(windows)]
-use crate::util::win_perm::{self,
-                            set_permissions};
-use log::{debug,
-          warn};
+use crate::util::win_perm::{self, set_permissions};
+use log::{debug, warn};
 #[cfg(windows)]
-use std::{iter,
-          os::windows::ffi::OsStrExt};
+use std::{iter, os::windows::ffi::OsStrExt};
 #[cfg(windows)]
 use winapi::um::winbase::MoveFileExW;
 
-use crate::{env as henv,
-            error::{Error,
-                    Result},
-            os::{process,
-                 users::{self,
-                         assert_pkg_user_and_group}},
-            package::{Identifiable,
-                      PackageIdent,
-                      PackageInstall}};
-use std::{env,
-          fmt,
-          fs,
-          io::{self,
-               Write},
-          path::{Path,
-                 PathBuf},
-          str::FromStr};
+use crate::{
+    env as henv,
+    error::{Error, Result},
+    os::{
+        process,
+        users::{self, assert_pkg_user_and_group},
+    },
+    package::{Identifiable, PackageIdent, PackageInstall},
+};
+use std::{
+    env, fmt, fs,
+    io::{self, Write},
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
-/// The default root path of the Habitat filesystem
-pub const ROOT_PATH: &str = "hab";
+/// The default root path of the Biome filesystem
+pub const ROOT_PATH: &str = "bio";
 /// The default cache path
-pub const CACHE_PATH: &str = "hab/cache";
+pub const CACHE_PATH: &str = "bio/cache";
 /// The default download root path for package artifacts, used on package installation
-pub const CACHE_ARTIFACT_PATH: &str = "hab/cache/artifacts";
-/// The default path where hab-plan-build scripts are written, used for native package builds
-pub const CACHE_BUILD_PATH: &str = "hab/cache/build";
+pub const CACHE_ARTIFACT_PATH: &str = "bio/cache/artifacts";
+/// The default path where bio-plan-build scripts are written, used for native package builds
+pub const CACHE_BUILD_PATH: &str = "bio/cache/build";
 /// The default path where cryptographic keys are stored
-pub const CACHE_KEY_PATH_POSTFIX: &str = "hab/cache/keys";
+pub const CACHE_KEY_PATH_POSTFIX: &str = "bio/cache/keys";
 /// The default path for ctl gateway TLS certificate and keys
-pub const HAB_CTL_KEYS_CACHE: &str = "/hab/cache/keys/ctl";
+pub const BIO_CTL_KEYS_CACHE: &str = "/bio/cache/keys/ctl";
 /// The default path where source artifacts are downloaded, extracted, & compiled
-pub const CACHE_SRC_PATH: &str = "hab/cache/src";
+pub const CACHE_SRC_PATH: &str = "bio/cache/src";
 /// The default path where SSL-related artifacts are placed
-pub const CACHE_SSL_PATH: &str = "hab/cache/ssl";
+pub const CACHE_SSL_PATH: &str = "bio/cache/ssl";
 /// The root path for the launcher runtime
-pub const LAUNCHER_ROOT_PATH: &str = "hab/launcher";
+pub const LAUNCHER_ROOT_PATH: &str = "bio/launcher";
 /// The root path containing all locally installed packages
 /// Because this value is used in template rendering, we
 /// use native directory separator
 #[cfg(not(target_os = "windows"))]
-pub const PKG_PATH: &str = "hab/pkgs";
+pub const PKG_PATH: &str = "bio/pkgs";
 #[cfg(target_os = "windows")]
-pub const PKG_PATH: &str = "hab\\pkgs";
-/// The environment variable pointing to the filesystem root. This exists for internal Habitat team
-/// usage and is not intended to be used by Habitat consumers. Using this variable could lead to
+pub const PKG_PATH: &str = "bio\\pkgs";
+/// The environment variable pointing to the filesystem root. This exists for internal Biome team
+/// usage and is not intended to be used by Biome consumers. Using this variable could lead to
 /// broken Supervisor services and should be used with extreme caution. The services may break due
 /// to absolute paths in package binaries and libraries. Valid use cases include limited  testing or
 /// creating new self-contained root filesystems for tarballs or containers.
@@ -159,11 +153,11 @@ lazy_static::lazy_static! {
 
     /// The root path containing all runtime service directories and files
     pub static ref SVC_ROOT: PathBuf = {
-        Path::new(&*FS_ROOT_PATH).join("hab").join("svc")
+        Path::new(&*FS_ROOT_PATH).join("bio").join("svc")
     };
 
     pub static ref USER_ROOT: PathBuf = {
-        Path::new(&*FS_ROOT_PATH).join("hab").join("user")
+        Path::new(&*FS_ROOT_PATH).join("bio").join("user")
     };
 
     static ref EUID: u32 = users::get_effective_uid();
@@ -239,7 +233,8 @@ lazy_static::lazy_static! {
 }
 
 pub fn cache_root_path<T>(fs_root_path: Option<T>) -> PathBuf
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     match fs_root_path {
         Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_PATH),
@@ -249,7 +244,8 @@ pub fn cache_root_path<T>(fs_root_path: Option<T>) -> PathBuf
 
 /// Returns the path to the artifacts cache, optionally taking a custom filesystem root.
 pub fn cache_artifact_path<T>(fs_root_path: Option<T>) -> PathBuf
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     match fs_root_path {
         Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_ARTIFACT_PATH),
@@ -257,10 +253,11 @@ pub fn cache_artifact_path<T>(fs_root_path: Option<T>) -> PathBuf
     }
 }
 
-/// Returns the path to the hab-plan-build script files used for native plan builds, optionally
+/// Returns the path to the bio-plan-build script files used for native plan builds, optionally
 /// taking a custom filesystem root.
 pub fn cache_build_path<T>(fs_root_path: Option<T>) -> PathBuf
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     match fs_root_path {
         Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_BUILD_PATH),
@@ -275,7 +272,8 @@ pub fn cache_key_path(root_path: impl AsRef<Path>) -> PathBuf {
 
 /// Returns the path to the src cache, optionally taking a custom filesystem root.
 pub fn cache_src_path<T>(fs_root_path: Option<T>) -> PathBuf
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     match fs_root_path {
         Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_SRC_PATH),
@@ -285,7 +283,8 @@ pub fn cache_src_path<T>(fs_root_path: Option<T>) -> PathBuf
 
 /// Returns the path to the SSL cache, optionally taking a custom filesystem root.
 pub fn cache_ssl_path<T>(fs_root_path: Option<T>) -> PathBuf
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     match fs_root_path {
         Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_SSL_PATH),
@@ -294,7 +293,8 @@ pub fn cache_ssl_path<T>(fs_root_path: Option<T>) -> PathBuf
 }
 
 pub fn pkg_root_path<T>(fs_root: Option<T>) -> PathBuf
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     let mut buf = fs_root.map_or_else(|| PathBuf::from("/"), |p| p.as_ref().into());
     buf.push(PKG_PATH);
@@ -302,10 +302,13 @@ pub fn pkg_root_path<T>(fs_root: Option<T>) -> PathBuf
 }
 
 pub fn pkg_install_path<T>(ident: &PackageIdent, fs_root: Option<T>) -> PathBuf
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
-    assert!(ident.fully_qualified(),
-            "Cannot determine install path without fully qualified ident");
+    assert!(
+        ident.fully_qualified(),
+        "Cannot determine install path without fully qualified ident"
+    );
     let mut pkg_path = pkg_root_path(fs_root);
     pkg_path.push(&ident.origin);
     pkg_path.push(&ident.name);
@@ -328,7 +331,8 @@ pub fn fs_rooted_path(path: &Path, fs_root: &Path) -> PathBuf {
 
 /// Return the path to the root of the launcher runtime directory
 pub fn launcher_root_path<T>(fs_root_path: Option<T>) -> PathBuf
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     match fs_root_path {
         Some(fs_root_path) => fs_root_path.as_ref().join(LAUNCHER_ROOT_PATH),
@@ -337,7 +341,9 @@ pub fn launcher_root_path<T>(fs_root_path: Option<T>) -> PathBuf
 }
 
 /// Returns the root path for a given service's configuration, files, and data.
-pub fn svc_path<T: AsRef<Path>>(service_name: T) -> PathBuf { SVC_ROOT.join(service_name) }
+pub fn svc_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    SVC_ROOT.join(service_name)
+}
 
 /// Returns the path to the configuration directory for a given service.
 pub fn svc_config_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
@@ -386,7 +392,9 @@ pub fn svc_pid_file<T: AsRef<Path>>(service_name: T) -> PathBuf {
 
 /// Returns the root path for a given service's user configuration,
 /// files, and data.
-pub fn user_path<T: AsRef<Path>>(service_name: T) -> PathBuf { USER_ROOT.join(service_name) }
+pub fn user_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    USER_ROOT.join(service_name)
+}
 
 /// Returns the path to a given service's user configuration
 /// directory.
@@ -414,8 +422,8 @@ pub fn windows_system_paths() -> Vec<PathBuf> {
 /// Represents the service directory for a given package.
 pub struct SvcDir<'a> {
     service_name: &'a str,
-    svc_user:     &'a str,
-    svc_group:    &'a str,
+    svc_user: &'a str,
+    svc_group: &'a str,
 }
 
 impl<'a> SvcDir<'a> {
@@ -433,9 +441,11 @@ impl<'a> SvcDir<'a> {
     // (They could also be Strings and not references, but there's
     // really no need to make copies of that data.)
     pub fn new(name: &'a str, user: &'a str, group: &'a str) -> Self {
-        SvcDir { service_name: name,
-                 svc_user:     user,
-                 svc_group:    group, }
+        SvcDir {
+            service_name: name,
+            svc_user: user,
+            svc_group: group,
+        }
     }
 
     /// Create a service directory, including all necessary
@@ -464,11 +474,14 @@ impl<'a> SvcDir<'a> {
     /// versions of a service that have been removed from the current
     /// version.
     pub fn purge_templated_content(&self) -> Result<()> {
-        for dir_path in &[svc_config_path(self.service_name),
-                          svc_hooks_path(self.service_name)]
-        {
-            debug!("Purging any old templated content from {}",
-                   dir_path.display());
+        for dir_path in &[
+            svc_config_path(self.service_name),
+            svc_hooks_path(self.service_name),
+        ] {
+            debug!(
+                "Purging any old templated content from {}",
+                dir_path.display()
+            );
             Self::purge_directory_content(dir_path)?;
         }
         Ok(())
@@ -490,9 +503,11 @@ impl<'a> SvcDir<'a> {
                     }
                 }
                 Err(e) => {
-                    warn!("Not purging {}; could not determine file type: {}",
-                          entry.path().display(),
-                          e);
+                    warn!(
+                        "Not purging {}; could not determine file type: {}",
+                        entry.path().display(),
+                        e
+                    );
                 }
             }
         }
@@ -544,7 +559,8 @@ impl<'a> SvcDir<'a> {
     }
 
     fn create_svc_owned_dir<P>(&self, path: P) -> Result<()>
-        where P: AsRef<Path>
+    where
+        P: AsRef<Path>,
     {
         // We do not want to change the permissions of an already
         // existing directory
@@ -560,9 +576,11 @@ impl<'a> SvcDir<'a> {
     fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<()> {
         debug!("Creating dir with subdirs: {:?}", &path.as_ref());
         if let Err(e) = fs::create_dir_all(&path) {
-            Err(Error::PermissionFailed(format!("Can't create {:?}, {}",
-                                                &path.as_ref(),
-                                                e)))
+            Err(Error::PermissionFailed(format!(
+                "Can't create {:?}, {}",
+                &path.as_ref(),
+                e
+            )))
         } else {
             Ok(())
         }
@@ -596,7 +614,7 @@ impl<'a> SvcDir<'a> {
 /// Behavior when the command exists on PATH:
 ///
 /// ```
-/// use habitat_core::fs::find_command;
+/// use biome_core::fs::find_command;
 /// use std::{env,
 ///           path::PathBuf};
 ///
@@ -615,7 +633,7 @@ impl<'a> SvcDir<'a> {
 /// Behavior when the command does not exist on PATH:
 ///
 /// ```
-/// use habitat_core::fs::find_command;
+/// use biome_core::fs::find_command;
 /// use std::{env,
 ///           path::PathBuf};
 ///
@@ -631,7 +649,8 @@ impl<'a> SvcDir<'a> {
 /// assert_eq!(result.is_some(), false);
 /// ```
 pub fn find_command<T>(command: T) -> Option<PathBuf>
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     // If the command path is absolute and a file exists, then use that.
     if command.as_ref().is_absolute() && command.as_ref().is_file() {
@@ -662,19 +681,19 @@ pub fn find_command<T>(command: T) -> Option<PathBuf>
 /// # Failures
 ///
 /// * The path entries metadata cannot be loaded
-pub fn find_command_in_pkg<T, U>(command: T,
-                                 pkg_install: &PackageInstall,
-                                 fs_root_path: U)
-                                 -> Result<Option<PathBuf>>
-    where T: AsRef<Path>,
-          U: AsRef<Path>
+pub fn find_command_in_pkg<T, U>(
+    command: T,
+    pkg_install: &PackageInstall,
+    fs_root_path: U,
+) -> Result<Option<PathBuf>>
+where
+    T: AsRef<Path>,
+    U: AsRef<Path>,
 {
     for path in pkg_install.paths()? {
-        let stripped =
-            path.strip_prefix("/")
-                .unwrap_or_else(|_| {
-                    panic!("Package path missing / prefix {}", path.to_string_lossy())
-                });
+        let stripped = path
+            .strip_prefix("/")
+            .unwrap_or_else(|_| panic!("Package path missing / prefix {}", path.to_string_lossy()));
         let candidate = fs_root_path.as_ref().join(stripped).join(command.as_ref());
         if let Some(result) = find_command_with_pathext(&candidate) {
             return Ok(Some(result));
@@ -702,27 +721,35 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
             match find_command_in_pkg(program, pkg_install, Path::new(&*FS_ROOT_PATH)) {
                 Ok(Some(p)) => p,
                 Ok(None) => {
-                    panic!("Could not find '{}' in the '{}' package! This is required for the \
+                    panic!(
+                        "Could not find '{}' in the '{}' package! This is required for the \
                             proper operation of this program.",
-                           program, &ident)
+                        program, &ident
+                    )
                 }
                 Err(err) => {
-                    panic!("Error finding '{}' in the '{}' package! This is required for the \
+                    panic!(
+                        "Error finding '{}' in the '{}' package! This is required for the \
                             proper operation of this program. (Err: {:?})",
-                           program, &ident, err)
+                        program, &ident, err
+                    )
                 }
             }
         }
         Err(err) => {
-            panic!("Package installation for '{}' not found on disk! This is required for the \
+            panic!(
+                "Package installation for '{}' not found on disk! This is required for the \
                     proper operation of this program (Err: {:?})",
-                   &ident, err)
+                &ident, err
+            )
         }
     };
-    debug!("resolved absolute path to program, program={}, ident={}, abs_path={}",
-           program,
-           &ident,
-           abs_path.display());
+    debug!(
+        "resolved absolute path to program, program={}, ident={}, abs_path={}",
+        program,
+        &ident,
+        abs_path.display()
+    );
     abs_path
 }
 
@@ -731,7 +758,7 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
 // We should only search with PATHEXT if the file does not already have an extension.
 fn find_command_with_pathext(candidate: &Path) -> Option<PathBuf> {
     if candidate.extension().is_none()
-       && let Some(pathexts) = henv::var_os("PATHEXT")
+        && let Some(pathexts) = henv::var_os("PATHEXT")
     {
         for pathext in env::split_paths(&pathexts) {
             let mut source_candidate = candidate.to_path_buf();
@@ -756,7 +783,9 @@ fn find_command_with_pathext(candidate: &Path) -> Option<PathBuf> {
 /// user, while still granting specific abilities.
 ///
 /// See, for example, Linux capabilities.
-pub fn am_i_root() -> bool { *EUID == 0u32 }
+pub fn am_i_root() -> bool {
+    *EUID == 0u32
+}
 
 /// parent returns the parent directory of the given path, accounting
 /// for the fact that a relative path with no directory separator
@@ -767,7 +796,10 @@ fn parent(p: &Path) -> io::Result<&Path> {
     match p.parent() {
         Some(parent_path) if parent_path.as_os_str().is_empty() => Ok(Path::new(".")),
         Some(nonempty_parent_path) => Ok(nonempty_parent_path),
-        None => Err(io::Error::new(io::ErrorKind::InvalidInput, "path has no parent")),
+        None => Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "path has no parent",
+        )),
     }
 }
 
@@ -785,8 +817,8 @@ fn parent(p: &Path) -> io::Result<&Path> {
 ///
 /// Assumes that the parent directory of dest_path exists.
 pub struct AtomicWriter {
-    dest:        PathBuf,
-    tempfile:    tempfile::NamedTempFile,
+    dest: PathBuf,
+    tempfile: tempfile::NamedTempFile,
     permissions: Permissions,
 }
 
@@ -808,14 +840,17 @@ impl AtomicWriter {
     pub fn new_with_permissions(dest_path: &Path, permissions: Permissions) -> io::Result<Self> {
         let parent = parent(dest_path)?;
         let tempfile = tempfile::NamedTempFile::new_in(parent)?;
-        Ok(Self { dest: dest_path.to_path_buf(),
-                  tempfile,
-                  permissions })
+        Ok(Self {
+            dest: dest_path.to_path_buf(),
+            tempfile,
+            permissions,
+        })
     }
 
     pub fn with_writer<F, T, E>(mut self, op: F) -> std::result::Result<T, E>
-        where F: FnOnce(&mut std::fs::File) -> std::result::Result<T, E>,
-              E: From<std::io::Error>
+    where
+        F: FnOnce(&mut std::fs::File) -> std::result::Result<T, E>,
+        E: From<std::io::Error>,
     {
         let r = op(self.tempfile.as_file_mut())?;
         self.finish()?;
@@ -834,9 +869,8 @@ impl AtomicWriter {
             #[cfg(not(windows))]
             let permissions = *permissions;
 
-            set_permissions(self.tempfile.path(), permissions).map_err(|e| {
-                                                                  io::Error::other(e.to_string())
-                                                              })?;
+            set_permissions(self.tempfile.path(), permissions)
+                .map_err(|e| io::Error::other(e.to_string()))?;
         }
         self.tempfile.as_file().sync_all()?;
 
@@ -861,8 +895,10 @@ impl AtomicWriter {
             // if the filesystem does not support calling fsync() on
             // directories. libc's EINVAL is mapped to InvalidInput.
             if e.kind() == std::io::ErrorKind::InvalidInput {
-                info!("Ignoring InvalidInput from sync_all on {}",
-                      parent.to_string_lossy());
+                info!(
+                    "Ignoring InvalidInput from sync_all on {}",
+                    parent.to_string_lossy()
+                );
                 Ok(())
             } else {
                 Err(e)
@@ -888,11 +924,12 @@ fn rename_windows<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<
         s.as_os_str().encode_wide().chain(iter::once(0)).collect()
     }
     unsafe {
-        if MoveFileExW(windows_u16s(from.as_ref()).as_ptr(),
-                       windows_u16s(to.as_ref()).as_ptr(),
-                       winapi::um::winbase::MOVEFILE_WRITE_THROUGH
-                       | winapi::um::winbase::MOVEFILE_REPLACE_EXISTING)
-           == 0
+        if MoveFileExW(
+            windows_u16s(from.as_ref()).as_ptr(),
+            windows_u16s(to.as_ref()).as_ptr(),
+            winapi::um::winbase::MOVEFILE_WRITE_THROUGH
+                | winapi::um::winbase::MOVEFILE_REPLACE_EXISTING,
+        ) == 0
         {
             Err(io::Error::last_os_error())
         } else {
@@ -904,8 +941,8 @@ fn rename_windows<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<
 #[cfg(unix)]
 fn rename_unix<P: AsRef<Path>, Q: AsRef<Path> + std::convert::AsRef<std::path::Path> + Copy>(
     from: P,
-    to: Q)
-    -> io::Result<()> {
+    to: Q,
+) -> io::Result<()> {
     fs::rename(from, to)?;
     AtomicWriter::sync_parent(&PathBuf::from(to.as_ref()))?;
     Ok(())
@@ -913,14 +950,18 @@ fn rename_unix<P: AsRef<Path>, Q: AsRef<Path> + std::convert::AsRef<std::path::P
 
 /// atomic_rename is a cross platform  helper function for renaming a file atomically with
 /// durability guarantees.
-pub fn atomic_rename<P: AsRef<Path>,
-                     Q: AsRef<Path> + std::convert::AsRef<std::path::Path> + Copy>(
+pub fn atomic_rename<
+    P: AsRef<Path>,
+    Q: AsRef<Path> + std::convert::AsRef<std::path::Path> + Copy,
+>(
     from: P,
-    to: Q)
-    -> io::Result<()> {
-    debug!("Renaming {} to {}",
-           from.as_ref().display(),
-           to.as_ref().display());
+    to: Q,
+) -> io::Result<()> {
+    debug!(
+        "Renaming {} to {}",
+        from.as_ref().display(),
+        to.as_ref().display()
+    );
     #[cfg(windows)]
     return rename_windows(from, to);
     #[cfg(unix)]
@@ -940,8 +981,7 @@ mod tests {
 
     mod svc_dir {
         use super::*;
-        use std::fs::{self,
-                      File};
+        use std::fs::{self, File};
         use tempfile::tempdir;
 
         #[test]
@@ -986,16 +1026,17 @@ mod tests {
 mod test_find_command {
     pub use super::find_command;
     use crate::locked_env_var::LockedEnvVar;
-    use std::{env,
-              path::PathBuf};
+    use std::{env, path::PathBuf};
 
     crate::locked_env_var!(PATHEXT, lock_pathext);
 
     #[allow(dead_code)]
     fn setup_pathext(lock: &LockedEnvVar) {
-        let path_bufs = vec![PathBuf::from(".BAT"),
-                             PathBuf::from(".COM"),
-                             PathBuf::from(".EXE")];
+        let path_bufs = vec![
+            PathBuf::from(".BAT"),
+            PathBuf::from(".COM"),
+            PathBuf::from(".EXE"),
+        ];
         let new_path = env::join_paths(path_bufs).unwrap();
         lock.set(new_path);
     }
@@ -1017,8 +1058,7 @@ mod test_find_command {
         use super::setup_path;
 
         mod argument_without_extension {
-            use super::{find_command,
-                        setup_path};
+            use super::{find_command, setup_path};
             use crate::fs::test_find_command::lock_pathext;
 
             #[test]
@@ -1050,8 +1090,7 @@ mod test_find_command {
         }
 
         mod argument_with_extension {
-            use super::{find_command,
-                        setup_path};
+            use super::{find_command, setup_path};
             use crate::fs::test_find_command::lock_pathext;
             use std::path::PathBuf;
 
@@ -1098,13 +1137,10 @@ mod test_find_command {
     #[cfg(target_os = "windows")]
     mod with_pathext_set {
         pub use super::find_command;
-        use super::{setup_path,
-                    setup_pathext};
+        use super::{setup_path, setup_pathext};
 
         mod argument_without_extension {
-            use super::{find_command,
-                        setup_path,
-                        setup_pathext};
+            use super::{find_command, setup_path, setup_pathext};
             use crate::fs::test_find_command::lock_pathext;
 
             #[test]
@@ -1157,9 +1193,7 @@ mod test_find_command {
         }
 
         mod argument_with_extension {
-            use super::{find_command,
-                        setup_path,
-                        setup_pathext};
+            use super::{find_command, setup_path, setup_pathext};
             use crate::fs::test_find_command::lock_pathext;
             use std::path::PathBuf;
 
@@ -1216,12 +1250,11 @@ mod test_find_command {
 
 #[cfg(test)]
 mod test_atomic_writer {
-    use super::{AtomicWriter,
-                atomic_write};
-    use std::{fs::File,
-              io::{Read,
-                   Seek,
-                   Write}};
+    use super::{AtomicWriter, atomic_write};
+    use std::{
+        fs::File,
+        io::{Read, Seek, Write},
+    };
 
     const EXPECTED_CONTENT: &str = "A very good file format";
 
@@ -1237,7 +1270,7 @@ mod test_atomic_writer {
         let mut f = File::open(dest_file_path).expect("file not found");
         let mut actual_content = String::new();
         f.read_to_string(&mut actual_content)
-         .expect("failed to read file");
+            .expect("failed to read file");
         assert_eq!(EXPECTED_CONTENT, actual_content);
     }
 
@@ -1251,17 +1284,17 @@ mod test_atomic_writer {
 
         let w = AtomicWriter::new(dest_file_path).expect("could not create AtomicWriter");
         let res = w.with_writer(|writer| {
-                       writer.write_all(b"not the right content")?;
-                       writer.rewind()?;
-                       writer.write_all(EXPECTED_CONTENT.as_bytes())?;
-                       writer.flush() // not needed, just making sure we can call it
-                   });
+            writer.write_all(b"not the right content")?;
+            writer.rewind()?;
+            writer.write_all(EXPECTED_CONTENT.as_bytes())?;
+            writer.flush() // not needed, just making sure we can call it
+        });
         assert!(res.is_ok());
 
         let mut f = File::open(dest_file_path).expect("file not found");
         let mut actual_content = String::new();
         f.read_to_string(&mut actual_content)
-         .expect("failed to read file");
+            .expect("failed to read file");
         assert_eq!(EXPECTED_CONTENT, actual_content);
     }
 }

@@ -1,12 +1,10 @@
-use crate::error::{Error,
-                   Result};
-use serde::{Deserialize,
-            Serialize};
+use crate::error::{Error, Result};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Plan {
-    pub name:    String,
-    pub origin:  String,
+    pub name: String,
+    pub origin: String,
     pub version: Option<String>,
 }
 
@@ -17,9 +15,10 @@ impl Plan {
         let mut version: Option<String> = None;
 
         let content = std::str::from_utf8(bytes).map_err(|_| Error::PlanMalformed)?;
-        for line in content.lines()
-                           .map(|line| Ok(line.to_string()))
-                           .map_while(Result::ok)
+        for line in content
+            .lines()
+            .map(|line| Ok(line.to_string()))
+            .map_while(Result::ok)
         {
             // Rather than just blindly accepting values, let's trim all the
             // whitespace first, verify that we actually have 2 things separated
@@ -50,9 +49,11 @@ impl Plan {
             return Err(Error::PlanMalformed);
         }
 
-        Ok(Plan { name: name.unwrap(),
-                  origin: origin.unwrap(),
-                  version })
+        Ok(Plan {
+            name: name.unwrap(),
+            origin: origin.unwrap(),
+            version,
+        })
     }
 }
 
@@ -66,9 +67,9 @@ mod tests {
         pkg_origin=neurosis
         pkg_name=testapp
         pkg_version=0.1.3
-        pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+        pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
         pkg_license=()
-        pkg_upstream_url=https://github.com/habitat-sh/habitat-example-plans
+        pkg_upstream_url=https://github.com/biome-sh/biome-example-plans
         pkg_source=nosuchfile.tar.gz
         pkg_deps=()
         pkg_expose=()
@@ -105,9 +106,9 @@ mod tests {
         pkg_origin="neurosis"
         pkg_name="testapp"
         pkg_version="0.1.3"
-        pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+        pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
         pkg_license=()
-        pkg_upstream_url=https://github.com/habitat-sh/habitat-example-plans
+        pkg_upstream_url=https://github.com/biome-sh/biome-example-plans
         pkg_source=nosuchfile.tar.gz
         pkg_deps=()
         pkg_expose=()
@@ -144,9 +145,9 @@ mod tests {
         pkg_origin='neurosis'
         pkg_name='testapp'
         pkg_version='0.1.3'
-        pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+        pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
         pkg_license=()
-        pkg_upstream_url=https://github.com/habitat-sh/habitat-example-plans
+        pkg_upstream_url=https://github.com/biome-sh/biome-example-plans
         pkg_source=nosuchfile.tar.gz
         pkg_deps=()
         pkg_expose=()
@@ -183,7 +184,7 @@ mod tests {
         $pkg_name="testapp"
         $pkg_origin="neurosis"
         $pkg_version="1.04"
-        $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+        $pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 
         function Invoke-Unpack {
         }

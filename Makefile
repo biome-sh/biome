@@ -8,9 +8,9 @@ else ifeq ($(UNAME_S),Darwin)
 endif
 
 ifeq ($(IN_DOCKER),true)
-	build_args := --build-arg HAB_BLDR_URL=$(HAB_BLDR_URL)
-	run_args := -e HAB_BLDR_URL=$(HAB_BLDR_URL)
-	run_args := $(run_args) -e HAB_ORIGIN=$(HAB_ORIGIN)
+	build_args := --build-arg BIO_BLDR_URL=$(BIO_BLDR_URL)
+	run_args := -e BIO_BLDR_URL=$(BIO_BLDR_URL)
+	run_args := $(run_args) -e BIO_ORIGIN=$(BIO_ORIGIN)
 	ifneq (${http_proxy},)
 		build_args := $(build_args) --build-arg http_proxy="${http_proxy}"
 		run_args := $(run_args) -e http_proxy="${http_proxy}"
@@ -20,7 +20,7 @@ ifeq ($(IN_DOCKER),true)
 		run_args := $(run_args) -e https_proxy="${https_proxy}"
 	endif
 
-	dimage := habitat/devshell
+	dimage := biomesh/devshell
 	docker_cmd := env http_proxy= https_proxy= docker
 	compose_cmd := env http_proxy= https_proxy= docker-compose
 	common_run := $(compose_cmd) run --rm $(run_args)
@@ -42,8 +42,8 @@ else
 endif
 
 # launcher is intentionally omitted from the standard build process
-# see https://github.com/habitat-sh/habitat/blob/master/components/launcher/README.md
-BIN = hab pkg-export-container sup
+# see https://github.com/biome-sh/biome/blob/master/components/launcher/README.md
+BIN = bio pkg-export-container sup
 LIB = butterfly common builder-api-client sup-protocol sup-client
 ALL = $(BIN) $(LIB)
 VERSION := $(shell cat VERSION)
@@ -144,18 +144,18 @@ distclean: clean ## fully cleans up project tree
 endif
 
 changelog: image
-	@$(run) sh -c 'hab pkg install core/github_changelog_generator && \
-		hab pkg binlink core/git git --force && \
-		hab pkg binlink core/github_changelog_generator github_changelog_generator --force && \
+	@$(run) sh -c 'bio pkg install core/github_changelog_generator && \
+		bio pkg binlink core/git git --force && \
+		bio pkg binlink core/github_changelog_generator github_changelog_generator --force && \
 		github_changelog_generator --future-release $(VERSION) --token $(GITHUB_TOKEN) --max-issues=1000'
 
 docs: image ## build the docs
 	$(run) sh -c 'set -ex; \
 		cd components/sup && cargo doc && cd ../../ \
-		rustdoc --crate-name habitat_sup README.md -o ./target/doc/habitat_sup; \
-		docco -e .sh -o target/doc/habitat_sup/hab-plan-build components/plan-build/bin/hab-plan-build.sh; \
-		cp -r images ./target/doc/habitat_sup; \
-		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > target/doc/index.html;'
+		rustdoc --crate-name biome_sup README.md -o ./target/doc/biome_sup; \
+		docco -e .sh -o target/doc/biome_sup/bio-plan-build components/plan-build/bin/bio-plan-build.sh; \
+		cp -r images ./target/doc/biome_sup; \
+		echo "<meta http-equiv=refresh content=0;url=biome_sup/index.html>" > target/doc/index.html;'
 
 define BUILD
 build-$1: image ## builds the $1 component
@@ -172,10 +172,10 @@ unit-$1: image ## executes the $1 component's unit test suite
 endef
 $(foreach component,$(ALL),$(eval $(call UNIT,$(component))))
 
-# Here we just add a dependency on the hab-launch binary for the
+# Here we just add a dependency on the bio-launch binary for the
 # Supervisor (integration) tests
 build-launcher-for-supervisor-tests:
-	$(run) sh -c 'cd components/launcher && cargo build --bin=hab-launch $(CARGO_FLAGS)'
+	$(run) sh -c 'cd components/launcher && cargo build --bin=bio-launch $(CARGO_FLAGS)'
 unit-sup: build-launcher-for-supervisor-tests
 .PHONY: build-launcher-for-supervisor-tests
 
@@ -212,5 +212,5 @@ endef
 $(foreach component,$(ALL),$(eval $(call FMT,$(component))))
 
 # Run BATS integration tests in a Docker "cleanroom" container.
-bats: build-hab build-sup build-launcher-for-supervisor-tests
+bats: build-bio build-sup build-launcher-for-supervisor-tests
 	./run-bats.sh

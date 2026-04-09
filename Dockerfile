@@ -1,14 +1,14 @@
 # 17.10 (artful) will be EOL July 2018; update FROM directive before then
 FROM ubuntu:18.04
-MAINTAINER The Habitat Maintainers <humans@habitat.sh>
+MAINTAINER The Biome Maintainers <humans@biome.sh>
 
 ENV CARGO_HOME /cargo-cache
 ENV PATH $PATH:$CARGO_HOME/bin:/root/.cargo/bin
 
-ARG HAB_BLDR_URL
-ENV HAB_BLDR_URL ${HAB_BLDR_URL:-}
+ARG BIO_BLDR_URL
+ENV BIO_BLDR_URL ${BIO_BLDR_URL:-}
 
-COPY components/hab/install.sh \
+COPY components/bio/install.sh \
   support/linux/install_dev_0_ubuntu_latest.sh \
   support/linux/install_dev_9_linux.sh \
   /tmp/
@@ -23,7 +23,7 @@ RUN apt-get update \
     /tmp/install.sh \
     /tmp/install_dev_0_ubuntu_latest.sh \
     /tmp/install_dev_9_linux.sh \
-    /hab/cache \
+    /bio/cache \
     /root/.cargo/registry \
     /var/lib/apt/lists/*
 

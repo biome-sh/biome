@@ -1,27 +1,29 @@
-use crate::{error::{Error,
-                    Result},
-            hcore::{fs,
-                    os::{process::{ShutdownSignal,
-                                   ShutdownTimeout},
-                         users},
-                    package::{FullyQualifiedPackageIdent,
-                              PackageIdent,
-                              PackageInstall},
-                    util},
-            util::path};
-use habitat_core::package::metadata::PackageType;
+use crate::{
+    error::{Error, Result},
+    hcore::{
+        fs,
+        os::{
+            process::{ShutdownSignal, ShutdownTimeout},
+            users,
+        },
+        package::{FullyQualifiedPackageIdent, PackageIdent, PackageInstall},
+        util,
+    },
+    util::path,
+};
+use biome_core::package::metadata::PackageType;
 use log::debug;
-use serde::{Deserialize,
-            Serialize};
-use std::{collections::{BTreeMap,
-                        HashMap},
-          convert::TryFrom,
-          env,
-          ops::Deref,
-          path::PathBuf};
+use serde::{Deserialize, Serialize};
+use std::{
+    collections::{BTreeMap, HashMap},
+    convert::TryFrom,
+    env,
+    ops::Deref,
+    path::PathBuf,
+};
 
-pub const DEFAULT_USER: &str = "hab";
-const DEFAULT_GROUP: &str = "hab";
+pub const DEFAULT_USER: &str = "bio";
+const DEFAULT_GROUP: &str = "bio";
 
 const PATH_KEY: &str = "PATH";
 
@@ -31,11 +33,15 @@ pub struct Env(BTreeMap<String, String>);
 impl Deref for Env {
     type Target = BTreeMap<String, String>;
 
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 impl From<BTreeMap<String, String>> for Env {
-    fn from(inner_map: BTreeMap<String, String>) -> Self { Env(inner_map) }
+    fn from(inner_map: BTreeMap<String, String>) -> Self {
+        Env(inner_map)
+    }
 }
 
 impl Env {
@@ -52,9 +58,11 @@ impl Env {
         Ok(Env(env))
     }
 
-    pub fn to_hash_map(&self) -> HashMap<String, String> { self.0.clone().into_iter().collect() }
+    pub fn to_hash_map(&self) -> HashMap<String, String> {
+        self.0.clone().into_iter().collect()
+    }
 
-    /// Augments the environment with additional variables, such as HAB_AUTH_TOKEN.
+    /// Augments the environment with additional variables, such as BIO_AUTH_TOKEN.
     /// This is used to pass through CLI or environment variables to hooks.
     pub(crate) fn with_additional_env(&mut self, key: String, value: String) {
         self.0.insert(key, value);
@@ -75,59 +83,60 @@ impl Env {
 #[derive(Clone, Debug, Deserialize)]
 pub struct Pkg {
     #[serde(with = "util::serde::string")]
-    pub ident:                   FullyQualifiedPackageIdent,
-    pub origin:                  String,
-    pub name:                    String,
-    pub version:                 String,
-    pub release:                 String,
-    pub deps:                    Vec<PackageIdent>,
-    pub env:                     Env,
-    pub exposes:                 Vec<String>,
-    pub exports:                 BTreeMap<String, String>,
-    pub path:                    PathBuf,
-    pub svc_path:                PathBuf,
-    pub svc_config_path:         PathBuf,
+    pub ident: FullyQualifiedPackageIdent,
+    pub origin: String,
+    pub name: String,
+    pub version: String,
+    pub release: String,
+    pub deps: Vec<PackageIdent>,
+    pub env: Env,
+    pub exposes: Vec<String>,
+    pub exports: BTreeMap<String, String>,
+    pub path: PathBuf,
+    pub svc_path: PathBuf,
+    pub svc_config_path: PathBuf,
     pub svc_config_install_path: PathBuf,
-    pub svc_data_path:           PathBuf,
-    pub svc_files_path:          PathBuf,
-    pub svc_static_path:         PathBuf,
-    pub svc_var_path:            PathBuf,
-    pub svc_pid_file:            PathBuf,
-    pub svc_run:                 PathBuf,
-    pub svc_user:                String,
-    pub svc_group:               String,
-    pub shutdown_signal:         ShutdownSignal,
-    pub shutdown_timeout:        ShutdownTimeout,
+    pub svc_data_path: PathBuf,
+    pub svc_files_path: PathBuf,
+    pub svc_static_path: PathBuf,
+    pub svc_var_path: PathBuf,
+    pub svc_pid_file: PathBuf,
+    pub svc_run: PathBuf,
+    pub svc_user: String,
+    pub svc_group: String,
+    pub shutdown_signal: ShutdownSignal,
+    pub shutdown_timeout: ShutdownTimeout,
 }
 
 impl Pkg {
     pub async fn from_install(package: &PackageInstall) -> Result<Self> {
         let ident = FullyQualifiedPackageIdent::try_from(&package.ident)?;
         let (svc_user, svc_group) = get_user_and_group(package)?;
-        let pkg = Pkg { svc_path: fs::svc_path(&package.ident.name),
-                        svc_config_path: fs::svc_config_path(&package.ident.name),
-                        svc_config_install_path: fs::svc_config_install_path(&package.ident
-                                                                                     .name),
-                        svc_data_path: fs::svc_data_path(&package.ident.name),
-                        svc_files_path: fs::svc_files_path(&package.ident.name),
-                        svc_run: fs::svc_path(&package.ident.name).join("run"),
-                        svc_static_path: fs::svc_static_path(&package.ident.name),
-                        svc_var_path: fs::svc_var_path(&package.ident.name),
-                        svc_pid_file: fs::svc_pid_file(&package.ident.name),
-                        svc_user,
-                        svc_group,
-                        env: Env::new(package).await?,
-                        deps: package.tdeps()?,
-                        exposes: package.exposes()?,
-                        exports: package.exports()?,
-                        path: package.installed_path.clone(),
-                        origin: package.ident.origin.clone(),
-                        name: package.ident.name.clone(),
-                        version: String::from(ident.version()),
-                        release: String::from(ident.release()),
-                        shutdown_signal: package.shutdown_signal()?.unwrap_or_default(),
-                        shutdown_timeout: package.shutdown_timeout()?.unwrap_or_default(),
-                        ident };
+        let pkg = Pkg {
+            svc_path: fs::svc_path(&package.ident.name),
+            svc_config_path: fs::svc_config_path(&package.ident.name),
+            svc_config_install_path: fs::svc_config_install_path(&package.ident.name),
+            svc_data_path: fs::svc_data_path(&package.ident.name),
+            svc_files_path: fs::svc_files_path(&package.ident.name),
+            svc_run: fs::svc_path(&package.ident.name).join("run"),
+            svc_static_path: fs::svc_static_path(&package.ident.name),
+            svc_var_path: fs::svc_var_path(&package.ident.name),
+            svc_pid_file: fs::svc_pid_file(&package.ident.name),
+            svc_user,
+            svc_group,
+            env: Env::new(package).await?,
+            deps: package.tdeps()?,
+            exposes: package.exposes()?,
+            exports: package.exports()?,
+            path: package.installed_path.clone(),
+            origin: package.ident.origin.clone(),
+            name: package.ident.name.clone(),
+            version: String::from(ident.version()),
+            release: String::from(ident.release()),
+            shutdown_signal: package.shutdown_signal()?.unwrap_or_default(),
+            shutdown_timeout: package.shutdown_timeout()?.unwrap_or_default(),
+            ident,
+        };
         Ok(pkg)
     }
 }
@@ -136,67 +145,66 @@ impl Pkg {
 #[derive(Debug, Clone, Serialize)]
 pub struct PkgQueryModel {
     #[serde(with = "util::serde::string")]
-    pub ident:                   FullyQualifiedPackageIdent,
-    pub origin:                  String,
-    pub name:                    String,
-    pub version:                 String,
-    pub release:                 String,
-    pub deps:                    Vec<PackageIdent>,
-    pub dependencies:            Vec<String>,
-    pub env:                     Env,
-    pub exposes:                 Vec<String>,
-    pub exports:                 BTreeMap<String, String>,
-    pub path:                    PathBuf,
-    pub svc_path:                PathBuf,
-    pub svc_config_path:         PathBuf,
+    pub ident: FullyQualifiedPackageIdent,
+    pub origin: String,
+    pub name: String,
+    pub version: String,
+    pub release: String,
+    pub deps: Vec<PackageIdent>,
+    pub dependencies: Vec<String>,
+    pub env: Env,
+    pub exposes: Vec<String>,
+    pub exports: BTreeMap<String, String>,
+    pub path: PathBuf,
+    pub svc_path: PathBuf,
+    pub svc_config_path: PathBuf,
     pub svc_config_install_path: PathBuf,
-    pub svc_data_path:           PathBuf,
-    pub svc_files_path:          PathBuf,
-    pub svc_static_path:         PathBuf,
-    pub svc_var_path:            PathBuf,
-    pub svc_pid_file:            PathBuf,
-    pub svc_run:                 PathBuf,
-    pub svc_user:                String,
-    pub svc_group:               String,
-    pub shutdown_signal:         ShutdownSignal,
-    pub shutdown_timeout:        ShutdownTimeout,
+    pub svc_data_path: PathBuf,
+    pub svc_files_path: PathBuf,
+    pub svc_static_path: PathBuf,
+    pub svc_var_path: PathBuf,
+    pub svc_pid_file: PathBuf,
+    pub svc_run: PathBuf,
+    pub svc_user: String,
+    pub svc_group: String,
+    pub shutdown_signal: ShutdownSignal,
+    pub shutdown_timeout: ShutdownTimeout,
 }
 
 impl PkgQueryModel {
     pub fn new(pkg: &Pkg) -> PkgQueryModel {
-        PkgQueryModel { ident:                   pkg.ident.clone(),
-                        origin:                  pkg.origin.clone(),
-                        name:                    pkg.name.clone(),
-                        version:                 pkg.version.clone(),
-                        release:                 pkg.release.clone(),
-                        deps:                    pkg.deps.clone(),
-                        dependencies:            pkg.deps
-                                                    .iter()
-                                                    .map(PackageIdent::to_string)
-                                                    .collect(),
-                        env:                     pkg.env.clone(),
-                        exposes:                 pkg.exposes.clone(),
-                        exports:                 pkg.exports.clone(),
-                        path:                    pkg.path.clone(),
-                        svc_path:                pkg.svc_path.clone(),
-                        svc_config_path:         pkg.svc_config_path.clone(),
-                        svc_config_install_path: pkg.svc_config_install_path.clone(),
-                        svc_data_path:           pkg.svc_data_path.clone(),
-                        svc_files_path:          pkg.svc_files_path.clone(),
-                        svc_static_path:         pkg.svc_static_path.clone(),
-                        svc_var_path:            pkg.svc_var_path.clone(),
-                        svc_pid_file:            pkg.svc_pid_file.clone(),
-                        svc_run:                 pkg.svc_run.clone(),
-                        svc_user:                pkg.svc_user.clone(),
-                        svc_group:               pkg.svc_group.clone(),
-                        shutdown_signal:         pkg.shutdown_signal,
-                        shutdown_timeout:        pkg.shutdown_timeout, }
+        PkgQueryModel {
+            ident: pkg.ident.clone(),
+            origin: pkg.origin.clone(),
+            name: pkg.name.clone(),
+            version: pkg.version.clone(),
+            release: pkg.release.clone(),
+            deps: pkg.deps.clone(),
+            dependencies: pkg.deps.iter().map(PackageIdent::to_string).collect(),
+            env: pkg.env.clone(),
+            exposes: pkg.exposes.clone(),
+            exports: pkg.exports.clone(),
+            path: pkg.path.clone(),
+            svc_path: pkg.svc_path.clone(),
+            svc_config_path: pkg.svc_config_path.clone(),
+            svc_config_install_path: pkg.svc_config_install_path.clone(),
+            svc_data_path: pkg.svc_data_path.clone(),
+            svc_files_path: pkg.svc_files_path.clone(),
+            svc_static_path: pkg.svc_static_path.clone(),
+            svc_var_path: pkg.svc_var_path.clone(),
+            svc_pid_file: pkg.svc_pid_file.clone(),
+            svc_run: pkg.svc_run.clone(),
+            svc_user: pkg.svc_user.clone(),
+            svc_group: pkg.svc_group.clone(),
+            shutdown_signal: pkg.shutdown_signal,
+            shutdown_timeout: pkg.shutdown_timeout,
+        }
     }
 }
 
 /// check and see if a user/group is specified in package metadata.
-/// if not, we'll try and use hab/hab.
-/// If hab/hab doesn't exist, try to use (current username, current group).
+/// if not, we'll try and use bio/bio.
+/// If bio/bio doesn't exist, try to use (current username, current group).
 /// If that doesn't work, then give up.
 #[cfg(unix)]
 fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
@@ -210,14 +218,14 @@ fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> 
 
 /// check and see if a user/group is specified in package metadata.
 /// if not, we'll use the current user that the process is running under.
-/// If hab/hab (default) is specified but doesn't exist, use the current username.
+/// If bio/bio (default) is specified but doesn't exist, use the current username.
 /// If that doesn't work, then give up.
-/// Note that in all releases through 0.88.0, hab packaged a svc_user value
-/// of 'hab' unless specified otherwise in a plan. So for all packages built
+/// Note that in all releases through 0.88.0, bio packaged a svc_user value
+/// of 'bio' unless specified otherwise in a plan. So for all packages built
 /// by those releases, a svc_user should always be specified, but as already
 /// stated, we do check to see if the user exists. This turns out to do more
-/// harm than good on windows especially if there is a hab user on the system
-/// that was not intended to run habitat services.
+/// harm than good on windows especially if there is a bio user on the system
+/// that was not intended to run biome services.
 #[cfg(windows)]
 fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
     match get_pkg_user_and_group(pkg_install)? {
@@ -242,7 +250,7 @@ fn get_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(String
     }
 }
 
-/// checks to see if hab/hab exists, if not, fall back to
+/// checks to see if bio/bio exists, if not, fall back to
 /// current user/group. If that fails, then return an error.
 fn default_user_and_group() -> Result<(String, String)> {
     let uid = users::get_uid_by_name(DEFAULT_USER)?;
@@ -250,7 +258,7 @@ fn default_user_and_group() -> Result<(String, String)> {
     match (uid, gid) {
         (Some(_), Some(_)) => Ok((DEFAULT_USER.to_string(), DEFAULT_GROUP.to_string())),
         _ => {
-            debug!("hab:hab does NOT exist");
+            debug!("bio:bio does NOT exist");
             current_user_and_group()
         }
     }
@@ -264,18 +272,18 @@ fn current_user_and_group() -> Result<(String, String)> {
             debug!("Running as {}/{}", user, group);
             Ok((user, group))
         }
-        _ => {
-            Err(Error::PermissionFailed("Can't determine current \
+        _ => Err(Error::PermissionFailed(
+            "Can't determine current \
                                          user:group"
-                                                    .to_string()))
-        }
+                .to_string(),
+        )),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use habitat_core::AUTH_TOKEN_ENVVAR;
+    use biome_core::AUTH_TOKEN_ENVVAR;
     use std::collections::BTreeMap;
 
     #[test]
@@ -290,8 +298,10 @@ mod tests {
         env.with_additional_env(AUTH_TOKEN_ENVVAR.to_string(), "test_token_123".to_string());
 
         // Verify it was added
-        assert_eq!(env.get(AUTH_TOKEN_ENVVAR).map(String::as_str),
-                   Some("test_token_123"));
+        assert_eq!(
+            env.get(AUTH_TOKEN_ENVVAR).map(String::as_str),
+            Some("test_token_123")
+        );
 
         // Verify existing vars are still there
         assert_eq!(env.get("PATH").map(String::as_str), Some("/bin:/usr/bin"));
@@ -309,7 +319,9 @@ mod tests {
         env.with_additional_env(AUTH_TOKEN_ENVVAR.to_string(), "new_token".to_string());
 
         // Verify it was overwritten
-        assert_eq!(env.get(AUTH_TOKEN_ENVVAR).map(String::as_str),
-                   Some("new_token"));
+        assert_eq!(
+            env.get(AUTH_TOKEN_ENVVAR).map(String::as_str),
+            Some("new_token")
+        );
     }
 }

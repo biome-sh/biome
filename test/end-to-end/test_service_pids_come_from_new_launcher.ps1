@@ -9,11 +9,11 @@ Describe "Service PIDs from Launcher feature" {
     Wait-ProcessStart redis-server -Timeout 10
 
     It "should still create a PID file for use in hooks" {
-        Test-Path "/hab/svc/redis/PID" | Should -Be $true
+        Test-Path "/bio/svc/redis/PID" | Should -Be $true
     }
 
     Context "Supervisor is restarted" {
-        $supProc = Get-Process hab-sup
+        $supProc = Get-Process bio-sup
         $redisProc = Get-Process "redis-server *:6379"
 
         # Write a bogus PID to the file; the Supervisor should not
@@ -25,11 +25,11 @@ Describe "Service PIDs from Launcher feature" {
         # never did) try to keep the contents of the file in sync with
         # the running service PID on an ongoing basis.
         $bogusPid = $redisProc.Id + 5
-        $bogusPid | Out-File "/hab/svc/redis/PID"
+        $bogusPid | Out-File "/bio/svc/redis/PID"
 
         Restart-Supervisor
         Wait-ProcessStart redis-server -Timeout 10
-        $newSupProc = Get-Process hab-sup
+        $newSupProc = Get-Process bio-sup
         $newRedisProc = Get-Process "redis-server *:6379"
 
         It "starts a new supervisor process" {
@@ -44,11 +44,11 @@ Describe "Service PIDs from Launcher feature" {
             # Supervisor doesn't rewrite it after it restarts (it
             # would after a full restart, but that would bring up a
             # new service process anyway)
-            Get-Content "/hab/svc/redis/PID" | Should -Be $bogusPid
+            Get-Content "/bio/svc/redis/PID" | Should -Be $bogusPid
 
             # Despite the bogus PID in the file, the Supervisor itself
             # knows the correct PID
-            Get-HabServicePID "core/redis" | Should -Be $newRedisProc.Id
+            Get-BioServicePID "core/redis" | Should -Be $newRedisProc.Id
         }
     }
 }

@@ -1,8 +1,8 @@
 [package]
-name = "habitat_http_client"
+name = "biome_http_client"
 version = "0.0.0"
 edition = "2024"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 workspace = "../../"
 
 [dependencies]
@@ -29,7 +29,7 @@ serde = "*"
 serde_json = { version = "*", features = ["preserve_order"] }
 url = "*"
 
-[dependencies.habitat_core]
+[dependencies.biome_core]
 path = "../core"
 
 [dev-dependencies]

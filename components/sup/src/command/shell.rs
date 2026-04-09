@@ -1,14 +1,11 @@
-use crate::error::{Error,
-                   Result};
-use habitat_common::{outputln,
-                     util::path};
-use habitat_core::fs::find_command;
+use crate::error::{Error, Result};
+use biome_common::{outputln, util::path};
+use biome_core::fs::find_command;
 
-use habitat_core::os::process::become_command;
+use biome_core::os::process::become_command;
 use log::debug;
 
-use std::{env,
-          path::PathBuf};
+use std::{env, path::PathBuf};
 
 /// Our output key
 static LOGKEY: &str = "SH";

@@ -1,6 +1,6 @@
 # Locking
 
-In order to support its high degree of parallelism at runtime, Habitat uses
+In order to support its high degree of parallelism at runtime, Biome uses
 a number of different lock types. To avoid deadlock, we rely on conventions
 around how these locks are acquired, held and released.
 

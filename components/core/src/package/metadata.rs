@@ -1,19 +1,17 @@
-use crate::error::{Error,
-                   Result};
-use serde::{Deserialize,
-            Serialize};
-use std::{self,
-          collections::BTreeMap,
-          env,
-          fmt,
-          fs::File,
-          io::Read,
-          iter::IntoIterator,
-          path::{Path,
-                 PathBuf},
-          str::FromStr,
-          string::ToString,
-          vec::IntoIter};
+use crate::error::{Error, Result};
+use serde::{Deserialize, Serialize};
+use std::{
+    self,
+    collections::BTreeMap,
+    env, fmt,
+    fs::File,
+    io::Read,
+    iter::IntoIterator,
+    path::{Path, PathBuf},
+    str::FromStr,
+    string::ToString,
+    vec::IntoIter,
+};
 
 #[cfg(not(windows))]
 const ENV_PATH_SEPARATOR: char = ':';
@@ -60,8 +58,8 @@ impl fmt::Display for Bind {
 
 #[derive(Debug, PartialEq)]
 pub struct EnvVar {
-    pub key:       String,
-    pub value:     String,
+    pub key: String,
+    pub value: String,
     pub separator: Option<char>,
 }
 
@@ -72,37 +70,53 @@ pub struct PkgEnv {
 
 impl PkgEnv {
     pub fn new(values: BTreeMap<String, String>, separators: &BTreeMap<String, String>) -> Self {
-        Self { inner: values.into_iter()
-                            .map(|(key, value)| {
-                                if let Some(sep) = separators.get(&key) {
-                                    EnvVar { key,
-                                             value,
-                                             separator: sep.to_owned().pop() }
-                                } else {
-                                    EnvVar { key,
-                                             value,
-                                             separator: None }
-                                }
-                            })
-                            .collect(), }
+        Self {
+            inner: values
+                .into_iter()
+                .map(|(key, value)| {
+                    if let Some(sep) = separators.get(&key) {
+                        EnvVar {
+                            key,
+                            value,
+                            separator: sep.to_owned().pop(),
+                        }
+                    } else {
+                        EnvVar {
+                            key,
+                            value,
+                            separator: None,
+                        }
+                    }
+                })
+                .collect(),
+        }
     }
 
     pub fn from_paths(paths: &[PathBuf]) -> Self {
         let p = env::join_paths(paths).expect("Failed to build path string");
-        Self { inner: vec![EnvVar { key:       "PATH".to_string(),
-                                    value:     p.into_string()
-                                                .expect("Failed to convert path to utf8 string"),
-                                    separator: Some(ENV_PATH_SEPARATOR), }], }
+        Self {
+            inner: vec![EnvVar {
+                key: "PATH".to_string(),
+                value: p
+                    .into_string()
+                    .expect("Failed to convert path to utf8 string"),
+                separator: Some(ENV_PATH_SEPARATOR),
+            }],
+        }
     }
 
-    pub fn is_empty(&self) -> bool { self.inner.is_empty() }
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
 }
 
 impl IntoIterator for PkgEnv {
     type IntoIter = IntoIter<EnvVar>;
     type Item = EnvVar;
 
-    fn into_iter(self) -> Self::IntoIter { self.inner.into_iter() }
+    fn into_iter(self) -> Self::IntoIter {
+        self.inner.into_iter()
+    }
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
@@ -174,25 +188,23 @@ impl fmt::Display for MetaFile {
 /// Returns the contents of the file
 pub fn read_metafile<P: AsRef<Path>>(installed_path: P, file: MetaFile) -> Result<String> {
     match existing_metafile(installed_path, file) {
-        Some(filepath) => {
-            match File::open(filepath) {
-                Ok(mut f) => {
-                    let mut data = String::new();
-                    if f.read_to_string(&mut data).is_err() {
-                        return Err(Error::MetaFileMalformed(file));
-                    }
-                    Ok(data.trim().to_string())
+        Some(filepath) => match File::open(filepath) {
+            Ok(mut f) => {
+                let mut data = String::new();
+                if f.read_to_string(&mut data).is_err() {
+                    return Err(Error::MetaFileMalformed(file));
                 }
-                Err(e) => Err(Error::MetaFileIO(e)),
+                Ok(data.trim().to_string())
             }
-        }
+            Err(e) => Err(Error::MetaFileIO(e)),
+        },
         None => Err(Error::MetaFileNotFound(file)),
     }
 }
 
 /// Returns the path to a specified MetaFile in an installed path if it exists.
 ///
-/// Useful for fallback logic for dealing with older Habitat packages.
+/// Useful for fallback logic for dealing with older Biome packages.
 fn existing_metafile<P: AsRef<Path>>(installed_path: P, file: MetaFile) -> Option<PathBuf> {
     let filepath = installed_path.as_ref().join(file.to_string());
     match std::fs::metadata(&filepath) {
@@ -235,8 +247,8 @@ mod tests {
     use std::io::Write;
     use tempfile::Builder;
 
-    static ENVIRONMENT: &str = r#"PATH=/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin
-PYTHONPATH=/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages
+    static ENVIRONMENT: &str = r#"PATH=/bio/pkgs/python/setuptools/35.0.1/20170424072606/bin
+PYTHONPATH=/bio/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages
 "#;
     static ENVIRONMENT_SEP: &str = r#"PATH=:
 PYTHONPATH=:
@@ -244,7 +256,7 @@ PYTHONPATH=:
     static EXPORTS: &str = r#"status-port=status.port
 port=front-end.port
 "#;
-    static PATH: &str = "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin";
+    static PATH: &str = "/bio/pkgs/python/setuptools/35.0.1/20170424072606/bin";
 
     /// Write the given contents into the specified metadata file for
     /// the package.
@@ -252,21 +264,25 @@ port=front-end.port
         let path = install_dir.join(metafile.to_string());
         let mut f = File::create(path).expect("Could not create metafile");
         f.write_all(content.as_bytes())
-         .expect("Could not write metafile contents");
+            .expect("Could not write metafile contents");
     }
 
     #[test]
     #[should_panic]
-    fn malformed_file() { parse_key_value("PATH").unwrap(); }
+    fn malformed_file() {
+        parse_key_value("PATH").unwrap();
+    }
 
     #[test]
     fn can_parse_environment_file() {
         let mut m: BTreeMap<String, String> = BTreeMap::new();
-        m.insert("PATH".to_string(),
-                 "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string());
+        m.insert(
+            "PATH".to_string(),
+            "/bio/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
+        );
         m.insert(
             "PYTHONPATH".to_string(),
-            "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
+            "/bio/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
                 .to_string(),
         );
 
@@ -293,23 +309,29 @@ port=front-end.port
 
     #[test]
     fn build_pkg_env() {
-        let mut result =
-            PkgEnv::new(parse_key_value(ENVIRONMENT).unwrap(),
-                        &parse_key_value(ENVIRONMENT_SEP).unwrap()).into_iter()
-                                                                   .collect::<Vec<_>>();
+        let mut result = PkgEnv::new(
+            parse_key_value(ENVIRONMENT).unwrap(),
+            &parse_key_value(ENVIRONMENT_SEP).unwrap(),
+        )
+        .into_iter()
+        .collect::<Vec<_>>();
         // Sort the result by key, so we have a guarantee of order
         result.sort_by_key(|v| v.key.to_owned());
 
-        let expected =
-            vec![EnvVar { key:       "PATH".to_string(),
-                          value:
-                              "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
-                          separator: Some(':'), },
-                 EnvVar { key:       "PYTHONPATH".to_string(),
-                          value:     "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/\
+        let expected = vec![
+            EnvVar {
+                key: "PATH".to_string(),
+                value: "/bio/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
+                separator: Some(':'),
+            },
+            EnvVar {
+                key: "PYTHONPATH".to_string(),
+                value: "/bio/pkgs/python/setuptools/35.0.1/20170424072606/lib/\
                                       python3.6/site-packages"
-                                                              .to_string(),
-                          separator: Some(':'), },];
+                    .to_string(),
+                separator: Some(':'),
+            },
+        ];
 
         assert_eq!(result, expected);
     }
@@ -322,14 +344,17 @@ port=front-end.port
 
     #[test]
     fn build_pkg_env_from_path() {
-        let result = PkgEnv::from_paths(&[PathBuf::from(PATH)]).into_iter()
-                                                               .collect::<Vec<_>>();
+        let result = PkgEnv::from_paths(&[PathBuf::from(PATH)])
+            .into_iter()
+            .collect::<Vec<_>>();
 
-        let expected = vec![EnvVar { key:       "PATH".to_string(),
-                                     value:     "/hab/pkgs/python/setuptools/35.0.1/\
+        let expected = vec![EnvVar {
+            key: "PATH".to_string(),
+            value: "/bio/pkgs/python/setuptools/35.0.1/\
                                                  20170424072606/bin"
-                                                                    .to_string(),
-                                     separator: Some(ENV_PATH_SEPARATOR), }];
+                .to_string(),
+            separator: Some(ENV_PATH_SEPARATOR),
+        }];
 
         assert_eq!(result, expected);
     }

@@ -1,16 +1,16 @@
 [package]
-name = "habitat-sup-client"
+name = "biome-sup-client"
 version = "0.0.0"
 edition = "2024"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 workspace = "../../"
 
 [dependencies]
 # Please keep these alphabetized
 futures = { version = "*" }
-habitat_common = { path = "../common" }
-habitat_core = { path = "../core" }
-habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
+biome_common = { path = "../common" }
+biome_core = { path = "../core" }
+biome-sup-protocol = { path = "../sup-protocol", default-features = false }
 log = "0.4"
 prost = "*"
 rustls = "*"

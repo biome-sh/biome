@@ -1,7 +1,7 @@
-# Basic set of tests for the hab pkg bulkupload command
+# Basic set of tests for the bio pkg bulkupload command
 #
 # Assumptions:
-# 1. HAB_AUTH_TOKEN and PIPELINE_HAB_BLDR_URL environment variables are set and valid
+# 1. BIO_AUTH_TOKEN and PIPELINE_BIO_BLDR_URL environment variables are set and valid
 # 2. ${CACHE_DIR} can be set to a writable location on the filesystem
 # 3. non zero exit code from each command implies success
 
@@ -10,72 +10,72 @@
 # the Builder. Of course this introduces significant setup time
 # cost... For now, we'll want to point to the Acceptance Builder, not Production.
 
-$env:HAB_NOCOLORING=true
-$env:HAB_NONINTERACTIVE=true
-# HAB_ORIGIN should never be changed to anything other than an origin used only
-# for testing. It is hardcoded here to our designated origin for this purpose (habitat-testing).
-$env:HAB_ORIGIN = "habitat-testing"
-$env:HAB_BLDR_URL = $env:PIPELINE_HAB_BLDR_URL
+$env:BIO_NOCOLORING=true
+$env:BIO_NONINTERACTIVE=true
+# BIO_ORIGIN should never be changed to anything other than an origin used only
+# for testing. It is hardcoded here to our designated origin for this purpose (biome-testing).
+$env:BIO_ORIGIN = "biome-testing"
+$env:BIO_BLDR_URL = $env:PIPELINE_BIO_BLDR_URL
 $env:BUILD_PKG_TARGET = "x86_64-linux"
-$env:HAB_BLDR_CHANNEL = $null
+$env:BIO_BLDR_CHANNEL = $null
 
 $cacheDir = "test-cache"
-$env:HAB_CACHE_KEY_PATH = Join-Path $cacheDir "keys"
+$env:BIO_CACHE_KEY_PATH = Join-Path $cacheDir "keys"
 $fixturesDir = "test/fixtures"
 $testPkg1Dir = Join-Path $fixturesDir "testpkg1"
 $testPkg2Dir = Join-Path $fixturesDir "testpkg2"
 $testPkg1Ident = Join-Path $fixturesDir "testpkg1"
 $testPkg2Ident = Join-Path $fixturesDir "testpkg2"
 
-Describe "hab pkg bulkupload" {
+Describe "bio pkg bulkupload" {
     It "succeeds with no options" {
-        hab pkg bulkupload $cacheDir
+        bio pkg bulkupload $cacheDir
         $LASTEXITCODE | Should -Be 0
     }
     It "succeeds with force options" {
-        hab pkg bulkupload --force $cacheDir
+        bio pkg bulkupload --force $cacheDir
         $LASTEXITCODE | Should -Be 0
     }
     It "succeeds with channel promotion" {
-        hab pkg bulkupload --channel bulkuploadtest $cacheDir
+        bio pkg bulkupload --channel bulkuploadtest $cacheDir
         $LASTEXITCODE | Should -Be 0
     }
     It "fails without directory argument" {
-        hab pkg bulkupload
+        bio pkg bulkupload
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when directory does not exist" {
-        hab pkg bulkupload doesnotexist
+        bio pkg bulkupload doesnotexist
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when given a bad url" {
-        hab pkg bulkupload --url asdf $cacheDir
+        bio pkg bulkupload --url asdf $cacheDir
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when given a bad auth token" {
-        hab pkg bulkupload --auth asdfjkl $cacheDir
+        bio pkg bulkupload --auth asdfjkl $cacheDir
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when missing channel name" {
-        hab pkg bulkupload --channel $cacheDir
+        bio pkg bulkupload --channel $cacheDir
         $LASTEXITCODE | Should -Not -Be 0
     }
 
     BeforeAll {
         # origin create will exit 0 if the origin already exists
-        hab origin create --url $env:HAB_BLDR_URL $env:HAB_ORIGIN
+        bio origin create --url $env:BIO_BLDR_URL $env:BIO_ORIGIN
         if(Test-Path $cacheDir) { Remove-Item $cacheDir -Recurse -Force }
         New-Item (Join-Path $cacheDir "artifacts") -ItemType directory
         New-Item (Join-Path $cacheDir "keys") -ItemType directory
         # We always attempt to re-use the same package versions so we are not cluttering up Builder needlessly.
         # The packages may not exist yet in Builder, therefore we allow for failure on the download.
-        hab pkg download --url $env:HAB_BLDR_URL --download-directory $cacheDir --channel unstable $testPkg1Ident $testPkg2Ident
+        bio pkg download --url $env:BIO_BLDR_URL --download-directory $cacheDir --channel unstable $testPkg1Ident $testPkg2Ident
         if((Get-ChildItem (Join-Path $cacheDir "artifacts")).Count -eq 0) {
-            hab origin key download --secret --url $env:HAB_BLDR_URL --cache-key-path (Join-Path $cacheDir "keys") $env:HAB_ORIGIN
-            hab origin key download --url $env:HAB_BLDR_URL --cache-key-path (Join-Path $cacheDir "keys") $env:HAB_ORIGIN
+            bio origin key download --secret --url $env:BIO_BLDR_URL --cache-key-path (Join-Path $cacheDir "keys") $env:BIO_ORIGIN
+            bio origin key download --url $env:BIO_BLDR_URL --cache-key-path (Join-Path $cacheDir "keys") $env:BIO_ORIGIN
             @($testPkg1Dir, $testPkg2Dir) | ForEach-Object {
-                # Build the packages and sign them with HAB_ORIGIN key from HAB_CACHE_KEY_PATH set above.
-                hab pkg build $_
+                # Build the packages and sign them with BIO_ORIGIN key from BIO_CACHE_KEY_PATH set above.
+                bio pkg build $_
                 Get-Content "results/last_build.env" | ForEach-Object { Add-Content "results/last_build.ps1" -Value "`$$($_.Replace("=", '="'))`"" }
                 . results/last_build.ps1
                 Copy-Item (Join-Path "results" $pkg_artifact) (Join-Path $cacheDir "artifacts")

@@ -3,15 +3,12 @@
 
 use serde_json::value::Value as Json;
 
-use handlebars::{BlockContext,
-                 BlockParams,
-                 Helper,
-                 PathAndJson,
-                 RenderError};
+use handlebars::{BlockContext, BlockParams, Helper, PathAndJson, RenderError};
 
 #[inline]
 fn copy_on_push_vec<T>(input: &[T], el: T) -> Vec<T>
-    where T: Clone
+where
+    T: Clone,
 {
     let mut new_vec = Vec::with_capacity(input.len() + 1);
     new_vec.extend_from_slice(input);
@@ -32,11 +29,13 @@ pub(super) fn create_block<'rc>(param: &PathAndJson<'rc>) -> BlockContext<'rc> {
     block
 }
 
-pub(super) fn update_block_context(block: &mut BlockContext<'_>,
-                                   base_path: Option<&Vec<String>>,
-                                   relative_path: String,
-                                   is_first: bool,
-                                   value: &Json) {
+pub(super) fn update_block_context(
+    block: &mut BlockContext<'_>,
+    base_path: Option<&Vec<String>>,
+    relative_path: String,
+    is_first: bool,
+    value: &Json,
+) {
     if let Some(p) = base_path {
         if is_first {
             *block.base_path_mut() = copy_on_push_vec(p, relative_path);
@@ -48,12 +47,13 @@ pub(super) fn update_block_context(block: &mut BlockContext<'_>,
     }
 }
 
-pub(super) fn set_block_param<'rc>(block: &mut BlockContext<'rc>,
-                                   h: &Helper<'rc>,
-                                   base_path: Option<&Vec<String>>,
-                                   k: &Json,
-                                   v: &Json)
-                                   -> Result<(), RenderError> {
+pub(super) fn set_block_param<'rc>(
+    block: &mut BlockContext<'rc>,
+    h: &Helper<'rc>,
+    base_path: Option<&Vec<String>>,
+    k: &Json,
+    v: &Json,
+) -> Result<(), RenderError> {
     if let Some(bp_val) = h.block_param() {
         let mut params = BlockParams::new();
         if base_path.is_some() {

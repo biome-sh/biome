@@ -8,14 +8,14 @@ Describe "Invoke-SetupEnvironmentWrapper" {
 
     Mock New-Item { $envvars[$name] = $value } -ParameterFilter {$Path -eq "Env:"}
 
-    $script:HAB_PKG_PATH = Join-Path $env:FS_ROOT "hab\pkgs"
+    $script:BIO_PKG_PATH = Join-Path $env:FS_ROOT "bio\pkgs"
     $script:originalPath = "TestDrive:\src"
     $script:pkg_origin = "testorigin"
     $script:pkg_name = "testpkg"
     $script:pkg_version = "0.1.0"
     $script:pkg_release = "30300101010000"
-    $script:pkg_prefix = "$HAB_PKG_PATH\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
-    $unrooted = "\hab\pkgs\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
+    $script:pkg_prefix = "$BIO_PKG_PATH\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
+    $unrooted = "\bio\pkgs\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
 
     Context "Unrooted values" {
         function Invoke-SetupEnvironment {
@@ -164,8 +164,8 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         $script:pkg_build_deps = @("core/build-dep")
 
         ($pkg_deps + $pkg_build_deps) | ForEach-Object {
-            $pkg_path = Join-Path $HAB_PKG_PATH "$_\0.1.0\111"
-            $unrooted_pkg_path = Join-Path "\hab\pkgs" "$_\0.1.0\111"
+            $pkg_path = Join-Path $BIO_PKG_PATH "$_\0.1.0\111"
+            $unrooted_pkg_path = Join-Path "\bio\pkgs" "$_\0.1.0\111"
             $pkg_all_deps_resolved += $pkg_path
             mkdir $pkg_path -Force | Out-Null
             $dep_name = ($_ -split "/")[1]
@@ -183,10 +183,10 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         Invoke-SetupEnvironmentWrapper
 
         It "Should set rooted runtime env from dep and push setup value" {
-            $envvars["run-dep_path"] | Should -Be "$pkg_prefix\run_dir;$HAB_PKG_PATH\core\run-dep\0.1.0\111\run"
+            $envvars["run-dep_path"] | Should -Be "$pkg_prefix\run_dir;$BIO_PKG_PATH\core\run-dep\0.1.0\111\run"
         }
         It "Should set rooted runtime env from build dep" {
-            $envvars["build-dep_path"] | Should -Be "$HAB_PKG_PATH\core\build-dep\0.1.0\111\run"
+            $envvars["build-dep_path"] | Should -Be "$BIO_PKG_PATH\core\build-dep\0.1.0\111\run"
         }
     }
 
@@ -205,8 +205,8 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         $script:pkg_build_deps = @("core/build-dep")
 
         ($pkg_deps + $pkg_build_deps) | ForEach-Object {
-            $pkg_path = Join-Path $HAB_PKG_PATH "$_\0.1.0\111"
-            $unrooted_pkg_path = Join-Path "\hab\pkgs" "$_\0.1.0\111"
+            $pkg_path = Join-Path $BIO_PKG_PATH "$_\0.1.0\111"
+            $unrooted_pkg_path = Join-Path "\bio\pkgs" "$_\0.1.0\111"
             $pkg_all_deps_resolved += $pkg_path
             mkdir $pkg_path -Force | Out-Null
             $dep_name = ($_ -split "/")[1]
@@ -219,10 +219,10 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         Invoke-SetupEnvironmentWrapper
 
         It "Should set unrooted runtime env from dep" {
-            $envvars["run-dep_path"] | Should -Be "\hab\pkgs\core\run-dep\0.1.0\111\run"
+            $envvars["run-dep_path"] | Should -Be "\bio\pkgs\core\run-dep\0.1.0\111\run"
         }
         It "Should set rooted runtime env from build dep" {
-            $envvars["build-dep_path"] | Should -Be "\hab\pkgs\core\build-dep\0.1.0\111\run"
+            $envvars["build-dep_path"] | Should -Be "\bio\pkgs\core\build-dep\0.1.0\111\run"
         }
     }
 
@@ -244,8 +244,8 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         $script:pkg_build_deps = @("core/build-dep")
 
         ($pkg_deps + $pkg_build_deps) | ForEach-Object {
-            $pkg_path = Join-Path $HAB_PKG_PATH "$_\0.1.0\111"
-            $unrooted_pkg_path = Join-Path "\hab\pkgs" "$_\0.1.0\111"
+            $pkg_path = Join-Path $BIO_PKG_PATH "$_\0.1.0\111"
+            $unrooted_pkg_path = Join-Path "\bio\pkgs" "$_\0.1.0\111"
             $pkg_all_deps_resolved += $pkg_path
             mkdir $pkg_path -Force | Out-Null
             "$_/0.1.0/111" | Out-File "$pkg_path\IDENT"
@@ -260,7 +260,7 @@ Describe "Invoke-SetupEnvironmentWrapper" {
         Invoke-SetupEnvironmentWrapper
 
         It "Should layer all rooted assignments" {
-            $envvars["PSModulePath"] | Should -Be "$pkg_prefix\build_modules;$HAB_PKG_PATH\core\build-dep\0.1.0\111\modules;$pkg_prefix\modules;$HAB_PKG_PATH\core\run-dep\0.1.0\111\modules"
+            $envvars["PSModulePath"] | Should -Be "$pkg_prefix\build_modules;$BIO_PKG_PATH\core\build-dep\0.1.0\111\modules;$pkg_prefix\modules;$BIO_PKG_PATH\core\run-dep\0.1.0\111\modules"
         }
     }
 }
@@ -271,14 +271,14 @@ Describe "Write-EnvironmentFiles" {
 
     Mock New-Item { } -ParameterFilter {$Path -eq "Env:"}
 
-    $script:HAB_PKG_PATH = Join-Path $env:FS_ROOT "hab\pkgs"
+    $script:BIO_PKG_PATH = Join-Path $env:FS_ROOT "bio\pkgs"
     $script:originalPath = "TestDrive:\src"
     $script:pkg_origin = "testorigin"
     $script:pkg_name = "testpkg"
     $script:pkg_version = "0.1.0"
     $script:pkg_release = "30300101010000"
-    $script:pkg_prefix = "$HAB_PKG_PATH\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
-    $unrooted = "\hab\pkgs\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
+    $script:pkg_prefix = "$BIO_PKG_PATH\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
+    $unrooted = "\bio\pkgs\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
 
     $script:pkg_all_deps_resolved = @()
     $script:pkg_deps = @()

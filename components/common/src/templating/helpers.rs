@@ -10,19 +10,13 @@ mod to_toml;
 mod to_uppercase;
 mod to_yaml;
 
-pub use self::{each_alive::EACH_ALIVE,
-               pkg_path_for::PKG_PATH_FOR,
-               str_concat::STR_CONCAT,
-               str_join::STR_JOIN,
-               str_replace::STR_REPLACE,
-               to_json::TO_JSON,
-               to_lowercase::TO_LOWERCASE,
-               to_toml::TO_TOML,
-               to_uppercase::TO_UPPERCASE,
-               to_yaml::TO_YAML};
+pub use self::{
+    each_alive::EACH_ALIVE, pkg_path_for::PKG_PATH_FOR, str_concat::STR_CONCAT, str_join::STR_JOIN,
+    str_replace::STR_REPLACE, to_json::TO_JSON, to_lowercase::TO_LOWERCASE, to_toml::TO_TOML,
+    to_uppercase::TO_UPPERCASE, to_yaml::TO_YAML,
+};
 use serde::Serialize;
-use serde_json::{self,
-                 Value as Json};
+use serde_json::{self, Value as Json};
 
 // Taken from `handlebars::context::JsonTruthy`. The trait is marked public but it's in a private
 // module. It's super useful so let's pull it into here.
@@ -46,7 +40,8 @@ impl JsonTruthy for Json {
 #[allow(dead_code)]
 /// Helper which will serialize to Json the given reference or return `Json::Null`
 fn to_json<T>(src: &T) -> Json
-    where T: Serialize
+where
+    T: Serialize,
 {
     serde_json::to_value(src).unwrap_or(Json::Null)
 }

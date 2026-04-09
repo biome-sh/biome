@@ -3,11 +3,8 @@
 //!
 //! Note: See `protocols/net.proto` for type level documentation for generated types.
 
-use crate::{core,
-            message};
-use std::{error,
-          fmt,
-          io};
+use crate::{core, message};
+use std::{error, fmt, io};
 
 include!(concat!(env!("OUT_DIR"), "/sup.net.rs"));
 
@@ -22,14 +19,19 @@ pub type NetResult<T> = Result<T, NetErr>;
 
 /// Helper function for quickly generating a `NetErr` from an `ErrCode` and message.
 pub fn err<T>(code: ErrCode, msg: T) -> NetErr
-    where T: fmt::Display
+where
+    T: fmt::Display,
 {
-    NetErr { code: code as i32,
-             msg:  msg.to_string(), }
+    NetErr {
+        code: code as i32,
+        msg: msg.to_string(),
+    }
 }
 
 /// Helper function for quickly generating a `NetOk` message.
-pub fn ok() -> NetOk { NetOk::default() }
+pub fn ok() -> NetOk {
+    NetOk::default()
+}
 
 impl error::Error for NetErr {}
 
@@ -40,9 +42,13 @@ impl fmt::Display for NetErr {
 }
 
 impl From<io::Error> for NetErr {
-    fn from(other: io::Error) -> Self { err(ErrCode::Io, other) }
+    fn from(other: io::Error) -> Self {
+        err(ErrCode::Io, other)
+    }
 }
 
 impl From<core::Error> for NetErr {
-    fn from(other: core::Error) -> Self { err(ErrCode::Internal, other) }
+    fn from(other: core::Error) -> Self {
+        err(ErrCode::Internal, other)
+    }
 }

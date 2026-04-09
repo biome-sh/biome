@@ -1,26 +1,27 @@
 #[cfg(windows)]
 use super::pipe_hook_client::PipeHookClient;
-use habitat_common::{FeatureFlag,
-                     error::Result,
-                     outputln,
-                     templating::{TemplateRenderer,
-                                  hooks::{self,
-                                          ExitCode,
-                                          Hook,
-                                          HookOutput,
-                                          RenderPair},
-                                  package::Pkg}};
+use biome_common::{
+    FeatureFlag,
+    error::Result,
+    outputln,
+    templating::{
+        TemplateRenderer,
+        hooks::{self, ExitCode, Hook, HookOutput, RenderPair},
+        package::Pkg,
+    },
+};
 #[cfg(windows)]
-use habitat_core::os::process::windows_child::ExitStatus;
+use biome_core::os::process::windows_child::ExitStatus;
 use log::debug;
 use serde::Serialize;
 #[cfg(not(windows))]
 use std::process::ExitStatus;
-use std::{self,
-          io::BufRead,
-          path::{Path,
-                 PathBuf},
-          sync::Arc};
+use std::{
+    self,
+    io::BufRead,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 static LOGKEY: &str = "HK";
 
@@ -33,29 +34,39 @@ pub struct StandardStreams {
 #[derive(Debug)]
 pub struct ProcessOutput {
     standard_streams: StandardStreams,
-    exit_status:      ExitStatus,
+    exit_status: ExitStatus,
 }
 
 impl ProcessOutput {
     fn new(hook_output: &HookOutput, exit_status: ExitStatus) -> Self {
-        Self { standard_streams: StandardStreams { stdout: hook_output.stdout_str().ok(),
-                                                   stderr: hook_output.stderr_str().ok(), },
-               exit_status }
+        Self {
+            standard_streams: StandardStreams {
+                stdout: hook_output.stdout_str().ok(),
+                stderr: hook_output.stderr_str().ok(),
+            },
+            exit_status,
+        }
     }
 
     pub fn from_raw(standard_streams: StandardStreams, exit_status: ExitStatus) -> Self {
-        Self { standard_streams,
-               exit_status }
+        Self {
+            standard_streams,
+            exit_status,
+        }
     }
 
-    pub fn exit_status(&self) -> ExitStatus { self.exit_status }
+    pub fn exit_status(&self) -> ExitStatus {
+        self.exit_status
+    }
 
-    pub fn standard_streams(self) -> StandardStreams { self.standard_streams }
+    pub fn standard_streams(self) -> StandardStreams {
+        self.standard_streams
+    }
 }
 
 #[derive(Debug, Serialize)]
 pub struct FileUpdatedHook {
-    render_pair:     RenderPair,
+    render_pair: RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -66,45 +77,61 @@ impl Hook for FileUpdatedHook {
     const FILE_NAME: &'static str = "file-updated";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
-        FileUpdatedHook { render_pair:     pair,
-                          stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-                          stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
+        FileUpdatedHook {
+            render_pair: pair,
+            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
+        }
     }
 
     fn handle_exit(&self, _: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         status.success()
     }
 
-    fn path(&self) -> &Path { &self.render_pair.path }
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
 
-    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
+    }
 
-    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
 
-    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
 }
 
 #[derive(Debug, Serialize)]
 pub struct HealthCheckHook {
-    render_pair:     RenderPair,
+    render_pair: RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
     #[cfg(windows)]
     #[serde(skip_serializing)]
-    pipe_client:     Option<PipeHookClient>,
+    pipe_client: Option<PipeHookClient>,
 }
 
 #[cfg(windows)]
 impl HealthCheckHook {
-    fn pipe_client(path: PathBuf,
-                   feature_flags: FeatureFlag,
-                   out_path: PathBuf,
-                   err_path: PathBuf)
-                   -> Option<PipeHookClient> {
+    fn pipe_client(
+        path: PathBuf,
+        feature_flags: FeatureFlag,
+        out_path: PathBuf,
+        err_path: PathBuf,
+    ) -> Option<PipeHookClient> {
         if feature_flags.contains(FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK) {
             None
         } else {
-            Some(PipeHookClient::new(Self::FILE_NAME.to_string(), path, out_path, err_path))
+            Some(PipeHookClient::new(
+                Self::FILE_NAME.to_string(),
+                path,
+                out_path,
+                err_path,
+            ))
         }
     }
 }
@@ -121,23 +148,24 @@ impl Hook for HealthCheckHook {
         let err_path = hooks::stderr_log_path::<Self>(package_name);
         #[cfg(windows)]
         let path = pair.path.clone();
-        HealthCheckHook { render_pair:                 pair,
-                          #[cfg(windows)]
-                          pipe_client:                 Self::pipe_client(path,
-                                                                         feature_flags,
-                                                                         out_path.clone(),
-                                                                         err_path.clone()),
-                          stdout_log_path:             out_path,
-                          stderr_log_path:             err_path, }
+        HealthCheckHook {
+            render_pair: pair,
+            #[cfg(windows)]
+            pipe_client: Self::pipe_client(path, feature_flags, out_path.clone(), err_path.clone()),
+            stdout_log_path: out_path,
+            stderr_log_path: err_path,
+        }
     }
 
     #[cfg(windows)]
-    fn run<T>(&self,
-              service_group: &str,
-              pkg: &Pkg,
-              svc_encrypted_password: Option<T>)
-              -> Result<Self::ExitValue>
-        where T: ToString
+    fn run<T>(
+        &self,
+        service_group: &str,
+        pkg: &Pkg,
+        svc_encrypted_password: Option<T>,
+    ) -> Result<Self::ExitValue>
+    where
+        T: ToString,
     {
         if let Some(client) = &self.pipe_client {
             match client.exec_hook(service_group, pkg, svc_encrypted_password) {
@@ -157,29 +185,38 @@ impl Hook for HealthCheckHook {
         }
     }
 
-    fn handle_exit(&self,
-                   pkg: &Pkg,
-                   hook_output: &HookOutput,
-                   status: ExitStatus)
-                   -> Self::ExitValue {
+    fn handle_exit(
+        &self,
+        pkg: &Pkg,
+        hook_output: &HookOutput,
+        status: ExitStatus,
+    ) -> Self::ExitValue {
         if status.code().is_none() {
             Self::output_termination_message(&pkg.name, status);
         }
         ProcessOutput::new(hook_output, status)
     }
 
-    fn path(&self) -> &Path { &self.render_pair.path }
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
 
-    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
+    }
 
-    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
 
-    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
 }
 
 #[derive(Debug, Serialize)]
 pub struct InitHook {
-    render_pair:     RenderPair,
+    render_pair: RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -190,9 +227,11 @@ impl Hook for InitHook {
     const FILE_NAME: &'static str = "init";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
-        InitHook { render_pair:     pair,
-                   stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-                   stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
+        InitHook {
+            render_pair: pair,
+            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
+        }
     }
 
     fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -212,18 +251,26 @@ impl Hook for InitHook {
         }
     }
 
-    fn path(&self) -> &Path { &self.render_pair.path }
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
 
-    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
+    }
 
-    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
 
-    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
 }
 
 #[derive(Debug, Serialize)]
 pub struct RunHook {
-    render_pair:     RenderPair,
+    render_pair: RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -234,16 +281,21 @@ impl Hook for RunHook {
     const FILE_NAME: &'static str = "run";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
-        RunHook { render_pair:     pair,
-                  stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-                  stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
+        RunHook {
+            render_pair: pair,
+            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
+        }
     }
 
     fn run<T>(&self, _: &str, _: &Pkg, _: Option<T>) -> Result<Self::ExitValue>
-        where T: ToString
+    where
+        T: ToString,
     {
-        panic!("The run hook is a an exception to the lifetime of a service. It should only be \
-                run by the Supervisor module!");
+        panic!(
+            "The run hook is a an exception to the lifetime of a service. It should only be \
+                run by the Supervisor module!"
+        );
     }
 
     fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -256,18 +308,26 @@ impl Hook for RunHook {
         }
     }
 
-    fn path(&self) -> &Path { &self.render_pair.path }
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
 
-    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
+    }
 
-    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
 
-    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
 }
 
 #[derive(Debug, Serialize)]
 pub struct PostRunHook {
-    render_pair:     RenderPair,
+    render_pair: RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -278,9 +338,11 @@ impl Hook for PostRunHook {
     const FILE_NAME: &'static str = "post-run";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
-        PostRunHook { render_pair:     pair,
-                      stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-                      stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
+        PostRunHook {
+            render_pair: pair,
+            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
+        }
     }
 
     fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -298,18 +360,26 @@ impl Hook for PostRunHook {
         exit_value != &SHOULD_NOT_RETRY
     }
 
-    fn path(&self) -> &Path { &self.render_pair.path }
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
 
-    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
+    }
 
-    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
 
-    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
 }
 
 #[derive(Debug, Serialize)]
 pub struct ReconfigureHook {
-    render_pair:     RenderPair,
+    render_pair: RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -320,9 +390,11 @@ impl Hook for ReconfigureHook {
     const FILE_NAME: &'static str = "reconfigure";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
-        ReconfigureHook { render_pair:     pair,
-                          stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-                          stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
+        ReconfigureHook {
+            render_pair: pair,
+            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
+        }
     }
 
     fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -335,18 +407,26 @@ impl Hook for ReconfigureHook {
         }
     }
 
-    fn path(&self) -> &Path { &self.render_pair.path }
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
 
-    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
+    }
 
-    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
 
-    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
 }
 
 #[derive(Debug, Serialize)]
 pub struct SuitabilityHook {
-    render_pair:     RenderPair,
+    render_pair: RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -384,29 +464,30 @@ impl Hook for SuitabilityHook {
     const FILE_NAME: &'static str = "suitability";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
-        SuitabilityHook { render_pair:     pair,
-                          stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-                          stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
+        SuitabilityHook {
+            render_pair: pair,
+            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
+        }
     }
 
-    fn handle_exit(&self,
-                   pkg: &Pkg,
-                   hook_output: &HookOutput,
-                   status: ExitStatus)
-                   -> Self::ExitValue {
+    fn handle_exit(
+        &self,
+        pkg: &Pkg,
+        hook_output: &HookOutput,
+        status: ExitStatus,
+    ) -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
-            Some(0) => {
-                match hook_output.stdout() {
-                    Ok(reader) => {
-                        return Self::parse_suitability(reader, pkg_name);
-                    }
-                    Err(e) => {
-                        outputln!(preamble pkg_name,
-                                  "Failed to open stdout file: {}", e);
-                    }
+            Some(0) => match hook_output.stdout() {
+                Ok(reader) => {
+                    return Self::parse_suitability(reader, pkg_name);
                 }
-            }
+                Err(e) => {
+                    outputln!(preamble pkg_name,
+                                  "Failed to open stdout file: {}", e);
+                }
+            },
             Some(code) => {
                 outputln!(preamble pkg_name,
                           "{} exited with status code {}", Self::FILE_NAME, code);
@@ -418,18 +499,26 @@ impl Hook for SuitabilityHook {
         None
     }
 
-    fn path(&self) -> &Path { &self.render_pair.path }
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
 
-    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
+    }
 
-    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
 
-    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
 }
 
 #[derive(Debug, Serialize)]
 pub struct PostStopHook {
-    render_pair:     RenderPair,
+    render_pair: RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -440,9 +529,11 @@ impl Hook for PostStopHook {
     const FILE_NAME: &'static str = "post-stop";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
-        PostStopHook { render_pair:     pair,
-                       stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-                       stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
+        PostStopHook {
+            render_pair: pair,
+            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
+        }
     }
 
     fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -461,63 +552,83 @@ impl Hook for PostStopHook {
         }
     }
 
-    fn path(&self) -> &Path { &self.render_pair.path }
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
 
-    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
+    }
 
-    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
 
-    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
 }
 
 /// A lookup of hooks that have changed after compilation.
 #[derive(Default)]
 pub struct HookCompileTable {
     health_check: bool,
-    init:         bool,
+    init: bool,
     file_updated: bool,
-    reconfigure:  bool,
-    suitability:  bool,
-    run:          bool,
-    post_run:     bool,
-    post_stop:    bool,
+    reconfigure: bool,
+    suitability: bool,
+    run: bool,
+    post_run: bool,
+    post_stop: bool,
 }
 
 impl HookCompileTable {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
-    pub fn reconfigure_changed(&self) -> bool { self.reconfigure }
+    pub fn reconfigure_changed(&self) -> bool {
+        self.reconfigure
+    }
 
-    pub fn init_changed(&self) -> bool { self.init }
+    pub fn init_changed(&self) -> bool {
+        self.init
+    }
 
-    pub fn run_changed(&self) -> bool { self.run }
+    pub fn run_changed(&self) -> bool {
+        self.run
+    }
 
-    pub fn post_run_changed(&self) -> bool { self.post_run }
+    pub fn post_run_changed(&self) -> bool {
+        self.post_run
+    }
 
     pub fn changed(&self) -> bool {
-        let Self { health_check,
-                   init,
-                   file_updated,
-                   reconfigure,
-                   suitability,
-                   run,
-                   post_run,
-                   post_stop, } = self;
+        let Self {
+            health_check,
+            init,
+            file_updated,
+            reconfigure,
+            suitability,
+            run,
+            post_run,
+            post_stop,
+        } = self;
         *health_check
-        || *init
-        || *file_updated
-        || *reconfigure
-        || *suitability
-        || *run
-        || *post_run
-        || *post_stop
+            || *init
+            || *file_updated
+            || *reconfigure
+            || *suitability
+            || *run
+            || *post_run
+            || *post_stop
     }
 }
 
 // Queryable representation of a hook
 #[derive(Debug, Clone, Serialize)]
 pub struct HookQueryModel {
-    pub render_pair:     PathBuf,
+    pub render_pair: PathBuf,
     pub stdout_log_path: PathBuf,
     pub stderr_log_path: PathBuf,
 }
@@ -526,26 +637,58 @@ pub struct HookQueryModel {
 #[derive(Debug, Clone, Serialize)]
 pub struct HookTableQueryModel {
     pub health_check: Option<HookQueryModel>,
-    pub init:         Option<HookQueryModel>,
+    pub init: Option<HookQueryModel>,
     pub file_updated: Option<HookQueryModel>,
-    pub reconfigure:  Option<HookQueryModel>,
-    pub suitability:  Option<HookQueryModel>,
-    pub run:          Option<HookQueryModel>,
-    pub post_run:     Option<HookQueryModel>,
-    pub post_stop:    Option<HookQueryModel>,
+    pub reconfigure: Option<HookQueryModel>,
+    pub suitability: Option<HookQueryModel>,
+    pub run: Option<HookQueryModel>,
+    pub post_run: Option<HookQueryModel>,
+    pub post_stop: Option<HookQueryModel>,
 }
 
 impl HookTableQueryModel {
     pub fn new(hook_table: &HookTable) -> HookTableQueryModel {
         HookTableQueryModel {
-            health_check: hook_table.health_check.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
-            init: hook_table.init.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
-            file_updated: hook_table.file_updated.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
-            reconfigure: hook_table.reconfigure.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
-            suitability: hook_table.suitability.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
-            run: hook_table.run.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
-            post_run: hook_table.post_run.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() }),
-            post_stop: hook_table.post_stop.as_ref().map(|hook| HookQueryModel { render_pair: hook.render_pair.path.clone(), stdout_log_path: hook.stdout_log_path.clone(), stderr_log_path: hook.stderr_log_path.clone() })
+            health_check: hook_table.health_check.as_ref().map(|hook| HookQueryModel {
+                render_pair: hook.render_pair.path.clone(),
+                stdout_log_path: hook.stdout_log_path.clone(),
+                stderr_log_path: hook.stderr_log_path.clone(),
+            }),
+            init: hook_table.init.as_ref().map(|hook| HookQueryModel {
+                render_pair: hook.render_pair.path.clone(),
+                stdout_log_path: hook.stdout_log_path.clone(),
+                stderr_log_path: hook.stderr_log_path.clone(),
+            }),
+            file_updated: hook_table.file_updated.as_ref().map(|hook| HookQueryModel {
+                render_pair: hook.render_pair.path.clone(),
+                stdout_log_path: hook.stdout_log_path.clone(),
+                stderr_log_path: hook.stderr_log_path.clone(),
+            }),
+            reconfigure: hook_table.reconfigure.as_ref().map(|hook| HookQueryModel {
+                render_pair: hook.render_pair.path.clone(),
+                stdout_log_path: hook.stdout_log_path.clone(),
+                stderr_log_path: hook.stderr_log_path.clone(),
+            }),
+            suitability: hook_table.suitability.as_ref().map(|hook| HookQueryModel {
+                render_pair: hook.render_pair.path.clone(),
+                stdout_log_path: hook.stdout_log_path.clone(),
+                stderr_log_path: hook.stderr_log_path.clone(),
+            }),
+            run: hook_table.run.as_ref().map(|hook| HookQueryModel {
+                render_pair: hook.render_pair.path.clone(),
+                stdout_log_path: hook.stdout_log_path.clone(),
+                stderr_log_path: hook.stderr_log_path.clone(),
+            }),
+            post_run: hook_table.post_run.as_ref().map(|hook| HookQueryModel {
+                render_pair: hook.render_pair.path.clone(),
+                stdout_log_path: hook.stdout_log_path.clone(),
+                stderr_log_path: hook.stderr_log_path.clone(),
+            }),
+            post_stop: hook_table.post_stop.as_ref().map(|hook| HookQueryModel {
+                render_pair: hook.render_pair.path.clone(),
+                stdout_log_path: hook.stdout_log_path.clone(),
+                stderr_log_path: hook.stderr_log_path.clone(),
+            }),
         }
     }
 }
@@ -555,35 +698,36 @@ impl HookTableQueryModel {
 #[derive(Debug, Default, Serialize)]
 pub struct HookTable {
     pub health_check: Option<Arc<HealthCheckHook>>,
-    pub init:         Option<Arc<InitHook>>,
+    pub init: Option<Arc<InitHook>>,
     pub file_updated: Option<FileUpdatedHook>,
-    pub reconfigure:  Option<ReconfigureHook>,
-    pub suitability:  Option<SuitabilityHook>,
-    pub run:          Option<RunHook>,
-    pub post_run:     Option<Arc<PostRunHook>>,
-    pub post_stop:    Option<Arc<PostStopHook>>,
+    pub reconfigure: Option<ReconfigureHook>,
+    pub suitability: Option<SuitabilityHook>,
+    pub run: Option<RunHook>,
+    pub post_run: Option<Arc<PostRunHook>>,
+    pub post_stop: Option<Arc<PostStopHook>>,
 }
 
 impl HookTable {
     /// Read all available hook templates from the table's package directory into the table.
-    pub fn load<P, T>(package_name: &str,
-                      templates: T,
-                      hooks_path: P,
-                      feature_flags: FeatureFlag)
-                      -> Self
-        where P: AsRef<Path>,
-              T: AsRef<Path>
+    pub fn load<P, T>(
+        package_name: &str,
+        templates: T,
+        hooks_path: P,
+        feature_flags: FeatureFlag,
+    ) -> Self
+    where
+        P: AsRef<Path>,
+        T: AsRef<Path>,
     {
         let mut table = HookTable::default();
         if let Ok(meta) = std::fs::metadata(templates.as_ref())
-           && meta.is_dir()
+            && meta.is_dir()
         {
             table.file_updated =
                 FileUpdatedHook::load(package_name, &hooks_path, &templates, feature_flags);
-            table.health_check = HealthCheckHook::load(package_name,
-                                                       &hooks_path,
-                                                       &templates,
-                                                       feature_flags).map(Arc::new);
+            table.health_check =
+                HealthCheckHook::load(package_name, &hooks_path, &templates, feature_flags)
+                    .map(Arc::new);
             table.suitability =
                 SuitabilityHook::load(package_name, &hooks_path, &templates, feature_flags);
             table.init =
@@ -591,25 +735,26 @@ impl HookTable {
             table.reconfigure =
                 ReconfigureHook::load(package_name, &hooks_path, &templates, feature_flags);
             table.run = RunHook::load(package_name, &hooks_path, &templates, feature_flags);
-            table.post_run = PostRunHook::load(package_name,
-                                               &hooks_path,
-                                               &templates,
-                                               feature_flags).map(Arc::new);
-            table.post_stop = PostStopHook::load(package_name,
-                                                 &hooks_path,
-                                                 &templates,
-                                                 feature_flags).map(Arc::new);
+            table.post_run =
+                PostRunHook::load(package_name, &hooks_path, &templates, feature_flags)
+                    .map(Arc::new);
+            table.post_stop =
+                PostStopHook::load(package_name, &hooks_path, &templates, feature_flags)
+                    .map(Arc::new);
         }
-        debug!("{}, Hooks loaded, destination={}, templates={}",
-               package_name,
-               hooks_path.as_ref().display(),
-               templates.as_ref().display());
+        debug!(
+            "{}, Hooks loaded, destination={}, templates={}",
+            package_name,
+            hooks_path.as_ref().display(),
+            templates.as_ref().display()
+        );
         table
     }
 
     /// Compile all loaded hooks from the table into their destination service directory.
     pub fn compile<T>(&self, service_group: &str, ctx: &T) -> HookCompileTable
-        where T: Serialize
+    where
+        T: Serialize,
     {
         debug!("{:?}", self);
         let mut changed = HookCompileTable::new();
@@ -641,8 +786,9 @@ impl HookTable {
     }
 
     fn compile_one<H, T>(&self, hook: &H, service_group: &str, ctx: &T) -> bool
-        where H: Hook,
-              T: Serialize
+    where
+        H: Hook,
+        T: Serialize,
     {
         match hook.compile(service_group, ctx) {
             Ok(status) => status,
@@ -657,42 +803,43 @@ impl HookTable {
 
 #[cfg(test)]
 mod tests {
-    use super::{super::RenderContext,
-                *};
-    use crate::{census::CensusRing,
-                manager::sys::Sys};
-    use habitat_butterfly::{member::MemberList,
-                            rumor::{RumorStore,
-                                    election::{self,
-                                               Election as ElectionRumor,
-                                               ElectionUpdate as ElectionUpdateRumor},
-                                    service::{Service as ServiceRumor,
-                                              SysInfo},
-                                    service_config::ServiceConfig as ServiceConfigRumor,
-                                    service_file::ServiceFile as ServiceFileRumor}};
-    use habitat_common::{templating::{config::Cfg,
-                                      package::Pkg,
-                                      test_helpers::*},
-                         types::{GossipListenAddr,
-                                 HttpListenAddr,
-                                 ListenCtlAddr}};
-    #[cfg(not(any(all(target_os = "linux",
-                          any(target_arch = "x86_64", target_arch = "aarch64")),
-                      all(target_os = "windows", target_arch = "x86_64"),)))]
-    use habitat_core::package::metadata::MetaFile;
-    use habitat_core::{crypto::keys::KeyCache,
-                       fs::CACHE_KEY_PATH,
-                       locked_env_var,
-                       package::{PackageIdent,
-                                 PackageInstall},
-                       service::{ServiceBind,
-                                 ServiceGroup}};
-    use std::{convert,
-              fs,
-              io::BufReader,
-              iter,
-              net::{IpAddr,
-                    Ipv4Addr}};
+    use super::{super::RenderContext, *};
+    use crate::{census::CensusRing, manager::sys::Sys};
+    use biome_butterfly::{
+        member::MemberList,
+        rumor::{
+            RumorStore,
+            election::{self, Election as ElectionRumor, ElectionUpdate as ElectionUpdateRumor},
+            service::{Service as ServiceRumor, SysInfo},
+            service_config::ServiceConfig as ServiceConfigRumor,
+            service_file::ServiceFile as ServiceFileRumor,
+        },
+    };
+    use biome_common::{
+        templating::{config::Cfg, package::Pkg, test_helpers::*},
+        types::{GossipListenAddr, HttpListenAddr, ListenCtlAddr},
+    };
+    #[cfg(not(any(
+        all(
+            target_os = "linux",
+            any(target_arch = "x86_64", target_arch = "aarch64")
+        ),
+        all(target_os = "windows", target_arch = "x86_64"),
+    )))]
+    use biome_core::package::metadata::MetaFile;
+    use biome_core::{
+        crypto::keys::KeyCache,
+        fs::CACHE_KEY_PATH,
+        locked_env_var,
+        package::{PackageIdent, PackageInstall},
+        service::{ServiceBind, ServiceGroup},
+    };
+    use std::{
+        convert, fs,
+        io::BufReader,
+        iter,
+        net::{IpAddr, Ipv4Addr},
+    };
     use tempfile::TempDir;
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
@@ -719,55 +866,73 @@ mod tests {
                       PostStopHook);
 
     fn hook_templates_path() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
-                                                 .join("fixtures")
-                                                 .join("hooks")
-                                                 .join("hook_templates")
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("hooks")
+            .join("hook_templates")
     }
 
-    fn rendered_hooks_path() -> TempDir { TempDir::new().expect("create temp dir") }
+    fn rendered_hooks_path() -> TempDir {
+        TempDir::new().expect("create temp dir")
+    }
 
     fn service_group() -> ServiceGroup {
         ServiceGroup::new("test_service", "test_group", None).expect("couldn't create ServiceGroup")
     }
 
     async fn pkg(service_group: &ServiceGroup) -> Pkg {
-        let pg_id = PackageIdent::new("testing",
-                                      service_group.service(),
-                                      Some("1.0.0"),
-                                      Some("20170712000000"));
-        let pkg_install = PackageInstall::new_from_parts(pg_id,
-                                                         PathBuf::from("/tmp"),
-                                                         PathBuf::from("/tmp"),
-                                                         PathBuf::from("/tmp"));
+        let pg_id = PackageIdent::new(
+            "testing",
+            service_group.service(),
+            Some("1.0.0"),
+            Some("20170712000000"),
+        );
+        let pkg_install = PackageInstall::new_from_parts(
+            pg_id,
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+        );
         // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(any(all(target_os = "linux",
-                          any(target_arch = "x86_64", target_arch = "aarch64")),
-                      all(target_os = "windows", target_arch = "x86_64"))))]
+        #[cfg(not(any(
+            all(
+                target_os = "linux",
+                any(target_arch = "x86_64", target_arch = "aarch64")
+            ),
+            all(target_os = "windows", target_arch = "x86_64")
+        )))]
         {
-            tokio::fs::create_dir_all(pkg_install.installed_path()).await
-                                                                   .unwrap();
-            create_with_content(pkg_install.installed_path()
-                                           .join(MetaFile::PackageType.to_string()),
-                                "native");
+            tokio::fs::create_dir_all(pkg_install.installed_path())
+                .await
+                .unwrap();
+            create_with_content(
+                pkg_install
+                    .installed_path()
+                    .join(MetaFile::PackageType.to_string()),
+                "native",
+            );
         }
         Pkg::from_install(&pkg_install).await.unwrap()
     }
 
-    fn ctx<'a>(service_group: &'a ServiceGroup,
-               pkg: &'a Pkg,
-               sys: &'a Sys,
-               cfg: &'a Cfg,
-               ring: &'a mut CensusRing)
-               -> RenderContext<'a> {
+    fn ctx<'a>(
+        service_group: &'a ServiceGroup,
+        pkg: &'a Pkg,
+        sys: &'a Sys,
+        cfg: &'a Cfg,
+        ring: &'a mut CensusRing,
+    ) -> RenderContext<'a> {
         // SysInfo is basic Swim infrastructure information
-        let sys_info = SysInfo { ip: "1.2.3.4".to_string(),
-                                 hostname: "hostname".to_string(),
-                                 gossip_ip: "0.0.0.0".to_string(),
-                                 gossip_port: 7777,
-                                 http_gateway_ip: "0.0.0.0".to_string(),
-                                 http_gateway_port: 9631,
-                                 ..Default::default() };
+        let sys_info = SysInfo {
+            ip: "1.2.3.4".to_string(),
+            hostname: "hostname".to_string(),
+            gossip_ip: "0.0.0.0".to_string(),
+            gossip_port: 7777,
+            http_gateway_ip: "0.0.0.0".to_string(),
+            http_gateway_port: 9631,
+            ..Default::default()
+        };
 
         let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
 
@@ -776,11 +941,13 @@ mod tests {
         service_store.insert_rsw(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
-        let mut election = ElectionRumor::new("member-a",
-                                              &sg_one,
-                                              election::Term::default(),
-                                              10,
-                                              true /* has_quorum */);
+        let mut election = ElectionRumor::new(
+            "member-a",
+            &sg_one,
+            election::Term::default(),
+            10,
+            true, /* has_quorum */
+        );
         election.finish();
         election_store.insert_rsw(election);
 
@@ -791,13 +958,15 @@ mod tests {
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
 
-        ring.update_from_rumors_rsr_mlr(&KeyCache::new(&*CACHE_KEY_PATH),
-                                        &service_store,
-                                        &election_store,
-                                        &election_update_store,
-                                        &member_list,
-                                        &service_config_store,
-                                        &service_file_store);
+        ring.update_from_rumors_rsr_mlr(
+            &KeyCache::new(&*CACHE_KEY_PATH),
+            &service_store,
+            &election_store,
+            &election_update_store,
+            &member_list,
+            &service_config_store,
+            &service_file_store,
+        );
 
         let bindings = iter::empty::<&ServiceBind>();
 
@@ -820,27 +989,34 @@ mod tests {
         create_with_content(cfg_path, "message = \"Hello\"");
 
         let pkg = pkg(&service_group).await;
-        let sys = Sys::new(true,
-                           GossipListenAddr::default(),
-                           ListenCtlAddr::default(),
-                           HttpListenAddr::default(),
-                           IpAddr::V4(Ipv4Addr::LOCALHOST));
+        let sys = Sys::new(
+            true,
+            GossipListenAddr::default(),
+            ListenCtlAddr::default(),
+            HttpListenAddr::default(),
+            IpAddr::V4(Ipv4Addr::LOCALHOST),
+        );
         let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
             .expect("Could not create config");
         let mut ring = CensusRing::new("member-a");
         let ctx = ctx(&service_group, &pkg, &sys, &cfg, &mut ring);
 
-        let hook_table = HookTable::load(&service_group,
-                                         &template_path,
-                                         &hooks_path,
-                                         FeatureFlag::empty());
+        let hook_table = HookTable::load(
+            &service_group,
+            &template_path,
+            &hooks_path,
+            FeatureFlag::empty(),
+        );
         assert!(hook_table.compile(&service_group, &ctx).changed());
 
         // Verify init hook
-        let init_hook_content = file_content(hook_table.init
-                                                       .as_ref()
-                                                       .map(convert::AsRef::as_ref)
-                                                       .expect("no init hook??"));
+        let init_hook_content = file_content(
+            hook_table
+                .init
+                .as_ref()
+                .map(convert::AsRef::as_ref)
+                .expect("no init hook??"),
+        );
         let init_hook_content_normalized = init_hook_content.replace('\r', "");
         let expected_init_hook = "#!/bin/bash\n\necho \"The message is Hello\"\n";
         let expected_run_hook = "#!/bin/bash\n\necho \"Running a program\"\n";
@@ -855,10 +1031,13 @@ mod tests {
         assert!(!hook_table.compile(&service_group, &ctx).changed());
 
         // Re-Verify init hook
-        let init_hook_content = file_content(hook_table.init
-                                                       .as_ref()
-                                                       .map(convert::AsRef::as_ref)
-                                                       .expect("no init hook??"));
+        let init_hook_content = file_content(
+            hook_table
+                .init
+                .as_ref()
+                .map(convert::AsRef::as_ref)
+                .expect("no init hook??"),
+        );
         let init_hook_content_normalized = init_hook_content.replace('\r', "");
         assert_eq!(init_hook_content_normalized, expected_init_hook);
 
@@ -889,16 +1068,17 @@ mod tests {
         assert_eq!(result.unwrap(), 124);
     }
 
-    locked_env_var!(HAB_HOOK_PIPE_SCRIPT, pipe_service_path);
+    locked_env_var!(BIO_HOOK_PIPE_SCRIPT, pipe_service_path);
 
     #[cfg(windows)]
     #[tokio::test]
     async fn run_named_pipe_health_check_hook() {
-        use habitat_core::fs::svc_logs_path;
+        use biome_core::fs::svc_logs_path;
 
         let var = pipe_service_path();
-        let script = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("static")
-                                                              .join("named_pipe_service.ps1");
+        let script = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("static")
+            .join("named_pipe_service.ps1");
         var.set(&script);
 
         let service_group = service_group();
@@ -909,18 +1089,25 @@ mod tests {
         let concrete_path = hooks_path.clone();
         let template_path = hook_templates_path();
 
-        let hook = HealthCheckHook::load(service_group.service(),
-                                         &concrete_path,
-                                         &template_path,
-                                         FeatureFlag::empty()).expect("Could not create testing \
-                                                                       healch-check hook");
+        let hook = HealthCheckHook::load(
+            service_group.service(),
+            &concrete_path,
+            &template_path,
+            FeatureFlag::empty(),
+        )
+        .expect(
+            "Could not create testing \
+                                                                       healch-check hook",
+        );
 
         let pkg = pkg(&service_group).await;
-        let sys = Sys::new(true,
-                           GossipListenAddr::default(),
-                           ListenCtlAddr::default(),
-                           HttpListenAddr::default(),
-                           IpAddr::V4(Ipv4Addr::LOCALHOST));
+        let sys = Sys::new(
+            true,
+            GossipListenAddr::default(),
+            ListenCtlAddr::default(),
+            HttpListenAddr::default(),
+            IpAddr::V4(Ipv4Addr::LOCALHOST),
+        );
         let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
             .expect("Could not create config");
         let mut ring = CensusRing::new("member-a");
@@ -931,20 +1118,24 @@ mod tests {
         let result = hook.run(&service_group, &pkg, None::<&str>).unwrap();
 
         assert_eq!(Some(1), result.exit_status().code());
-        assert!(result.standard_streams()
-                      .stdout
-                      .unwrap()
-                      .contains("Named pipe created"));
+        assert!(
+            result
+                .standard_streams()
+                .stdout
+                .unwrap()
+                .contains("Named pipe created")
+        );
     }
 
     #[cfg(windows)]
     #[tokio::test]
     async fn do_not_run_named_pipe_health_check_hook_under_feature_flag() {
-        use habitat_core::fs::svc_logs_path;
+        use biome_core::fs::svc_logs_path;
 
         let var = pipe_service_path();
-        let script = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("static")
-                                                              .join("named_pipe_service.ps1");
+        let script = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("static")
+            .join("named_pipe_service.ps1");
         var.set(&script);
 
         let service_group = service_group();
@@ -957,18 +1148,25 @@ mod tests {
         let mut flags = FeatureFlag::empty();
         flags.insert(FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK);
 
-        let hook = HealthCheckHook::load(service_group.service(),
-                                         &concrete_path,
-                                         &template_path,
-                                         flags).expect("Could not create testing healch-check \
-                                                        hook");
+        let hook = HealthCheckHook::load(
+            service_group.service(),
+            &concrete_path,
+            &template_path,
+            flags,
+        )
+        .expect(
+            "Could not create testing healch-check \
+                                                        hook",
+        );
 
         let pkg = pkg(&service_group).await;
-        let sys = Sys::new(true,
-                           GossipListenAddr::default(),
-                           ListenCtlAddr::default(),
-                           HttpListenAddr::default(),
-                           IpAddr::V4(Ipv4Addr::LOCALHOST));
+        let sys = Sys::new(
+            true,
+            GossipListenAddr::default(),
+            ListenCtlAddr::default(),
+            HttpListenAddr::default(),
+            IpAddr::V4(Ipv4Addr::LOCALHOST),
+        );
         let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
             .expect("Could not create config");
         let mut ring = CensusRing::new("member-a");
@@ -979,9 +1177,12 @@ mod tests {
         let result = hook.run(&service_group, &pkg, None::<&str>).unwrap();
 
         assert_eq!(Some(1), result.exit_status().code());
-        assert!(!result.standard_streams()
-                       .stdout
-                       .unwrap()
-                       .contains("Named pipe created"));
+        assert!(
+            !result
+                .standard_streams()
+                .stdout
+                .unwrap()
+                .contains("Named pipe created")
+        );
     }
 }

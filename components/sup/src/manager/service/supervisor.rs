@@ -3,45 +3,36 @@
 /// The Supervisor is responsible for running any services we are asked to start. It handles
 /// spawning the new process, watching for failure, and ensuring the service is either up or
 /// down. If the process dies, the Supervisor will restart it.
-use super::{ProcessState,
-            terminator};
-use crate::{error::{Error,
-                    Result},
-            manager::{ServicePidSource,
-                      ShutdownConfig}};
+use super::{ProcessState, terminator};
+use crate::{
+    error::{Error, Result},
+    manager::{ServicePidSource, ShutdownConfig},
+};
 use anyhow::anyhow;
-use habitat_common::{outputln,
-                     templating::package::Pkg,
-                     types::UserInfo};
+use biome_common::{outputln, templating::package::Pkg, types::UserInfo};
 #[cfg(unix)]
-use habitat_core::os::users;
-use habitat_core::{fs,
-                   fs::{AtomicWriter,
-                        Permissions},
-                   os::process::{self,
-                                 Pid},
-                   service::ServiceGroup};
-use habitat_launcher_client::LauncherCli;
+use biome_core::os::users;
+use biome_core::{
+    fs,
+    fs::{AtomicWriter, Permissions},
+    os::process::{self, Pid},
+    service::ServiceGroup,
+};
+use biome_launcher_client::LauncherCli;
 #[cfg(windows)]
-use habitat_launcher_client::{IPCReadError,
-                              TryIPCCommandError,
-                              TryReceiveError};
+use biome_launcher_client::{IPCReadError, TryIPCCommandError, TryReceiveError};
 #[cfg(windows)]
-use habitat_launcher_protocol as protocol;
-use log::{debug,
-          error,
-          warn};
+use biome_launcher_protocol as protocol;
+use log::{debug, error, warn};
 use serde::Serialize;
 #[cfg(windows)]
 use std::env;
-use std::{fs::File,
-          io::{BufRead,
-               BufReader,
-               Write},
-          path::{Path,
-                 PathBuf},
-          time::{Duration,
-                 SystemTime}};
+use std::{
+    fs::File,
+    io::{BufRead, BufReader, Write},
+    path::{Path, PathBuf},
+    time::{Duration, SystemTime},
+};
 
 static LOGKEY: &str = "SV";
 
@@ -58,35 +49,39 @@ const PIDFILE_PERMISSIONS: Permissions = Permissions::Explicit(0o644);
 #[derive(Debug)]
 pub struct PidUpdate {
     /// The last known pid, will be None if the process was not running
-    pub old_pid:   Option<Pid>,
+    pub old_pid: Option<Pid>,
     /// The current pid, will be None if the process is not running
-    pub new_pid:   Option<Pid>,
+    pub new_pid: Option<Pid>,
     /// The time at which the process changed, will be None if there is no change
     pub timestamp: Option<SystemTime>,
 }
 
 impl PidUpdate {
     /// Check if the process is still running
-    pub fn is_running(&self) -> bool { self.new_pid.is_some() }
+    pub fn is_running(&self) -> bool {
+        self.new_pid.is_some()
+    }
 }
 
 /// Represents the queryable state of the supervised process
 #[derive(Debug, Clone, Serialize)]
 pub struct SupervisedProcessQueryModel {
-    pub pid:           Option<Pid>,
-    pub state:         ProcessState,
+    pub pid: Option<Pid>,
+    pub state: ProcessState,
     pub state_entered: u64,
 }
 
 impl SupervisedProcessQueryModel {
     pub fn new(supervisor: &Supervisor) -> Self {
-        Self { pid:           supervisor.pid,
-               state:         supervisor.state,
-               state_entered: supervisor.since_epoch().as_secs(), }
+        Self {
+            pid: supervisor.pid,
+            state: supervisor.state,
+            state_entered: supervisor.since_epoch().as_secs(),
+        }
     }
 }
 
-impl From<&SupervisedProcessQueryModel> for habitat_sup_protocol::types::ProcessStatus {
+impl From<&SupervisedProcessQueryModel> for biome_sup_protocol::types::ProcessStatus {
     fn from(process: &SupervisedProcessQueryModel) -> Self {
         // The process id is already u32 on windows, but that is not the case for other platforms
         #[cfg(target_os = "windows")]
@@ -94,17 +89,25 @@ impl From<&SupervisedProcessQueryModel> for habitat_sup_protocol::types::Process
         #[cfg(not(target_os = "windows"))]
         let pid: Option<u32> = process.pid.map(|value| value as u32);
 
-        Self { elapsed: Some(SystemTime::UNIX_EPOCH.checked_add(Duration::from_secs(process.state_entered)).and_then(|timestamp| timestamp.elapsed().ok()).map(|timestamp| timestamp.as_secs()).unwrap_or_default()),
-               state:   process.state.into(),
-               pid }
+        Self {
+            elapsed: Some(
+                SystemTime::UNIX_EPOCH
+                    .checked_add(Duration::from_secs(process.state_entered))
+                    .and_then(|timestamp| timestamp.elapsed().ok())
+                    .map(|timestamp| timestamp.as_secs())
+                    .unwrap_or_default(),
+            ),
+            state: process.state.into(),
+            pid,
+        }
     }
 }
 
 #[derive(Debug)]
 pub struct Supervisor {
     service_group: ServiceGroup,
-    state:         ProcessState,
-    pid:           Option<Pid>,
+    state: ProcessState,
+    pid: Option<Pid>,
     /// The time at which the Supervisor's state changed. Absolute
     /// precision is not necessary, but being able to get the seconds
     /// since the UNIX epoch is.
@@ -114,7 +117,7 @@ pub struct Supervisor {
     /// `ServicePidSource::Launcher`; otherwise it will be
     /// `ServicePidSource::Files`. Client code should use this as an
     /// indicator of which mode the Supervisor is running in.
-    pid_source:    ServicePidSource,
+    pid_source: ServicePidSource,
     /// Path at which the currently-running PID of this service is
     /// written to disk.
     ///
@@ -124,7 +127,7 @@ pub struct Supervisor {
     ///
     /// Regardless of the value of `pid_source`, the current PID will
     /// always be written to this path, for use by service hooks.
-    pid_file:      PathBuf,
+    pid_file: PathBuf,
 }
 
 impl Supervisor {
@@ -136,43 +139,47 @@ impl Supervisor {
     /// be removed.
     pub fn new(service_group: &ServiceGroup, pid_source: ServicePidSource) -> Supervisor {
         let pid_file = fs::svc_pid_file(service_group.service());
-        Supervisor { service_group: service_group.clone(),
-                     state: ProcessState::Down,
-                     state_entered: SystemTime::now(),
-                     pid_source,
-                     pid: None,
-                     pid_file }
+        Supervisor {
+            service_group: service_group.clone(),
+            state: ProcessState::Down,
+            state_entered: SystemTime::now(),
+            pid_source,
+            pid: None,
+            pid_file,
+        }
     }
 
     /// Updates the process state from the pid source and returns a PidUpdate
     /// object containing the details of the change.
     pub fn update_process_state(&mut self, launcher: &LauncherCli) -> PidUpdate {
-        let mut pid_update = PidUpdate { old_pid:   self.pid,
-                                         new_pid:   None,
-                                         timestamp: None, };
-        self.pid = self.pid
-                       .or_else(|| {
-                           if self.pid_source == ServicePidSource::Files {
-                               read_pid(&self.pid_file)
-                           } else {
-                               match launcher.pid_of(&self.service_group) {
-                                   Ok(maybe_pid) => maybe_pid,
-                                   Err(err) => {
-                                       error!("Error getting pid from launcher: {:#}",
-                                              anyhow!(err));
-                                       None
-                                   }
-                               }
-                           }
-                       })
-                       .and_then(|pid| {
-                           if process::is_alive(pid) {
-                               Some(pid)
-                           } else {
-                               debug!("Could not find a live process with PID: {:?}", pid);
-                               None
-                           }
-                       });
+        let mut pid_update = PidUpdate {
+            old_pid: self.pid,
+            new_pid: None,
+            timestamp: None,
+        };
+        self.pid = self
+            .pid
+            .or_else(|| {
+                if self.pid_source == ServicePidSource::Files {
+                    read_pid(&self.pid_file)
+                } else {
+                    match launcher.pid_of(&self.service_group) {
+                        Ok(maybe_pid) => maybe_pid,
+                        Err(err) => {
+                            error!("Error getting pid from launcher: {:#}", anyhow!(err));
+                            None
+                        }
+                    }
+                }
+            })
+            .and_then(|pid| {
+                if process::is_alive(pid) {
+                    Some(pid)
+                } else {
+                    debug!("Could not find a live process with PID: {:?}", pid);
+                    None
+                }
+            });
         pid_update.new_pid = self.pid;
         if self.pid.is_some() {
             pid_update.timestamp = self.change_state(ProcessState::Up);
@@ -190,19 +197,17 @@ impl Supervisor {
         if process::can_run_services_as_svc_user() {
             // We have the ability to run services as a user / group other
             // than ourselves, so they better exist
-            let uid = users::get_uid_by_name(&pkg.svc_user)?.ok_or_else(|| {
-                                                                Error::UserNotFound(pkg.svc_user
-                                                                                       .to_string())
-                                                            })?;
-            let gid = users::get_gid_by_name(&pkg.svc_group)?.ok_or_else(|| {
-                                                                 Error::GroupNotFound(pkg.svc_group
-                                                                                  .to_string())
-                                                             })?;
+            let uid = users::get_uid_by_name(&pkg.svc_user)?
+                .ok_or_else(|| Error::UserNotFound(pkg.svc_user.to_string()))?;
+            let gid = users::get_gid_by_name(&pkg.svc_group)?
+                .ok_or_else(|| Error::GroupNotFound(pkg.svc_group.to_string()))?;
 
-            Ok(UserInfo { username:  Some(pkg.svc_user.clone()),
-                          uid:       Some(uid),
-                          groupname: Some(pkg.svc_group.clone()),
-                          gid:       Some(gid), })
+            Ok(UserInfo {
+                username: Some(pkg.svc_user.clone()),
+                uid: Some(uid),
+                groupname: Some(pkg.svc_group.clone()),
+                gid: Some(gid),
+            })
         } else {
             // We DO NOT have the ability to run as other users!  Also
             // note that we legitimately may not have a username or
@@ -212,15 +217,18 @@ impl Supervisor {
             let groupname = users::get_effective_groupname()?;
             let gid = users::get_effective_gid();
 
-            let name_for_logging = username.clone()
-                                           .unwrap_or_else(|| format!("anonymous [UID={}]", uid));
+            let name_for_logging = username
+                .clone()
+                .unwrap_or_else(|| format!("anonymous [UID={}]", uid));
             outputln!(preamble self.service_group, "Current user ({}) lacks sufficient capabilites to \
                 run services as a different user; running as self!", name_for_logging);
 
-            Ok(UserInfo { username,
-                          uid: Some(uid),
-                          groupname,
-                          gid: Some(gid) })
+            Ok(UserInfo {
+                username,
+                uid: Some(uid),
+                groupname,
+                gid: Some(gid),
+            })
         }
     }
 
@@ -257,8 +265,21 @@ impl Supervisor {
                         error!("Timeout getting version from launcher: {:#}", anyhow!(err));
                         legacy_user
                     }
-                    Err(err @ TryIPCCommandError::TryReceive(_, TryReceiveError::IPCRead(IPCReadError::LauncherCommand(protocol::NetErr{ code: protocol::ErrCode::UnknownMessage , ..})))) => {
-                        error!("Launcher does not support the 'version' command: {:#}", anyhow!(err));
+                    Err(
+                        err @ TryIPCCommandError::TryReceive(
+                            _,
+                            TryReceiveError::IPCRead(IPCReadError::LauncherCommand(
+                                protocol::NetErr {
+                                    code: protocol::ErrCode::UnknownMessage,
+                                    ..
+                                },
+                            )),
+                        ),
+                    ) => {
+                        error!(
+                            "Launcher does not support the 'version' command: {:#}",
+                            anyhow!(err)
+                        );
                         legacy_user
                     }
                     Err(err) => {
@@ -276,16 +297,19 @@ impl Supervisor {
         // Note that the Windows Supervisor does not yet have a
         // corresponding "non-root" behavior, as the Linux version
         // does; services run as the service user.
-        Ok(UserInfo { username: Some(user),
-                      ..Default::default() })
+        Ok(UserInfo {
+            username: Some(user),
+            ..Default::default()
+        })
     }
 
-    pub fn start(&mut self,
-                 pkg: &Pkg,
-                 group: &ServiceGroup,
-                 launcher: &LauncherCli,
-                 svc_password: Option<&str>)
-                 -> Result<()> {
+    pub fn start(
+        &mut self,
+        pkg: &Pkg,
+        group: &ServiceGroup,
+        launcher: &LauncherCli,
+        svc_password: Option<&str>,
+    ) -> Result<()> {
         let user_info = self.user_info(pkg, launcher)?;
         outputln!(preamble self.service_group,
                   "Starting service as user={}, group={}",
@@ -311,11 +335,13 @@ impl Supervisor {
         // Launcher versions on Linux (and current Windows versions)
         // will use these, while newer versions will prefer the UID
         // and GID, ignoring the names.
-        let pid = launcher.spawn(group,
-                                 &pkg.svc_run,
-                                 user_info,
-                                 svc_password, // Windows optional
-                                 (*pkg.env).clone())?;
+        let pid = launcher.spawn(
+            group,
+            &pkg.svc_run,
+            user_info,
+            svc_password, // Windows optional
+            (*pkg.env).clone(),
+        )?;
         if pid == 0 {
             warn!(target: "pidfile_tracing", "Spawned service for {} has a PID of 0!", group);
         }
@@ -326,7 +352,9 @@ impl Supervisor {
     }
 
     /// Is the process up or down?
-    pub fn status(&self) -> ProcessState { self.state }
+    pub fn status(&self) -> ProcessState {
+        self.state
+    }
 
     /// Returns a future that stops a service asynchronously.
     pub fn stop(&self, shutdown_config: ShutdownConfig) {
@@ -338,10 +366,11 @@ impl Supervisor {
                       service_group);
             } else {
                 tokio::spawn(async move {
-                    if terminator::terminate_service(pid, service_group.clone(),
-                        shutdown_config).await  .is_err()
+                    if terminator::terminate_service(pid, service_group.clone(), shutdown_config)
+                        .await
+                        .is_err()
                     {
-                    error!(target: "pidfile_tracing", "Failed to to stop service {}", service_group);
+                        error!(target: "pidfile_tracing", "Failed to to stop service {}", service_group);
                     };
                 });
                 Self::cleanup_pidfile(&self.pid_file);
@@ -397,7 +426,9 @@ impl Supervisor {
         Some(self.state_entered)
     }
 
-    pub fn state_entered(&self) -> SystemTime { self.state_entered }
+    pub fn state_entered(&self) -> SystemTime {
+        self.state_entered
+    }
 
     /// Returns how long after the UNIX Epoch this Supervisor changed
     /// state.
@@ -409,7 +440,8 @@ impl Supervisor {
 }
 
 fn read_pid<T>(pid_file: T) -> Option<Pid>
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     // TODO (CM): when this pidfile tracing bit has been cleared
     // up, remove these logging targets; they were added just to

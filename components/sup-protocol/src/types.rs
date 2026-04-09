@@ -1,20 +1,22 @@
-//! Generic types shared between the Supervisor and other components in the Habitat software
+//! Generic types shared between the Supervisor and other components in the Biome software
 //! ecosystem.
 //!
 //! Note: See `protocols/types.proto` for type level documentation for generated types.
 //! JW TODO: These types should be moved to the _core crate_ and where they will replace their
 //!          vanilla Rust type counterparts that we define there.
 
-use crate::{core::{self,
-                   package::{self,
-                             Identifiable}},
-            message,
-            net::{self,
-                  ErrCode,
-                  NetErr}};
-use std::{fmt::{self,
-                Write},
-          str::FromStr};
+use crate::{
+    core::{
+        self,
+        package::{self, Identifiable},
+    },
+    message,
+    net::{self, ErrCode, NetErr},
+};
+use std::{
+    fmt::{self, Write},
+    str::FromStr,
+};
 
 use clap_v4::builder::PossibleValue;
 
@@ -60,13 +62,15 @@ impl fmt::Display for BindingMode {
 }
 
 impl clap_v4::ValueEnum for BindingMode {
-    fn value_variants<'a>() -> &'a [Self] { &[Self::Strict, Self::Relaxed] }
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Self::Strict, Self::Relaxed]
+    }
 
     fn to_possible_value(&self) -> Option<PossibleValue> {
         Some(match self {
-                 Self::Strict => PossibleValue::new("strict"),
-                 Self::Relaxed => PossibleValue::new("relaxed"),
-             })
+            Self::Strict => PossibleValue::new("strict"),
+            Self::Relaxed => PossibleValue::new("relaxed"),
+        })
     }
 }
 
@@ -110,12 +114,14 @@ impl FromStr for BindingMode {
         match value.to_lowercase().as_ref() {
             "relaxed" => Ok(BindingMode::Relaxed),
             "strict" => Ok(BindingMode::Strict),
-            _ => {
-                Err(net::err(ErrCode::InvalidPayload,
-                             format!("Invalid binding mode \"{}\", must be \
+            _ => Err(net::err(
+                ErrCode::InvalidPayload,
+                format!(
+                    "Invalid binding mode \"{}\", must be \
                                       `relaxed` or `strict`.",
-                                     value)))
-            }
+                    value
+                ),
+            )),
         }
     }
 }
@@ -127,12 +133,14 @@ impl FromStr for ProcessState {
         match value.to_lowercase().as_ref() {
             "0" => Ok(ProcessState::Down),
             "1" => Ok(ProcessState::Up),
-            _ => {
-                Err(net::err(ErrCode::InvalidPayload,
-                             format!("Invalid process state \"{:?}\", must \
+            _ => Err(net::err(
+                ErrCode::InvalidPayload,
+                format!(
+                    "Invalid process state \"{:?}\", must \
                                       be `up` or `down`.",
-                                     value)))
-            }
+                    value
+                ),
+            )),
         }
     }
 }
@@ -147,12 +155,14 @@ impl FromStr for DesiredState {
             // The DesiredNone variant allows for backwards compatibility with < 0.61 Supervisors,
             // prior to when DesiredState was introduced.
             "<none>" => Ok(DesiredState::DesiredNone),
-            _ => {
-                Err(net::err(ErrCode::InvalidPayload,
-                             format!("Invalid desired state \"{:?}\", must \
+            _ => Err(net::err(
+                ErrCode::InvalidPayload,
+                format!(
+                    "Invalid desired state \"{:?}\", must \
                                       be `up`, `down` or `<none>`.",
-                                     value)))
-            }
+                    value
+                ),
+            )),
         }
     }
 }
@@ -161,17 +171,18 @@ impl FromStr for ServiceBind {
     type Err = NetErr;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        let sb = core::service::ServiceBind::from_str(value).map_err(|e| {
-                                                                net::err(ErrCode::InvalidPayload, e)
-                                                            })?;
+        let sb = core::service::ServiceBind::from_str(value)
+            .map_err(|e| net::err(ErrCode::InvalidPayload, e))?;
         Ok(sb.into())
     }
 }
 
 impl From<core::service::ServiceBind> for ServiceBind {
     fn from(bind: core::service::ServiceBind) -> Self {
-        Self { name:          bind.name().to_string(),
-               service_group: ServiceGroup::from(bind.service_group().clone()), }
+        Self {
+            name: bind.name().to_string(),
+            service_group: ServiceGroup::from(bind.service_group().clone()),
+        }
     }
 }
 
@@ -186,10 +197,8 @@ impl FromStr for ServiceGroup {
     type Err = NetErr;
 
     fn from_str(value: &str) -> Result<ServiceGroup, Self::Err> {
-        let sg = core::service::ServiceGroup::from_str(value).map_err(|e| {
-                                                                 net::err(ErrCode::InvalidPayload,
-                                                                          e)
-                                                             })?;
+        let sg = core::service::ServiceGroup::from_str(value)
+            .map_err(|e| net::err(ErrCode::InvalidPayload, e))?;
         Ok(sg.into())
     }
 }
@@ -210,15 +219,19 @@ impl fmt::Display for ServiceGroup {
 // that can happen.
 
 impl From<core::service::HealthCheckInterval> for HealthCheckInterval {
-    fn from(h: core::service::HealthCheckInterval) -> Self { Self { seconds: h.into() } }
+    fn from(h: core::service::HealthCheckInterval) -> Self {
+        Self { seconds: h.into() }
+    }
 }
 
 impl From<package::PackageIdent> for PackageIdent {
     fn from(ident: package::PackageIdent) -> Self {
-        Self { origin:  ident.origin,
-               name:    ident.name,
-               version: ident.version,
-               release: ident.release, }
+        Self {
+            origin: ident.origin,
+            name: ident.name,
+            version: ident.version,
+            release: ident.release,
+        }
     }
 }
 
@@ -259,9 +272,11 @@ impl Into<core::service::BindingMode> for BindingMode {
 
 impl From<core::service::ServiceGroup> for ServiceGroup {
     fn from(service_group: core::service::ServiceGroup) -> Self {
-        let mut proto = ServiceGroup { group: service_group.group().to_string(),
-                                       service: service_group.service().to_string(),
-                                       ..Default::default() };
+        let mut proto = ServiceGroup {
+            group: service_group.group().to_string(),
+            service: service_group.service().to_string(),
+            ..Default::default()
+        };
         if let Some(organization) = service_group.org() {
             proto.organization = Some(organization.to_string());
         }
@@ -272,20 +287,27 @@ impl From<core::service::ServiceGroup> for ServiceGroup {
 #[allow(clippy::from_over_into)]
 impl Into<core::service::ServiceGroup> for ServiceGroup {
     fn into(self) -> core::service::ServiceGroup {
-        core::service::ServiceGroup::new(self.service,
-                                         self.group,
-                                         self.organization.as_deref()).unwrap()
+        core::service::ServiceGroup::new(self.service, self.group, self.organization.as_deref())
+            .unwrap()
     }
 }
 
 impl Identifiable for PackageIdent {
-    fn origin(&self) -> &str { &self.origin }
+    fn origin(&self) -> &str {
+        &self.origin
+    }
 
-    fn name(&self) -> &str { &self.name }
+    fn name(&self) -> &str {
+        &self.name
+    }
 
-    fn version(&self) -> Option<&str> { self.version.as_deref() }
+    fn version(&self) -> Option<&str> {
+        self.version.as_deref()
+    }
 
-    fn release(&self) -> Option<&str> { self.release.as_deref() }
+    fn release(&self) -> Option<&str> {
+        self.release.as_deref()
+    }
 }
 
 impl Topology {
@@ -310,17 +332,21 @@ impl FromStr for Topology {
 }
 
 impl fmt::Display for Topology {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
 }
 
 impl clap_v4::ValueEnum for Topology {
-    fn value_variants<'a>() -> &'a [Self] { &[Self::Leader, Self::Standalone] }
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Self::Leader, Self::Standalone]
+    }
 
     fn to_possible_value(&self) -> Option<PossibleValue> {
         Some(match self {
-                 Self::Leader => PossibleValue::new("leader"),
-                 Self::Standalone => PossibleValue::new("standalone"),
-             })
+            Self::Leader => PossibleValue::new("leader"),
+            Self::Standalone => PossibleValue::new("standalone"),
+        })
     }
 }
 
@@ -335,14 +361,16 @@ impl UpdateStrategy {
 }
 
 impl clap_v4::ValueEnum for UpdateStrategy {
-    fn value_variants<'a>() -> &'a [Self] { &[Self::None, Self::AtOnce, Self::Rolling] }
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Self::None, Self::AtOnce, Self::Rolling]
+    }
 
     fn to_possible_value(&self) -> Option<PossibleValue> {
         Some(match self {
-                 Self::None => PossibleValue::new("none"),
-                 Self::AtOnce => PossibleValue::new("at-once"),
-                 Self::Rolling => PossibleValue::new("rolling"),
-             })
+            Self::None => PossibleValue::new("none"),
+            Self::AtOnce => PossibleValue::new("at-once"),
+            Self::Rolling => PossibleValue::new("rolling"),
+        })
     }
 }
 
@@ -354,13 +382,18 @@ impl FromStr for UpdateStrategy {
             "none" => Ok(UpdateStrategy::None),
             "at-once" => Ok(UpdateStrategy::AtOnce),
             "rolling" => Ok(UpdateStrategy::Rolling),
-            _ => Err(net::err(ErrCode::InvalidPayload, "Invalid update strategy.")),
+            _ => Err(net::err(
+                ErrCode::InvalidPayload,
+                "Invalid update strategy.",
+            )),
         }
     }
 }
 
 impl fmt::Display for UpdateStrategy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
 }
 
 impl UpdateCondition {
@@ -381,30 +414,36 @@ impl FromStr for UpdateCondition {
         match strategy {
             "latest" => Ok(UpdateCondition::Latest),
             "track-channel" => Ok(UpdateCondition::TrackChannel),
-            _ => Err(net::err(ErrCode::InvalidPayload, "Invalid update condition.")),
+            _ => Err(net::err(
+                ErrCode::InvalidPayload,
+                "Invalid update condition.",
+            )),
         }
     }
 }
 
 impl fmt::Display for UpdateCondition {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
 }
 
 impl clap_v4::ValueEnum for UpdateCondition {
-    fn value_variants<'a>() -> &'a [Self] { &[Self::Latest, Self::TrackChannel] }
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Self::Latest, Self::TrackChannel]
+    }
 
     fn to_possible_value(&self) -> Option<PossibleValue> {
         Some(match self {
-                 Self::Latest => PossibleValue::new("latest"),
-                 Self::TrackChannel => PossibleValue::new("track-channel"),
-             })
+            Self::Latest => PossibleValue::new("latest"),
+            Self::TrackChannel => PossibleValue::new("track-channel"),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use serde::{Deserialize,
-                Serialize};
+    use serde::{Deserialize, Serialize};
 
     use super::*;
     use std::str::FromStr;
@@ -419,8 +458,10 @@ mod tests {
     #[test]
     fn topology_from_str() {
         assert_eq!(Topology::from_str("leader").unwrap(), Topology::Leader);
-        assert_eq!(Topology::from_str("standalone").unwrap(),
-                   Topology::Standalone);
+        assert_eq!(
+            Topology::from_str("standalone").unwrap(),
+            Topology::Standalone
+        );
     }
 
     #[test]
@@ -456,7 +497,9 @@ mod tests {
         struct Data {
             key: Topology,
         }
-        let data = Data { key: Topology::Leader, };
+        let data = Data {
+            key: Topology::Leader,
+        };
         let toml = toml::to_string(&data).unwrap();
 
         assert!(toml.starts_with(r#"key = "leader""#))
@@ -511,7 +554,9 @@ mod tests {
         struct Data {
             key: UpdateStrategy,
         }
-        let data = Data { key: UpdateStrategy::AtOnce, };
+        let data = Data {
+            key: UpdateStrategy::AtOnce,
+        };
         let toml = toml::to_string(&data).unwrap();
 
         assert!(toml.starts_with(r#"key = "at-once""#));

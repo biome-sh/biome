@@ -4,17 +4,17 @@
 # rolled back. The package will "hang" upon receiving its SIGTERM which will trigger the supervisor
 # to forcefully terminate the service. This tests an edge case where the package incarnation was being
 # reset to 0 and causing nodes to get stuck and not update or roll back.
-# Note: we set HAB_UPDATE_STRATEGY_PERIOD_MS to 3000 in the docker-compose.override.yml.
+# Note: we set BIO_UPDATE_STRATEGY_PERIOD_MS to 3000 in the docker-compose.override.yml.
 
 $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
 switch ($arch) {
     'X64' {
-        $script:initialRelease = 'habitat-testing/force-kill/0.1.0/20230214152940'
-        $script:updatedRelease = 'habitat-testing/force-kill/0.1.0/20230214154036'
+        $script:initialRelease = 'biome-testing/force-kill/0.1.0/20230214152940'
+        $script:updatedRelease = 'biome-testing/force-kill/0.1.0/20230214154036'
     }
     'Arm64' {
-        $script:initialRelease = 'habitat-testing/force-kill/0.1.0/20250730230943'
-        $script:updatedRelease = 'habitat-testing/force-kill/0.1.0/20250730231035'
+        $script:initialRelease = 'biome-testing/force-kill/0.1.0/20250730230943'
+        $script:updatedRelease = 'biome-testing/force-kill/0.1.0/20250730231035'
     }
     Default {
         throw "Unsupported architecture: $arch"
@@ -24,12 +24,12 @@ switch ($arch) {
 $script:testChannel = "rolling-$([DateTime]::Now.Ticks)"
 
 Describe "Rolling Update and Rollback" {
-    hab pkg promote $initialRelease $testChannel
-    Load-SupervisorService "habitat-testing/force-kill" -Remote "alpha.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
-    Load-SupervisorService "habitat-testing/force-kill" -Remote "beta.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
-    Load-SupervisorService "habitat-testing/force-kill" -Remote "gamma1.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
-    Load-SupervisorService "habitat-testing/force-kill" -Remote "gamma2.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
-    Load-SupervisorService "habitat-testing/force-kill" -Remote "gamma3.habitat.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
+    bio pkg promote $initialRelease $testChannel
+    Load-SupervisorService "biome-testing/force-kill" -Remote "alpha.biome.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
+    Load-SupervisorService "biome-testing/force-kill" -Remote "beta.biome.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
+    Load-SupervisorService "biome-testing/force-kill" -Remote "gamma1.biome.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
+    Load-SupervisorService "biome-testing/force-kill" -Remote "gamma2.biome.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
+    Load-SupervisorService "biome-testing/force-kill" -Remote "gamma3.biome.dev" -Topology leader -Strategy rolling -UpdateCondition "track-channel" -Channel $testChannel
 
     It "loads initial release on alpha" {
         Wait-Release -Ident $initialRelease -Remote "alpha"
@@ -50,7 +50,7 @@ Describe "Rolling Update and Rollback" {
     Context "promote update" {
         BeforeAll {
             Write-Host "[$(Get-Date -Format o)] Promoting updatedRelease to $testChannel"
-            hab pkg promote $updatedRelease $testChannel
+            bio pkg promote $updatedRelease $testChannel
         }
 
         It "updates release on alpha" {
@@ -72,7 +72,7 @@ Describe "Rolling Update and Rollback" {
 
     Context "demote update" {
         BeforeAll {
-            hab pkg demote $updatedRelease $testChannel
+            bio pkg demote $updatedRelease $testChannel
         }
 
         It "rolls back release on alpha" {
@@ -93,6 +93,6 @@ Describe "Rolling Update and Rollback" {
     }
 
     AfterAll {
-        hab bldr channel destroy $testChannel --origin habitat-testing
+        bio bldr channel destroy $testChannel --origin biome-testing
     }
 }

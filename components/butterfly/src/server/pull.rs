@@ -2,54 +2,59 @@
 //!
 //! This module handles pulling all the pushed rumors from every member off a ZMQ socket.
 
-use crate::{ZMQ_CONTEXT,
-            rumor::{RumorEnvelope,
-                    RumorKind},
-            server::Server};
-use habitat_common::liveliness_checker;
-use habitat_core::util::ToI64;
+use crate::{
+    ZMQ_CONTEXT,
+    rumor::{RumorEnvelope, RumorKind},
+    server::Server,
+};
+use biome_common::liveliness_checker;
+use biome_core::util::ToI64;
 use lazy_static::lazy_static;
-use log::{error,
-          trace,
-          warn};
-use prometheus::{IntCounterVec,
-                 IntGaugeVec,
-                 register_int_counter_vec,
-                 register_int_gauge_vec};
-use std::{thread,
-          time::Duration};
+use log::{error, trace, warn};
+use prometheus::{IntCounterVec, IntGaugeVec, register_int_counter_vec, register_int_gauge_vec};
+use std::{thread, time::Duration};
 
 lazy_static! {
-    static ref GOSSIP_MESSAGES_RECEIVED: IntCounterVec =
-        register_int_counter_vec!("hab_butterfly_gossip_messages_received_total",
-                                  "Total number of gossip messages received",
-                                  &["type", "mode", "blocked"]).unwrap();
-    static ref GOSSIP_BYTES_RECEIVED: IntGaugeVec =
-        register_int_gauge_vec!("hab_butterfly_gossip_received_bytes",
-                                "Gossip message size received in bytes",
-                                &["type", "mode", "blocked"]).unwrap();
+    static ref GOSSIP_MESSAGES_RECEIVED: IntCounterVec = register_int_counter_vec!(
+        "bio_butterfly_gossip_messages_received_total",
+        "Total number of gossip messages received",
+        &["type", "mode", "blocked"]
+    )
+    .unwrap();
+    static ref GOSSIP_BYTES_RECEIVED: IntGaugeVec = register_int_gauge_vec!(
+        "bio_butterfly_gossip_received_bytes",
+        "Gossip message size received in bytes",
+        &["type", "mode", "blocked"]
+    )
+    .unwrap();
 }
 
 pub fn spawn_thread(name: String, server: Server) -> std::io::Result<()> {
-    thread::Builder::new().name(name)
-                          .spawn(move || -> ! { run_loop(&server) })
-                          .map(|_| ())
+    thread::Builder::new()
+        .name(name)
+        .spawn(move || -> ! { run_loop(&server) })
+        .map(|_| ())
 }
 
 fn run_loop(server: &Server) -> ! {
-    habitat_core::env_config_int!(RecvTimeoutMillis, i32, HAB_PULL_RECV_TIMEOUT_MS, 5_000);
+    biome_core::env_config_int!(RecvTimeoutMillis, i32, BIO_PULL_RECV_TIMEOUT_MS, 5_000);
 
-    let socket = (**ZMQ_CONTEXT).as_mut()
-                                .socket(zmq::PULL)
-                                .expect("Failure to create the ZMQ pull socket");
-    socket.set_linger(0)
-          .expect("Failure to set the ZMQ Pull socket to not linger");
-    socket.set_tcp_keepalive(0)
-          .expect("Failure to set the ZMQ Pull socket to not use keepalive");
-    socket.set_rcvtimeo(RecvTimeoutMillis::configured_value().into())
-          .expect("Failure to set the ZMQ Pull socket receive timeout");
-    socket.bind(&format!("tcp://{}", server.gossip_addr()))
-          .expect("Failure to bind the ZMQ Pull socket to the port");
+    let socket = (**ZMQ_CONTEXT)
+        .as_mut()
+        .socket(zmq::PULL)
+        .expect("Failure to create the ZMQ pull socket");
+    socket
+        .set_linger(0)
+        .expect("Failure to set the ZMQ Pull socket to not linger");
+    socket
+        .set_tcp_keepalive(0)
+        .expect("Failure to set the ZMQ Pull socket to not use keepalive");
+    socket
+        .set_rcvtimeo(RecvTimeoutMillis::configured_value().into())
+        .expect("Failure to set the ZMQ Pull socket receive timeout");
+    socket
+        .bind(&format!("tcp://{}", server.gossip_addr()))
+        .expect("Failure to bind the ZMQ Pull socket to the port");
     'recv: loop {
         if let Ok(-1) = socket.get_rcvtimeo() {
             trace!("Skipping thread liveliness checks due to infinite recv timeout");
@@ -81,10 +86,12 @@ fn run_loop(server: &Server) -> ! {
                 // garbage all the time.
                 error!("Error parsing protocol message: {:?}", e);
                 let label_values = &["unwrap_wire", "failure", "unknown"];
-                GOSSIP_BYTES_RECEIVED.with_label_values(label_values)
-                                     .set(msg.len().to_i64());
-                GOSSIP_MESSAGES_RECEIVED.with_label_values(label_values)
-                                        .inc();
+                GOSSIP_BYTES_RECEIVED
+                    .with_label_values(label_values)
+                    .set(msg.len().to_i64());
+                GOSSIP_MESSAGES_RECEIVED
+                    .with_label_values(label_values)
+                    .inc();
                 continue;
             }
         };
@@ -94,10 +101,12 @@ fn run_loop(server: &Server) -> ! {
             Err(e) => {
                 error!("Error parsing protocol message: {:?}", e);
                 let label_values = &["undecodable", "failure", "unknown"];
-                GOSSIP_BYTES_RECEIVED.with_label_values(label_values)
-                                     .set(payload.len().to_i64());
-                GOSSIP_MESSAGES_RECEIVED.with_label_values(label_values)
-                                        .inc();
+                GOSSIP_BYTES_RECEIVED
+                    .with_label_values(label_values)
+                    .set(payload.len().to_i64());
+                GOSSIP_MESSAGES_RECEIVED
+                    .with_label_values(label_values)
+                    .inc();
                 continue 'recv;
             }
         };
@@ -106,14 +115,18 @@ fn run_loop(server: &Server) -> ! {
         let blocked_label = if blocked { "true" } else { "false" };
         let label_values = &[&proto.r#type.to_string(), "success", blocked_label];
 
-        GOSSIP_MESSAGES_RECEIVED.with_label_values(label_values)
-                                .inc();
-        GOSSIP_BYTES_RECEIVED.with_label_values(label_values)
-                             .set(payload.len().to_i64());
+        GOSSIP_MESSAGES_RECEIVED
+            .with_label_values(label_values)
+            .inc();
+        GOSSIP_BYTES_RECEIVED
+            .with_label_values(label_values)
+            .set(payload.len().to_i64());
 
         if blocked {
-            warn!("Not processing message from {} - it is blocked",
-                  proto.from_id);
+            warn!(
+                "Not processing message from {} - it is blocked",
+                proto.from_id
+            );
             continue 'recv;
         }
 

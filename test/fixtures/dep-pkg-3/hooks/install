@@ -2,7 +2,7 @@
 
 Write-Output "install hook {{pkg.name}}"
 
-$result = Test-Path "{{pkgPathFor "habitat-testing/dep-pkg-2"}}/INSTALL_HOOK_STATUS" -ErrorAction SilentlyContinue
+$result = Test-Path "{{pkgPathFor "biome-testing/dep-pkg-2"}}/INSTALL_HOOK_STATUS" -ErrorAction SilentlyContinue
 
 if(!$result) {
     exit 1

@@ -18,10 +18,10 @@ services:
       - run
       - --listen-ctl=0.0.0.0:9632
       - --org=e2e
-      - --peer=bastion.habitat.dev
+      - --peer=bastion.biome.dev
     volumes:
       - source: ${TESTCASE_DIR}/cache_keys
-        target: /hab/cache/keys
+        target: /bio/cache/keys
         type: bind
 
   beta:
@@ -30,10 +30,10 @@ services:
       - run
       - --listen-ctl=0.0.0.0:9632
       - --org=e2e
-      - --peer=bastion.habitat.dev
+      - --peer=bastion.biome.dev
     volumes:
       - source: ${TESTCASE_DIR}/cache_keys
-        target: /hab/cache/keys
+        target: /bio/cache/keys
         type: bind
 
   # This Supervisor will be like the others, except that it won't have
@@ -41,47 +41,47 @@ services:
   # any encrypted messages.
   gamma:
     image: ${SUPERVISOR_IMAGE}
-    domainname: habitat.dev
+    domainname: biome.dev
     environment:
-      HAB_LICENSE: accept-no-persist
-      HAB_NONINTERACTIVE: '1'
+      BIO_LICENSE: accept-no-persist
+      BIO_NONINTERACTIVE: '1'
       TESTCASE: ${TESTCASE}
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
-      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
+      BIO_AUTH_TOKEN: ${BIO_AUTH_TOKEN}
     hostname: gamma
     networks:
       default:
         aliases:
-        - gamma.habitat.dev
+        - gamma.biome.dev
     command:
       - run
       - --listen-ctl=0.0.0.0:9632
       - --org=e2e
-      - --peer=bastion.habitat.dev
+      - --peer=bastion.biome.dev
     volumes:
       - source: ./CTL_SECRET
-        target: /hab/sup/default/CTL_SECRET
+        target: /bio/sup/default/CTL_SECRET
         type: bind
       - source: ${TESTCASE_DIR}/cache_keys_no_user
-        target: /hab/cache/keys
+        target: /bio/cache/keys
         type: bind
     depends_on:
       - bastion
 
   tester:
     image: ${TESTCASE}_image
-    domainname: habitat.dev
+    domainname: biome.dev
     environment:
-      HAB_LICENSE: accept-no-persist
-      HAB_NONINTERACTIVE: '1'
+      BIO_LICENSE: accept-no-persist
+      BIO_NONINTERACTIVE: '1'
       TESTCASE: ${TESTCASE}
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
-      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
+      BIO_AUTH_TOKEN: ${BIO_AUTH_TOKEN}
     build:
       context: ${TESTCASE_DIR}
     volumes:
       - source: ./CTL_SECRET
-        target: /hab/sup/default/CTL_SECRET
+        target: /bio/sup/default/CTL_SECRET
         type: bind
       - source: /var/run/docker.sock
         target: /var/run/docker.sock
@@ -94,7 +94,7 @@ services:
       # token, the others would strictly only need access to public
       # user keys and private service keys).
       - source: ${TESTCASE_DIR}/cache_keys
-        target: /hab/cache/keys
+        target: /bio/cache/keys
         type: bind
     depends_on:
       - bastion

@@ -4,19 +4,13 @@ mod spawn;
 mod terminate;
 mod version;
 
-use log::{error,
-          trace};
+use log::{error, trace};
 
-pub use self::{pid::*,
-               restart::*,
-               spawn::*,
-               terminate::*,
-               version::*};
+pub use self::{pid::*, restart::*, spawn::*, terminate::*, version::*};
 
 use crate::protocol;
 
-use super::{Sender,
-            ServiceTable};
+use super::{Sender, ServiceTable};
 
 type HandleResult<T> = Result<T, protocol::NetErr>;
 

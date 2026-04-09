@@ -1,12 +1,12 @@
 [package]
-name = "habitat-launcher"
+name = "biome-launcher"
 version = "0.0.0"
 edition = "2024"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 workspace = "../../"
 
 [[bin]]
-name = "hab-launch"
+name = "bio-launch"
 path = "src/main.rs"
 doc = false
 
@@ -14,9 +14,9 @@ doc = false
 # Please keep these alphabetized
 anyhow = { version = "*", features = ["backtrace"] }
 env_logger = "*"
-habitat_common = { path = "../common" }
-habitat_core = { path = "../core" }
-habitat-launcher-protocol = { path = "../launcher-protocol" }
+biome_common = { path = "../common" }
+biome_core = { path = "../core" }
+biome-launcher-protocol = { path = "../launcher-protocol" }
 ipc-channel = { version = "*" }
 libc = "*"
 log = "0.4"

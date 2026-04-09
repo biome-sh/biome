@@ -1,27 +1,25 @@
-use crate::{error::Error,
-            manager::service::{ProcessOutput,
-                               ProcessState,
-                               hook_runner,
-                               hooks::HealthCheckHook,
-                               supervisor::Supervisor}};
-use habitat_common::{outputln,
-                     templating::package::Pkg};
-use habitat_core::service::{HealthCheckInterval,
-                            ServiceGroup};
-use log::{debug,
-          error,
-          trace};
+use crate::{
+    error::Error,
+    manager::service::{
+        ProcessOutput, ProcessState, hook_runner, hooks::HealthCheckHook, supervisor::Supervisor,
+    },
+};
+use biome_common::{outputln, templating::package::Pkg};
+use biome_core::service::{HealthCheckInterval, ServiceGroup};
+use log::{debug, error, trace};
 use rand::RngExt;
 use serde::Serialize;
-use std::{cmp,
-          convert::TryFrom,
-          fmt,
-          sync::{Arc,
-                 Mutex},
-          time::Duration};
-use tokio::{sync::mpsc::{self,
-                         UnboundedReceiver},
-            time};
+use std::{
+    cmp,
+    convert::TryFrom,
+    fmt,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+use tokio::{
+    sync::mpsc::{self, UnboundedReceiver},
+    time,
+};
 
 static LOGKEY: &str = "HK";
 
@@ -94,34 +92,38 @@ impl HealthCheckHookStatus {
 /// is not a health check hook)
 /// `interval` the computed interval to wait until running the next health check
 pub struct HealthCheckBundle {
-    pub status:   HealthCheckHookStatus,
-    pub result:   HealthCheckResult,
+    pub status: HealthCheckHookStatus,
+    pub result: HealthCheckResult,
     pub interval: HealthCheckInterval,
 }
 
 /// Run the health check hook and get the hook status and result.
-async fn check(supervisor: Arc<Mutex<Supervisor>>,
-               hook: Option<Arc<HealthCheckHook>>,
-               service_group: ServiceGroup,
-               package: Pkg,
-               password: Option<String>)
-               -> (HealthCheckHookStatus, HealthCheckResult) {
+async fn check(
+    supervisor: Arc<Mutex<Supervisor>>,
+    hook: Option<Arc<HealthCheckHook>>,
+    service_group: ServiceGroup,
+    package: Pkg,
+    password: Option<String>,
+) -> (HealthCheckHookStatus, HealthCheckResult) {
     let status = if let Some(hook) = hook {
-        let result = hook_runner::HookRunner::new(hook,
-                                                  service_group.clone(),
-                                                  package.clone(),
-                                                  password).into_future()
-                                                           .await;
+        let result =
+            hook_runner::HookRunner::new(hook, service_group.clone(), package.clone(), password)
+                .into_future()
+                .await;
         match result {
             Ok((output, duration)) => HealthCheckHookStatus::Ran(output, duration),
             Err(Error::WithDuration(e, duration)) => {
-                error!("Error running health check hook for {}: {:?}",
-                       service_group, e);
+                error!(
+                    "Error running health check hook for {}: {:?}",
+                    service_group, e
+                );
                 HealthCheckHookStatus::FailedToRun(duration)
             }
             Err(e) => {
-                error!("Error starting health check hook for {}: {:?}",
-                       service_group, e);
+                error!(
+                    "Error starting health check hook for {}: {:?}",
+                    service_group, e
+                );
                 HealthCheckHookStatus::FailedToStart
             }
         }
@@ -132,19 +134,20 @@ async fn check(supervisor: Arc<Mutex<Supervisor>>,
     let result = match &status {
         HealthCheckHookStatus::Ran(output, _) => {
             // The hook ran. Try and convert its exit status to a `HealthCheckResult`.
-            output.exit_status()
-                  .code()
-                  .and_then(|code| {
-                      let result = HealthCheckResult::try_from(code);
-                      if let Err(e) = &result {
-                          let pkg_name = &package.name;
-                          outputln!(preamble pkg_name,
+            output
+                .exit_status()
+                .code()
+                .and_then(|code| {
+                    let result = HealthCheckResult::try_from(code);
+                    if let Err(e) = &result {
+                        let pkg_name = &package.name;
+                        outputln!(preamble pkg_name,
                                              "Health check exited with an unknown status code, {}",
                                              e);
-                      }
-                      result.ok()
-                  })
-                  .unwrap_or(HealthCheckResult::Unknown)
+                    }
+                    result.ok()
+                })
+                .unwrap_or(HealthCheckResult::Unknown)
         }
         HealthCheckHookStatus::FailedToRun(_) | HealthCheckHookStatus::FailedToStart => {
             // There was a hook but it did not successfully run. The health check result is
@@ -153,9 +156,10 @@ async fn check(supervisor: Arc<Mutex<Supervisor>>,
         }
         HealthCheckHookStatus::NoHook => {
             //  There was no hook to run. Use the supervisor status as a healthcheck.
-            match supervisor.lock()
-                            .expect("couldn't unlock supervisor")
-                            .status()
+            match supervisor
+                .lock()
+                .expect("couldn't unlock supervisor")
+                .status()
             {
                 ProcessState::Up => HealthCheckResult::Ok,
                 ProcessState::Down => HealthCheckResult::Critical,
@@ -170,13 +174,14 @@ async fn check(supervisor: Arc<Mutex<Supervisor>>,
 /// The function returns the receiving end of a channel that acts as a stream of
 /// `HealthCheckBundle`s. When this receiving end is dropped or closed health checking will be
 /// stopped.
-pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
-                        hook: Option<Arc<HealthCheckHook>>,
-                        nominal_interval: HealthCheckInterval,
-                        service_group: ServiceGroup,
-                        package: Pkg,
-                        password: Option<String>)
-                        -> UnboundedReceiver<HealthCheckBundle> {
+pub fn check_repeatedly(
+    supervisor: Arc<Mutex<Supervisor>>,
+    hook: Option<Arc<HealthCheckHook>>,
+    nominal_interval: HealthCheckInterval,
+    service_group: ServiceGroup,
+    package: Pkg,
+    password: Option<String>,
+) -> UnboundedReceiver<HealthCheckBundle> {
     // TODO (CM): If we wanted to keep track of how many times
     // a health check has failed in the past X executions, or
     // do similar historical tracking, here's where we'd do
@@ -188,11 +193,14 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
     tokio::spawn(async move {
         let mut first_ok_health_check_recorded = false;
         loop {
-            let (status, result) = check(Arc::clone(&supervisor),
-                                         hook.as_ref().map(Arc::clone),
-                                         service_group.clone(),
-                                         package.clone(),
-                                         password.clone()).await;
+            let (status, result) = check(
+                Arc::clone(&supervisor),
+                hook.as_ref().map(Arc::clone),
+                service_group.clone(),
+                package.clone(),
+                password.clone(),
+            )
+            .await;
 
             let interval = if result == HealthCheckResult::Ok {
                 if !first_ok_health_check_recorded {
@@ -200,10 +208,12 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
                     // the nominal interval
                     let splay = rand::rng().random_range(0..u64::from(nominal_interval));
                     let splay = Duration::from_secs(splay);
-                    debug!("Following `{}`'s first `ok` health-check, delaying a randomly chosen \
+                    debug!(
+                        "Following `{}`'s first `ok` health-check, delaying a randomly chosen \
                             {}s to introduce health-check splay",
-                           service_group,
-                           splay.as_secs());
+                        service_group,
+                        splay.as_secs()
+                    );
                     first_ok_health_check_recorded = true;
                     splay.into()
                 } else {
@@ -221,16 +231,21 @@ pub fn check_repeatedly(supervisor: Arc<Mutex<Supervisor>>,
 
             // This can only fail if the receiving end is closed or dropped indicating to stop
             // executing health checks.
-            if tx.send(HealthCheckBundle { status,
-                                           result,
-                                           interval })
-                 .is_err()
+            if tx
+                .send(HealthCheckBundle {
+                    status,
+                    result,
+                    interval,
+                })
+                .is_err()
             {
                 break;
             }
 
-            trace!("`{}` health-check was `{}` next check in {}",
-                   service_group, result, interval);
+            trace!(
+                "`{}` health-check was `{}` next check in {}",
+                service_group, result, interval
+            );
             time::sleep(interval.into()).await;
         }
         outputln!(preamble service_group_clone, "Health checking has been stopped");

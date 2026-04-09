@@ -1,16 +1,16 @@
 [package]
-name = "habitat-launcher-client"
+name = "biome-launcher-client"
 version = "0.0.0"
 edition = "2024"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 workspace = "../../"
 
 [dependencies]
 # Please keep these alphabetized
 env_logger = "*"
-habitat_common = { path = "../common" }
-habitat_core = { path = "../core" }
-habitat-launcher-protocol = { path = "../launcher-protocol" }
+biome_common = { path = "../common" }
+biome_core = { path = "../core" }
+biome-launcher-protocol = { path = "../launcher-protocol" }
 ipc-channel = { version = "*" }
 libc = "*"
 log = "0.4"

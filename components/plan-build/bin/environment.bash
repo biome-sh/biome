@@ -104,7 +104,7 @@ __provenance_for_environment() {
 # aggregate (i.e., PATH-style) variable.
 __env_var_type() {
     local var_name="${1}"
-    declare -n hint_var="HAB_ENV_${var_name}_TYPE"
+    declare -n hint_var="BIO_ENV_${var_name}_TYPE"
 
     if [ -n "${hint_var}" ]; then
         # Look for user-specified hints first
@@ -114,7 +114,7 @@ __env_var_type() {
         echo 'aggregate'
     else
         # We know nothing about it; treat it as a primitive
-        warn "Treating \$${var_name} as a primitive type. If you would like to change this, add \`HAB_ENV_${var_name}_TYPE=aggregate\` to your plan."
+        warn "Treating \$${var_name} as a primitive type. If you would like to change this, add \`BIO_ENV_${var_name}_TYPE=aggregate\` to your plan."
         echo 'primitive'
     fi
 }
@@ -123,7 +123,7 @@ __env_var_type() {
 # return the separator character used to delimit items in the value.
 __env_aggregate_separator() {
     local var_name="${1}"
-    declare -n hint_var="HAB_ENV_${var_name}_SEPARATOR"
+    declare -n hint_var="BIO_ENV_${var_name}_SEPARATOR"
 
     if [ -n "${hint_var}" ]; then
         # Look for user-specified hints first
@@ -133,7 +133,7 @@ __env_aggregate_separator() {
         echo "${__well_known_aggregate_env_vars[${var_name}]}"
     else
         # Just assume it's the default
-        warn "Using \`:\` as a separator for \$${var_name}. If you would like to change this, add \`HAB_ENV_${var_name}_SEPARATOR=<YOUR_SEPARATOR>\` to your plan."
+        warn "Using \`:\` as a separator for \$${var_name}. If you would like to change this, add \`BIO_ENV_${var_name}_SEPARATOR=<YOUR_SEPARATOR>\` to your plan."
         echo ':'
     fi
 }
@@ -336,7 +336,7 @@ __push_env() {
     # push_to_path also dedupes the result, this allows us to take
     # $value inputs that are themselves paths, which may have
     # duplicate or blank entries (as is the case with some existing
-    # Habitat metadata files) and this will effectively "clean" them
+    # Biome metadata files) and this will effectively "clean" them
     # for us!
     local current_value="${env[${var_name}]}"
     local new_value

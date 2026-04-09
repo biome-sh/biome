@@ -4,9 +4,9 @@
 //! # RPC Call Example
 //!
 //! ```rust no_run
-//! use habitat_common::types::ResolvedListenCtlAddr;
-//! use habitat_sup_client::SrvClient;
-//! use habitat_sup_protocol as protocols;
+//! use biome_common::types::ResolvedListenCtlAddr;
+//! use biome_sup_client::SrvClient;
+//! use biome_sup_protocol as protocols;
 //! use futures::stream::StreamExt;
 //!
 //! #[tokio::main]
@@ -31,30 +31,26 @@
 //! }
 //! ```
 
-use habitat_sup_protocol as protocol;
-use log::{debug,
-          trace};
+use biome_sup_protocol as protocol;
+use log::{debug, trace};
 
-use crate::{common::types::ResolvedListenCtlAddr,
-            protocol::{codec::*,
-                       net::NetErr}};
-use futures::{sink::SinkExt,
-              stream::{Stream,
-                       StreamExt}};
-use habitat_common::{self as common,
-                     cli::CTL_SECRET_ENVVAR,
-                     cli_config::{CliConfig,
-                                  Error as CliConfigError}};
-use habitat_core::{env as henv,
-                   tls::rustls_wrapper::TcpOrTlsStream};
+use crate::{
+    common::types::ResolvedListenCtlAddr,
+    protocol::{codec::*, net::NetErr},
+};
+use biome_common::{
+    self as common,
+    cli::CTL_SECRET_ENVVAR,
+    cli_config::{CliConfig, Error as CliConfigError},
+};
+use biome_core::{env as henv, tls::rustls_wrapper::TcpOrTlsStream};
+use futures::{
+    sink::SinkExt,
+    stream::{Stream, StreamExt},
+};
 use rustls::Error as RustlsError;
-use std::{error,
-          fmt,
-          io,
-          sync::Arc,
-          time::Duration};
-use tokio::{net::TcpStream,
-            time};
+use std::{error, fmt, io, sync::Arc, time::Duration};
+use tokio::{net::TcpStream, time};
 use tokio_util::codec::Framed;
 
 /// Time to wait in milliseconds for a client connection to timeout.
@@ -88,14 +84,14 @@ impl fmt::Display for SrvClientError {
                 "The connection was unexpectedly closed.\n\nThis may be because the given \
                  Supervisor is in the middle of an orderly shutdown,\nand is no longer processing \
                  command requests."
-                                   .to_string()
+                    .to_string()
             }
             SrvClientError::ConnectionRefused => {
                 "Unable to contact the Supervisor.\n\nIf the Supervisor you are contacting is \
                  local, this probably means it is not running. You can run a Supervisor in the \
-                 foreground with:\n\nhab sup run\n\nOr try restarting the Supervisor through your \
+                 foreground with:\n\nbio sup run\n\nOr try restarting the Supervisor through your \
                  operating system's init process or Windows service."
-                                                                     .to_string()
+                    .to_string()
             }
             SrvClientError::CliConfigError(ref err) => format!("{}", err),
             SrvClientError::Decode(ref err) => format!("{}", err),
@@ -111,11 +107,15 @@ impl fmt::Display for SrvClientError {
 }
 
 impl From<CliConfigError> for SrvClientError {
-    fn from(err: CliConfigError) -> Self { SrvClientError::CliConfigError(err) }
+    fn from(err: CliConfigError) -> Self {
+        SrvClientError::CliConfigError(err)
+    }
 }
 
 impl From<NetErr> for SrvClientError {
-    fn from(err: NetErr) -> Self { SrvClientError::NetErr(err) }
+    fn from(err: NetErr) -> Self {
+        SrvClientError::NetErr(err)
+    }
 }
 
 impl From<io::Error> for SrvClientError {
@@ -128,15 +128,21 @@ impl From<io::Error> for SrvClientError {
 }
 
 impl From<prost::DecodeError> for SrvClientError {
-    fn from(err: prost::DecodeError) -> Self { SrvClientError::Decode(err) }
+    fn from(err: prost::DecodeError) -> Self {
+        SrvClientError::Decode(err)
+    }
 }
 
 impl From<termcolor::ParseColorError> for SrvClientError {
-    fn from(err: termcolor::ParseColorError) -> Self { SrvClientError::ParseColor(err) }
+    fn from(err: termcolor::ParseColorError) -> Self {
+        SrvClientError::ParseColor(err)
+    }
 }
 
 impl From<RustlsError> for SrvClientError {
-    fn from(err: RustlsError) -> Self { SrvClientError::RustlsError(err) }
+    fn from(err: RustlsError) -> Self {
+        SrvClientError::RustlsError(err)
+    }
 }
 
 /// Client for connecting and communicating with a server speaking SrvProtocol.
@@ -150,8 +156,8 @@ impl SrvClient {
     /// Returns a stream of `SrvMessage`'s representing the server response.
     pub async fn request(
         addr: &ResolvedListenCtlAddr,
-        request: impl Into<SrvMessage> + fmt::Debug)
-        -> Result<impl Stream<Item = Result<SrvMessage, io::Error>>, SrvClientError> {
+        request: impl Into<SrvMessage> + fmt::Debug,
+    ) -> Result<impl Stream<Item = Result<SrvMessage, io::Error>>, SrvClientError> {
         let tcp_stream = TcpStream::connect(addr.addr()).await?;
 
         // Upgrade to a TLS connection if necessary
@@ -161,8 +167,9 @@ impl SrvClient {
             Some(tls_config) => {
                 let domain = server_name_indication.unwrap_or_else(|| addr.domain().to_string());
                 debug!("Upgrading ctl-gateway to TLS with domain '{}'", domain);
-                TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, &domain).await
-                                                                               .map_err(|e| e.0)?
+                TcpOrTlsStream::new_tls_client(tcp_stream, tls_config, &domain)
+                    .await
+                    .map_err(|e| e.0)?
             }
             _ => TcpOrTlsStream::new(tcp_stream),
         };
@@ -171,7 +178,9 @@ impl SrvClient {
         let mut current_transaction = SrvTxn::default();
 
         // Send the handshake message to the server
-        let handshake = protocol::ctl::Handshake { secret_key: Some(Self::ctl_secret_key()?), };
+        let handshake = protocol::ctl::Handshake {
+            secret_key: Some(Self::ctl_secret_key()?),
+        };
         let mut message = SrvMessage::from(handshake);
         message.set_transaction(current_transaction);
         tcp_stream.send(message).await?;
@@ -183,11 +192,9 @@ impl SrvClient {
         // 3. Any other socket io error
         let handshake_result =
             time::timeout(Duration::from_millis(REQ_TIMEOUT), tcp_stream.next()).await;
-        let handshake_reply = handshake_result.map_err(|_| {
-                                                  io::Error::new(io::ErrorKind::TimedOut,
-                                                                 "client timed out")
-                                              })?
-                                              .ok_or(SrvClientError::ConnectionClosed)??;
+        let handshake_reply = handshake_result
+            .map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "client timed out"))?
+            .ok_or(SrvClientError::ConnectionClosed)??;
         handshake_reply.try_ok()?;
 
         // Send the actual request message
@@ -201,7 +208,7 @@ impl SrvClient {
         Ok(tcp_stream)
     }
 
-    /// Check if the `HAB_CTL_SECRET` env var is set. If not, check the CLI config to see if there
+    /// Check if the `BIO_CTL_SECRET` env var is set. If not, check the CLI config to see if there
     /// is a ctl secret set. If not, read CTL_SECRET
     fn ctl_secret_key() -> Result<String, SrvClientError> {
         match henv::var(CTL_SECRET_ENVVAR) {

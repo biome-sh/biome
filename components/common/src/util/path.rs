@@ -1,37 +1,34 @@
-use crate::{PROGRAM_NAME,
-            command::package::install::{self,
-                                        InstallHookMode,
-                                        InstallMode,
-                                        LocalPackageUsage},
-            error::{Error,
-                    Result},
-            ui};
-use habitat_core::{self,
-                   ChannelIdent,
-                   fs::{FS_ROOT_PATH,
-                        cache_artifact_path,
-                        fs_rooted_path},
-                   package::{PackageIdent,
-                             PackageInstall,
-                             PackageTarget},
-                   url::default_bldr_url};
-use std::{env,
-          fs::File,
-          io::{self,
-               BufReader,
-               prelude::*},
-          path::PathBuf,
-          str::FromStr};
+use crate::{
+    PROGRAM_NAME,
+    command::package::install::{self, InstallHookMode, InstallMode, LocalPackageUsage},
+    error::{Error, Result},
+    ui,
+};
+use biome_core::{
+    self, ChannelIdent,
+    fs::{FS_ROOT_PATH, cache_artifact_path, fs_rooted_path},
+    package::{PackageIdent, PackageInstall, PackageTarget},
+    url::default_bldr_url,
+};
+use std::{
+    env,
+    fs::File,
+    io::{self, BufReader, prelude::*},
+    path::PathBuf,
+    str::FromStr,
+};
 
 // The package identifier for the OS specific interpreter which the Supervisor is built with,
 // or which may be independently installed
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-habitat_core::env_config_string!(InterpreterIdent,
-                                 HAB_INTERPRETER_IDENT,
-                                 "core/busybox-static");
+biome_core::env_config_string!(
+    InterpreterIdent,
+    BIO_INTERPRETER_IDENT,
+    "core/busybox-static"
+);
 
 #[cfg(target_os = "windows")]
-habitat_core::env_config_string!(InterpreterIdent, HAB_INTERPRETER_IDENT, "core/powershell");
+biome_core::env_config_string!(InterpreterIdent, BIO_INTERPRETER_IDENT, "core/powershell");
 
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
@@ -63,19 +60,17 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
     // access the `../DEPS` metadata file and read it to get the specific version of the
     // interpreter.
     let my_interpreter_dep_ident = match env::current_exe() {
-        Ok(p) => {
-            match p.parent() {
-                Some(p) => {
-                    let metafile = p.join("../DEPS");
-                    if metafile.is_file() {
-                        interpreter_dep_from_metafile(metafile)
-                    } else {
-                        None
-                    }
+        Ok(p) => match p.parent() {
+            Some(p) => {
+                let metafile = p.join("../DEPS");
+                if metafile.is_file() {
+                    interpreter_dep_from_metafile(metafile)
+                } else {
+                    None
                 }
-                None => None,
             }
-        }
+            None => None,
+        },
         Err(_) => None,
     };
     let interpreter_paths: Vec<PathBuf> = match my_interpreter_dep_ident {
@@ -95,20 +90,21 @@ async fn interpreter_paths() -> Result<Vec<PathBuf>> {
                 // Nope, no packages of the interpreter installed. Now we're going to see if the
                 // interpreter command is present on `PATH`.
                 Err(_) => {
-                    match install::type_erased_start(&mut ui::NullUi::new(),
-                                                     &default_bldr_url(),
-                                                     &ChannelIdent::default(),
-                                                     &(ident.clone(),
-                                                       PackageTarget::active_target())
-                                                                                      .into(),
-                                                     &PROGRAM_NAME,
-                                                     VERSION,
-                                                     FS_ROOT_PATH.as_path(),
-                                                     &cache_artifact_path(None::<String>),
-                                                     env::var("HAB_AUTH_TOKEN").ok().as_deref(),
-                                                     &InstallMode::default(),
-                                                     &LocalPackageUsage::default(),
-                                                     InstallHookMode::default()).await
+                    match install::type_erased_start(
+                        &mut ui::NullUi::new(),
+                        &default_bldr_url(),
+                        &ChannelIdent::default(),
+                        &(ident.clone(), PackageTarget::active_target()).into(),
+                        &PROGRAM_NAME,
+                        VERSION,
+                        FS_ROOT_PATH.as_path(),
+                        &cache_artifact_path(None::<String>),
+                        env::var("BIO_AUTH_TOKEN").ok().as_deref(),
+                        &InstallMode::default(),
+                        &LocalPackageUsage::default(),
+                        InstallHookMode::default(),
+                    )
+                    .await
                     {
                         Ok(pkg_install) => pkg_install.paths()?,
                         Err(err) => {
@@ -143,9 +139,9 @@ pub fn append_env_path(path_entries: &mut Vec<PathBuf>) -> Result<String> {
         path_entries.append(&mut os_paths);
     }
     let joined = env::join_paths(path_entries)?;
-    let path_str =
-        joined.into_string()
-              .map_err(|s| io::Error::new(io::ErrorKind::InvalidData, s.to_string_lossy()))?;
+    let path_str = joined
+        .into_string()
+        .map_err(|s| io::Error::new(io::ErrorKind::InvalidData, s.to_string_lossy()))?;
     Ok(path_str)
 }
 

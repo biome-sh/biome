@@ -1,0 +1,108 @@
++++
+title = "Biome Overview"
+aliases = ["/biome/reference/", "/biome/glossary/", "/biome/diagrams/"]
+gh_repo = "biome"
+
+[cascade]
+  product = ["biome"]
+
+[menu]
+  [menu.biome]
+    title = "Overview"
+    identifier = "biome/Overview"
+    parent = "biome"
+    weight = 1
++++
+
+Biome is a workload-packaging, orchestration, and deployment system that allows you to build, package, deploy, and manage applications and services without worrying about which infrastructure your application will deploy on, and without any rewriting or refactoring if you switch to a different infrastructure.
+
+Biome separates the platform-independent parts of your application—the build dependencies, runtime dependencies, lifecycle events, and application codebase—from the operating system or deployment environment that the application will run on, and bundles it into an immutable Biome Package.
+The package is sent to the Biome Builder (SaaS or on-prem), which acts as a package store like Docker Hub where you can store, build, and deploy your Biome package.
+Biome Supervisor pulls packages from Biome Builder, and will start, stop, run, monitor, and update your application based on the plan and lifecycle hooks you define in the package.
+Biome Supervisor runs on bare metal, virtual machines, containers, or Platform-as-a-Service environments.
+A package under management by a Supervisor is called a service.
+Services can be joined together in a service group, which is a collection of services with the same package and topology type that are connected together across a Supervisor network.
+
+## Components
+
+### Biome Builder
+
+{{< readfile file="content/biome/reusable/md/biome_builder_overview.md" >}}
+
+For more information, see the [Biome Builder]({{< relref "/biome/builder_overview" >}}) documentation.
+
+### Biome Package
+
+A Biome Package is an artifact that contains the application codebase, lifecycle hooks, and a manifest that defines build and runtime dependencies of the application.
+The package is bundled into a Biome Artifact (.HART) file, which is a binary distribution of a given package built with Biome.
+The package is immutable and cryptographically signed with a key so you can verify that the artifact came from the place you expected it to come from.
+Artifacts can be exported to run in a variety of runtimes with zero refactoring or rewriting.
+
+### Plan
+
+{{< readfile file="content/biome/reusable/md/biome_plans_overview.md" >}}
+
+For more information, see the [plan]({{< relref "plan_writing" >}}) documentation.
+
+### Services
+
+{{< readfile file="content/biome/reusable/md/biome_services_overview.md" >}}
+
+See the [services documentation]({{< relref "about_services" >}}) for more information.
+
+### Biome Studio
+
+{{< readfile file="content/biome/reusable/md/biome_studio_overview.md" >}}
+
+See the [Biome Studio documentation]({{< relref "studio" >}}) for more information.
+
+### Biome Supervisor
+
+{{< readfile file="content/biome/reusable/md/biome_supervisor_overview.md" >}}
+
+See the [Biome Supervisor documentation]({{< relref "sup" >}}) for more information.
+
+## When Should I Use Biome?
+
+Biome allows you to build and package your applications and deploy them anywhere without having to refactor or rewrite your package for each platform.
+Everything that the application needs to run is defined, without assuming anything about the underlying infrastructure that the application is running on.
+
+This will allow you to repackage and modernize legacy workloads in-place to increase their manageability, make them portable, and migrate them to modern operating systems or even cloud-native infrastructure like containers.
+
+You can also develop your application if you are unsure of the infrastructure your application will run on, or in the event that business requirements change and you have to switch your application to a different environment.
+
+## Next Steps
+
+- [Download and install the Biome CLI]({{< relref "/biome/install_biome" >}}).
+- [Create an account]({{< relref "/biome/builder_account" >}}) on the [Biome Builder SaaS](https://bldr.biome.sh).
+- Try our [getting started guide](get_started) for Biome.
+
+## Additional Resources
+
+### Download
+
+- [Download Biome](https://biome.sh/downloads)
+- [Install documentation]({{< relref "/biome/install_biome" >}})
+
+### Learning
+
+- [Learn Biome: Deliver Applications with Biome](https://learn.biome.sh/courses/course-v1:biome+Biome101+Perpetual/about)
+- [Biome webinars](https://biome.sh/webinars?products=biome-biome&page=1)
+- [Resource Library](https://biome.sh/resources?products=biome-biome&page=1)
+
+### Community
+
+- [Biome on Discourse](https://discourse.biome.sh/c/biome/12)
+- [Biome in the Biome Blog](https://biome.sh/blog/category/biome-biome)
+- [Biome Community Resources](https://community.biome.sh/tools/biome-biome)
+
+### Support
+
+- [Biome Support](https://biome.sh/support)
+
+### GitHub Repositories
+
+- [Biome repository](https://github.com/biome-sh/biome)
+- [Biome Core Plans repository](https://github.com/biome-sh/core-plans)
+- [Biome Builder repository](https://github.com/biome-sh/builder)
+- [Biome Builder on-prem repository](https://github.com/biome-sh/on-prem-builder)

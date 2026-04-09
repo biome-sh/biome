@@ -1,35 +1,35 @@
 Remove-Item *.tar.gz
 
 function Get-Ident($pkg, $tar) {
-    $ident = tar --list --file $tar | Where-Object { $_ -like "hab/pkgs/$pkg/**/IDENT" }
+    $ident = tar --list --file $tar | Where-Object { $_ -like "bio/pkgs/$pkg/**/IDENT" }
     if ($null -ne $ident) {
         tar --extract --to-stdout --file $tar $ident
     }
 }
 
-Describe "hab pkg export tar core/nginx" {
-    hab pkg export tar core/nginx --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+Describe "bio pkg export tar core/nginx" {
+    bio pkg export tar core/nginx --base-pkgs-channel $env:BIO_INTERNAL_BLDR_CHANNEL
     $tar = Get-Item core-nginx-*.tar.gz
-    $version = ((((hab --version) -split " ")[1]) -split "/")[0]
+    $version = ((((bio --version) -split " ")[1]) -split "/")[0]
     It "Creates tarball" {
         $tar | Should -Not -Be $null
     }
     It "Includes nginx" {
         Get-Ident core/nginx $tar | Should -Not -Be $null
     }
-    It "Includes hab" {
-        Get-Ident chef/hab $tar | Should -BeLike "chef/hab/$version/*"
+    It "Includes bio" {
+        Get-Ident biome/bio $tar | Should -BeLike "biome/bio/$version/*"
     }
     It "Includes supervisor" {
-        Get-Ident chef/hab-sup $tar | Should -BeLike "chef/hab-sup/$version/*"
+        Get-Ident biome/bio-sup $tar | Should -BeLike "biome/bio-sup/$version/*"
     }
     It "Includes launcher" {
-        Get-Ident chef/hab-launcher $tar | Should -Not -Be $null
+        Get-Ident biome/bio-launcher $tar | Should -Not -Be $null
     }
 }
 
-Describe "hab pkg export tar core/nginx --no-hab-bin" {
-    hab pkg export tar core/nginx --no-hab-bin --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+Describe "bio pkg export tar core/nginx --no-bio-bin" {
+    bio pkg export tar core/nginx --no-bio-bin --base-pkgs-channel $env:BIO_INTERNAL_BLDR_CHANNEL
     $tar = Get-Item core-nginx-*.tar.gz
     It "Creates tarball" {
         $tar | Should -Not -Be $null
@@ -37,20 +37,20 @@ Describe "hab pkg export tar core/nginx --no-hab-bin" {
     It "Includes nginx" {
         Get-Ident core/nginx $tar | Should -Not -Be $null
     }
-    It "Does not include hab binary directory" {
-        $habBinDir = tar --list --file $tar | Where-Object { $_ -like "hab/bin/*" }
-        $habBinDir | Should -Be $null
+    It "Does not include bio binary directory" {
+        $bioBinDir = tar --list --file $tar | Where-Object { $_ -like "bio/bin/*" }
+        $bioBinDir | Should -Be $null
     }
     It "Includes supervisor" {
-        Get-Ident chef/hab-sup $tar | Should -Not -Be $null
+        Get-Ident biome/bio-sup $tar | Should -Not -Be $null
     }
     It "Includes launcher" {
-        Get-Ident chef/hab-launcher $tar | Should -Not -Be $null
+        Get-Ident biome/bio-launcher $tar | Should -Not -Be $null
     }
 }
 
-Context "hab pkg export tar core/nginx --no-hab-sup" {
-    hab pkg export tar core/nginx --no-hab-sup --base-pkgs-channel $env:HAB_INTERNAL_BLDR_CHANNEL
+Context "bio pkg export tar core/nginx --no-bio-sup" {
+    bio pkg export tar core/nginx --no-bio-sup --base-pkgs-channel $env:BIO_INTERNAL_BLDR_CHANNEL
     $tar = Get-Item core-nginx-*.tar.gz
     It "Creates tarball" {
         $tar | Should -Not -Be $null
@@ -58,14 +58,14 @@ Context "hab pkg export tar core/nginx --no-hab-sup" {
     It "Includes nginx" {
         Get-Ident core/nginx $tar | Should -Not -Be $null
     }
-    It "Includes hab binary directory" {
-        $habBinDir = tar --list --file $tar | Where-Object { $_ -like "hab/bin/*" }
-        $habBinDir | Should -Not -Be $null
+    It "Includes bio binary directory" {
+        $bioBinDir = tar --list --file $tar | Where-Object { $_ -like "bio/bin/*" }
+        $bioBinDir | Should -Not -Be $null
     }
     It "Does not include supervisor" {
-        Get-Ident chef/hab-sup $tar | Should -Be $null
+        Get-Ident biome/bio-sup $tar | Should -Be $null
     }
     It "Does not include launcher" {
-        Get-Ident chef/hab-launcher $tar | Should -Be $null
+        Get-Ident biome/bio-launcher $tar | Should -Be $null
     }
 }

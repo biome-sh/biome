@@ -1,31 +1,32 @@
 use std::time::Duration;
 
-use rand::{RngExt,
-           rng};
+use rand::{RngExt, rng};
 use tokio::time::Instant;
 
 /// A stateful object that can be used to maintain the current state of a backoff operation
 #[derive(Debug, Clone)]
 pub struct Backoff {
     base_backoff: Duration,
-    max_backoff:  Duration,
-    multiplier:   f64,
+    max_backoff: Duration,
+    multiplier: f64,
     last_attempt: Option<RetryAttempt>,
 }
 
 #[derive(Debug, Clone)]
 struct RetryAttempt {
     attempt_started_at: Instant,
-    attempt_ended_at:   Option<Instant>,
-    sleep_duration:     Duration,
+    attempt_ended_at: Option<Instant>,
+    sleep_duration: Duration,
 }
 
 impl Default for Backoff {
     fn default() -> Self {
-        Self { base_backoff: Duration::from_secs(10),
-               max_backoff:  Duration::from_secs(300),
-               multiplier:   3f64,
-               last_attempt: None, }
+        Self {
+            base_backoff: Duration::from_secs(10),
+            max_backoff: Duration::from_secs(300),
+            multiplier: 3f64,
+            last_attempt: None,
+        }
     }
 }
 
@@ -36,10 +37,12 @@ impl Backoff {
     /// `multiplier` * `previous_backoff_duration` capped at `max_backoff`. This ensures that
     /// once we hit the max backoff duration we still have a good distribution of random waits.
     pub fn new(base_backoff: Duration, max_backoff: Duration, multiplier: f64) -> Backoff {
-        Backoff { base_backoff: base_backoff.min(max_backoff),
-                  max_backoff,
-                  multiplier,
-                  last_attempt: None }
+        Backoff {
+            base_backoff: base_backoff.min(max_backoff),
+            max_backoff,
+            multiplier,
+            last_attempt: None,
+        }
     }
 
     /// Record the start of an attempted operation.
@@ -51,19 +54,22 @@ impl Backoff {
                 let mut rng = rng();
                 // We use the decorrelated jitter algorithm mentioned here:
                 // https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
-                let new_sleep_duration =
-                    self.max_backoff
-                        .min(rng.random_range(self.base_backoff
-                                              ..=sleep_duration.mul_f64(self.multiplier)));
-                self.last_attempt = Some(RetryAttempt { attempt_started_at: Instant::now(),
-                                                        attempt_ended_at:   None,
-                                                        sleep_duration:     new_sleep_duration, });
+                let new_sleep_duration = self.max_backoff.min(
+                    rng.random_range(self.base_backoff..=sleep_duration.mul_f64(self.multiplier)),
+                );
+                self.last_attempt = Some(RetryAttempt {
+                    attempt_started_at: Instant::now(),
+                    attempt_ended_at: None,
+                    sleep_duration: new_sleep_duration,
+                });
                 Some(new_sleep_duration)
             }
             None => {
-                self.last_attempt = Some(RetryAttempt { attempt_started_at: Instant::now(),
-                                                        attempt_ended_at:   None,
-                                                        sleep_duration:     self.base_backoff, });
+                self.last_attempt = Some(RetryAttempt {
+                    attempt_started_at: Instant::now(),
+                    attempt_ended_at: None,
+                    sleep_duration: self.base_backoff,
+                });
                 Some(self.base_backoff)
             }
         }
@@ -79,7 +85,9 @@ impl Backoff {
     }
 
     /// Resets the backoff state erasing any attempt information
-    pub fn reset(&mut self) { self.last_attempt = None }
+    pub fn reset(&mut self) {
+        self.last_attempt = None
+    }
 
     pub fn duration_elapsed_since_last_attempt_started(&self) -> Option<Duration> {
         self.last_attempt
@@ -104,12 +112,16 @@ impl Backoff {
     pub fn duration_until_next_attempt_start(&self) -> Option<Duration> {
         match &self.last_attempt {
             // If the sleep duration has elasped we can make a new attempt
-            Some(RetryAttempt { attempt_ended_at: Some(_),
-                                .. }) => None,
+            Some(RetryAttempt {
+                attempt_ended_at: Some(_),
+                ..
+            }) => None,
             // There is an attempt in progress
-            Some(RetryAttempt { attempt_started_at: instant,
-                                sleep_duration,
-                                .. }) => sleep_duration.checked_sub(instant.elapsed()),
+            Some(RetryAttempt {
+                attempt_started_at: instant,
+                sleep_duration,
+                ..
+            }) => sleep_duration.checked_sub(instant.elapsed()),
             // If we don't have a last attempt, this is our first attempt
             None => None,
         }

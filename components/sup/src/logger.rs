@@ -1,10 +1,9 @@
 use log::LevelFilter;
-use log4rs::{append::console::ConsoleAppender,
-             config::{Appender,
-                      Config,
-                      Deserializers,
-                      Root},
-             encode::pattern::PatternEncoder};
+use log4rs::{
+    append::console::ConsoleAppender,
+    config::{Appender, Config, Deserializers, Root},
+    encode::pattern::PatternEncoder,
+};
 use std::path::PathBuf;
 
 mod env_logger_compatibility;
@@ -30,26 +29,34 @@ pub fn init() {
     let file = configuration_file();
     if file.exists() {
         if let Err(e) = log4rs::init_file(&file, Deserializers::default()) {
-            eprintln!("Logging configuration file '{}' not valid: {}; using default logging \
+            eprintln!(
+                "Logging configuration file '{}' not valid: {}; using default logging \
                        configuration",
-                      file.display(),
-                      e);
-            log4rs::init_config(default_config()).expect("Tried setting the log configuration, \
+                file.display(),
+                e
+            );
+            log4rs::init_config(default_config()).expect(
+                "Tried setting the log configuration, \
                                                           but the global logger had already been \
-                                                          set!");
+                                                          set!",
+            );
         }
     } else {
         let config = env_logger_compatibility::from_env().unwrap_or_else(|| {
-                                                             eprintln!("Logging configuration \
+            eprintln!(
+                "Logging configuration \
                                                                         file '{}' not found; \
                                                                         using default logging \
                                                                         configuration",
-                                                                       file.display());
-                                                             default_config()
-                                                         });
+                file.display()
+            );
+            default_config()
+        });
 
-        log4rs::init_config(config).expect("Tried setting the log configuration, but the global \
-                                            logger had already been set!");
+        log4rs::init_config(config).expect(
+            "Tried setting the log configuration, but the global \
+                                            logger had already been set!",
+        );
     }
 }
 
@@ -69,20 +76,23 @@ pub fn init() {
 /// (at that point, though, it may be better to define the default in
 /// a YAML file and `include!` it here for readability)
 fn default_config() -> Config {
-    let stdout = ConsoleAppender::builder().encoder(Box::new(PatternEncoder::new(DEFAULT_PATTERN)))
-                                           .build();
+    let stdout = ConsoleAppender::builder()
+        .encoder(Box::new(PatternEncoder::new(DEFAULT_PATTERN)))
+        .build();
     // Calling `expect()` is OK because we have full control over this
     // configuration. It can only fail if we create an inconsistent
     // one (e.g., referred to an appender that we didn't
     // create). Also, see the test below.
-    Config::builder().appender(Appender::builder().build("stdout", Box::new(stdout)))
-                     .build(Root::builder().appender("stdout").build(LevelFilter::Error))
-                     .expect("Default log4rs configuration should always be valid")
+    Config::builder()
+        .appender(Appender::builder().build("stdout", Box::new(stdout)))
+        .build(Root::builder().appender("stdout").build(LevelFilter::Error))
+        .expect("Default log4rs configuration should always be valid")
 }
 
 fn configuration_file() -> PathBuf {
-    habitat_sup_protocol::sup_root(None).join("config")
-                                        .join("log.yml")
+    biome_sup_protocol::sup_root(None)
+        .join("config")
+        .join("log.yml")
 }
 
 #[cfg(test)]
@@ -92,5 +102,7 @@ mod tests {
     /// This saves us from accidentally creating an inconsistent default
     /// configuration.
     #[test]
-    fn default_configuration_does_not_fail() { default_config(); }
+    fn default_configuration_does_not_fail() {
+        default_config();
+    }
 }

@@ -1,5 +1,5 @@
 # Regression test to address https://github.com/habitat-sh/habitat/issues/4673
-# Fixed in https://github.com/habitat-sh/habitat/pull/5365
+# Fixed in https://github.com/biome-sh/biome/pull/5365
 
 Function Get-SocketFile {
     Get-ChildItem /tmp/rust-ipc-socket.* | ForEach-Object { $_.Name }
@@ -11,7 +11,7 @@ Describe "Supervisor shutdown" {
 
     $supLog = New-SupervisorLogFile("test_socket_file_cleanup")
     $launcher_proc = Start-Supervisor -LogFile $supLog -Timeout 60
-    hab sup term
+    bio sup term
     $launcher_proc.WaitForExit()
 
     $socket_files_after = New-TemporaryFile

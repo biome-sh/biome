@@ -4,10 +4,10 @@
 
 <#
 .SYNOPSIS
-Builds Habitat components for Windows
+Builds Biome components for Windows
 
 .DESCRIPTION
-This script builds habitat components and ensures that all necesary prerequisites are installed.
+This script builds biome components and ensures that all necesary prerequisites are installed.
 #>
 
 param (
@@ -55,8 +55,8 @@ function Invoke-Configure {
         Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | Out-Null
     }
 
-    if (!((choco list habitat --local-only) -match '^1 packages installed\.$')) {
-        choco install habitat -y
+    if (!((choco list biome --local-only) -match '^1 packages installed\.$')) {
+        choco install biome -y
     }
 
     if(!(Get-Command git -ErrorAction SilentlyContinue)) {

@@ -1,29 +1,23 @@
-use crate::{manager::ShutdownConfig,
-            sys::ShutdownMethod};
-use habitat_core::os::process::{Pid,
-                                handle_from_pid,
-                                windows_child::{ExitStatus,
-                                                Handle}};
-use log::{debug,
-          error,
-          trace};
-use std::{collections::HashMap,
-          io,
-          mem,
-          thread,
-          time::{Duration,
-                 Instant}};
-use winapi::{shared::minwindef::{DWORD,
-                                 LPDWORD,
-                                 MAX_PATH},
-             um::{handleapi::{self,
-                              INVALID_HANDLE_VALUE},
-                  processthreadsapi,
-                  tlhelp32::{self,
-                             LPPROCESSENTRY32W,
-                             PROCESSENTRY32W,
-                             TH32CS_SNAPPROCESS},
-                  wincon}};
+use crate::{manager::ShutdownConfig, sys::ShutdownMethod};
+use biome_core::os::process::{
+    Pid, handle_from_pid,
+    windows_child::{ExitStatus, Handle},
+};
+use log::{debug, error, trace};
+use std::{
+    collections::HashMap,
+    io, mem, thread,
+    time::{Duration, Instant},
+};
+use winapi::{
+    shared::minwindef::{DWORD, LPDWORD, MAX_PATH},
+    um::{
+        handleapi::{self, INVALID_HANDLE_VALUE},
+        processthreadsapi,
+        tlhelp32::{self, LPPROCESSENTRY32W, PROCESSENTRY32W, TH32CS_SNAPPROCESS},
+        wincon,
+    },
+};
 const PROCESS_ACTIVE: u32 = 259;
 type ProcessTable = HashMap<DWORD, Vec<DWORD>>;
 
@@ -45,17 +39,21 @@ pub fn kill(pid: Pid, shutdown_config: &ShutdownConfig) -> ShutdownMethod {
 // Private Code
 
 struct Process {
-    handle:      Handle,
+    handle: Handle,
     last_status: Option<ExitStatus>,
 }
 
 impl Process {
     fn new(handle: Handle) -> Self {
-        Process { handle,
-                  last_status: None }
+        Process {
+            handle,
+            last_status: None,
+        }
     }
 
-    fn id(&self) -> u32 { unsafe { processthreadsapi::GetProcessId(self.handle.raw()) } }
+    fn id(&self) -> u32 {
+        unsafe { processthreadsapi::GetProcessId(self.handle.raw()) }
+    }
 
     /// Attempt to gracefully terminate a process and then forcefully kill it after
     /// 8 seconds if it has not terminated.
@@ -67,15 +65,19 @@ impl Process {
         }
         let ret = unsafe { wincon::GenerateConsoleCtrlEvent(1, self.id()) };
         if ret == 0 {
-            debug!("Failed to send ctrl-break to pid {}: {}",
-                   self.id(),
-                   io::Error::last_os_error());
+            debug!(
+                "Failed to send ctrl-break to pid {}: {}",
+                self.id(),
+                io::Error::last_os_error()
+            );
         }
 
         let timeout: Duration = timeout.into();
-        trace!("Waiting up to {} seconds before terminating process {}",
-               timeout.as_secs(),
-               self.id());
+        trace!(
+            "Waiting up to {} seconds before terminating process {}",
+            timeout.as_secs(),
+            self.id()
+        );
         let start_time = Instant::now();
         loop {
             if ret == 0 || start_time.elapsed() > timeout {
@@ -111,27 +113,32 @@ fn build_proc_table() -> ProcessTable {
         unsafe { tlhelp32::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
 
     if processes_snap_handle == INVALID_HANDLE_VALUE {
-        error!("Failed to call CreateToolhelp32Snapshot: {}",
-               io::Error::last_os_error());
+        error!(
+            "Failed to call CreateToolhelp32Snapshot: {}",
+            io::Error::last_os_error()
+        );
         return ProcessTable::new();
     }
     let mut table = ProcessTable::new();
-    let mut process_entry = PROCESSENTRY32W { dwSize:              mem::size_of::<PROCESSENTRY32W>()
-                                                                   as u32,
-                                              cntUsage:            0,
-                                              th32ProcessID:       0,
-                                              th32DefaultHeapID:   0,
-                                              th32ModuleID:        0,
-                                              cntThreads:          0,
-                                              th32ParentProcessID: 0,
-                                              pcPriClassBase:      0,
-                                              dwFlags:             0,
-                                              szExeFile:           [0; MAX_PATH], };
+    let mut process_entry = PROCESSENTRY32W {
+        dwSize: mem::size_of::<PROCESSENTRY32W>() as u32,
+        cntUsage: 0,
+        th32ProcessID: 0,
+        th32DefaultHeapID: 0,
+        th32ModuleID: 0,
+        cntThreads: 0,
+        th32ParentProcessID: 0,
+        pcPriClassBase: 0,
+        dwFlags: 0,
+        szExeFile: [0; MAX_PATH],
+    };
     // Get the first process from the snapshot.
     match unsafe {
-              tlhelp32::Process32FirstW(processes_snap_handle,
-                                        &mut process_entry as LPPROCESSENTRY32W)
-          } {
+        tlhelp32::Process32FirstW(
+            processes_snap_handle,
+            &mut process_entry as LPPROCESSENTRY32W,
+        )
+    } {
         1 => {
             // First process worked, loop to find the process with the correct name.
             let mut process_success: i32 = 1;
@@ -156,8 +163,10 @@ fn exit_code(handle: &Handle) -> Option<u32> {
     unsafe {
         let ret = processthreadsapi::GetExitCodeProcess(handle.raw(), &mut exit_code as LPDWORD);
         if ret == 0 {
-            error!("Failed to retrieve Exit Code: {}",
-                   io::Error::last_os_error());
+            error!(
+                "Failed to retrieve Exit Code: {}",
+                io::Error::last_os_error()
+            );
             return None;
         }
     }
@@ -172,11 +181,13 @@ fn terminate_process_descendants(table: &ProcessTable, pid: DWORD) {
     }
     unsafe {
         if let Some(h) = handle_from_pid(pid)
-           && processthreadsapi::TerminateProcess(h, 1) == 0
+            && processthreadsapi::TerminateProcess(h, 1) == 0
         {
-            error!("Failed to call TerminateProcess on pid {}: {}",
-                   pid,
-                   io::Error::last_os_error());
+            error!(
+                "Failed to call TerminateProcess on pid {}: {}",
+                pid,
+                io::Error::last_os_error()
+            );
         }
     }
 }

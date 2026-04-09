@@ -2,27 +2,16 @@
 // conditionals, possibly better to have a `build_windows` and `build_linux` kind of modules. Will
 // make the code readable and will remove this cluttering
 
-use crate::{BUSYBOX_IDENT,
-            CACERTS_IDENT,
-            VERSION,
-            error::Error,
-            graph::Graph,
-            util};
+use crate::{BUSYBOX_IDENT, CACERTS_IDENT, VERSION, error::Error, graph::Graph, util};
 
 use anyhow::Result;
-use clap::{self,
-           ArgMatches};
-use hab::license;
-use habitat_common::{PROGRAM_NAME,
-                     cfg_unix,
-                     cfg_windows,
-                     command::package::install::{InstallHookMode,
-                                                 InstallMode,
-                                                 InstallSource,
-                                                 LocalPackageUsage},
-                     ui::{Status,
-                          UI,
-                          UIWriter}};
+use bio::license;
+use biome_common::{
+    PROGRAM_NAME, cfg_unix, cfg_windows,
+    command::package::install::{InstallHookMode, InstallMode, InstallSource, LocalPackageUsage},
+    ui::{Status, UI, UIWriter},
+};
+use clap::{self, ArgMatches};
 
 cfg_unix! {
     use crate::rootfs;
@@ -36,29 +25,25 @@ cfg_unix! {
 }
 
 cfg_windows! {
-    use habitat_core::util::docker;
+    use biome_core::util::docker;
 
     use std::os::windows::fs::symlink_dir as symlink;
 }
 
-use habitat_core::{ChannelIdent,
-                   env,
-                   fs::{CACHE_ARTIFACT_PATH,
-                        CACHE_KEY_PATH,
-                        CACHE_KEY_PATH_POSTFIX,
-                        cache_artifact_path},
-                   package::{FullyQualifiedPackageIdent,
-                             PackageArchive,
-                             PackageIdent,
-                             PackageInstall}};
+use biome_core::{
+    ChannelIdent, env,
+    fs::{CACHE_ARTIFACT_PATH, CACHE_KEY_PATH, CACHE_KEY_PATH_POSTFIX, cache_artifact_path},
+    package::{FullyQualifiedPackageIdent, PackageArchive, PackageIdent, PackageInstall},
+};
 use log::debug;
 
-use std::{collections::HashMap,
-          convert::TryFrom,
-          fs as stdfs,
-          path::{Path,
-                 PathBuf},
-          str::FromStr};
+use std::{
+    collections::HashMap,
+    convert::TryFrom,
+    fs as stdfs,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 use tempfile::TempDir;
 
 // Much of this functionality is duplicated (or slightly modified)
@@ -75,42 +60,44 @@ fn default_base_image() -> Result<String> {
 
     #[cfg(windows)]
     {
-        Ok(format!("{}:{}",
-                   super::DEFAULT_BASE_IMAGE,
-                   docker::default_base_tag_for_host()?))
+        Ok(format!(
+            "{}:{}",
+            super::DEFAULT_BASE_IMAGE,
+            docker::default_base_tag_for_host()?
+        ))
     }
 }
 
-/// The specification for creating a temporary file system build root, based on Habitat packages.
+/// The specification for creating a temporary file system build root, based on Biome packages.
 ///
 /// When a `BuildSpec` is created, a `BuildRoot` is returned which can be used to produce exported
 /// images, archives, etc.
 #[derive(Debug)]
 pub(crate) struct BuildSpec {
-    /// A string representation of a Habitat Package Identifer for the Habitat CLI package.
-    hab: String,
+    /// A string representation of a Biome Package Identifer for the Biome CLI package.
+    bio: String,
 
-    /// A string representation of a Habitat Package Identifer for the Habitat Launcher package.
-    hab_launcher: String,
+    /// A string representation of a Biome Package Identifer for the Biome Launcher package.
+    bio_launcher: String,
 
-    /// A string representation of a Habitat Package Identifer for the Habitat Supervisor package.
-    hab_sup: String,
+    /// A string representation of a Biome Package Identifer for the Biome Supervisor package.
+    bio_sup: String,
 
-    /// The Builder URL which is used to install all service and extra Habitat packages.
+    /// The Builder URL which is used to install all service and extra Biome packages.
     url: String,
 
-    /// The Habitat release channel which is used to install all service and extra Habitat
+    /// The Biome release channel which is used to install all service and extra Biome
     /// packages.
     channel: ChannelIdent,
 
-    /// The Builder URL which is used to install all base Habitat packages.
+    /// The Builder URL which is used to install all base Biome packages.
     base_pkgs_url: String,
 
-    /// The Habitat release channel which is used to install all base Habitat packages.
+    /// The Biome release channel which is used to install all base Biome packages.
     base_pkgs_channel: ChannelIdent,
 
     // TODO: This pub(crate) can potentially be removed
-    /// A list of either Habitat Package Identifiers or local paths to Habitat Artifact files which
+    /// A list of either Biome Package Identifiers or local paths to Biome Artifact files which
     /// will be installed.
     pub(crate) idents_or_archives: Vec<String>,
 
@@ -121,7 +108,7 @@ pub(crate) struct BuildSpec {
     base_image: String,
 
     /// Whether or not to create an image with a single layer for each
-    /// Habitat package.
+    /// Biome package.
     multi_layer: bool,
 }
 
@@ -130,41 +117,45 @@ impl TryFrom<&ArgMatches> for BuildSpec {
 
     fn try_from(m: &ArgMatches) -> std::result::Result<Self, Self::Error> {
         let base_image = match m.try_contains_id("BASE_IMAGE") {
-            Ok(_) => {
-                m.get_one::<String>("BASE_IMAGE")
-                 .map(ToString::to_string)
-                 .unwrap_or_else(|| default_base_image().expect("No base image supported"))
-            }
+            Ok(_) => m
+                .get_one::<String>("BASE_IMAGE")
+                .map(ToString::to_string)
+                .unwrap_or_else(|| default_base_image().expect("No base image supported")),
             Err(_) => default_base_image().expect("No base image supported"),
         };
         let stable = &String::from("stable");
 
         // TODO (CM): incorporate this into our CLAP definition better
-        Ok(BuildSpec { hab: m.get_one::<String>("HAB_PKG").unwrap().to_string(),
-                       hab_launcher: m.get_one::<String>("HAB_LAUNCHER_PKG")
-                                      .unwrap()
-                                      .to_string(),
-                       hab_sup: m.get_one::<String>("HAB_SUP_PKG").unwrap().to_string(),
-                       url: m.get_one::<String>("BLDR_URL").unwrap().to_string(),
-                       channel: m.get_one::<String>("CHANNEL")
-                                 .unwrap_or(stable)
-                                 .to_string()
-                                 .into(),
-                       base_pkgs_url: m.get_one::<String>("BASE_PKGS_BLDR_URL")
-                                       .unwrap()
-                                       .to_string(),
-                       base_pkgs_channel: m.get_one::<String>("BASE_PKGS_CHANNEL")
-                                           .unwrap_or(stable)
-                                           .to_string()
-                                           .into(),
-                       auth: m.get_one::<String>("BLDR_AUTH_TOKEN")
-                              .map(ToString::to_string),
-                       idents_or_archives: m.get_many::<String>("PKG_IDENT_OR_ARTIFACT")
-                                            .unwrap()
-                                            .map(ToString::to_string)
-                                            .collect(),
-                       base_image,
-                       multi_layer: m.get_flag("MULTI_LAYER") })
+        Ok(BuildSpec {
+            bio: m.get_one::<String>("BIO_PKG").unwrap().to_string(),
+            bio_launcher: m.get_one::<String>("BIO_LAUNCHER_PKG").unwrap().to_string(),
+            bio_sup: m.get_one::<String>("BIO_SUP_PKG").unwrap().to_string(),
+            url: m.get_one::<String>("BLDR_URL").unwrap().to_string(),
+            channel: m
+                .get_one::<String>("CHANNEL")
+                .unwrap_or(stable)
+                .to_string()
+                .into(),
+            base_pkgs_url: m
+                .get_one::<String>("BASE_PKGS_BLDR_URL")
+                .unwrap()
+                .to_string(),
+            base_pkgs_channel: m
+                .get_one::<String>("BASE_PKGS_CHANNEL")
+                .unwrap_or(stable)
+                .to_string()
+                .into(),
+            auth: m
+                .get_one::<String>("BLDR_AUTH_TOKEN")
+                .map(ToString::to_string),
+            idents_or_archives: m
+                .get_many::<String>("PKG_IDENT_OR_ARTIFACT")
+                .unwrap()
+                .map(ToString::to_string)
+                .collect(),
+            base_image,
+            multi_layer: m.get_flag("MULTI_LAYER"),
+        })
     }
 }
 
@@ -195,7 +186,7 @@ impl BuildSpec {
                           -> Result<()> {
             let dst = util::bin_path();
             for pkg in user_pkgs.iter() {
-                hab::command::pkg::binlink::binlink_all_in_pkg(ui, pkg.as_ref(), dst, rootfs, true)
+                bio::command::pkg::binlink::binlink_all_in_pkg(ui, pkg.as_ref(), dst, rootfs, true)
                     .map_err(|err| anyhow!("{}", err))?;
             }
             Ok(())
@@ -204,7 +195,7 @@ impl BuildSpec {
         fn link_binaries(&self, ui: &mut UI, rootfs: &Path, base_pkgs: &BasePkgIdents) -> Result<()> {
             let dst = util::bin_path();
 
-            hab::command::pkg::binlink::binlink_all_in_pkg(ui,
+            bio::command::pkg::binlink::binlink_all_in_pkg(ui,
                                                            base_pkgs.busybox
                                                                     .as_ref()
                                                                     .expect("No busybox in idents")
@@ -212,7 +203,7 @@ impl BuildSpec {
                                                            dst,
                                                            rootfs,
                                                            true).map_err(|err| anyhow!("{}", err))?;
-            hab::command::pkg::binlink::start(ui, base_pkgs.hab.as_ref(), "hab", dst, rootfs, true)
+            bio::command::pkg::binlink::start(ui, base_pkgs.bio.as_ref(), "bio", dst, rootfs, true)
                 .map_err(|err| anyhow!("{}", err))?;
             Ok(())
         }
@@ -242,12 +233,16 @@ impl BuildSpec {
         debug!("Creating BuildRoot from {:?}", &self);
         let workdir = TempDir::new()?;
         let rootfs = workdir.path().join("rootfs");
-        ui.status(Status::Creating,
-                  format!("build root in {}", workdir.path().display()))?;
+        ui.status(
+            Status::Creating,
+            format!("build root in {}", workdir.path().display()),
+        )?;
         let graph = self.prepare_rootfs(ui, &rootfs).await?;
-        Ok(BuildRoot { workdir,
-                       ctx: BuildRootContext::from_spec(&self, &rootfs)?,
-                       graph })
+        Ok(BuildRoot {
+            workdir,
+            ctx: BuildRootContext::from_spec(&self, &rootfs)?,
+            graph,
+        })
     }
 
     #[cfg(windows)]
@@ -270,9 +265,11 @@ impl BuildSpec {
         let src = cache_artifact_path(None::<&Path>);
         let dst = rootfs.join(CACHE_ARTIFACT_PATH);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
-        debug!("Symlinking src: {} to dst: {}",
-               src.display(),
-               dst.display());
+        debug!(
+            "Symlinking src: {} to dst: {}",
+            src.display(),
+            dst.display()
+        );
 
         symlink(src, dst)?;
         Ok(())
@@ -283,44 +280,53 @@ impl BuildSpec {
         let src = &*CACHE_KEY_PATH;
         let dst = rootfs.join(CACHE_KEY_PATH_POSTFIX);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
-        debug!("Symlinking src: {} to dst: {}",
-               src.display(),
-               dst.display());
+        debug!(
+            "Symlinking src: {} to dst: {}",
+            src.display(),
+            dst.display()
+        );
 
         symlink(src, dst)?;
         Ok(())
     }
 
     async fn install_base_pkgs(&self, ui: &mut UI, rootfs: &Path) -> Result<BasePkgIdents> {
-        let hab = self.install_base_pkg(ui, &self.hab, rootfs).await?;
-        let sup = self.install_base_pkg(ui, &self.hab_sup, rootfs).await?;
-        let launcher = self.install_base_pkg(ui, &self.hab_launcher, rootfs)
-                           .await?;
+        let bio = self.install_base_pkg(ui, &self.bio, rootfs).await?;
+        let sup = self.install_base_pkg(ui, &self.bio_sup, rootfs).await?;
+        let launcher = self
+            .install_base_pkg(ui, &self.bio_launcher, rootfs)
+            .await?;
 
         // TODO (CM): at some point these should be considered as
         // something other than "base" packages... replacing busybox
         // and cacerts isn't really something that's going to need to
         // be done
         let busybox = if cfg!(target_os = "linux") {
-            Some(self.install_pkg_from_default_channel(ui, BUSYBOX_IDENT, rootfs)
-                     .await?)
+            Some(
+                self.install_pkg_from_default_channel(ui, BUSYBOX_IDENT, rootfs)
+                    .await?,
+            )
         } else {
             None
         };
-        let cacerts = self.install_pkg_from_default_channel(ui, CACERTS_IDENT, rootfs)
-                          .await?;
+        let cacerts = self
+            .install_pkg_from_default_channel(ui, CACERTS_IDENT, rootfs)
+            .await?;
 
-        Ok(BasePkgIdents { hab,
-                           sup,
-                           launcher,
-                           busybox,
-                           cacerts })
+        Ok(BasePkgIdents {
+            bio,
+            sup,
+            launcher,
+            busybox,
+            cacerts,
+        })
     }
 
-    async fn install_user_pkgs(&self,
-                               ui: &mut UI,
-                               rootfs: &Path)
-                               -> Result<Vec<FullyQualifiedPackageIdent>> {
+    async fn install_user_pkgs(
+        &self,
+        ui: &mut UI,
+        rootfs: &Path,
+    ) -> Result<Vec<FullyQualifiedPackageIdent>> {
         let mut idents = Vec::new();
         for ioa in self.idents_or_archives.iter() {
             idents.push(self.install_user_pkg(ui, ioa, rootfs).await?);
@@ -342,74 +348,86 @@ impl BuildSpec {
         Ok(())
     }
 
-    async fn install_base_pkg(&self,
-                              ui: &mut UI,
-                              ident_or_archive: &str,
-                              fs_root_path: &Path)
-                              -> Result<FullyQualifiedPackageIdent> {
-        self.install(ui,
-                     ident_or_archive,
-                     &self.base_pkgs_url,
-                     &self.base_pkgs_channel,
-                     fs_root_path,
-                     self.auth.as_deref())
-            .await
+    async fn install_base_pkg(
+        &self,
+        ui: &mut UI,
+        ident_or_archive: &str,
+        fs_root_path: &Path,
+    ) -> Result<FullyQualifiedPackageIdent> {
+        self.install(
+            ui,
+            ident_or_archive,
+            &self.base_pkgs_url,
+            &self.base_pkgs_channel,
+            fs_root_path,
+            self.auth.as_deref(),
+        )
+        .await
     }
 
-    async fn install_pkg_from_default_channel(&self,
-                                              ui: &mut UI,
-                                              ident_or_archive: &str,
-                                              fs_root_path: &Path)
-                                              -> Result<FullyQualifiedPackageIdent> {
-        self.install(ui,
-                     ident_or_archive,
-                     &self.base_pkgs_url,
-                     &ChannelIdent::default(),
-                     fs_root_path,
-                     self.auth.as_deref())
-            .await
+    async fn install_pkg_from_default_channel(
+        &self,
+        ui: &mut UI,
+        ident_or_archive: &str,
+        fs_root_path: &Path,
+    ) -> Result<FullyQualifiedPackageIdent> {
+        self.install(
+            ui,
+            ident_or_archive,
+            &self.base_pkgs_url,
+            &ChannelIdent::default(),
+            fs_root_path,
+            self.auth.as_deref(),
+        )
+        .await
     }
 
-    async fn install_user_pkg(&self,
-                              ui: &mut UI,
-                              ident_or_archive: &str,
-                              fs_root_path: &Path)
-                              -> Result<FullyQualifiedPackageIdent> {
-        self.install(ui,
-                     ident_or_archive,
-                     &self.url,
-                     &self.channel,
-                     fs_root_path,
-                     self.auth.as_deref())
-            .await
+    async fn install_user_pkg(
+        &self,
+        ui: &mut UI,
+        ident_or_archive: &str,
+        fs_root_path: &Path,
+    ) -> Result<FullyQualifiedPackageIdent> {
+        self.install(
+            ui,
+            ident_or_archive,
+            &self.url,
+            &self.channel,
+            fs_root_path,
+            self.auth.as_deref(),
+        )
+        .await
     }
 
-    async fn install(&self,
-                     ui: &mut UI,
-                     ident_or_archive: &str,
-                     url: &str,
-                     channel: &ChannelIdent,
-                     fs_root_path: &Path,
-                     token: Option<&str>)
-                     -> Result<FullyQualifiedPackageIdent> {
+    async fn install(
+        &self,
+        ui: &mut UI,
+        ident_or_archive: &str,
+        url: &str,
+        channel: &ChannelIdent,
+        fs_root_path: &Path,
+        token: Option<&str>,
+    ) -> Result<FullyQualifiedPackageIdent> {
         let install_source: InstallSource = ident_or_archive.parse()?;
-        let package_install =
-            habitat_common::command::package::install::start(ui,
-                                                     url,
-                                                     channel,
-                                                     &install_source,
-                                                     &PROGRAM_NAME,
-                                                     VERSION,
-                                                     fs_root_path,
-                                                     &cache_artifact_path(Some(&fs_root_path)),
-                                                     token,
-                                                     // TODO fn: pass through and enable offline
-                                                     // install mode
-                                                     &InstallMode::default(),
-                                                     // TODO (CM): pass through and enable
-                                                     // ignore-local mode
-                                                     &LocalPackageUsage::default(),
-                                                     InstallHookMode::Ignore).await?;
+        let package_install = biome_common::command::package::install::start(
+            ui,
+            url,
+            channel,
+            &install_source,
+            &PROGRAM_NAME,
+            VERSION,
+            fs_root_path,
+            &cache_artifact_path(Some(&fs_root_path)),
+            token,
+            // TODO fn: pass through and enable offline
+            // install mode
+            &InstallMode::default(),
+            // TODO (CM): pass through and enable
+            // ignore-local mode
+            &LocalPackageUsage::default(),
+            InstallHookMode::Ignore,
+        )
+        .await?;
 
         // TODO (CM): Ideally, the typing of PackageInstall would be
         // such that we'd automatically get a
@@ -418,31 +436,39 @@ impl BuildSpec {
         // the conversion locally, and then remove that once the
         // broader refactoring has occurred.
         let ident: PackageIdent = package_install.into();
-        Ok(FullyQualifiedPackageIdent::try_from(ident).expect("should always be a \
-                                                               fully-qualified identifier"))
+        Ok(FullyQualifiedPackageIdent::try_from(ident).expect(
+            "should always be a \
+                                                               fully-qualified identifier",
+        ))
     }
 }
 
-/// A temporary file system build root, based on Habitat packages.
+/// A temporary file system build root, based on Biome packages.
 pub(crate) struct BuildRoot {
     /// The temporary directory under which all root file system and other related files and
     /// directories will be created.
     workdir: TempDir,
-    /// The build root context containing information about Habitat packages, `PATH` info, etc.
-    ctx:     BuildRootContext,
-    /// Dependency graph of the Habitat packages installed in the
+    /// The build root context containing information about Biome packages, `PATH` info, etc.
+    ctx: BuildRootContext,
+    /// Dependency graph of the Biome packages installed in the
     /// build root
-    graph:   Graph,
+    graph: Graph,
 }
 
 impl BuildRoot {
     /// Returns the temporary work directory under which a root file system has been created.
-    pub(crate) fn workdir(&self) -> &Path { self.workdir.path() }
+    pub(crate) fn workdir(&self) -> &Path {
+        self.workdir.path()
+    }
 
     /// Returns the `BuildRootContext` for this build root.
-    pub(crate) fn ctx(&self) -> &BuildRootContext { &self.ctx }
+    pub(crate) fn ctx(&self) -> &BuildRootContext {
+        &self.ctx
+    }
 
-    pub(crate) fn graph(&self) -> &Graph { &self.graph }
+    pub(crate) fn graph(&self) -> &Graph {
+        &self.graph
+    }
 
     /// Destroys the temporary build root.
     ///
@@ -461,10 +487,10 @@ impl BuildRoot {
     }
 }
 
-/// The file system contents, location, Habitat packages, and other context for a build root.
+/// The file system contents, location, Biome packages, and other context for a build root.
 #[derive(Debug)]
 pub(crate) struct BuildRootContext {
-    /// A list of all Habitat service and library packages which were determined from the original
+    /// A list of all Biome service and library packages which were determined from the original
     /// list in a `BuildSpec`.
     idents: Vec<PkgIdentType>,
 
@@ -479,7 +505,7 @@ pub(crate) struct BuildRootContext {
     /// colon-delimited `PATH` string).
     env_path: String,
 
-    /// The channel name which was used to install all user-provided Habitat service and library
+    /// The channel name which was used to install all user-provided Biome service and library
     /// packages.
     channel: ChannelIdent,
 
@@ -490,14 +516,14 @@ pub(crate) struct BuildRootContext {
     base_image: String,
 
     /// Whether or not to create an image with a single layer for each
-    /// Habitat package.
+    /// Biome package.
     multi_layer: bool,
 }
 
 impl BuildRootContext {
     /// Creates a new `BuildRootContext` from a build spec.
     ///
-    /// The root file system path will be used to inspect installed Habitat packages to populate
+    /// The root file system path will be used to inspect installed Biome packages to populate
     /// metadata, determine primary service, etc.
     ///
     /// # Errors
@@ -526,59 +552,64 @@ impl BuildRootContext {
                 tdeps.push(dependency.name);
             }
             if pkg_install.is_runnable() {
-                idents.push(PkgIdentType::Svc(SvcIdent { ident,
-                                                         exposes: pkg_install.exposes()? }));
+                idents.push(PkgIdentType::Svc(SvcIdent {
+                    ident,
+                    exposes: pkg_install.exposes()?,
+                }));
             } else {
                 idents.push(PkgIdentType::Lib(ident));
             }
         }
 
         tdeps.dedup();
-        let mut environment: HashMap<String, String> =
-            tdeps.into_iter()
-                 .filter_map(|dep| {
-                     let key = format!("HAB_{}", dep.to_uppercase());
-                     env::var(&key).ok().map(|v| (key, v))
-                 })
-                 .collect();
+        let mut environment: HashMap<String, String> = tdeps
+            .into_iter()
+            .filter_map(|dep| {
+                let key = format!("BIO_{}", dep.to_uppercase());
+                env::var(&key).ok().map(|v| (key, v))
+            })
+            .collect();
 
-        if license::check_for_license_acceptance().unwrap_or_default()
-                                                  .accepted()
+        if license::check_for_license_acceptance()
+            .unwrap_or_default()
+            .accepted()
         {
-            environment.insert(String::from("HAB_LICENSE"),
-                               String::from("accept-no-persist"));
+            environment.insert(
+                String::from("BIO_LICENSE"),
+                String::from("accept-no-persist"),
+            );
         }
 
         let bin_path = util::bin_path();
 
-        let context = BuildRootContext { idents,
-                                         environment,
-                                         #[cfg(unix)]
-                                         bin_path: bin_path.into(),
-                                         env_path: bin_path.to_string_lossy().into_owned(),
-                                         channel: spec.channel.clone(),
-                                         rootfs,
-                                         base_image: spec.base_image.clone(),
-                                         multi_layer: spec.multi_layer };
+        let context = BuildRootContext {
+            idents,
+            environment,
+            #[cfg(unix)]
+            bin_path: bin_path.into(),
+            env_path: bin_path.to_string_lossy().into_owned(),
+            channel: spec.channel.clone(),
+            rootfs,
+            base_image: spec.base_image.clone(),
+            multi_layer: spec.multi_layer,
+        };
         context.validate()?;
 
         Ok(context)
     }
 
-    /// Returns a list of all provided Habitat packages which contain a runnable service.
+    /// Returns a list of all provided Biome packages which contain a runnable service.
     pub(crate) fn svc_idents(&self) -> Vec<&PackageIdent> {
         self.idents
             .iter()
-            .filter_map(|t| {
-                match *t {
-                    PkgIdentType::Svc(ref svc) => Some(svc.ident.as_ref()),
-                    _ => None,
-                }
+            .filter_map(|t| match *t {
+                PkgIdentType::Svc(ref svc) => Some(svc.ident.as_ref()),
+                _ => None,
             })
             .collect()
     }
 
-    /// Returns the first service package from the provided Habitat packages.
+    /// Returns the first service package from the provided Biome packages.
     pub(crate) fn primary_svc_ident(&self) -> &PackageIdent {
         self.svc_idents()
             .first()
@@ -596,23 +627,21 @@ impl BuildRootContext {
     /// * If the primary service package could not be loaded from disk
     pub(crate) fn installed_primary_svc_ident(&self) -> Result<FullyQualifiedPackageIdent> {
         let pkg_install = self.primary_svc()?;
-        Ok(FullyQualifiedPackageIdent::try_from(
-                pkg_install
-                .ident())
-            .expect("We should always have a fully-qualified \
-                    package identifier at this point"))
+        Ok(
+            FullyQualifiedPackageIdent::try_from(pkg_install.ident()).expect(
+                "We should always have a fully-qualified \
+                    package identifier at this point",
+            ),
+        )
     }
 
     /// Returns the list of package port exposes over all service packages.
     pub(crate) fn svc_exposes(&self) -> Vec<&str> {
         let mut exposes = Vec::new();
-        for svc in self.idents.iter().filter_map(|t| {
-                                         match *t {
-                                             PkgIdentType::Svc(ref svc) => Some(svc),
-                                             _ => None,
-                                         }
-                                     })
-        {
+        for svc in self.idents.iter().filter_map(|t| match *t {
+            PkgIdentType::Svc(ref svc) => Some(svc),
+            _ => None,
+        }) {
             let pkg_exposes_vec: Vec<&str> = svc.exposes.iter().map(String::as_ref).collect();
             exposes.extend_from_slice(&pkg_exposes_vec);
         }
@@ -629,25 +658,27 @@ impl BuildRootContext {
         let gid = super::DEFAULT_USER_AND_GROUP_ID;
 
         let pkg = self.primary_svc()?;
-        let user_name = pkg.svc_user()
-                           .unwrap_or_default()
-                           .unwrap_or_else(|| String::from("hab"));
-        let group_name = pkg.svc_group()
-                            .unwrap_or_default()
-                            .unwrap_or_else(|| String::from("hab"));
+        let user_name = pkg
+            .svc_user()
+            .unwrap_or_default()
+            .unwrap_or_else(|| String::from("bio"));
+        let group_name = pkg
+            .svc_group()
+            .unwrap_or_default()
+            .unwrap_or_else(|| String::from("bio"));
 
         // TODO: In some cases, packages based on core/nginx and
         // core/httpd (and possibly others) will not work, because
         // they specify a SVC_USER of `root`, but implicitly rely on a
-        // `hab` user being present for running lower-privileged
-        // worker processes. Habitat currently doesn't have a way to
+        // `bio` user being present for running lower-privileged
+        // worker processes. Biome currently doesn't have a way to
         // formally represent this, so until it does, we should make
-        // sure that there is a `hab` user and group present, just in
+        // sure that there is a `bio` user and group present, just in
         // case.
         //
-        // With recent changes to the Supervisor, this hab user must
-        // be in the hab group for these packages to function
-        // properly, but only in the case that the `hab` user is
+        // With recent changes to the Supervisor, this bio user must
+        // be in the bio group for these packages to function
+        // properly, but only in the case that the `bio` user is
         // being used in this back-channel kind of way. In general,
         // there is no requirement that a user be in any specific
         // group. In particular, there is no requirement that
@@ -656,7 +687,7 @@ impl BuildRootContext {
         //
         // When we can represent this multi-user situation better, we
         // should be able to clean up some of this code (because it's
-        // a bit gnarly!) and not have to add an implicit hab user or
+        // a bit gnarly!) and not have to add an implicit bio user or
         // group.
         //
         // NOTE: If this logic ever needs to get ANY more complex, it'd
@@ -667,40 +698,40 @@ impl BuildRootContext {
         // trying to directly manage those files' contents.
 
         // Since we're potentially going to have to create an extra
-        // hab user and/or group, they're going to need
-        // identifiers. If SVC_USER or SVC_GROUP is hab, then we'll
+        // bio user and/or group, they're going to need
+        // identifiers. If SVC_USER or SVC_GROUP is bio, then we'll
         // use the IDs given by the user. On the other hand, if we're
         // adding either one of those on top of SVC_USER/SVC_GROUP,
         // then we'll use a default, incremented by one on the off
         // chance that matches what the user specified on the command
         // line.
-        let hab_uid = if uid == super::DEFAULT_HAB_UID {
-            super::DEFAULT_HAB_UID + 1
+        let bio_uid = if uid == super::DEFAULT_BIO_UID {
+            super::DEFAULT_BIO_UID + 1
         } else {
-            super::DEFAULT_HAB_UID
+            super::DEFAULT_BIO_UID
         };
-        let hab_gid = if gid == super::DEFAULT_HAB_GID {
-            super::DEFAULT_HAB_GID + 1
+        let bio_gid = if gid == super::DEFAULT_BIO_GID {
+            super::DEFAULT_BIO_GID + 1
         } else {
-            super::DEFAULT_HAB_GID
+            super::DEFAULT_BIO_GID
         };
 
         match (user_name.as_ref(), group_name.as_ref()) {
             ("root", "root") => {
                 // SVC_GROUP is SVC_USER's primary group (trivially)
 
-                // Just create a hab user in a hab group for safety
-                users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, &["hab"]));
+                // Just create a bio user in a bio group for safety
+                users.push(EtcPasswdEntry::new("bio", bio_uid, bio_gid));
+                groups.push(EtcGroupEntry::group_with_users("bio", bio_gid, &["bio"]));
             }
-            ("root", "hab") => {
+            ("root", "bio") => {
                 // SVC_GROUP is NOT SVC_USER's primary group
 
                 // Currently, this is the anticipated case for nginx
-                // and httpd packages... the lower-privileged hab user
-                // needs to be in the hab group for things to work.
-                users.push(EtcPasswdEntry::new("hab", hab_uid, gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", gid, &["hab"]));
+                // and httpd packages... the lower-privileged bio user
+                // needs to be in the bio group for things to work.
+                users.push(EtcPasswdEntry::new("bio", bio_uid, gid));
+                groups.push(EtcGroupEntry::group_with_users("bio", gid, &["bio"]));
             }
             ("root", _) => {
                 // SVC_GROUP is NOT SVC_USER's primary group
@@ -709,47 +740,51 @@ impl BuildRootContext {
                 // No user is in SVC_GROUP, actually
                 groups.push(EtcGroupEntry::empty_group(&group_name, gid));
 
-                // Just create a hab user in a hab group for safety
-                users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, &["hab"]));
+                // Just create a bio user in a bio group for safety
+                users.push(EtcPasswdEntry::new("bio", bio_uid, bio_gid));
+                groups.push(EtcGroupEntry::group_with_users("bio", bio_gid, &["bio"]));
             }
-            ("hab", "hab") => {
-                // If the user explicitly called for hab/hab, give it
+            ("bio", "bio") => {
+                // If the user explicitly called for bio/bio, give it
                 // to them.
                 //
                 // Strictly speaking, SVC_USER does not need to be in
                 // SVC_GROUP, but if we're making a user, we need to
                 // put them in *some* group.
-                users.push(EtcPasswdEntry::new("hab", uid, gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", gid, &["hab"]));
+                users.push(EtcPasswdEntry::new("bio", uid, gid));
+                groups.push(EtcGroupEntry::group_with_users("bio", gid, &["bio"]));
             }
-            ("hab", "root") => {
+            ("bio", "root") => {
                 // SVC_GROUP is NOT SVC_USER's primary group
 
                 // To prevent having to edit the root group entry,
-                // we'll just add the hab user to the hab group to put
+                // we'll just add the bio user to the bio group to put
                 // them someplace.
-                users.push(EtcPasswdEntry::new("hab", uid, hab_gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, &["hab"]));
+                users.push(EtcPasswdEntry::new("bio", uid, bio_gid));
+                groups.push(EtcGroupEntry::group_with_users("bio", bio_gid, &["bio"]));
             }
-            ("hab", _) => {
+            ("bio", _) => {
                 // SVC_GROUP IS SVC_USER's primary group, and there is
-                // NO hab group
+                // NO bio group
 
-                // Again, sticking the hab user into the group because
+                // Again, sticking the bio user into the group because
                 // it needs to go somewhere
-                users.push(EtcPasswdEntry::new("hab", uid, gid));
-                groups.push(EtcGroupEntry::group_with_users(&group_name, gid, &["hab"]));
+                users.push(EtcPasswdEntry::new("bio", uid, gid));
+                groups.push(EtcGroupEntry::group_with_users(&group_name, gid, &["bio"]));
             }
             (..) => {
                 // SVC_GROUP IS SVC_USER's primary group, because it
                 // has to go somewhere
                 users.push(EtcPasswdEntry::new(&user_name, uid, gid));
-                groups.push(EtcGroupEntry::group_with_users(&group_name, gid, &[&user_name]));
+                groups.push(EtcGroupEntry::group_with_users(
+                    &group_name,
+                    gid,
+                    &[&user_name],
+                ));
 
-                // Just create a hab user in a hab group for safety
-                users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, &["hab"]));
+                // Just create a bio user in a bio group for safety
+                users.push(EtcPasswdEntry::new("bio", bio_uid, bio_gid));
+                groups.push(EtcGroupEntry::group_with_users("bio", bio_gid, &["bio"]));
             }
         }
 
@@ -760,30 +795,42 @@ impl BuildRootContext {
 
     /// Returns the `bin` path which is used for all program symlinking.
     #[cfg(unix)]
-    pub(crate) fn bin_path(&self) -> &Path { self.bin_path.as_ref() }
+    pub(crate) fn bin_path(&self) -> &Path {
+        self.bin_path.as_ref()
+    }
 
     /// Returns a colon-delimited `PATH` string containing all important program paths.
-    pub(crate) fn env_path(&self) -> &str { self.env_path.as_str() }
+    pub(crate) fn env_path(&self) -> &str {
+        self.env_path.as_str()
+    }
 
-    /// Returns the release channel name used to install all provided Habitat packages.
-    pub(crate) fn channel(&self) -> &ChannelIdent { &self.channel }
+    /// Returns the release channel name used to install all provided Biome packages.
+    pub(crate) fn channel(&self) -> &ChannelIdent {
+        &self.channel
+    }
 
     /// Returns the root file system which is used to export an image.
-    pub(crate) fn rootfs(&self) -> &Path { self.rootfs.as_ref() }
+    pub(crate) fn rootfs(&self) -> &Path {
+        self.rootfs.as_ref()
+    }
 
     /// Returns the base image used in the Dockerfile
-    pub(crate) fn base_image(&self) -> &str { self.base_image.as_str() }
+    pub(crate) fn base_image(&self) -> &str {
+        self.base_image.as_str()
+    }
 
-    pub(crate) fn multi_layer(&self) -> bool { self.multi_layer }
+    pub(crate) fn multi_layer(&self) -> bool {
+        self.multi_layer
+    }
 
     fn validate(&self) -> Result<()> {
         // A valid context for a build root will contain at least one service package, called the
         // primary service package.
         if self.svc_idents().is_empty() {
-            return Err(Error::PrimaryServicePackageNotFound(self.idents
-                                                                .iter()
-                                                                .map(|e| e.ident().to_string())
-                                                                .collect()).into());
+            return Err(Error::PrimaryServicePackageNotFound(
+                self.idents.iter().map(|e| e.ident().to_string()).collect(),
+            )
+            .into());
         }
 
         Ok(())
@@ -793,8 +840,8 @@ impl BuildRootContext {
 /// The package identifiers for installed base packages.
 #[derive(Debug)]
 pub(crate) struct BasePkgIdents {
-    /// Installed package identifer for the Habitat CLI package.
-    pub(crate) hab: FullyQualifiedPackageIdent,
+    /// Installed package identifer for the Biome CLI package.
+    pub(crate) bio: FullyQualifiedPackageIdent,
 
     /// Installed package identifer for the Supervisor package.
     pub(crate) sup: FullyQualifiedPackageIdent,
@@ -809,16 +856,16 @@ pub(crate) struct BasePkgIdents {
     pub(crate) cacerts: FullyQualifiedPackageIdent,
 }
 
-/// A service identifier representing a Habitat package which contains a runnable service.
+/// A service identifier representing a Biome package which contains a runnable service.
 #[derive(Debug)]
 struct SvcIdent {
     /// The Package Identifier.
-    ident:   PackageIdent,
+    ident: PackageIdent,
     /// A list of all port exposes for the package.
     exposes: Vec<String>,
 }
 
-/// An enum of service and library Habitat packages.
+/// An enum of service and library Biome packages.
 ///
 /// A package is considered a service package if it contains a runnable service, via a `run` hook.
 #[derive(Debug)]
@@ -843,21 +890,23 @@ impl PkgIdentType {
 mod tests {
     use super::*;
     fn build_spec() -> BuildSpec {
-        BuildSpec { hab:                "hab".to_string(),
-                    hab_launcher:       "hab_launcher".to_string(),
-                    hab_sup:            "hab_sup".to_string(),
-                    url:                "url".to_string(),
-                    channel:            ChannelIdent::from("channel"),
-                    base_pkgs_url:      "base_pkgs_url".to_string(),
-                    base_pkgs_channel:  ChannelIdent::from("base_pkgs_channel"),
-                    idents_or_archives: Vec::new(),
-                    auth:               Some("heresafakeauthtokenduh".to_string()),
-                    base_image:         "scratch".to_string(),
-                    multi_layer:        false, }
+        BuildSpec {
+            bio: "bio".to_string(),
+            bio_launcher: "bio_launcher".to_string(),
+            bio_sup: "bio_sup".to_string(),
+            url: "url".to_string(),
+            channel: ChannelIdent::from("channel"),
+            base_pkgs_url: "base_pkgs_url".to_string(),
+            base_pkgs_channel: ChannelIdent::from("base_pkgs_channel"),
+            idents_or_archives: Vec::new(),
+            auth: Some("heresafakeauthtokenduh".to_string()),
+            base_image: "scratch".to_string(),
+            multi_layer: false,
+        }
     }
 
     cfg_unix! {
-        use habitat_core::{fs,
+        use biome_core::{fs,
                        package::{FullyQualifiedPackageIdent,
                                  PackageTarget}};
 
@@ -946,27 +995,31 @@ mod tests {
 
     mod build_spec {
         use super::*;
-        use habitat_common::ui::UI;
+        use biome_common::ui::UI;
         use tempfile::TempDir;
 
         #[test]
         fn artifact_cache_symlink() {
             let rootfs = TempDir::new().unwrap();
             let mut ui = UI::with_sinks();
-            build_spec().create_symlink_to_artifact_cache(&mut ui, rootfs.path())
-                        .unwrap();
+            build_spec()
+                .create_symlink_to_artifact_cache(&mut ui, rootfs.path())
+                .unwrap();
             let link = rootfs.path().join(CACHE_ARTIFACT_PATH);
 
-            assert_eq!(cache_artifact_path(None::<&Path>),
-                       link.read_link().unwrap());
+            assert_eq!(
+                cache_artifact_path(None::<&Path>),
+                link.read_link().unwrap()
+            );
         }
 
         #[test]
         fn key_cache_symlink() {
             let rootfs = TempDir::new().unwrap();
             let mut ui = UI::with_sinks();
-            build_spec().create_symlink_to_key_cache(&mut ui, rootfs.path())
-                        .unwrap();
+            build_spec()
+                .create_symlink_to_key_cache(&mut ui, rootfs.path())
+                .unwrap();
             let link = rootfs.path().join(CACHE_KEY_PATH_POSTFIX);
 
             assert_eq!(*CACHE_KEY_PATH, link.read_link().unwrap());
@@ -989,9 +1042,9 @@ mod tests {
                                                 None::<&Path>).join("bin/sh"),
                            rootfs.path().join("bin/sh").read_link().unwrap(),
                            "busybox's sh program is symlinked into /bin");
-                assert_eq!(fs::pkg_install_path(base_pkgs.hab.as_ref(), None::<&Path>).join("bin/hab"),
-                           rootfs.path().join("bin/hab").read_link().unwrap(),
-                           "hab program is symlinked into /bin");
+                assert_eq!(fs::pkg_install_path(base_pkgs.bio.as_ref(), None::<&Path>).join("bin/bio"),
+                           rootfs.path().join("bin/bio").read_link().unwrap(),
+                           "bio program is symlinked into /bin");
             }
 
             #[test]
@@ -1008,25 +1061,25 @@ mod tests {
             }
 
             fn base_pkgs<P: AsRef<Path>>(rootfs: P) -> BasePkgIdents {
-                BasePkgIdents { hab:      fake_hab_install(&rootfs),
+                BasePkgIdents { bio:      fake_bio_install(&rootfs),
                                 sup:      fake_sup_install(&rootfs),
                                 launcher: fake_launcher_install(&rootfs),
                                 busybox:  Some(fake_busybox_install(&rootfs)),
                                 cacerts:  fake_cacerts_install(&rootfs), }
             }
 
-            fn fake_hab_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
-                FakePkg::new("acme/hab", rootfs.as_ref()).add_bin("hab")
+            fn fake_bio_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
+                FakePkg::new("acme/bio", rootfs.as_ref()).add_bin("bio")
                                                          .install()
             }
 
             fn fake_sup_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
-                FakePkg::new("acme/hab-sup", rootfs.as_ref()).add_bin("hab-sup")
+                FakePkg::new("acme/bio-sup", rootfs.as_ref()).add_bin("bio-sup")
                                                              .install()
             }
 
             fn fake_launcher_install<P: AsRef<Path>>(rootfs: P) -> FullyQualifiedPackageIdent {
-                FakePkg::new("acme/hab-launcher", rootfs.as_ref()).add_bin("hab-launch")
+                FakePkg::new("acme/bio-launcher", rootfs.as_ref()).add_bin("bio-launch")
                                                                   .install()
             }
 
@@ -1051,8 +1104,8 @@ mod tests {
         #![cfg(unix)]
         // We run these tests only on Unix as such they cannot be run on windows.
         use super::*;
-        use habitat_common::PROGRAM_NAME;
-        use habitat_core::package::PackageIdent;
+        use biome_common::PROGRAM_NAME;
+        use biome_core::package::PackageIdent;
         use std::str::FromStr;
 
         #[test]
@@ -1061,24 +1114,36 @@ mod tests {
             let _ = FakePkg::new("acme/libby", rootfs.path()).install();
 
             // A couple service packages
-            let runna_install_ident = FakePkg::new("acme/runna", rootfs.path()).set_svc(true)
-                                                                               .install();
-            let _ = FakePkg::new("acme/jogga", rootfs.path()).set_svc(true)
-                                                             .install();
+            let runna_install_ident = FakePkg::new("acme/runna", rootfs.path())
+                .set_svc(true)
+                .install();
+            let _ = FakePkg::new("acme/jogga", rootfs.path())
+                .set_svc(true)
+                .install();
 
             let mut spec = build_spec();
-            spec.idents_or_archives = vec!["acme/libby".to_string(),
-                                           "acme/runna".to_string(),
-                                           "acme/jogga".to_string()];
+            spec.idents_or_archives = vec![
+                "acme/libby".to_string(),
+                "acme/runna".to_string(),
+                "acme/jogga".to_string(),
+            ];
             let ctx = BuildRootContext::from_spec(&spec, rootfs.path()).unwrap();
 
-            assert_eq!(vec![&PackageIdent::from_str("acme/runna").unwrap(),
-                            &PackageIdent::from_str("acme/jogga").unwrap(),],
-                       ctx.svc_idents());
-            assert_eq!(&PackageIdent::from_str("acme/runna").unwrap(),
-                       ctx.primary_svc_ident());
-            assert_eq!(runna_install_ident,
-                       ctx.installed_primary_svc_ident().unwrap());
+            assert_eq!(
+                vec![
+                    &PackageIdent::from_str("acme/runna").unwrap(),
+                    &PackageIdent::from_str("acme/jogga").unwrap(),
+                ],
+                ctx.svc_idents()
+            );
+            assert_eq!(
+                &PackageIdent::from_str("acme/runna").unwrap(),
+                ctx.primary_svc_ident()
+            );
+            assert_eq!(
+                runna_install_ident,
+                ctx.installed_primary_svc_ident().unwrap()
+            );
 
             assert_eq!(Path::new("/bin"), ctx.bin_path());
             assert_eq!("/bin", ctx.env_path());
@@ -1088,21 +1153,22 @@ mod tests {
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
             assert_eq!(2, users.len());
             assert_eq!(users[0].name, "my_user");
-            assert_eq!(users[1].name, "hab");
+            assert_eq!(users[1].name, "bio");
             assert_eq!(2, groups.len());
             assert_eq!(groups[0].name, "my_group");
-            assert_eq!(groups[1].name, "hab");
+            assert_eq!(groups[1].name, "bio");
             // TODO fn: check ctx.svc_exposes()
         }
 
         #[test]
-        fn hab_user_and_group_are_created_even_if_not_explicitly_called_for() {
+        fn bio_user_and_group_are_created_even_if_not_explicitly_called_for() {
             let rootfs = TempDir::new().unwrap();
 
-            let _my_package = FakePkg::new("acme/my_pkg", rootfs.path()).set_svc(true)
-                                                                        .set_svc_user("root")
-                                                                        .set_svc_group("root")
-                                                                        .install();
+            let _my_package = FakePkg::new("acme/my_pkg", rootfs.path())
+                .set_svc(true)
+                .set_svc_user("root")
+                .set_svc_group("root")
+                .install();
             let matches = arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg"]);
 
             let build_spec = BuildSpec::try_from(&matches).unwrap();
@@ -1110,20 +1176,20 @@ mod tests {
 
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
             assert_eq!(1, users.len());
-            assert_eq!(users[0].name, "hab");
+            assert_eq!(users[0].name, "bio");
             assert_eq!(1, groups.len());
-            assert_eq!(groups[0].name, "hab");
+            assert_eq!(groups[0].name, "bio");
         }
 
         #[test]
-        fn hab_user_and_group_are_created_along_with_non_root_users() {
+        fn bio_user_and_group_are_created_along_with_non_root_users() {
             let rootfs = TempDir::new().unwrap();
 
-            let _my_package =
-                FakePkg::new("acme/my_pkg", rootfs.path()).set_svc(true)
-                                                          .set_svc_user("somebody_else")
-                                                          .set_svc_group("some_other_group")
-                                                          .install();
+            let _my_package = FakePkg::new("acme/my_pkg", rootfs.path())
+                .set_svc(true)
+                .set_svc_user("somebody_else")
+                .set_svc_group("some_other_group")
+                .install();
 
             #[cfg(unix)]
             let matches = arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg"]);
@@ -1137,10 +1203,10 @@ mod tests {
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
             assert_eq!(2, users.len());
             assert_eq!(users[0].name, "somebody_else");
-            assert_eq!(users[1].name, "hab");
+            assert_eq!(users[1].name, "bio");
             assert_eq!(2, groups.len());
             assert_eq!(groups[0].name, "some_other_group");
-            assert_eq!(groups[1].name, "hab");
+            assert_eq!(groups[1].name, "bio");
         }
     }
 }

@@ -17,7 +17,7 @@ members = [
   "components/butterfly",
   "components/common", "components/common-derive",
   "components/core",
-  "components/hab",
+  "components/bio",
   "components/http-client",
   "components/launcher",
   "components/launcher-client",

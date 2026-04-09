@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-export HAB_LICENSE="accept-no-persist"
+export BIO_LICENSE="accept-no-persist"
 
 # Force Docker Compose to use the default builder instead of docker-container
 # This ensures that locally built images are accessible during builds
@@ -16,13 +16,13 @@ docker-compose version
 channel=${1:-stable}
 image_name="supervisor-testing-${channel}"
 
-output_dir="habitat_integration_output"
+output_dir="biome_integration_output"
 rm -Rf "${output_dir}"
 mkdir "${output_dir}"
 
 # Ensure the requisite images are present.
-make habitat_integration_base CHANNEL="${channel}" HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}"
-make supervisor_image CHANNEL="${channel}" IMAGE_NAME="${image_name}" HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}"
+make biome_integration_base CHANNEL="${channel}" BIO_AUTH_TOKEN="${BIO_AUTH_TOKEN}"
+make supervisor_image CHANNEL="${channel}" IMAGE_NAME="${image_name}" BIO_AUTH_TOKEN="${BIO_AUTH_TOKEN}"
 
 # Assume success until told otherwise; the first failure will set this
 # to non-zero.

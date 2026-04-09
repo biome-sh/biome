@@ -1,21 +1,18 @@
 use crate::event;
+use biome_core::{
+    self,
+    package::{self, Identifiable},
+};
 use futures::channel::oneshot;
-use habitat_core::{self,
-                   package::{self,
-                             Identifiable}};
-use std::{env,
-          error::{self,
-                  Error as _},
-          ffi,
-          fmt,
-          io,
-          net,
-          path::PathBuf,
-          result,
-          str,
-          string,
-          sync::mpsc,
-          time::Duration};
+use std::{
+    env,
+    error::{self, Error as _},
+    ffi, fmt, io, net,
+    path::PathBuf,
+    result, str, string,
+    sync::mpsc,
+    time::Duration,
+};
 use tokio::task::JoinError;
 
 /// Our result type alias, for easy coding.
@@ -35,9 +32,9 @@ pub enum Error {
     BindTimeout(String),
     LockPoisoned,
     TestBootFail,
-    ButterflyError(habitat_butterfly::error::Error),
+    ButterflyError(biome_butterfly::error::Error),
     CtlSecretIo(PathBuf, io::Error),
-    APIClient(habitat_api_client::Error),
+    APIClient(biome_api_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
     EnvVarError(env::VarError),
     ExecCommandNotFound(String),
@@ -45,9 +42,9 @@ pub enum Error {
     FileNotFound(String),
     FileWatcherFileIsRoot,
     GroupNotFound(String),
-    Hab(Box<hab::error::Error>),
-    HabitatCommon(Box<habitat_common::Error>),
-    HabitatCore(Box<habitat_core::Error>),
+    Bio(Box<bio::error::Error>),
+    BiomeCommon(Box<biome_common::Error>),
+    BiomeCore(Box<biome_core::Error>),
     InvalidBinds(Vec<String>),
     InvalidCertFile(PathBuf),
     InvalidHealthCheckResult(i32),
@@ -58,15 +55,15 @@ pub enum Error {
     InvalidUpdateStrategy(String),
     Io(io::Error),
     TaskJoin(JoinError),
-    LauncherIPCCommand(habitat_launcher_client::IPCCommandError),
-    LauncherTryIPCCommand(habitat_launcher_client::TryIPCCommandError),
+    LauncherIPCCommand(biome_launcher_client::IPCCommandError),
+    LauncherTryIPCCommand(biome_launcher_client::TryIPCCommandError),
     LockFileError(crate::lock_file::Error),
     MissingRequiredBind(Vec<String>),
     MissingRequiredIdent,
     NameLookup(io::Error),
-    NetErr(habitat_sup_protocol::net::NetErr),
+    NetErr(biome_sup_protocol::net::NetErr),
     NetParseError(net::AddrParseError),
-    NoActiveMembers(habitat_core::service::ServiceGroup),
+    NoActiveMembers(biome_core::service::ServiceGroup),
     NoLauncher,
     NoSuchBind(String),
     NotifyCreateError(notify::Error),
@@ -118,30 +115,36 @@ impl fmt::Display for Error {
                                 the system, this Supervisor cannot be started (if we did, we \
                                 would risk the services on this machine behaving badly without \
                                 our knowledge.) If you know that the services on this system are \
-                                safe, and want them to rejoin the habitat ring, you need to:\n\n  \
-                                rm -rf /hab/sup/default/MEMBER_ID /hab/sup/default/data\n\n This \
+                                safe, and want them to rejoin the biome ring, you need to:\n\n  \
+                                rm -rf /bio/sup/default/MEMBER_ID /bio/sup/default/data\n\n This \
                                 will cause the Supervisor to join the ring as a new member.\n\n \
                                 If you are in doubt, it is better to consider the services \
                                 managed by this Supervisor as unsafe to run."
-                                                                             .to_string(),
+                .to_string(),
             Error::BadDataFile(path, err) => {
-                format!("Unable to read or write to data file, {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Unable to read or write to data file, {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::BadDataPath(path, err) => {
-                format!("Unable to read or write to data directory, {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Unable to read or write to data directory, {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::BadDesiredState(state) => {
                 format!("Unknown service desired state style '{}'", state)
             }
             Error::BadElectionStatus(status) => format!("Unknown election status '{}'", status),
             Error::BadSpecsPath(path, err) => {
-                format!("Unable to create the specs directory '{}' ({})",
-                        path.display(),
-                        err)
+                format!(
+                    "Unable to create the specs directory '{}' ({})",
+                    path.display(),
+                    err
+                )
             }
             Error::BadStartStyle(style) => format!("Unknown service start style '{}'", style),
             Error::BindTimeout(err) => format!("Timeout waiting to bind to {}", err),
@@ -156,18 +159,20 @@ impl fmt::Display for Error {
             Error::TestBootFail => "Simulated boot failure".to_string(),
             Error::ButterflyError(err) => format!("Butterfly error: {}", err),
             Error::CtlSecretIo(path, err) => {
-                format!("IoError while reading or writing ctl secret, {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "IoError while reading or writing ctl secret, {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::ExecCommandNotFound(c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
             Error::EventError(err) => err.to_string(),
             Error::Permissions(err) => err.to_string(),
-            Error::Hab(err) => err.to_string(),
-            Error::HabitatCommon(err) => err.to_string(),
-            Error::HabitatCore(err) => err.to_string(),
+            Error::Bio(err) => err.to_string(),
+            Error::BiomeCommon(err) => err.to_string(),
+            Error::BiomeCore(err) => err.to_string(),
             Error::EnvJoinPathsError(err) => err.to_string(),
             Error::EnvVarError(err) => err.to_string(),
             Error::FileNotFound(e) => format!("File not found at: {}", e),
@@ -194,8 +199,10 @@ impl fmt::Display for Error {
                     chain.push(format!("{}", cause));
                     root = cause.source();
                 }
-                format!("Supervisor failed to execute launcher command via IPC: {}",
-                        chain.join(", "))
+                format!(
+                    "Supervisor failed to execute launcher command via IPC: {}",
+                    chain.join(", ")
+                )
             }
             Error::LauncherTryIPCCommand(err) => {
                 let mut chain: Vec<String> = vec![format!("{}", err)];
@@ -204,8 +211,10 @@ impl fmt::Display for Error {
                     chain.push(format!("{}", cause));
                     root = cause.source();
                 }
-                format!("Supervisor failed to try executing launcher command via IPC: {}",
-                        chain.join(", "))
+                format!(
+                    "Supervisor failed to try executing launcher command via IPC: {}",
+                    chain.join(", ")
+                )
             }
             Error::MissingRequiredBind(e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
@@ -219,7 +228,7 @@ impl fmt::Display for Error {
                 format!("Can't parse IP address or socket address: {}", e)
             }
             Error::NoActiveMembers(g) => format!("No active members in service group {}", g),
-            Error::NoLauncher => "Supervisor must be run from `hab-launch`".to_string(),
+            Error::NoLauncher => "Supervisor must be run from `bio-launch`".to_string(),
             Error::NoSuchBind(b) => format!("No such bind: {}", b),
             Error::NotifyCreateError(e) => format!("Notify create error: {}", e),
             Error::NotifyError(e) => format!("Notify error: {}", e),
@@ -243,9 +252,11 @@ impl fmt::Display for Error {
                 format!("Can't serialize service to file: {}", e)
             }
             Error::ServiceSpecFileIO(path, err) => {
-                format!("Unable to write or read to a service spec file at {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Unable to write or read to a service spec file at {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::ServiceSpecParse(err) => {
                 format!("Unable to parse contents of service spec file, {}", err)
@@ -256,8 +267,10 @@ impl fmt::Display for Error {
             Error::SignalFailed => "Failed to send a signal to the child process".to_string(),
             Error::SpecWatcherNotCreated => "Failed to create a SpecWatcher".to_string(),
             Error::SpecDirNotFound(path) => {
-                format!("Spec directory '{}' not created or is not a directory",
-                        path)
+                format!(
+                    "Spec directory '{}' not created or is not a directory",
+                    path
+                )
             }
             Error::SpecWatcherGlob(e) => e.to_string(),
             Error::StrFromUtf8Error(e) => e.to_string(),
@@ -296,115 +309,162 @@ impl error::Error for Error {
 }
 
 impl From<rustls::Error> for Error {
-    fn from(err: rustls::Error) -> Error { Error::TLSError(err) }
+    fn from(err: rustls::Error) -> Error {
+        Error::TLSError(err)
+    }
 }
 
-impl From<habitat_api_client::Error> for Error {
-    fn from(err: habitat_api_client::Error) -> Error { Error::APIClient(err) }
+impl From<biome_api_client::Error> for Error {
+    fn from(err: biome_api_client::Error) -> Error {
+        Error::APIClient(err)
+    }
 }
 
-impl From<Error> for habitat_sup_protocol::net::NetErr {
-    fn from(err: Error) -> habitat_sup_protocol::net::NetErr {
+impl From<Error> for biome_sup_protocol::net::NetErr {
+    fn from(err: Error) -> biome_sup_protocol::net::NetErr {
         match err {
             Error::MissingRequiredBind(_) | Error::InvalidBinds(_) => {
-                habitat_sup_protocol::net::err(habitat_sup_protocol::net::ErrCode::InvalidPayload,
-                                               err)
+                biome_sup_protocol::net::err(biome_sup_protocol::net::ErrCode::InvalidPayload, err)
             }
-            _ => habitat_sup_protocol::net::err(habitat_sup_protocol::net::ErrCode::Internal, err),
+            _ => biome_sup_protocol::net::err(biome_sup_protocol::net::ErrCode::Internal, err),
         }
     }
 }
 
 impl From<net::AddrParseError> for Error {
-    fn from(err: net::AddrParseError) -> Error { Error::NetParseError(err) }
+    fn from(err: net::AddrParseError) -> Error {
+        Error::NetParseError(err)
+    }
 }
 
-impl From<habitat_butterfly::error::Error> for Error {
-    fn from(err: habitat_butterfly::error::Error) -> Error { Error::ButterflyError(err) }
+impl From<biome_butterfly::error::Error> for Error {
+    fn from(err: biome_butterfly::error::Error) -> Error {
+        Error::ButterflyError(err)
+    }
 }
 
-impl From<hab::error::Error> for Error {
-    fn from(err: hab::error::Error) -> Error { Error::Hab(Box::new(err)) }
+impl From<bio::error::Error> for Error {
+    fn from(err: bio::error::Error) -> Error {
+        Error::Bio(Box::new(err))
+    }
 }
 
-impl From<habitat_common::Error> for Error {
-    fn from(err: habitat_common::Error) -> Error { Error::HabitatCommon(Box::new(err)) }
+impl From<biome_common::Error> for Error {
+    fn from(err: biome_common::Error) -> Error {
+        Error::BiomeCommon(Box::new(err))
+    }
 }
 
 impl From<glob::PatternError> for Error {
-    fn from(err: glob::PatternError) -> Error { Error::SpecWatcherGlob(err) }
+    fn from(err: glob::PatternError) -> Error {
+        Error::SpecWatcherGlob(err)
+    }
 }
 
-impl From<habitat_core::Error> for Error {
-    fn from(err: habitat_core::Error) -> Error { Error::HabitatCore(Box::new(err)) }
+impl From<biome_core::Error> for Error {
+    fn from(err: biome_core::Error) -> Error {
+        Error::BiomeCore(Box::new(err))
+    }
 }
 
 impl From<ffi::NulError> for Error {
-    fn from(err: ffi::NulError) -> Error { Error::NulError(err) }
+    fn from(err: ffi::NulError) -> Error {
+        Error::NulError(err)
+    }
 }
 
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error { Error::Io(err) }
+    fn from(err: io::Error) -> Error {
+        Error::Io(err)
+    }
 }
 
 impl From<JoinError> for Error {
-    fn from(err: JoinError) -> Error { Error::TaskJoin(err) }
+    fn from(err: JoinError) -> Error {
+        Error::TaskJoin(err)
+    }
 }
 
 impl From<env::JoinPathsError> for Error {
-    fn from(err: env::JoinPathsError) -> Error { Error::EnvJoinPathsError(err) }
+    fn from(err: env::JoinPathsError) -> Error {
+        Error::EnvJoinPathsError(err)
+    }
 }
 
-impl From<habitat_launcher_client::IPCCommandError> for Error {
-    fn from(err: habitat_launcher_client::IPCCommandError) -> Error {
+impl From<biome_launcher_client::IPCCommandError> for Error {
+    fn from(err: biome_launcher_client::IPCCommandError) -> Error {
         Error::LauncherIPCCommand(err)
     }
 }
 
 impl From<string::FromUtf8Error> for Error {
-    fn from(err: string::FromUtf8Error) -> Error { Error::StringFromUtf8Error(err) }
+    fn from(err: string::FromUtf8Error) -> Error {
+        Error::StringFromUtf8Error(err)
+    }
 }
 
 impl From<str::Utf8Error> for Error {
-    fn from(err: str::Utf8Error) -> Error { Error::StrFromUtf8Error(err) }
+    fn from(err: str::Utf8Error) -> Error {
+        Error::StrFromUtf8Error(err)
+    }
 }
 
 impl From<mpsc::RecvError> for Error {
-    fn from(err: mpsc::RecvError) -> Error { Error::RecvError(err) }
+    fn from(err: mpsc::RecvError) -> Error {
+        Error::RecvError(err)
+    }
 }
 
 impl From<mpsc::RecvTimeoutError> for Error {
-    fn from(err: mpsc::RecvTimeoutError) -> Error { Error::RecvTimeoutError(err) }
+    fn from(err: mpsc::RecvTimeoutError) -> Error {
+        Error::RecvTimeoutError(err)
+    }
 }
 
 impl From<mpsc::TryRecvError> for Error {
-    fn from(err: mpsc::TryRecvError) -> Error { Error::TryRecvError(err) }
+    fn from(err: mpsc::TryRecvError) -> Error {
+        Error::TryRecvError(err)
+    }
 }
 
 impl From<notify::Error> for Error {
-    fn from(err: notify::Error) -> Error { Error::NotifyError(err) }
+    fn from(err: notify::Error) -> Error {
+        Error::NotifyError(err)
+    }
 }
 
 impl From<toml::ser::Error> for Error {
-    fn from(err: toml::ser::Error) -> Error { Error::TomlEncode(err) }
+    fn from(err: toml::ser::Error) -> Error {
+        Error::TomlEncode(err)
+    }
 }
 
-impl From<habitat_sup_protocol::net::NetErr> for Error {
-    fn from(err: habitat_sup_protocol::net::NetErr) -> Error { Error::NetErr(err) }
+impl From<biome_sup_protocol::net::NetErr> for Error {
+    fn from(err: biome_sup_protocol::net::NetErr) -> Error {
+        Error::NetErr(err)
+    }
 }
 
 impl From<oneshot::Canceled> for Error {
-    fn from(err: oneshot::Canceled) -> Error { Error::OneshotCanceled(err) }
+    fn from(err: oneshot::Canceled) -> Error {
+        Error::OneshotCanceled(err)
+    }
 }
 
 impl From<event::Error> for Error {
-    fn from(err: event::Error) -> Error { Error::EventError(err) }
+    fn from(err: event::Error) -> Error {
+        Error::EventError(err)
+    }
 }
 
 impl From<env::VarError> for Error {
-    fn from(err: env::VarError) -> Error { Error::EnvVarError(err) }
+    fn from(err: env::VarError) -> Error {
+        Error::EnvVarError(err)
+    }
 }
 
 impl From<crate::lock_file::Error> for Error {
-    fn from(src: crate::lock_file::Error) -> Self { Error::LockFileError(src) }
+    fn from(src: crate::lock_file::Error) -> Self {
+        Error::LockFileError(src)
+    }
 }

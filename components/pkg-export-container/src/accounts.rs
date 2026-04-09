@@ -1,6 +1,6 @@
 //! Types and functions for representing the contents of Linux account
 //! files (`/etc/passwd` and `/etc/group`) that need to be manipulated
-//! in the process of creating a container image based on a Habitat
+//! in the process of creating a container image based on a Biome
 //! package.
 
 use std::fmt;
@@ -18,19 +18,23 @@ pub(crate) struct EtcPasswdEntry {
 
 impl EtcPasswdEntry {
     pub(crate) fn new(name: &str, uid: u32, gid: u32) -> Self {
-        Self { name: name.to_string(),
-               uid,
-               gid }
+        Self {
+            name: name.to_string(),
+            uid,
+            gid,
+        }
     }
 }
 
 impl fmt::Display for EtcPasswdEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "{name}:x:{uid}:{gid}:{name} User:/:/bin/false",
-               name = self.name,
-               uid = self.uid,
-               gid = self.gid)
+        write!(
+            f,
+            "{name}:x:{uid}:{gid}:{name} User:/:/bin/false",
+            name = self.name,
+            uid = self.uid,
+            gid = self.gid
+        )
     }
 }
 
@@ -38,8 +42,8 @@ impl fmt::Display for EtcPasswdEntry {
 #[derive(Debug)]
 pub(crate) struct EtcGroupEntry {
     pub(crate) name: String,
-    gid:             u32,
-    users:           Vec<String>,
+    gid: u32,
+    users: Vec<String>,
 }
 
 impl EtcGroupEntry {
@@ -49,21 +53,26 @@ impl EtcGroupEntry {
     }
 
     pub(crate) fn group_with_users<U>(name: &str, gid: u32, users: &[U]) -> Self
-        where U: ToString
+    where
+        U: ToString,
     {
-        Self { name: name.to_string(),
-               gid,
-               users: users.iter().map(ToString::to_string).collect() }
+        Self {
+            name: name.to_string(),
+            gid,
+            users: users.iter().map(ToString::to_string).collect(),
+        }
     }
 }
 
 impl fmt::Display for EtcGroupEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "{name}:x:{gid}:{users}",
-               name = self.name,
-               gid = self.gid,
-               users = self.users.join(","))
+        write!(
+            f,
+            "{name}:x:{gid}:{users}",
+            name = self.name,
+            gid = self.gid,
+            users = self.users.join(",")
+        )
     }
 }
 

@@ -1,0 +1,70 @@
+use clap_v4 as clap;
+
+use crate::error::Result as BioResult;
+use biome_common::{FeatureFlag, ui::UI};
+use clap::Subcommand;
+
+mod create;
+mod delete;
+mod depart;
+mod info;
+mod invitations;
+mod key;
+mod rbac;
+mod transfer;
+
+#[derive(Clone, Debug, Subcommand)]
+#[command(
+    author = "\nThe Biome Maintainers <humans@biome.sh>",
+    about = "Commands relating to Biome Builder origins",
+    arg_required_else_help = true,
+    help_template = "{name} {version} {author-section} {about-section} \n{usage-heading} \
+                           {usage}\n\n{all-args}\n"
+)]
+pub(super) enum OriginCommand {
+    /// Creates a new Builder origin
+    Create(create::OriginCreateOptions),
+
+    /// Removes an unused/empty origin
+    Delete(delete::OriginDeleteOptions),
+
+    /// Departs membership from selected origin
+    Depart(depart::OriginDepartOptions),
+
+    /// Displays general information about an origin
+    Info(info::OriginInfoOptions),
+
+    /// Manage origin member invitations
+    #[command(subcommand)]
+    Invitations(invitations::OriginInvitationsCommand),
+
+    /// Commands relating to Biome origin key maintenance
+    #[command(subcommand)]
+    Key(key::OriginKeyCommand),
+
+    /// Role Based Access Control for origin members
+    #[command(subcommand)]
+    Rbac(rbac::OriginRbacCommand),
+
+    /// Transfers ownership of an origin to another member of that origin
+    Transfer(transfer::OriginTransferOptions),
+}
+
+impl OriginCommand {
+    pub(crate) async fn do_command(
+        &self,
+        ui: &mut UI,
+        _feature_flags: FeatureFlag,
+    ) -> BioResult<()> {
+        match self {
+            Self::Create(opts) => opts.do_create(ui).await,
+            Self::Delete(opts) => opts.do_delete(ui).await,
+            Self::Depart(opts) => opts.do_depart(ui).await,
+            Self::Info(opts) => opts.do_info(ui).await,
+            Self::Invitations(opts) => opts.execute(ui).await,
+            Self::Key(opts) => opts.execute(ui).await,
+            Self::Rbac(opts) => opts.execute(ui).await,
+            Self::Transfer(opts) => opts.do_transfer(ui).await,
+        }
+    }
+}

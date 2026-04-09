@@ -15,18 +15,18 @@
 //! we limit what we do with them according to our actual requirements
 //! for them in the system. Thus, they only deal with anonymous
 //! messages.
-use crate::{crypto::keys::{AnonymousBox,
-                           Key,
-                           NamedRevision,
-                           encryption::{PUBLIC_BOX_KEY_VERSION,
-                                        PUBLIC_KEY_SUFFIX,
-                                        SECRET_BOX_KEY_SUFFIX,
-                                        SECRET_BOX_KEY_VERSION,
-                                        primitives}},
-            error::{Error,
-                    Result},
-            fs::Permissions,
-            origin::Origin};
+use crate::{
+    crypto::keys::{
+        AnonymousBox, Key, NamedRevision,
+        encryption::{
+            PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX,
+            SECRET_BOX_KEY_VERSION, primitives,
+        },
+    },
+    error::{Error, Result},
+    fs::Permissions,
+    origin::Origin,
+};
 
 /// Given the name of an origin, generate a new encryption key pair.
 ///
@@ -37,15 +37,19 @@ use crate::{crypto::keys::{AnonymousBox,
 /// encryption keys should never be created in the Supervisor or the
 /// CLI.
 pub fn generate_origin_encryption_key_pair(
-    origin: &Origin)
-    -> Result<(OriginPublicEncryptionKey, OriginSecretEncryptionKey)> {
+    origin: &Origin,
+) -> Result<(OriginPublicEncryptionKey, OriginSecretEncryptionKey)> {
     let named_revision = NamedRevision::new(origin.to_string());
     let (pk, sk) = primitives::gen_keypair()?;
 
-    let public = OriginPublicEncryptionKey { named_revision: named_revision.clone(),
-                                             key:            pk, };
-    let secret = OriginSecretEncryptionKey { named_revision,
-                                             key: sk };
+    let public = OriginPublicEncryptionKey {
+        named_revision: named_revision.clone(),
+        key: pk,
+    };
+    let secret = OriginSecretEncryptionKey {
+        named_revision,
+        key: sk,
+    };
     Ok((public, secret))
 }
 
@@ -74,7 +78,7 @@ gen_key!(/// Secret key used to decrypt anonymous secrets messages.
          /// decrypting secrets that users anonymously sign with an
          /// `OriginPublicEncryptionKey`.
          ///
-         /// Nothing in the Supervisor or the Habitat CLI should ever do
+         /// Nothing in the Supervisor or the Biome CLI should ever do
          /// anything with this type.
          OriginSecretEncryptionKey,
          key_material: primitives::SecretKey,
@@ -93,8 +97,9 @@ impl OriginSecretEncryptionKey {
         // don't have to pass unnecessary arguments to this function.
         let pk = self.key().public_key()?;
 
-        primitives::sealedbox::open(secret.ciphertext(), &pk, self.key())
-            .map_err(|_| Error::CryptoError("Could not decrypt origin encrypted secret".to_string()))
+        primitives::sealedbox::open(secret.ciphertext(), &pk, self.key()).map_err(|_| {
+            Error::CryptoError("Could not decrypt origin encrypted secret".to_string())
+        })
     }
 }
 

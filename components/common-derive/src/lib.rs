@@ -1,20 +1,9 @@
 use proc_macro::TokenStream;
 
-use syn::{Attribute,
-          Data,
-          DataStruct,
-          DeriveInput,
-          Expr,
-          ExprLit,
-          Field,
-          Fields,
-          Ident,
-          Lit,
-          Meta,
-          MetaNameValue,
-          Token,
-          parse_macro_input,
-          punctuated::Punctuated};
+use syn::{
+    Attribute, Data, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Ident, Lit, Meta,
+    MetaNameValue, Token, parse_macro_input, punctuated::Punctuated,
+};
 
 use quote::quote;
 
@@ -22,30 +11,31 @@ use quote::quote;
 pub fn gen_config(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let fields = match input.data {
-        Data::Struct(DataStruct { fields: Fields::Named(fields),
-                                  .. }) => fields.named,
+        Data::Struct(DataStruct {
+            fields: Fields::Named(fields),
+            ..
+        }) => fields.named,
         _ => panic!("this derive macro only works on structs with named fields"),
     };
 
-    let field_tokens =
-        fields.iter().map(|f| {
-                         let field_ident = f.ident.clone().unwrap();
-                         let field_doc = get_field_doc(&f.attrs);
-                         let field_value = get_field_value(&field_ident);
+    let field_tokens = fields.iter().map(|f| {
+        let field_ident = f.ident.clone().unwrap();
+        let field_doc = get_field_doc(&f.attrs);
+        let field_value = get_field_value(&field_ident);
 
-                         if is_hidden_field(f) {
-                             quote! {}
-                         } else if is_flattened_field(f) {
-                             quote! {
-                                 config_string += self.#field_ident.gen_config().as_str();
-                             }
-                         } else {
-                             quote! {
-                                 config_string += #field_doc;
-                                 #field_value
-                             }
-                         }
-                     });
+        if is_hidden_field(f) {
+            quote! {}
+        } else if is_flattened_field(f) {
+            quote! {
+                config_string += self.#field_ident.gen_config().as_str();
+            }
+        } else {
+            quote! {
+                config_string += #field_doc;
+                #field_value
+            }
+        }
+    });
 
     let struct_ident = input.ident;
 
@@ -84,8 +74,10 @@ fn get_field_doc(attrs: &[Attribute]) -> String {
     for attr in attrs {
         let Attribute { meta, .. } = attr;
         if let Meta::NameValue(MetaNameValue { path, value, .. }) = meta
-           && path.segments[0].ident == "doc"
-           && let Expr::Lit(ExprLit { lit: Lit::Str(lit), .. }) = value
+            && path.segments[0].ident == "doc"
+            && let Expr::Lit(ExprLit {
+                lit: Lit::Str(lit), ..
+            }) = value
         {
             doc_string += &format!("### {}\n", lit.value());
         }
@@ -96,13 +88,16 @@ fn get_field_doc(attrs: &[Attribute]) -> String {
 fn is_hidden_field(field: &Field) -> bool {
     for attr in &field.attrs {
         if attr.path().is_ident("arg") {
-            let nested = attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
-                             .expect("parse_args_with:hidden:");
+            let nested = attr
+                .parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
+                .expect("parse_args_with:hidden:");
             for meta in nested {
                 if let Meta::NameValue(MetaNameValue { path, value, .. }) = meta
-                   && path.is_ident("hide")
-                   && let Expr::Lit(ExprLit { lit: Lit::Bool(hide),
-                                              .. }) = value
+                    && path.is_ident("hide")
+                    && let Expr::Lit(ExprLit {
+                        lit: Lit::Bool(hide),
+                        ..
+                    }) = value
                 {
                     return hide.value;
                 }
@@ -115,8 +110,9 @@ fn is_hidden_field(field: &Field) -> bool {
 fn is_flattened_field(field: &Field) -> bool {
     for attr in &field.attrs {
         if attr.path().is_ident("command") {
-            let nested = attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
-                             .expect("parse_args_with");
+            let nested = attr
+                .parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
+                .expect("parse_args_with");
             for meta in nested {
                 if meta.path().is_ident("flatten") {
                     return true;

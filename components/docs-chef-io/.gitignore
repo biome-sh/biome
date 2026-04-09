@@ -1,11 +1,0 @@
-
-*.*~
-*~
-
-resources/
-public/
-
-chef-web-docs/
-.hugo_build.lock
-*.work
-*.work.sum

@@ -1,7 +1,5 @@
-use super::{HandleResult,
-            Handler};
-use crate::{protocol,
-            server::ServiceTable};
+use super::{HandleResult, Handler};
+use crate::{protocol, server::ServiceTable};
 
 pub struct PidHandler;
 

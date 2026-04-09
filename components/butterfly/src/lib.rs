@@ -1,5 +1,5 @@
 //! Butterfly is the [SWIM](http://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf)
-//! implementation for Habitat, along with a ZeroMQ based gossip protocol.
+//! implementation for Biome, along with a ZeroMQ based gossip protocol.
 //!
 //! It implements SWIM+Susp+Inf. It uses Newscast-style "heat" tracking to share membership rumors,
 //! while trying to keep UDP packet sizes below 512 bytes. It has the following changes:
@@ -58,7 +58,9 @@ pub struct ServerContext(UnsafeCell<zmq::Context>);
 
 impl ServerContext {
     #[allow(clippy::mut_from_ref)]
-    pub fn as_mut(&self) -> &mut zmq::Context { unsafe { &mut *self.0.get() } }
+    pub fn as_mut(&self) -> &mut zmq::Context {
+        unsafe { &mut *self.0.get() }
+    }
 }
 
 unsafe impl Send for ServerContext {}

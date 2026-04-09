@@ -1,16 +1,16 @@
 [package]
-name = "habitat_pkg_export_container"
+name = "biome_pkg_export_container"
 version = "0.0.0"
 edition = "2024"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 build = "build.rs"
 workspace = "../../"
 
 [lib]
-name = "habitat_pkg_export_container"
+name = "biome_pkg_export_container"
 
 [[bin]]
-name = "hab-pkg-export-container"
+name = "bio-pkg-export-container"
 path = "src/main.rs"
 doc = false
 
@@ -23,9 +23,9 @@ aws-sdk-ecr = { version = "*", default-features = false, features = ["default-ht
 base64 = "*"
 clap = { version = "4", features = ["env", "derive", "string", "wrap_help"] }
 env_logger = "*"
-hab = { path = "../hab" }
-habitat_common = { path = "../common" }
-habitat_core = { path = "../core" }
+bio = { path = "../bio" }
+biome_common = { path = "../common" }
+biome_core = { path = "../core" }
 handlebars = { version = "*", default-features = false }
 lazy_static = "*"
 linked-hash-map = "*"

@@ -1,11 +1,10 @@
-use super::{Engine,
-            EngineError,
-            resolve_engine_binary};
-use std::{io::Write,
-          path::{Path,
-                 PathBuf},
-          process::Command,
-          result::Result};
+use super::{Engine, EngineError, resolve_engine_binary};
+use std::{
+    io::Write,
+    path::{Path, PathBuf},
+    process::Command,
+    result::Result,
+};
 use tempfile::TempPath;
 use thiserror::Error;
 /// Contents of the signature policy file used by Buildah (normally
@@ -16,8 +15,10 @@ use thiserror::Error;
 ///
 /// See https://www.mankier.com/5/containers-policy.json for further
 /// information.
-const SIGNATURE_POLICY: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
-                                                    "/defaults/containers-policy.json"));
+const SIGNATURE_POLICY: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/defaults/containers-policy.json"
+));
 
 #[derive(Debug)]
 pub(crate) struct BuildahEngine {
@@ -37,7 +38,9 @@ enum BuildahError {
 }
 
 impl From<BuildahError> for EngineError {
-    fn from(b: BuildahError) -> EngineError { EngineError::EngineSpecificError(b.into()) }
+    fn from(b: BuildahError) -> EngineError {
+        EngineError::EngineSpecificError(b.into())
+    }
 }
 
 impl BuildahEngine {
@@ -54,8 +57,9 @@ impl BuildahEngine {
     fn signature_policy() -> Result<TempPath, BuildahError> {
         let mut policy =
             tempfile::NamedTempFile::new().map_err(BuildahError::SignaturePolicyError)?;
-        policy.write_all(SIGNATURE_POLICY.as_bytes())
-              .map_err(BuildahError::SignaturePolicyError)?;
+        policy
+            .write_all(SIGNATURE_POLICY.as_bytes())
+            .map_err(BuildahError::SignaturePolicyError)?;
         Ok(policy.into_temp_path())
     }
 }
@@ -78,24 +82,27 @@ impl Engine for BuildahEngine {
     /// `buildah push --authfile=/path/to/local/config.json push mycompany/mycoolapp`
     fn image_push_command(&self, image_reference: &str, config_dir: &Path) -> Command {
         let mut cmd = Command::new(&self.binary);
-        cmd.args(["push",
-                  "--authfile",
-                  &config_dir.join("config.json").to_string_lossy(),
-                  image_reference]);
+        cmd.args([
+            "push",
+            "--authfile",
+            &config_dir.join("config.json").to_string_lossy(),
+            image_reference,
+        ]);
         cmd
     }
 
-    fn build_command(&self,
-                     build_context: &Path,
-                     tags: &[String],
-                     memory: Option<&str>)
-                     -> Command {
+    fn build_command(
+        &self,
+        build_context: &Path,
+        tags: &[String],
+        memory: Option<&str>,
+    ) -> Command {
         let mut cmd = Command::new(&self.binary);
         cmd.current_dir(build_context);
 
         cmd.arg("build-using-dockerfile")
-           .arg("--layers")
-           .arg("--force-rm");
+            .arg("--layers")
+            .arg("--force-rm");
 
         // Need this (Buildah's default format is OCI) because
         // apparently DockerHub has problems with OCI images.

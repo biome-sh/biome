@@ -1,16 +1,15 @@
-use crate::error::{Error,
-                   Result};
-use blake2b_simd::{Params,
-                   State};
+use crate::error::{Error, Result};
+use blake2b_simd::{Params, State};
 use hex::FromHex;
 use serde::Serialize;
-use std::{convert::TryInto,
-          fmt,
-          fs::File,
-          io::{BufReader,
-               Read},
-          path::Path,
-          str::FromStr};
+use std::{
+    convert::TryInto,
+    fmt,
+    fs::File,
+    io::{BufReader, Read},
+    path::Path,
+    str::FromStr,
+};
 
 /// When hashing byte streams, we'll read 1KB at a time, adding this to the
 /// internal hashing state as we compute the final digest.
@@ -35,7 +34,8 @@ pub struct Blake2bHash {
 impl Blake2bHash {
     /// Calculate the BLAKE2b hash of the contents of a file.
     pub fn from_file<P>(filename: P) -> Result<Self>
-        where P: AsRef<Path>
+    where
+        P: AsRef<Path>,
     {
         let file = File::open(filename.as_ref())?;
         let mut reader = BufReader::new(file);
@@ -44,7 +44,8 @@ impl Blake2bHash {
 
     /// Calculate the BLAKE2b hash of a sequence of bytes.
     pub fn from_bytes<B>(data: B) -> Self
-        where B: AsRef<[u8]>
+    where
+        B: AsRef<[u8]>,
     {
         let mut state = hash_state();
         state.update(data.as_ref());
@@ -76,15 +77,18 @@ impl Blake2bHash {
 // day.
 impl From<blake2b_simd::Hash> for Blake2bHash {
     fn from(src: blake2b_simd::Hash) -> Self {
-        let digest = src.as_bytes()
-                        .try_into()
-                        .expect("We know we can safely convert to a byte array");
+        let digest = src
+            .as_bytes()
+            .try_into()
+            .expect("We know we can safely convert to a byte array");
         Blake2bHash { digest }
     }
 }
 
 impl AsRef<[u8]> for Blake2bHash {
-    fn as_ref(&self) -> &[u8] { &self.digest }
+    fn as_ref(&self) -> &[u8] {
+        &self.digest
+    }
 }
 
 impl PartialEq for Blake2bHash {
@@ -93,7 +97,9 @@ impl PartialEq for Blake2bHash {
     // Strictly speaking, secure equality comparison shouldn't be
     // necessary; however, having a type encapsulate this gives us a
     // convenient way to modify this in the future.
-    fn eq(&self, other: &Blake2bHash) -> bool { crate::crypto::secure_eq(self, other) }
+    fn eq(&self, other: &Blake2bHash) -> bool {
+        crate::crypto::secure_eq(self, other)
+    }
 }
 
 impl fmt::Display for Blake2bHash {
@@ -124,11 +130,13 @@ impl FromStr for Blake2bHash {
         // the proper length of bytes... well, that and the compiler,
         // of course :)
         let bytes = FromHex::from_hex(s).map_err(|e| {
-                                            Error::CryptoError(format!("Could not parse \
+            Error::CryptoError(format!(
+                "Could not parse \
                                                                         Blake2bHash from string: \
                                                                         {}",
-                                                                       e))
-                                        })?;
+                e
+            ))
+        })?;
         Ok(Self { digest: bytes })
     }
 }
@@ -137,7 +145,8 @@ impl Serialize for Blake2bHash {
     /// Serializes a `Blake2bHash` according to its `Display`
     /// implementation (i.e., a lowercase hex-encoded string).
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-        where S: serde::Serializer
+    where
+        S: serde::Serializer,
     {
         serializer.serialize_str(&self.to_string())
     }
@@ -161,7 +170,9 @@ mod tests {
 
     /// Helper function to create a Blake2bHash directly from a
     /// hex-encoded string.
-    fn hash_from_hex(hex: &str) -> Blake2bHash { hex.parse().unwrap() }
+    fn hash_from_hex(hex: &str) -> Blake2bHash {
+        hex.parse().unwrap()
+    }
 
     #[test]
     fn strings_can_be_hashed() {
@@ -209,9 +220,10 @@ mod tests {
     #[test]
     #[cfg(feature = "functional")]
     fn hash_file_large_binary() {
-        let dir = tempfile::Builder::new().prefix("large_file")
-                                          .tempdir()
-                                          .unwrap();
+        let dir = tempfile::Builder::new()
+            .prefix("large_file")
+            .tempdir()
+            .unwrap();
 
         let url = "http://www.kernel.org/pub/linux/kernel/v4.x/linux-4.3.tar.gz";
         let file = dir.path().join(url.rsplit('/').next().unwrap());
@@ -229,13 +241,19 @@ mod tests {
 
     #[test]
     fn eq() {
-        let zeroes = Blake2bHash { digest: [0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
-                                            0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
-                                            0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8], };
+        let zeroes = Blake2bHash {
+            digest: [
+                0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
+                0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
+            ],
+        };
 
-        let ones = Blake2bHash { digest: [1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                          1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                          1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8], };
+        let ones = Blake2bHash {
+            digest: [
+                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+            ],
+        };
 
         assert_ne!(zeroes, ones);
         assert!(zeroes.eq(&zeroes));
@@ -244,17 +262,23 @@ mod tests {
 
     #[test]
     fn display() {
-        let ones = Blake2bHash { digest: [1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                          1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                                          1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8], };
-        assert_eq!(ones.to_string(),
-                   "0101010101010101010101010101010101010101010101010101010101010101");
+        let ones = Blake2bHash {
+            digest: [
+                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+            ],
+        };
+        assert_eq!(
+            ones.to_string(),
+            "0101010101010101010101010101010101010101010101010101010101010101"
+        );
     }
 
     #[test]
     fn from_str_good() {
         // Exactly 32 bytes long
-        let h = "0101010101010101010101010101010101010101010101010101010101010101".parse::<Blake2bHash>();
+        let h = "0101010101010101010101010101010101010101010101010101010101010101"
+            .parse::<Blake2bHash>();
         assert!(h.is_ok());
     }
 
@@ -268,7 +292,8 @@ mod tests {
     #[test]
     fn from_str_long() {
         // This is one byte too long
-        let h = "010101010101010101010101010101010101010101010101010101010101010101".parse::<Blake2bHash>();
+        let h = "010101010101010101010101010101010101010101010101010101010101010101"
+            .parse::<Blake2bHash>();
         assert!(h.is_err());
     }
 

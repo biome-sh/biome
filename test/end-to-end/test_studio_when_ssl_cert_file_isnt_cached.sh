@@ -9,20 +9,20 @@ set -euo pipefail
 source .expeditor/scripts/end_to_end/shared_end_to_end.sh
  
 echo "--- Generating a signing key"
-hab origin key generate "$HAB_ORIGIN"
+bio origin key generate "$BIO_ORIGIN"
 
 echo "--- Removing any existing cached certificates"
-rm -f /hab/cache/ssl/*
-rm -f ~/.hab/cache/ssl/*
+rm -f /bio/cache/ssl/*
+rm -f ~/.bio/cache/ssl/*
 
 # This must be run immediatly before `studio run`, as 
 # the auto-installation of the studio on first-run triggers
 # the behavior we're attempting to test
 echo "--- Uninstalling any existing studio packages"
-while hab pkg uninstall chef/hab-studio; do 
+while bio pkg uninstall biome/bio-studio; do 
   :; # no-op
 done
 
 echo "--- Test SSL_CERT_FILE remains unset inside the studio"
-hab studio run "echo \$SSL_CERT_FILE && test ! -v SSL_CERT_FILE"
+bio studio run "echo \$SSL_CERT_FILE && test ! -v SSL_CERT_FILE"
 

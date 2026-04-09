@@ -1,15 +1,8 @@
 use super::Signal;
-use crate::error::{Error,
-                   Result};
-use libc::{self,
-           pid_t};
-use log::{debug,
-          error};
-use std::{ffi::OsString,
-          io,
-          os::unix::process::CommandExt,
-          path::PathBuf,
-          process::Command};
+use crate::error::{Error, Result};
+use libc::{self, pid_t};
+use log::{debug, error};
+use std::{ffi::OsString, io, os::unix::process::CommandExt, path::PathBuf, process::Command};
 
 pub type Pid = libc::pid_t;
 pub(crate) type SignalCode = libc::c_int;
@@ -19,7 +12,9 @@ pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
 }
 
 /// Get process identifier of calling process.
-pub fn current_pid() -> Pid { unsafe { libc::getpid() as pid_t } }
+pub fn current_pid() -> Pid {
+    unsafe { libc::getpid() as pid_t }
+}
 
 /// Determines if a process is running with the given process identifier.
 pub fn is_alive(pid: Pid) -> bool {
@@ -38,13 +33,11 @@ pub fn is_alive(pid: Pid) -> bool {
 
     match unsafe { libc::kill(pid, 0) } {
         0 => true,
-        _ => {
-            match io::Error::last_os_error().raw_os_error() {
-                Some(libc::EPERM) => true,
-                Some(libc::ESRCH) => false,
-                _ => false,
-            }
-        }
+        _ => match io::Error::last_os_error().raw_os_error() {
+            Some(libc::EPERM) => true,
+            Some(libc::ESRCH) => false,
+            _ => false,
+        },
     }
 }
 
@@ -103,13 +96,16 @@ fn become_exec_command(command: PathBuf, args: &[OsString]) -> Result<()> {
 /// able to access their files. Similar logic holds for the reverse.
 #[cfg(target_os = "linux")]
 pub fn can_run_services_as_svc_user() -> bool {
-    use caps::{CapSet,
-               Capability};
+    use caps::{CapSet, Capability};
 
-    fn has(cap: Capability) -> bool { caps::has_cap(None, CapSet::Effective, cap).unwrap_or(false) }
+    fn has(cap: Capability) -> bool {
+        caps::has_cap(None, CapSet::Effective, cap).unwrap_or(false)
+    }
 
     has(Capability::CAP_SETUID) && has(Capability::CAP_SETGID) && has(Capability::CAP_CHOWN)
 }
 
 #[cfg(target_os = "macos")]
-pub fn can_run_services_as_svc_user() -> bool { true }
+pub fn can_run_services_as_svc_user() -> bool {
+    true
+}

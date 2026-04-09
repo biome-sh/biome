@@ -13,7 +13,7 @@
 // TODO (CM): what do we do with rumors that have officially
 // "cooled off"? Can we just remove them?
 
-habitat_core::env_config_int!(/// The number of times that a rumor will be shared with a given
+biome_core::env_config_int!(/// The number of times that a rumor will be shared with a given
                               /// member before we stop sending it to that same member.
                               ///
                               /// This is roughly analogous to the parameter `k` (used as a
@@ -29,16 +29,13 @@ habitat_core::env_config_int!(/// The number of times that a rumor will be share
                               #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
                               RumorShareLimit,
                               usize,
-                              HAB_RUMOR_SHARE_LIMIT,
+                              BIO_RUMOR_SHARE_LIMIT,
                               2);
 
 pub(crate) mod sync {
     use super::*;
-    use crate::rumor::{RumorKey,
-                       RumorType};
-    use habitat_common::sync::{Lock,
-                               ReadGuard,
-                               WriteGuard};
+    use crate::rumor::{RumorKey, RumorType};
+    use biome_common::sync::{Lock, ReadGuard, WriteGuard};
     use log::debug;
     use std::collections::HashMap;
 
@@ -47,7 +44,9 @@ pub(crate) mod sync {
     pub struct RumorHeatReadGuard<'a>(ReadGuard<'a, RumorHeatInner>);
 
     impl<'a> RumorHeatReadGuard<'a> {
-        fn new(lock: &'a Lock<RumorHeatInner>) -> Self { Self(lock.read()) }
+        fn new(lock: &'a Lock<RumorHeatInner>) -> Self {
+            Self(lock.read())
+        }
 
         /// Return a list of currently "hot" rumors for the specified
         /// member. This will be the subset of all rumors being tracked
@@ -67,12 +66,12 @@ pub(crate) mod sync {
         /// # Locking (see locking.md)
         /// * `RumorHeat::inner` (read)
         pub fn currently_hot_rumors(&self, id: &str) -> Vec<RumorKey> {
-            let mut rumor_heat: Vec<(RumorKey, usize)> =
-                self.0
-                    .iter()
-                    .map(|(k, heat_map)| (k.clone(), *heat_map.get(id).unwrap_or(&0)))
-                    .filter(|&(_, heat)| heat < RumorShareLimit::configured_value().0)
-                    .collect();
+            let mut rumor_heat: Vec<(RumorKey, usize)> = self
+                .0
+                .iter()
+                .map(|(k, heat_map)| (k.clone(), *heat_map.get(id).unwrap_or(&0)))
+                .filter(|&(_, heat)| heat < RumorShareLimit::configured_value().0)
+                .collect();
 
             // Reverse sorting by heat; 0s come last!
             rumor_heat.sort_by(|(_, h1), (_, h2)| h2.cmp(h1));
@@ -85,7 +84,9 @@ pub(crate) mod sync {
     pub struct RumorHeatWriteGuard<'a>(WriteGuard<'a, RumorHeatInner>);
 
     impl<'a> RumorHeatWriteGuard<'a> {
-        fn new(lock: &'a Lock<RumorHeatInner>) -> Self { Self(lock.write()) }
+        fn new(lock: &'a Lock<RumorHeatInner>) -> Self {
+            Self(lock.write())
+        }
 
         /// Add a rumor to track; members will see it as "hot".
         ///
@@ -124,8 +125,10 @@ pub(crate) mod sync {
                             heat_map.insert(String::from(id), 1);
                         }
                     } else {
-                        debug!("Rumor does not exist in map; was probably deleted between \
-                                retrieval and sending");
+                        debug!(
+                            "Rumor does not exist in map; was probably deleted between \
+                                retrieval and sending"
+                        );
                     }
                 }
             }
@@ -153,9 +156,11 @@ pub(crate) mod sync {
             self.0
                 .retain(|k, _| !(k.kind == RumorType::Service && k.id == id));
             let count_after = self.0.len();
-            debug!("Purged {} service rumor mappings for {:?}",
-                   count_before - count_after,
-                   id);
+            debug!(
+                "Purged {} service rumor mappings for {:?}",
+                count_before - count_after,
+                id
+            );
 
             // Remove any "cooling" information for this member, across
             // all types of rumors.
@@ -184,24 +189,29 @@ pub(crate) mod sync {
 
     impl RumorHeat {
         #[must_use]
-        pub fn lock_rhr(&self) -> RumorHeatReadGuard<'_> { RumorHeatReadGuard::new(&self.inner) }
+        pub fn lock_rhr(&self) -> RumorHeatReadGuard<'_> {
+            RumorHeatReadGuard::new(&self.inner)
+        }
 
         #[must_use]
-        pub fn lock_rhw(&self) -> RumorHeatWriteGuard<'_> { RumorHeatWriteGuard::new(&self.inner) }
+        pub fn lock_rhw(&self) -> RumorHeatWriteGuard<'_> {
+            RumorHeatWriteGuard::new(&self.inner)
+        }
     }
 
     #[cfg(test)]
     pub(crate) mod tests {
         use super::*;
-        use crate::{member::Member,
-                    rumor::{RumorKey,
-                            service::{Service,
-                                      SysInfo}}};
-        use habitat_core::{locked_env_var,
-                           package::PackageIdent,
-                           service::ServiceGroup};
+        use crate::{
+            member::Member,
+            rumor::{
+                RumorKey,
+                service::{Service, SysInfo},
+            },
+        };
+        use biome_core::{locked_env_var, package::PackageIdent, service::ServiceGroup};
 
-        locked_env_var!(HAB_RUMOR_SHARE_LIMIT, lock_rumor_limit);
+        locked_env_var!(BIO_RUMOR_SHARE_LIMIT, lock_rumor_limit);
 
         fn test_service(member_id: &str) -> Service {
             let package: PackageIdent = "core/foo/1.0.0/20180701125610".parse().unwrap();
@@ -210,8 +220,10 @@ pub(crate) mod sync {
         }
 
         fn test_member(member_id: &str) -> Member {
-            Member { id: member_id.to_string(),
-                     ..Default::default() }
+            Member {
+                id: member_id.to_string(),
+                ..Default::default()
+            }
         }
 
         /// Helper function that tests that a given rumor is currently
@@ -220,7 +232,8 @@ pub(crate) mod sync {
         /// # Locking (see locking.md)
         /// * `RumorHeat::inner` (read)
         pub fn assert_rumor_is_hot_rhr<T>(heat: &RumorHeat, member_id: &str, rumor: T)
-            where T: Into<RumorKey>
+        where
+            T: Into<RumorKey>,
         {
             let key = rumor.into();
             let hot_rumors = heat.lock_rhr().currently_hot_rumors(member_id);
@@ -233,7 +246,8 @@ pub(crate) mod sync {
         /// # Locking (see locking.md)
         /// * `RumorHeat::inner` (read)
         pub fn assert_rumor_is_cold_rhr<T>(heat: &RumorHeat, member_id: &str, rumor: T)
-            where T: Into<RumorKey>
+        where
+            T: Into<RumorKey>,
         {
             let key = rumor.into();
             let hot_rumors = heat.lock_rhr().currently_hot_rumors(member_id);
@@ -247,7 +261,8 @@ pub(crate) mod sync {
         /// # Locking (see locking.md)
         /// * `RumorHeat::inner` (write)
         pub fn cool_rumor_completely_rhw<T>(heat: &RumorHeat, member_id: &str, rumor: T)
-            where T: Into<RumorKey>
+        where
+            T: Into<RumorKey>,
         {
             let rumor_keys = &[rumor.into()];
             for _ in 0..RumorShareLimit::default().0 {
@@ -315,23 +330,31 @@ pub(crate) mod sync {
 
                 // Check the Member rumors
                 for m in &[&member_1, &member_2, &member_3] {
-                    let heat_map = inner.get(&RumorKey::from(*m))
-                                        .expect("Should have had a member rumor present");
+                    let heat_map = inner
+                        .get(&RumorKey::from(*m))
+                        .expect("Should have had a member rumor present");
                     for m in &[member_1_id, member_2_id, member_3_id] {
-                        assert_eq!(heat_map.get(*m)
-                                           .expect("Should have had an entry for the member"),
-                                   &RumorShareLimit::default().0);
+                        assert_eq!(
+                            heat_map
+                                .get(*m)
+                                .expect("Should have had an entry for the member"),
+                            &RumorShareLimit::default().0
+                        );
                     }
                 }
 
                 // Check the Service rumors
                 for s in &[&service_1, &service_2, &service_3] {
-                    let heat_map = inner.get(&RumorKey::from(*s))
-                                        .expect("Should have had a service rumor present");
+                    let heat_map = inner
+                        .get(&RumorKey::from(*s))
+                        .expect("Should have had a service rumor present");
                     for m in &[member_1_id, member_2_id, member_3_id] {
-                        assert_eq!(heat_map.get(*m)
-                                           .expect("Should have had an entry for the member"),
-                                   &RumorShareLimit::default().0);
+                        assert_eq!(
+                            heat_map
+                                .get(*m)
+                                .expect("Should have had an entry for the member"),
+                            &RumorShareLimit::default().0
+                        );
                     }
                 }
             }
@@ -347,28 +370,44 @@ pub(crate) mod sync {
 
                 // Check the Member rumors... all these should be present
                 for m in &[&member_1, &member_2, &member_3] {
-                    let heat_map = inner.get(&RumorKey::from(*m))
-                                        .expect("Should have had a member rumor present");
-                    assert_eq!(heat_map.get(member_1_id).expect("lulz"),
-                               &RumorShareLimit::default().0);
-                    assert!(heat_map.get(member_2_id).is_none(),
-                            "Heat information for a purged member should be removed");
-                    assert_eq!(heat_map.get(member_3_id).expect("lulz"),
-                               &RumorShareLimit::default().0);
+                    let heat_map = inner
+                        .get(&RumorKey::from(*m))
+                        .expect("Should have had a member rumor present");
+                    assert_eq!(
+                        heat_map.get(member_1_id).expect("lulz"),
+                        &RumorShareLimit::default().0
+                    );
+                    assert!(
+                        heat_map.get(member_2_id).is_none(),
+                        "Heat information for a purged member should be removed"
+                    );
+                    assert_eq!(
+                        heat_map.get(member_3_id).expect("lulz"),
+                        &RumorShareLimit::default().0
+                    );
                 }
 
                 // Check the Service rumors
-                assert!(inner.get(&RumorKey::from(&service_2)).is_none(),
-                        "Service keys from the purged member should be removed");
+                assert!(
+                    inner.get(&RumorKey::from(&service_2)).is_none(),
+                    "Service keys from the purged member should be removed"
+                );
                 for s in &[&service_1, &service_3] {
-                    let heat_map = inner.get(&RumorKey::from(*s))
-                                        .expect("Should have had a service rumor present");
-                    assert_eq!(heat_map.get(member_1_id).expect("lulz"),
-                               &RumorShareLimit::default().0);
-                    assert!(heat_map.get(member_2_id).is_none(),
-                            "Heat information for a purged member should be removed");
-                    assert_eq!(heat_map.get(member_3_id).expect("lulz"),
-                               &RumorShareLimit::default().0);
+                    let heat_map = inner
+                        .get(&RumorKey::from(*s))
+                        .expect("Should have had a service rumor present");
+                    assert_eq!(
+                        heat_map.get(member_1_id).expect("lulz"),
+                        &RumorShareLimit::default().0
+                    );
+                    assert!(
+                        heat_map.get(member_2_id).is_none(),
+                        "Heat information for a purged member should be removed"
+                    );
+                    assert_eq!(
+                        heat_map.get(member_3_id).expect("lulz"),
+                        &RumorShareLimit::default().0
+                    );
                 }
             }
         }
@@ -377,61 +416,78 @@ pub(crate) mod sync {
 
 #[cfg(test)]
 mod tests {
-    use super::{sync::{RumorHeat,
-                       tests::{assert_rumor_is_cold_rhr,
-                               assert_rumor_is_hot_rhr,
-                               cool_rumor_completely_rhw}},
-                *};
-    use crate::{error::Result,
-                protocol::{self,
-                           newscast},
-                rumor::{Rumor,
-                        RumorKey,
-                        RumorType}};
-    use habitat_core::locked_env_var;
+    use super::{
+        sync::{
+            RumorHeat,
+            tests::{assert_rumor_is_cold_rhr, assert_rumor_is_hot_rhr, cool_rumor_completely_rhw},
+        },
+        *,
+    };
+    use crate::{
+        error::Result,
+        protocol::{self, newscast},
+        rumor::{Rumor, RumorKey, RumorType},
+    };
+    use biome_core::locked_env_var;
     use serde::Serialize;
     use uuid::Uuid;
 
-    locked_env_var!(HAB_RUMOR_SHARE_LIMIT, lock_rumor_limit);
+    locked_env_var!(BIO_RUMOR_SHARE_LIMIT, lock_rumor_limit);
 
     // TODO (CM): This FakeRumor implementation is copied from
     // rumor.rs; factor this helper code better.
 
     #[derive(Clone, Debug, Serialize)]
     struct FakeRumor {
-        pub id:  String,
+        pub id: String,
         pub key: String,
     }
 
     impl Default for FakeRumor {
         fn default() -> FakeRumor {
-            FakeRumor { id:  format!("{}", Uuid::new_v4().as_simple()),
-                        key: String::from("fakerton"), }
+            FakeRumor {
+                id: format!("{}", Uuid::new_v4().as_simple()),
+                key: String::from("fakerton"),
+            }
         }
     }
 
     impl Rumor for FakeRumor {
-        fn kind(&self) -> RumorType { RumorType::Fake }
+        fn kind(&self) -> RumorType {
+            RumorType::Fake
+        }
 
-        fn key(&self) -> &str { &self.key }
+        fn key(&self) -> &str {
+            &self.key
+        }
 
-        fn id(&self) -> &str { &self.id }
+        fn id(&self) -> &str {
+            &self.id
+        }
 
-        fn merge(&mut self, mut _other: FakeRumor) -> bool { false }
+        fn merge(&mut self, mut _other: FakeRumor) -> bool {
+            false
+        }
     }
 
     impl protocol::FromProto<newscast::Rumor> for FakeRumor {
-        fn from_proto(_other: newscast::Rumor) -> Result<Self> { Ok(FakeRumor::default()) }
+        fn from_proto(_other: newscast::Rumor) -> Result<Self> {
+            Ok(FakeRumor::default())
+        }
     }
 
     impl From<FakeRumor> for newscast::Rumor {
-        fn from(_other: FakeRumor) -> newscast::Rumor { newscast::Rumor::default() }
+        fn from(_other: FakeRumor) -> newscast::Rumor {
+            newscast::Rumor::default()
+        }
     }
 
     impl protocol::Message<newscast::Rumor> for FakeRumor {
         const MESSAGE_ID: &'static str = "FakeRumor";
 
-        fn from_bytes(_bytes: &[u8]) -> Result<Self> { Ok(FakeRumor::default()) }
+        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
+            Ok(FakeRumor::default())
+        }
 
         fn write_to_bytes(&self) -> Result<Vec<u8>> {
             Ok(Vec::from(format!("{}-{}", self.id, self.key).as_bytes()))

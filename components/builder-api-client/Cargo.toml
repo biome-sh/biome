@@ -1,8 +1,8 @@
 [package]
-name = "habitat_api_client"
+name = "biome_api_client"
 version = "0.0.0"
 edition = "2024"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 workspace = "../../"
 
 [dependencies]
@@ -10,8 +10,8 @@ broadcast = "*"
 bytes = "*"
 chrono = "*"
 futures = "*"
-habitat_core = { path = "../core" }
-habitat_http_client = { path = "../http-client" }
+biome_core = { path = "../core" }
+biome_http_client = { path = "../http-client" }
 log = "0.4"
 pbr = "*"
 percent-encoding = "*"

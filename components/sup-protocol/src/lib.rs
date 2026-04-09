@@ -26,7 +26,7 @@
 //! *not* by a build server intentionally. This is to ensure we have the source available for
 //! all protocol files.
 
-use habitat_core as core;
+use biome_core as core;
 use lazy_static::lazy_static;
 pub mod butterfly;
 pub mod codec;
@@ -35,15 +35,17 @@ pub mod message;
 pub mod net;
 pub mod types;
 
-use crate::{core::env as henv,
-            net::{ErrCode,
-                  NetResult}};
+use crate::{
+    core::env as henv,
+    net::{ErrCode, NetResult},
+};
 
-use std::{fs::File,
-          io::Read,
-          net::SocketAddr,
-          path::{Path,
-                 PathBuf}};
+use std::{
+    fs::File,
+    io::Read,
+    net::SocketAddr,
+    path::{Path, PathBuf},
+};
 
 use rand::RngExt;
 
@@ -55,7 +57,7 @@ const CTL_SECRET_LEN: usize = 64;
 lazy_static! {
     /// The root path containing all runtime service directories and files
     pub static ref STATE_PATH_PREFIX: PathBuf = {
-        Path::new(&*core::fs::FS_ROOT_PATH).join("hab/sup")
+        Path::new(&*core::fs::FS_ROOT_PATH).join("bio/sup")
     };
 
     pub static ref DEFAULT_BLDR_URL: String = {
@@ -75,24 +77,34 @@ pub fn generate_secret_key(out: &mut String) {
 /// it to the given out buffer. An `Ok` return value of `true` indicates a successful read while
 /// `false` indicates the file was not found.
 pub fn read_secret_key<T>(sup_root: T, out: &mut String) -> NetResult<bool>
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     let secret_key_path = sup_root.as_ref().join(CTL_SECRET_FILENAME);
     if secret_key_path.exists() {
         if secret_key_path.is_dir() {
-            return Err(net::err(ErrCode::Io,
-                                format!("Expected file but found directory when \
+            return Err(net::err(
+                ErrCode::Io,
+                format!(
+                    "Expected file but found directory when \
                                          reading ctl secret, {}",
-                                        secret_key_path.display())));
+                    secret_key_path.display()
+                ),
+            ));
         }
-        File::open(&secret_key_path).and_then(|mut f| f.read_to_string(out))
-                                    .map_err(move |e| {
-                                        net::err(ErrCode::Io,
-                                                 format!("IoError while reading or writing ctl \
+        File::open(&secret_key_path)
+            .and_then(|mut f| f.read_to_string(out))
+            .map_err(move |e| {
+                net::err(
+                    ErrCode::Io,
+                    format!(
+                        "IoError while reading or writing ctl \
                                                           secret, {}, {}",
-                                                         secret_key_path.display(),
-                                                         e))
-                                    })?;
+                        secret_key_path.display(),
+                        e
+                    ),
+                )
+            })?;
         *out = out.trim_end().into();
         Ok(true)
     } else {
@@ -102,7 +114,8 @@ pub fn read_secret_key<T>(sup_root: T, out: &mut String) -> NetResult<bool>
 
 /// Returns the location of the CtlGateway Secret on disk for the given Supervisor root.
 pub fn secret_key_path<T>(sup_root: T) -> PathBuf
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     sup_root.as_ref().join(CTL_SECRET_FILENAME)
 }
@@ -110,10 +123,10 @@ pub fn secret_key_path<T>(sup_root: T) -> PathBuf
 pub fn sup_root(custom_state_path: Option<&PathBuf>) -> PathBuf {
     match custom_state_path {
         Some(custom) => custom.to_path_buf(),
-        // TODO: /hab/sup/default is legacy from when we allowed multiple
+        // TODO: /bio/sup/default is legacy from when we allowed multiple
         // supervisors on the same host with --override-name. The sup dir
-        // should really be /hab/sup now, but it would be an awkward change
-        // since the assumption of /hab/sup/default is pervasive.
+        // should really be /bio/sup now, but it would be an awkward change
+        // since the assumption of /bio/sup/default is pervasive.
         // See https://github.com/habitat-sh/habitat/issues/5266
         None => STATE_PATH_PREFIX.join("default"),
     }
@@ -122,16 +135,16 @@ pub fn sup_root(custom_state_path: Option<&PathBuf>) -> PathBuf {
 /// Given an Environment variable name, attempts to parse a SocketAddr from it.
 /// If the Environment variable is empty or unparseable, returns the default as passed in.
 pub fn socket_addr_env_or_default(env_var: &str, default: SocketAddr) -> SocketAddr {
-    henv::var(env_var).unwrap_or_default()
-                      .parse()
-                      .unwrap_or(default)
+    henv::var(env_var)
+        .unwrap_or_default()
+        .parse()
+        .unwrap_or(default)
 }
 
 #[cfg(test)]
 mod ctl_secret {
     use super::*;
-    use std::{fs::File,
-              io::Write};
+    use std::{fs::File, io::Write};
     use tempfile::TempDir;
 
     #[test]
@@ -139,14 +152,19 @@ mod ctl_secret {
         let tmpdir = TempDir::new().unwrap();
         let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
         let mut secret_file = File::create(file_path).unwrap();
-        write!(secret_file,
-               "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
-                Itfu4HOdQGmLRY9G5fRUcuw/w==").unwrap();
+        write!(
+            secret_file,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                Itfu4HOdQGmLRY9G5fRUcuw/w=="
+        )
+        .unwrap();
         let mut out = String::new();
         assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
-        assert_eq!(out,
-                   "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
-                    Itfu4HOdQGmLRY9G5fRUcuw/w==");
+        assert_eq!(
+            out,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                    Itfu4HOdQGmLRY9G5fRUcuw/w=="
+        );
     }
 
     #[test]
@@ -154,14 +172,19 @@ mod ctl_secret {
         let tmpdir = TempDir::new().unwrap();
         let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
         let mut secret_file = File::create(file_path).unwrap();
-        writeln!(secret_file,
-                 "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
-                  Itfu4HOdQGmLRY9G5fRUcuw/w==").unwrap();
+        writeln!(
+            secret_file,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                  Itfu4HOdQGmLRY9G5fRUcuw/w=="
+        )
+        .unwrap();
         let mut out = String::new();
         assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
-        assert_eq!(out,
-                   "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
-                    Itfu4HOdQGmLRY9G5fRUcuw/w==");
+        assert_eq!(
+            out,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                    Itfu4HOdQGmLRY9G5fRUcuw/w=="
+        );
     }
 
     #[test]
@@ -169,14 +192,19 @@ mod ctl_secret {
         let tmpdir = TempDir::new().unwrap();
         let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
         let mut secret_file = File::create(file_path).unwrap();
-        writeln!(secret_file,
-                 "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
-                  Itfu4HOdQGmLRY9G5fRUcuw/w==\r").unwrap();
+        writeln!(
+            secret_file,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                  Itfu4HOdQGmLRY9G5fRUcuw/w==\r"
+        )
+        .unwrap();
         let mut out = String::new();
         assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
-        assert_eq!(out,
-                   "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
-                    Itfu4HOdQGmLRY9G5fRUcuw/w==");
+        assert_eq!(
+            out,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                    Itfu4HOdQGmLRY9G5fRUcuw/w=="
+        );
     }
 
     #[test]

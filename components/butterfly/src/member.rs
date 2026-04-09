@@ -1,57 +1,48 @@
 //! Tracks membership. Contains both the `Member` struct and the `MemberList`.
 
 pub use crate::protocol::swim::Health;
-use crate::{error::{Error,
-                    Result},
-            protocol::{self,
-                       FromProto,
-                       newscast,
-                       swim as proto},
-            rumor::{RumorKey,
-                    RumorPayload,
-                    RumorType}};
-use habitat_common::sync::{Lock,
-                           ReadGuard,
-                           WriteGuard};
-use habitat_core::util::ToI64;
+use crate::{
+    error::{Error, Result},
+    protocol::{self, FromProto, newscast, swim as proto},
+    rumor::{RumorKey, RumorPayload, RumorType},
+};
+use biome_common::sync::{Lock, ReadGuard, WriteGuard};
+use biome_core::util::ToI64;
 use lazy_static::lazy_static;
-use log::{debug,
-          trace};
-use prometheus::{IntGaugeVec,
-                 register_int_gauge_vec};
-use rand::{rng,
-           seq::{IteratorRandom,
-                 SliceRandom}};
-use serde::{Deserialize,
-            Deserializer,
-            Serialize,
-            Serializer,
-            de,
-            ser::{SerializeMap,
-                  SerializeStruct}};
-use std::{collections::{HashMap,
-                        hash_map},
-          convert::TryFrom,
-          fmt,
-          net::SocketAddr,
-          num::ParseIntError,
-          ops::Add,
-          result,
-          str::FromStr,
-          sync::atomic::{AtomicUsize,
-                         Ordering},
-          time::{Duration,
-                 Instant}};
+use log::{debug, trace};
+use prometheus::{IntGaugeVec, register_int_gauge_vec};
+use rand::{
+    rng,
+    seq::{IteratorRandom, SliceRandom},
+};
+use serde::{
+    Deserialize, Deserializer, Serialize, Serializer, de,
+    ser::{SerializeMap, SerializeStruct},
+};
+use std::{
+    collections::{HashMap, hash_map},
+    convert::TryFrom,
+    fmt,
+    net::SocketAddr,
+    num::ParseIntError,
+    ops::Add,
+    result,
+    str::FromStr,
+    sync::atomic::{AtomicUsize, Ordering},
+    time::{Duration, Instant},
+};
 use uuid::Uuid;
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
 
 lazy_static! {
-    static ref PEER_HEALTH_COUNT: IntGaugeVec =
-        register_int_gauge_vec!("hab_butterfly_peer_health_total",
-                                "Number of butterfly peers",
-                                &["health"]).unwrap();
+    static ref PEER_HEALTH_COUNT: IntGaugeVec = register_int_gauge_vec!(
+        "bio_butterfly_peer_health_total",
+        "Number of butterfly peers",
+        &["health"]
+    )
+    .unwrap();
 }
 
 /// Wraps a `u64` to represent the "incarnation number" of a
@@ -63,28 +54,39 @@ lazy_static! {
 pub struct Incarnation(u64);
 
 impl From<u64> for Incarnation {
-    fn from(num: u64) -> Self { Incarnation(num) }
+    fn from(num: u64) -> Self {
+        Incarnation(num)
+    }
 }
 
 impl Incarnation {
-    pub fn to_u64(self) -> u64 { self.0 }
+    pub fn to_u64(self) -> u64 {
+        self.0
+    }
 
-    pub fn to_i64(self) -> i64 { self.0.to_i64() }
+    pub fn to_i64(self) -> i64 {
+        self.0.to_i64()
+    }
 }
 
 impl fmt::Display for Incarnation {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 impl Add<u64> for Incarnation {
     type Output = Incarnation;
 
-    fn add(self, other: u64) -> Incarnation { Incarnation(self.0 + other) }
+    fn add(self, other: u64) -> Incarnation {
+        Incarnation(self.0 + other)
+    }
 }
 
 impl Serialize for Incarnation {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_u64(self.0)
     }
@@ -109,7 +111,8 @@ impl de::Visitor<'_> for IncarnationVisitor {
     }
 
     fn visit_u64<E>(self, v: u64) -> result::Result<Self::Value, E>
-        where E: de::Error
+    where
+        E: de::Error,
     {
         Ok(Incarnation::from(v))
     }
@@ -117,7 +120,8 @@ impl de::Visitor<'_> for IncarnationVisitor {
 
 impl<'de> Deserialize<'de> for Incarnation {
     fn deserialize<D>(deserializer: D) -> result::Result<Incarnation, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         deserializer.deserialize_u64(IncarnationVisitor)
     }
@@ -130,14 +134,14 @@ pub type UuidSimple = String;
 /// representation.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Member {
-    pub id:          String,
+    pub id: String,
     pub incarnation: Incarnation,
-    pub address:     String,
-    pub swim_port:   u16,
+    pub address: String,
+    pub swim_port: u16,
     pub gossip_port: u16,
-    pub persistent:  bool,
-    pub departed:    bool,
-    pub probe_ping:  bool,
+    pub persistent: bool,
+    pub departed: bool,
+    pub probe_ping: bool,
 }
 
 impl Member {
@@ -160,44 +164,54 @@ impl Member {
 
 impl Default for Member {
     fn default() -> Self {
-        Member { id:          Uuid::new_v4().as_simple().to_string(),
-                 incarnation: Incarnation::default(),
-                 // TODO (CM): DANGER DANGER DANGER
-                 // This is a lousy default, and suggests that the notion
-                 // of a "default Member" doesn't make much sense.
-                 //
-                 // (Port numbers of 0 are also problematic.)
-                 address:     String::default(),
-                 swim_port:   0,
-                 gossip_port: 0,
-                 persistent:  false,
-                 departed:    false,
-                 probe_ping:  false, }
+        Member {
+            id: Uuid::new_v4().as_simple().to_string(),
+            incarnation: Incarnation::default(),
+            // TODO (CM): DANGER DANGER DANGER
+            // This is a lousy default, and suggests that the notion
+            // of a "default Member" doesn't make much sense.
+            //
+            // (Port numbers of 0 are also problematic.)
+            address: String::default(),
+            swim_port: 0,
+            gossip_port: 0,
+            persistent: false,
+            departed: false,
+            probe_ping: false,
+        }
     }
 }
 
 impl From<Member> for RumorKey {
-    fn from(member: Member) -> RumorKey { RumorKey::new(RumorType::Member, member.id, "") }
+    fn from(member: Member) -> RumorKey {
+        RumorKey::new(RumorType::Member, member.id, "")
+    }
 }
 
 impl<'a> From<&'a Member> for RumorKey {
-    fn from(member: &'a Member) -> RumorKey { RumorKey::new(RumorType::Member, &member.id, "") }
+    fn from(member: &'a Member) -> RumorKey {
+        RumorKey::new(RumorType::Member, &member.id, "")
+    }
 }
 
 impl<'a> From<&'a &'a Member> for RumorKey {
-    fn from(member: &'a &'a Member) -> RumorKey { RumorKey::new(RumorType::Member, &member.id, "") }
+    fn from(member: &'a &'a Member) -> RumorKey {
+        RumorKey::new(RumorType::Member, &member.id, "")
+    }
 }
 
 impl From<Member> for proto::Member {
     fn from(value: Member) -> Self {
-        proto::Member { id:          Some(value.id),
-                        incarnation: Some(value.incarnation.to_u64()),
-                        address:     Some(value.address),
-                        swim_port:   Some(value.swim_port.into()),
-                        gossip_port: Some(value.gossip_port.into()),
-                        persistent:  Some(value.persistent),
-                        departed:    Some(value.departed),
-                        probe_ping:  Some(value.probe_ping), }
+        proto::Member {
+            id: Some(value.id),
+            incarnation: Some(value.incarnation.to_u64()),
+            address: Some(value.address),
+            swim_port: Some(value.swim_port.into()),
+            gossip_port: Some(value.gossip_port.into()),
+            persistent: Some(value.persistent),
+            departed: Some(value.departed),
+            probe_ping: Some(value.probe_ping),
+        }
     }
 }
 
@@ -209,27 +223,30 @@ pub struct Membership {
 
 impl fmt::Display for Membership {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "Member i/{} m/{} ad/{} sp/{} gp/{} p/{} d/{} h/{:?}",
-               self.member.incarnation,
-               self.member.id,
-               self.member.address,
-               self.member.swim_port,
-               self.member.gossip_port,
-               self.member.persistent,
-               self.member.departed,
-               self.health)
+        write!(
+            f,
+            "Member i/{} m/{} ad/{} sp/{} gp/{} p/{} d/{} h/{:?}",
+            self.member.incarnation,
+            self.member.id,
+            self.member.address,
+            self.member.swim_port,
+            self.member.gossip_port,
+            self.member.persistent,
+            self.member.departed,
+            self.health
+        )
     }
 }
 
 impl Membership {
     /// See MemberList::insert
-    fn newer_or_less_healthy_than(&self,
-                                  other_incarnation: Incarnation,
-                                  other_health: Health)
-                                  -> bool {
+    fn newer_or_less_healthy_than(
+        &self,
+        other_incarnation: Incarnation,
+        other_health: Health,
+    ) -> bool {
         self.member.incarnation > other_incarnation
-        || (self.member.incarnation == other_incarnation && self.health > other_health)
+            || (self.member.incarnation == other_incarnation && self.health > other_health)
     }
 }
 
@@ -239,8 +256,10 @@ impl protocol::Message<proto::Membership> for Membership {
 
 impl From<Membership> for proto::Membership {
     fn from(value: Membership) -> Self {
-        proto::Membership { member: Some(value.member.into()),
-                            health: Some(value.health as i32), }
+        proto::Membership {
+            member: Some(value.member.into()),
+            health: Some(value.health as i32),
+        }
     }
 }
 
@@ -258,69 +277,78 @@ fn as_port(x: i32) -> Option<u16> {
 
 impl FromProto<proto::Member> for Member {
     fn from_proto(proto: proto::Member) -> Result<Self> {
-        Ok(Member { id:          proto.id.ok_or(Error::ProtocolMismatch("id"))?,
-                    incarnation: proto.incarnation
-                                      .map_or_else(Incarnation::default, Incarnation::from),
+        Ok(Member {
+            id: proto.id.ok_or(Error::ProtocolMismatch("id"))?,
+            incarnation: proto
+                .incarnation
+                .map_or_else(Incarnation::default, Incarnation::from),
 
-                    // This hurts so bad...
-                    //
-                    // Our "Member" protobuf is currently serving two
-                    // purposes. One is here, serving as the return address of
-                    // a Supervisor for a message. Another is serving as a
-                    // record of a known member of the Supervisor ring; this
-                    // data is piggy-backed on our core SWIM messages as a way
-                    // of introducing new members to existing network members.
-                    //
-                    // The thing is, depending on which case the Member struct
-                    // is being used for, it may or may not have an "address"
-                    // field. If it's as the return address, it's actually
-                    // getting the address from the networking layer; the
-                    // sending Supervisor doesn't actually have that
-                    // information.
-                    //
-                    // On the other hand, if it's an actual membership record,
-                    // then it _will_ have an address, which will ultimately
-                    // have been resolved at some point in the past by the
-                    // aforementioned method of relying on the networking
-                    // layer.
-                    //
-                    // The Prost migration introduced validation that wasn't
-                    // taking this into account; it assumed that we would
-                    // _always_ have a network address. This cause it to
-                    // essentially reject any messages from 0.59.0 (and
-                    // before) Supervisors, because they had no such
-                    // validation, and never set any value for a return
-                    // address.
-                    //
-                    // It was able to work with Supervisors _after_ the Prost
-                    // migration because we default to setting an empty string
-                    // for the address. This is arguably NOT the right thing
-                    // to do, since a value of `Some("")` is more dangerous than
-                    // a value of `None`. We ultimately need to either _not_
-                    // generate meaningless default values, or tease apart the
-                    // two uses of our Member protobuf, or both.
-                    address: proto.address.unwrap_or_default(),
+            // This hurts so bad...
+            //
+            // Our "Member" protobuf is currently serving two
+            // purposes. One is here, serving as the return address of
+            // a Supervisor for a message. Another is serving as a
+            // record of a known member of the Supervisor ring; this
+            // data is piggy-backed on our core SWIM messages as a way
+            // of introducing new members to existing network members.
+            //
+            // The thing is, depending on which case the Member struct
+            // is being used for, it may or may not have an "address"
+            // field. If it's as the return address, it's actually
+            // getting the address from the networking layer; the
+            // sending Supervisor doesn't actually have that
+            // information.
+            //
+            // On the other hand, if it's an actual membership record,
+            // then it _will_ have an address, which will ultimately
+            // have been resolved at some point in the past by the
+            // aforementioned method of relying on the networking
+            // layer.
+            //
+            // The Prost migration introduced validation that wasn't
+            // taking this into account; it assumed that we would
+            // _always_ have a network address. This cause it to
+            // essentially reject any messages from 0.59.0 (and
+            // before) Supervisors, because they had no such
+            // validation, and never set any value for a return
+            // address.
+            //
+            // It was able to work with Supervisors _after_ the Prost
+            // migration because we default to setting an empty string
+            // for the address. This is arguably NOT the right thing
+            // to do, since a value of `Some("")` is more dangerous than
+            // a value of `None`. We ultimately need to either _not_
+            // generate meaningless default values, or tease apart the
+            // two uses of our Member protobuf, or both.
+            address: proto.address.unwrap_or_default(),
 
-                    swim_port:   proto.swim_port
-                                      .and_then(as_port)
-                                      .ok_or(Error::ProtocolMismatch("swim-port"))?,
-                    gossip_port: proto.gossip_port
-                                      .and_then(as_port)
-                                      .ok_or(Error::ProtocolMismatch("gossip-port"))?,
-                    persistent:  proto.persistent.unwrap_or(false),
-                    departed:    proto.departed.unwrap_or(false),
-                    probe_ping:  proto.probe_ping.unwrap_or(false), })
+            swim_port: proto
+                .swim_port
+                .and_then(as_port)
+                .ok_or(Error::ProtocolMismatch("swim-port"))?,
+            gossip_port: proto
+                .gossip_port
+                .and_then(as_port)
+                .ok_or(Error::ProtocolMismatch("gossip-port"))?,
+            persistent: proto.persistent.unwrap_or(false),
+            departed: proto.departed.unwrap_or(false),
+            probe_ping: proto.probe_ping.unwrap_or(false),
+        })
     }
 }
 
 impl FromProto<proto::Membership> for Membership {
     fn from_proto(proto: proto::Membership) -> Result<Self> {
-        Ok(Membership { member: proto.member
-                                     .ok_or(Error::ProtocolMismatch("member"))
-                                     .and_then(Member::from_proto)?,
-                        health: proto.health
-                                     .and_then(|h| Health::try_from(h).ok())
-                                     .unwrap_or(Health::Alive), })
+        Ok(Membership {
+            member: proto
+                .member
+                .ok_or(Error::ProtocolMismatch("member"))
+                .and_then(Member::from_proto)?,
+            health: proto
+                .health
+                .and_then(|h| Health::try_from(h).ok())
+                .unwrap_or(Health::Alive),
+        })
     }
 }
 
@@ -336,8 +364,8 @@ impl FromProto<newscast::Rumor> for Membership {
 mod member_list {
     #[derive(Clone, Debug)]
     pub struct Entry {
-        pub member:            super::Member,
-        pub health:            super::Health,
+        pub member: super::Member,
+        pub health: super::Health,
         pub health_updated_at: std::time::Instant,
     }
 }
@@ -346,16 +374,17 @@ mod member_list {
 /// suspect or confirmed.
 #[derive(Debug)]
 pub struct MemberList {
-    entries:         Lock<HashMap<UuidSimple, member_list::Entry>>,
+    entries: Lock<HashMap<UuidSimple, member_list::Entry>>,
     initial_members: Lock<Vec<Member>>,
-    update_counter:  AtomicUsize,
+    update_counter: AtomicUsize,
 }
 
 impl Serialize for MemberList {
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = serializer.serialize_struct("member_list", 4)?;
 
@@ -383,9 +412,11 @@ impl Serialize for MemberList {
 impl MemberList {
     /// Creates a new, empty, MemberList.
     pub fn new() -> MemberList {
-        MemberList { entries:         Lock::new(HashMap::new()),
-                     initial_members: Lock::new(Vec::new()),
-                     update_counter:  AtomicUsize::new(0), }
+        MemberList {
+            entries: Lock::new(HashMap::new()),
+            initial_members: Lock::new(Vec::new()),
+            update_counter: AtomicUsize::new(0),
+        }
     }
 
     /// # Locking (see locking.md)
@@ -400,19 +431,29 @@ impl MemberList {
         self.entries.write()
     }
 
-    fn initial_members_read(&self) -> ReadGuard<'_, Vec<Member>> { self.initial_members.read() }
+    fn initial_members_read(&self) -> ReadGuard<'_, Vec<Member>> {
+        self.initial_members.read()
+    }
 
-    fn initial_members_write(&self) -> WriteGuard<'_, Vec<Member>> { self.initial_members.write() }
+    fn initial_members_write(&self) -> WriteGuard<'_, Vec<Member>> {
+        self.initial_members.write()
+    }
 
     /// We don't care if this repeats - it just needs to be unique for any given two states, which
     /// it will be.
-    fn increment_update_counter(&self) { self.update_counter.fetch_add(1, Ordering::Relaxed); }
+    fn increment_update_counter(&self) {
+        self.update_counter.fetch_add(1, Ordering::Relaxed);
+    }
 
-    pub fn get_update_counter(&self) -> usize { self.update_counter.load(Ordering::Relaxed) }
+    pub fn get_update_counter(&self) -> usize {
+        self.update_counter.load(Ordering::Relaxed)
+    }
 
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (read)
-    pub fn len_initial_members_imlr(&self) -> usize { self.initial_members_read().len() }
+    pub fn len_initial_members_imlr(&self) -> usize {
+        self.initial_members_read().len()
+    }
 
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (write)
@@ -502,46 +543,61 @@ impl MemberList {
     /// * `MemberList::entries` (write)
     // TODO (CM): why don't we just insert a membership record here?
     pub fn insert_mlw(&self, incoming_member: Member, incoming_health: Health) -> bool {
-        self.insert_membership_mlw(Membership { member: incoming_member,
-                                                health: incoming_health, },
-                                   false)
+        self.insert_membership_mlw(
+            Membership {
+                member: incoming_member,
+                health: incoming_health,
+            },
+            false,
+        )
     }
 
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (write)
-    fn insert_membership_mlw(&self,
-                             incoming: Membership,
-                             ignore_incarnation_and_health: bool)
-                             -> bool {
+    fn insert_membership_mlw(
+        &self,
+        incoming: Membership,
+        ignore_incarnation_and_health: bool,
+    ) -> bool {
         let member_id = incoming.member.id.clone();
         // Is this clone necessary, or can a key be a reference to a field contained in the value?
         // Maybe the members we store should not contain the ID to reduce the duplication?
-        trace!("insert_membership_mlw: Member: {}, Health: {}",
-               member_id, incoming.health);
+        trace!(
+            "insert_membership_mlw: Member: {}, Health: {}",
+            member_id, incoming.health
+        );
         let modified = match self.write_entries().entry(member_id.clone()) {
             hash_map::Entry::Occupied(mut entry) => {
                 let val = entry.get_mut();
                 if incoming.newer_or_less_healthy_than(val.member.incarnation, val.health)
-                   || (ignore_incarnation_and_health && val.health != incoming.health)
+                    || (ignore_incarnation_and_health && val.health != incoming.health)
                 {
-                    trace!("++ current health: {}, incoming health: {}",
-                           val.health, incoming.health);
-                    *val = member_list::Entry { member:            incoming.member,
-                                                health:            incoming.health,
-                                                health_updated_at: Instant::now(), };
+                    trace!(
+                        "++ current health: {}, incoming health: {}",
+                        val.health, incoming.health
+                    );
+                    *val = member_list::Entry {
+                        member: incoming.member,
+                        health: incoming.health,
+                        health_updated_at: Instant::now(),
+                    };
                     trace!("Occupied: Updated");
                     true
                 } else {
-                    trace!("-- current health: {}, incoming health: {}, incarnation: {}, ",
-                           val.health, incoming.health, val.member.incarnation);
+                    trace!(
+                        "-- current health: {}, incoming health: {}, incarnation: {}, ",
+                        val.health, incoming.health, val.member.incarnation
+                    );
                     trace!("Occupied: Not Updated");
                     false
                 }
             }
             hash_map::Entry::Vacant(entry) => {
-                entry.insert(member_list::Entry { member:            incoming.member,
-                                                  health:            incoming.health,
-                                                  health_updated_at: Instant::now(), });
+                entry.insert(member_list::Entry {
+                    member: incoming.member,
+                    health: incoming.health,
+                    health_updated_at: Instant::now(),
+                });
                 trace!("Empty: Created!");
                 true
             }
@@ -558,13 +614,18 @@ impl MemberList {
         modified
     }
 
-    pub(crate) fn insert_member_ignore_incarnation_mlw(&self,
-                                                       incoming_member: Member,
-                                                       incoming_health: Health)
-                                                       -> bool {
-        self.insert_membership_mlw(Membership { member: incoming_member,
-                                                health: incoming_health, },
-                                   true)
+    pub(crate) fn insert_member_ignore_incarnation_mlw(
+        &self,
+        incoming_member: Member,
+        incoming_health: Health,
+    ) -> bool {
+        self.insert_membership_mlw(
+            Membership {
+                member: incoming_member,
+                health: incoming_health,
+            },
+            true,
+        )
     }
 
     /// # Locking (see locking.md)
@@ -573,10 +634,12 @@ impl MemberList {
         if let Some(member_list::Entry { member, health, .. }) =
             self.write_entries().get_mut(member_id)
         {
-            debug!("Setting health of {:?}, {} -> {}",
-                   member,
-                   health,
-                   Health::Departed);
+            debug!(
+                "Setting health of {:?}, {} -> {}",
+                member,
+                health,
+                Health::Departed
+            );
             *health = Health::Departed;
         } else {
             trace!("set_departed called on unknown member {}", member_id);
@@ -592,13 +655,17 @@ impl MemberList {
             *health_counts.entry(entry.health).or_insert(0) += 1;
         }
 
-        for health in [Health::Alive,
-                       Health::Suspect,
-                       Health::Confirmed,
-                       Health::Departed].iter()
+        for health in [
+            Health::Alive,
+            Health::Suspect,
+            Health::Confirmed,
+            Health::Departed,
+        ]
+        .iter()
         {
-            PEER_HEALTH_COUNT.with_label_values(&[&health.to_string()])
-                             .set(*health_counts.get(health).unwrap_or(&0));
+            PEER_HEALTH_COUNT
+                .with_label_values(&[&health.to_string()])
+                .set(*health_counts.get(health).unwrap_or(&0));
         }
     }
 
@@ -628,21 +695,26 @@ impl MemberList {
     /// # Errors:
     /// * `Error::Timeout` if the health data can't be accessed within `timeout`
     /// * `Error::UnknownMember` if the member does not exist
-    pub fn health_of_by_id_with_timeout_mlr(&self,
-                                            member_id: &str,
-                                            timeout: std::time::Duration)
-                                            -> Result<Health> {
+    pub fn health_of_by_id_with_timeout_mlr(
+        &self,
+        member_id: &str,
+        timeout: std::time::Duration,
+    ) -> Result<Health> {
         let entries = self.entries.try_read_for(timeout);
 
         if entries.is_none() {
             debug!("try_lock_for timed out after {:?}", timeout);
-            return Err(Error::Timeout(format!("waiting on {} member health query", member_id)));
+            return Err(Error::Timeout(format!(
+                "waiting on {} member health query",
+                member_id
+            )));
         }
 
-        entries.unwrap()
-               .get(member_id)
-               .map(|member_list::Entry { health, .. }| *health)
-               .ok_or_else(|| Error::UnknownMember(member_id.to_string()))
+        entries
+            .unwrap()
+            .get(member_id)
+            .map(|member_list::Entry { health, .. }| *health)
+            .ok_or_else(|| Error::UnknownMember(member_id.to_string()))
     }
 
     /// Returns true if the member is alive, suspect, or persistent; used during the target
@@ -654,8 +726,10 @@ impl MemberList {
         if member.persistent {
             return true;
         }
-        matches!(self.health_of_mlr(member),
-                 Some(Health::Alive) | Some(Health::Suspect))
+        matches!(
+            self.health_of_mlr(member),
+            Some(Health::Alive) | Some(Health::Suspect)
+        )
     }
 
     /// Returns true if we are pinging this member because they are persistent, but we think they
@@ -674,9 +748,9 @@ impl MemberList {
     pub fn membership_for_mlr(&self, member_id: &str) -> Option<Membership> {
         self.read_entries()
             .get(member_id)
-            .map(|member_list::Entry { member, health, .. }| {
-                Membership { member: member.clone(),
-                             health: *health, }
+            .map(|member_list::Entry { member, health, .. }| Membership {
+                member: member.clone(),
+                health: *health,
             })
     }
 
@@ -684,23 +758,28 @@ impl MemberList {
     ///
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
-    pub fn len_mlr(&self) -> usize { self.read_entries().len() }
+    pub fn len_mlr(&self) -> usize {
+        self.read_entries().len()
+    }
 
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
-    pub fn is_empty_mlr(&self) -> bool { self.read_entries().is_empty() }
+    pub fn is_empty_mlr(&self) -> bool {
+        self.read_entries().is_empty()
+    }
 
     /// A randomized list of members to check.
     ///
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
     pub fn check_list_mlr(&self, exclude_id: &str) -> Vec<Member> {
-        let mut members: Vec<_> = self.read_entries()
-                                      .values()
-                                      .map(|member_list::Entry { member, .. }| member)
-                                      .filter(|member| member.id != exclude_id)
-                                      .cloned()
-                                      .collect();
+        let mut members: Vec<_> = self
+            .read_entries()
+            .values()
+            .map(|member_list::Entry { member, .. }| member)
+            .filter(|member| member.id != exclude_id)
+            .cloned()
+            .collect();
         members.shuffle(&mut rng());
 
         members
@@ -712,19 +791,21 @@ impl MemberList {
     /// * `MemberList::entries` (read)
     /// * Additionally `with_closure` is called with this lock held, so the closure must not call
     ///   any functions which take this lock.
-    pub fn with_pingreq_targets_mlr(&self,
-                                    sending_member_id: &str,
-                                    target_member_id: &str,
-                                    mut with_closure: impl FnMut(&Member)) {
-        for member_list::Entry { member, .. } in
-            self.read_entries()
-                .values()
-                .filter(|member_list::Entry { member, health, .. }| {
-                    member.id != sending_member_id
+    pub fn with_pingreq_targets_mlr(
+        &self,
+        sending_member_id: &str,
+        target_member_id: &str,
+        mut with_closure: impl FnMut(&Member),
+    ) {
+        for member_list::Entry { member, .. } in self
+            .read_entries()
+            .values()
+            .filter(|member_list::Entry { member, health, .. }| {
+                member.id != sending_member_id
                     && member.id != target_member_id
                     && *health == Health::Alive
-                })
-                .sample(&mut rng(), PINGREQ_TARGETS)
+            })
+            .sample(&mut rng(), PINGREQ_TARGETS)
         {
             with_closure(member);
         }
@@ -748,16 +829,18 @@ impl MemberList {
     /// * `MemberList::entries` (read)
     /// * Additionally `with_closure` is called with this lock held, so the closure must not call
     ///   any functions which take this lock.
-    pub fn with_memberships_mlr<T: Default>(&self,
-                                            mut with_closure: impl FnMut(Membership) -> Result<T>)
-                                            -> Result<T> {
+    pub fn with_memberships_mlr<T: Default>(
+        &self,
+        mut with_closure: impl FnMut(Membership) -> Result<T>,
+    ) -> Result<T> {
         let mut ok = Ok(T::default());
-        for membership in self.read_entries()
-                              .values()
-                              .map(|member_list::Entry { member, health, .. }| {
-                                  Membership { member: member.clone(),
-                                               health: *health, }
-                              })
+        for membership in
+            self.read_entries()
+                .values()
+                .map(|member_list::Entry { member, health, .. }| Membership {
+                    member: member.clone(),
+                    health: *health,
+                })
         {
             ok = Ok(with_closure(membership)?);
         }
@@ -808,22 +891,24 @@ impl MemberList {
             other => panic!("Expiring to {} is invalid", other),
         };
 
-        let expired: Vec<_> =
-            self.write_entries()
-                .iter_mut()
-                .filter_map(|(id, v)| {
-                    let member_list::Entry { health,
-                                             health_updated_at,
-                                             .. } = v;
-                    if *health == precursor_health && now >= *health_updated_at + timeout {
-                        *health = expiring_to;
-                        *health_updated_at = now;
-                        Some(id.clone())
-                    } else {
-                        None
-                    }
-                })
-                .collect();
+        let expired: Vec<_> = self
+            .write_entries()
+            .iter_mut()
+            .filter_map(|(id, v)| {
+                let member_list::Entry {
+                    health,
+                    health_updated_at,
+                    ..
+                } = v;
+                if *health == precursor_health && now >= *health_updated_at + timeout {
+                    *health = expiring_to;
+                    *health_updated_at = now;
+                    Some(id.clone())
+                } else {
+                    None
+                }
+            })
+            .collect();
 
         if !expired.is_empty() {
             self.increment_update_counter();
@@ -843,14 +928,17 @@ impl MemberList {
 pub struct MemberListProxy<'a>(&'a MemberList);
 
 impl<'a> MemberListProxy<'a> {
-    pub fn new(m: &'a MemberList) -> Self { MemberListProxy(m) }
+    pub fn new(m: &'a MemberList) -> Self {
+        MemberListProxy(m)
+    }
 }
 
 impl Serialize for MemberListProxy<'_> {
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let map = self.0.read_entries();
 
@@ -869,12 +957,15 @@ impl Serialize for MemberListProxy<'_> {
 pub struct MemberProxy<'a>(&'a Member, &'a Health);
 
 impl<'a> MemberProxy<'a> {
-    pub fn new(m: &'a Member, h: &'a Health) -> Self { MemberProxy(m, h) }
+    pub fn new(m: &'a Member, h: &'a Health) -> Self {
+        MemberProxy(m, h)
+    }
 }
 
 impl Serialize for MemberProxy<'_> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut strukt = serializer.serialize_struct("member", 6)?;
         strukt.serialize_field("address", &self.0.address)?;
@@ -897,10 +988,10 @@ mod tests {
         // but until then, this keeps them working.
         /// # Locking (see locking.md)
         /// * `MemberList::entries` (read)
-        fn with_member_iter<T>(&self,
-                               mut with_closure: impl FnMut(hash_map::Values<'_, String, Member>)
-                                     -> T)
-                               -> T {
+        fn with_member_iter<T>(
+            &self,
+            mut with_closure: impl FnMut(hash_map::Values<'_, String, Member>) -> T,
+        ) -> T {
             let mut member_map = HashMap::new();
             for (id, super::member_list::Entry { member, .. }) in self.read_entries().iter() {
                 member_map.insert(id.clone(), member.clone());
@@ -910,8 +1001,7 @@ mod tests {
     }
 
     mod member {
-        use crate::member::{Incarnation,
-                            Member};
+        use crate::member::{Incarnation, Member};
 
         // Sets the uuid to simple, and the incarnation to the default.
         #[test]
@@ -923,18 +1013,21 @@ mod tests {
     }
 
     mod membership {
-        use crate::{member::{Health,
-                             Member,
-                             Membership},
-                    protocol::Message};
+        use crate::{
+            member::{Health, Member, Membership},
+            protocol::Message,
+        };
         #[test]
         fn encode_decode_roundtrip() {
             let member = Member::default();
-            let membership = Membership { member,
-                                          health: Health::Suspect };
+            let membership = Membership {
+                member,
+                health: Health::Suspect,
+            };
 
-            let bytes = membership.write_to_bytes()
-                                  .expect("Could not write membership to bytes!");
+            let bytes = membership
+                .write_to_bytes()
+                .expect("Could not write membership to bytes!");
             let from_bytes =
                 Membership::from_bytes(&bytes).expect("Could not decode membership from bytes!");
 
@@ -944,11 +1037,7 @@ mod tests {
     }
 
     mod member_list {
-        use crate::member::{Health,
-                            Member,
-                            MemberList,
-                            Membership,
-                            PINGREQ_TARGETS};
+        use crate::member::{Health, Member, MemberList, Membership, PINGREQ_TARGETS};
 
         fn populated_member_list(size: u64) -> MemberList {
             let ml = MemberList::new();
@@ -983,76 +1072,76 @@ mod tests {
         fn health_of() {
             let ml = populated_member_list(1);
             ml.with_memberships_mlr(|Membership { health, .. }| {
-                  assert_eq!(health, Health::Alive);
-                  Ok(())
-              })
-              .ok();
+                assert_eq!(health, Health::Alive);
+                Ok(())
+            })
+            .ok();
         }
 
         #[test]
         fn health_of_with_memberships() {
             let ml = populated_member_list(1);
             ml.with_memberships_mlr(|Membership { health, .. }| {
-                  assert_eq!(health, Health::Alive);
-                  Ok(0)
-              })
-              .ok();
+                assert_eq!(health, Health::Alive);
+                Ok(0)
+            })
+            .ok();
         }
 
         #[test]
         fn pingreq_targets() {
             let ml = populated_member_list(10);
             ml.with_member_iter(|mut i| {
-                  let from = i.next().unwrap();
-                  let target = i.nth(1).unwrap();
-                  let mut counter: usize = 0;
-                  ml.with_pingreq_targets_mlr(&from.id, &target.id, |_m| counter += 1);
-                  assert_eq!(counter, PINGREQ_TARGETS);
-              });
+                let from = i.next().unwrap();
+                let target = i.nth(1).unwrap();
+                let mut counter: usize = 0;
+                ml.with_pingreq_targets_mlr(&from.id, &target.id, |_m| counter += 1);
+                assert_eq!(counter, PINGREQ_TARGETS);
+            });
         }
 
         #[test]
         fn pingreq_targets_excludes_pinging_member() {
             let ml = populated_member_list(3);
             ml.with_member_iter(|mut i| {
-                  let from = i.next().unwrap();
-                  let target = i.nth(1).unwrap();
-                  let mut excluded_appears: bool = false;
-                  ml.with_pingreq_targets_mlr(&from.id, &target.id, |m| {
-                        if m.id == from.id {
-                            excluded_appears = true
-                        }
-                    });
-                  assert!(!excluded_appears);
-              });
+                let from = i.next().unwrap();
+                let target = i.nth(1).unwrap();
+                let mut excluded_appears: bool = false;
+                ml.with_pingreq_targets_mlr(&from.id, &target.id, |m| {
+                    if m.id == from.id {
+                        excluded_appears = true
+                    }
+                });
+                assert!(!excluded_appears);
+            });
         }
 
         #[test]
         fn pingreq_targets_excludes_target_member() {
             let ml = populated_member_list(3);
             ml.with_member_iter(|mut i| {
-                  let from = i.next().unwrap();
-                  let target = i.nth(1).unwrap();
-                  let mut excluded_appears: bool = false;
-                  ml.with_pingreq_targets_mlr(&from.id, &target.id, |m| {
-                        if m.id == target.id {
-                            excluded_appears = true
-                        }
-                    });
-                  assert!(!excluded_appears);
-              });
+                let from = i.next().unwrap();
+                let target = i.nth(1).unwrap();
+                let mut excluded_appears: bool = false;
+                ml.with_pingreq_targets_mlr(&from.id, &target.id, |m| {
+                    if m.id == target.id {
+                        excluded_appears = true
+                    }
+                });
+                assert!(!excluded_appears);
+            });
         }
 
         #[test]
         fn pingreq_targets_minimum_viable_pingreq_size_is_three() {
             let ml = populated_member_list(3);
             ml.with_member_iter(|mut i| {
-                  let from = i.next().unwrap();
-                  let target = i.nth(1).unwrap();
-                  let mut counter: isize = 0;
-                  ml.with_pingreq_targets_mlr(&from.id, &target.id, |_m| counter += 1);
-                  assert_eq!(counter, 1);
-              });
+                let from = i.next().unwrap();
+                let target = i.nth(1).unwrap();
+                let mut counter: isize = 0;
+                ml.with_pingreq_targets_mlr(&from.id, &target.id, |_m| counter += 1);
+                assert_eq!(counter, 1);
+            });
         }
 
         #[test]
@@ -1066,36 +1155,42 @@ mod tests {
 
         /// Tests of MemberList::insert
         mod insert {
-            use crate::member::{Health,
-                                Incarnation,
-                                Member,
-                                MemberList};
+            use crate::member::{Health, Incarnation, Member, MemberList};
             use std::cmp::Ordering;
 
-            fn assert_cannot_insert_member_rumor_of_lower_incarnation(from_health: Health,
-                                                                      to_health: Health)
-            {
+            fn assert_cannot_insert_member_rumor_of_lower_incarnation(
+                from_health: Health,
+                to_health: Health,
+            ) {
                 let ml = MemberList::new();
                 let initial_update_counter_value = ml.get_update_counter();
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
-                    Member { incarnation: initial_incarnation,
-                             ..Default::default() }
+                    Member {
+                        incarnation: initial_incarnation,
+                        ..Default::default()
+                    }
                 };
 
-                assert!(ml.insert_mlw(member.clone(), from_health),
-                        "Could not insert member into list initially");
+                assert!(
+                    ml.insert_mlw(member.clone(), from_health),
+                    "Could not insert member into list initially"
+                );
 
                 let update_counter_value_checkpoint_1 = ml.get_update_counter();
-                assert_eq!(update_counter_value_checkpoint_1,
-                           initial_update_counter_value + 1,
-                           "Update counter should have incremented by one");
+                assert_eq!(
+                    update_counter_value_checkpoint_1,
+                    initial_update_counter_value + 1,
+                    "Update counter should have incremented by one"
+                );
 
-                assert_eq!(ml.health_of_mlr(&member),
-                           Some(from_health),
-                           "Member should have had health {:?}, but didn't",
-                           from_health);
+                assert_eq!(
+                    ml.health_of_mlr(&member),
+                    Some(from_health),
+                    "Member should have had health {:?}, but didn't",
+                    from_health
+                );
 
                 let member_with_lower_incarnation = {
                     let mut m = member.clone();
@@ -1103,20 +1198,26 @@ mod tests {
                     m
                 };
 
-                assert!(!ml.insert_mlw(member_with_lower_incarnation, to_health),
-                        "Inserting with {:?}->{:?} should be a no-op with a lower incarnation \
+                assert!(
+                    !ml.insert_mlw(member_with_lower_incarnation, to_health),
+                    "Inserting with {:?}->{:?} should be a no-op with a lower incarnation \
                          number",
-                        from_health,
-                        to_health);
-                assert_eq!(ml.get_update_counter(),
-                           update_counter_value_checkpoint_1,
-                           "Update counter should not have been incremented after trying to \
-                            insert a lower-incarnation-number rumor");
-                assert_eq!(ml.health_of_mlr(&member),
-                           Some(from_health),
-                           "Member should have still have health {:?} following attempt to \
+                    from_health,
+                    to_health
+                );
+                assert_eq!(
+                    ml.get_update_counter(),
+                    update_counter_value_checkpoint_1,
+                    "Update counter should not have been incremented after trying to \
+                            insert a lower-incarnation-number rumor"
+                );
+                assert_eq!(
+                    ml.health_of_mlr(&member),
+                    Some(from_health),
+                    "Member should have still have health {:?} following attempt to \
                             insert lower-incarnation-number rumor, but didn't",
-                           from_health);
+                    from_health
+                );
             }
 
             macro_rules! lower_incarnation {
@@ -1150,30 +1251,39 @@ mod tests {
             lower_incarnation!(lower_d_to_c, Health::Departed, Health::Confirmed);
             lower_incarnation!(lower_d_to_d, Health::Departed, Health::Departed);
 
-            fn assert_always_insert_member_rumor_of_higher_incarnation(from_health: Health,
-                                                                       to_health: Health)
-            {
+            fn assert_always_insert_member_rumor_of_higher_incarnation(
+                from_health: Health,
+                to_health: Health,
+            ) {
                 let ml = MemberList::new();
                 let initial_update_counter_value = ml.get_update_counter();
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
-                    Member { incarnation: initial_incarnation,
-                             ..Default::default() }
+                    Member {
+                        incarnation: initial_incarnation,
+                        ..Default::default()
+                    }
                 };
 
-                assert!(ml.insert_mlw(member.clone(), from_health),
-                        "Could not insert member into list initially");
+                assert!(
+                    ml.insert_mlw(member.clone(), from_health),
+                    "Could not insert member into list initially"
+                );
 
                 let update_counter_value_checkpoint_1 = ml.get_update_counter();
-                assert_eq!(update_counter_value_checkpoint_1,
-                           initial_update_counter_value + 1,
-                           "Update counter should have incremented by one");
+                assert_eq!(
+                    update_counter_value_checkpoint_1,
+                    initial_update_counter_value + 1,
+                    "Update counter should have incremented by one"
+                );
 
-                assert_eq!(ml.health_of_mlr(&member),
-                           Some(from_health),
-                           "Member should have had health {:?}, but didn't",
-                           from_health);
+                assert_eq!(
+                    ml.health_of_mlr(&member),
+                    Some(from_health),
+                    "Member should have had health {:?}, but didn't",
+                    from_health
+                );
 
                 let member_with_higher_incarnation = {
                     let mut m = member.clone();
@@ -1181,20 +1291,26 @@ mod tests {
                     m
                 };
 
-                assert!(ml.insert_mlw(member_with_higher_incarnation, to_health),
-                        "Inserting with {:?}->{:?} should be always work with a higher \
+                assert!(
+                    ml.insert_mlw(member_with_higher_incarnation, to_health),
+                    "Inserting with {:?}->{:?} should be always work with a higher \
                          incarnation number",
-                        from_health,
-                        to_health);
-                assert_eq!(ml.get_update_counter(),
-                           update_counter_value_checkpoint_1 + 1,
-                           "Update counter should increment by 1 when inserting a \
-                            higher-incarnation-number rumor");
-                assert_eq!(ml.health_of_mlr(&member),
-                           Some(to_health),
-                           "Member should have health {:?} following insertion of \
+                    from_health,
+                    to_health
+                );
+                assert_eq!(
+                    ml.get_update_counter(),
+                    update_counter_value_checkpoint_1 + 1,
+                    "Update counter should increment by 1 when inserting a \
+                            higher-incarnation-number rumor"
+                );
+                assert_eq!(
+                    ml.health_of_mlr(&member),
+                    Some(to_health),
+                    "Member should have health {:?} following insertion of \
                             higher-incarnation-number rumor",
-                           to_health);
+                    to_health
+                );
             }
 
             macro_rules! higher_incarnation {
@@ -1228,63 +1344,84 @@ mod tests {
             higher_incarnation!(higher_d_to_c, Health::Departed, Health::Confirmed);
             higher_incarnation!(higher_d_to_d, Health::Departed, Health::Departed);
 
-            fn assert_only_insert_member_rumor_of_same_incarnation_if_health_is_worse(from_health: Health,
-                                                                                      to_health: Health)
-            {
+            fn assert_only_insert_member_rumor_of_same_incarnation_if_health_is_worse(
+                from_health: Health,
+                to_health: Health,
+            ) {
                 let ml = MemberList::new();
                 let initial_update_counter_value = ml.get_update_counter();
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
                 let member = {
-                    Member { incarnation: initial_incarnation,
-                             ..Default::default() }
+                    Member {
+                        incarnation: initial_incarnation,
+                        ..Default::default()
+                    }
                 };
 
-                assert!(ml.insert_mlw(member.clone(), from_health),
-                        "Could not insert member into list initially");
+                assert!(
+                    ml.insert_mlw(member.clone(), from_health),
+                    "Could not insert member into list initially"
+                );
 
                 let update_counter_value_checkpoint_1 = ml.get_update_counter();
-                assert_eq!(update_counter_value_checkpoint_1,
-                           initial_update_counter_value + 1,
-                           "Update counter should have incremented by one");
+                assert_eq!(
+                    update_counter_value_checkpoint_1,
+                    initial_update_counter_value + 1,
+                    "Update counter should have incremented by one"
+                );
 
-                assert_eq!(ml.health_of_mlr(&member),
-                           Some(from_health),
-                           "Member should have had health {:?}, but didn't",
-                           from_health);
+                assert_eq!(
+                    ml.health_of_mlr(&member),
+                    Some(from_health),
+                    "Member should have had health {:?}, but didn't",
+                    from_health
+                );
 
                 let member_with_same_incarnation = member.clone();
 
                 if to_health > from_health {
-                    assert!(ml.insert_mlw(member_with_same_incarnation, to_health),
-                            "Inserting with {:?}->{:?} should work with an identical incarnation \
+                    assert!(
+                        ml.insert_mlw(member_with_same_incarnation, to_health),
+                        "Inserting with {:?}->{:?} should work with an identical incarnation \
                              number",
-                            from_health,
-                            to_health);
-                    assert_eq!(ml.get_update_counter(),
-                               update_counter_value_checkpoint_1 + 1,
-                               "Update counter should increment by 1 when inserting a \
-                                same-incarnation-number rumor with worse health");
-                    assert_eq!(ml.health_of_mlr(&member),
-                               Some(to_health),
-                               "Member should have health {:?} following insertion of \
+                        from_health,
+                        to_health
+                    );
+                    assert_eq!(
+                        ml.get_update_counter(),
+                        update_counter_value_checkpoint_1 + 1,
+                        "Update counter should increment by 1 when inserting a \
+                                same-incarnation-number rumor with worse health"
+                    );
+                    assert_eq!(
+                        ml.health_of_mlr(&member),
+                        Some(to_health),
+                        "Member should have health {:?} following insertion of \
                                 same-incarnation-number rumor with worse health",
-                               to_health);
+                        to_health
+                    );
                 } else {
-                    assert!(!ml.insert_mlw(member_with_same_incarnation, to_health),
-                            "Inserting with {from:?}->{to:?} should never work with an identical \
+                    assert!(
+                        !ml.insert_mlw(member_with_same_incarnation, to_health),
+                        "Inserting with {from:?}->{to:?} should never work with an identical \
                              incarnation number, because {to:?} is not \"worse than\" {from:?}",
-                            from = from_health,
-                            to = to_health);
-                    assert_eq!(ml.get_update_counter(),
-                               update_counter_value_checkpoint_1,
-                               "Update counter should not increment when inserting a \
-                                same-incarnation-number rumor without worse health");
-                    assert_eq!(ml.health_of_mlr(&member),
-                               Some(from_health),
-                               "Member should still have health {:?} following insertion of \
+                        from = from_health,
+                        to = to_health
+                    );
+                    assert_eq!(
+                        ml.get_update_counter(),
+                        update_counter_value_checkpoint_1,
+                        "Update counter should not increment when inserting a \
+                                same-incarnation-number rumor without worse health"
+                    );
+                    assert_eq!(
+                        ml.health_of_mlr(&member),
+                        Some(from_health),
+                        "Member should still have health {:?} following insertion of \
                                 same-incarnation-number rumor without worse health",
-                               from_health);
+                        from_health
+                    );
                 }
             }
 
@@ -1295,8 +1432,8 @@ mod tests {
                     #[test]
                     fn $fn_name() {
                         assert_only_insert_member_rumor_of_same_incarnation_if_health_is_worse(
-                                                                                        $from, $to,
-                                                                                    );
+                            $from, $to,
+                        );
                     }
                 };
             }
@@ -1327,76 +1464,102 @@ mod tests {
                 let ml = MemberList::new();
                 let member_one = Member::default();
 
-                assert!(ml.insert_mlw(member_one.clone(), from_health),
-                        "Should be able to insert initial health of {:?} into empty MemberList",
-                        from_health);
-                assert_eq!(ml.health_of_mlr(&member_one)
-                             .expect("Expected member to exist in health after initial insert, \
-                                      but it didn't"),
-                           from_health,
-                           "Member should have initial health {:?}",
-                           from_health);
+                assert!(
+                    ml.insert_mlw(member_one.clone(), from_health),
+                    "Should be able to insert initial health of {:?} into empty MemberList",
+                    from_health
+                );
+                assert_eq!(
+                    ml.health_of_mlr(&member_one).expect(
+                        "Expected member to exist in health after initial insert, \
+                                      but it didn't"
+                    ),
+                    from_health,
+                    "Member should have initial health {:?}",
+                    from_health
+                );
 
                 let update_counter_before = ml.get_update_counter();
 
                 match from_health.cmp(&to_health) {
                     Ordering::Greater => {
-                        assert!(!ml.insert_mlw(member_one.clone(), to_health),
-                                "Transitioning from {:?} to {:?} (i.e., no worse health) should \
+                        assert!(
+                            !ml.insert_mlw(member_one.clone(), to_health),
+                            "Transitioning from {:?} to {:?} (i.e., no worse health) should \
                                  be a no-op",
-                                from_health,
-                                to_health);
-                        assert_eq!(ml.get_update_counter(),
-                                   update_counter_before,
-                                   "Transitioning from {:?} to {:?} (i.e., no worse health) \
+                            from_health,
+                            to_health
+                        );
+                        assert_eq!(
+                            ml.get_update_counter(),
+                            update_counter_before,
+                            "Transitioning from {:?} to {:?} (i.e., no worse health) \
                                     should not increment update counter",
-                                   from_health,
-                                   to_health);
-                        assert_eq!(ml.health_of_mlr(&member_one)
-                                     .expect("Expected member to exist in health after update, \
-                                              but it didn't"),
-                                   from_health,
-                                   "Member should have retained old health {:?}",
-                                   from_health);
+                            from_health,
+                            to_health
+                        );
+                        assert_eq!(
+                            ml.health_of_mlr(&member_one).expect(
+                                "Expected member to exist in health after update, \
+                                              but it didn't"
+                            ),
+                            from_health,
+                            "Member should have retained old health {:?}",
+                            from_health
+                        );
                     }
                     Ordering::Less => {
-                        assert!(ml.insert_mlw(member_one.clone(), to_health),
-                                "Transitioning from {:?} to {:?} (i.e., worse health) should NOT \
+                        assert!(
+                            ml.insert_mlw(member_one.clone(), to_health),
+                            "Transitioning from {:?} to {:?} (i.e., worse health) should NOT \
                                  be a no-op",
-                                from_health,
-                                to_health);
-                        assert_eq!(ml.get_update_counter(),
-                                   update_counter_before + 1,
-                                   "Transitioning from {:?} to {:?} (i.e., different health) \
+                            from_health,
+                            to_health
+                        );
+                        assert_eq!(
+                            ml.get_update_counter(),
+                            update_counter_before + 1,
+                            "Transitioning from {:?} to {:?} (i.e., different health) \
                                     should increment update counter by one",
-                                   from_health,
-                                   to_health);
-                        assert_eq!(ml.health_of_mlr(&member_one)
-                                     .expect("Expected member to exist in health after update, \
-                                              but it didn't"),
-                                   to_health,
-                                   "Member should have changed health from {:?} to {:?}",
-                                   from_health,
-                                   to_health);
+                            from_health,
+                            to_health
+                        );
+                        assert_eq!(
+                            ml.health_of_mlr(&member_one).expect(
+                                "Expected member to exist in health after update, \
+                                              but it didn't"
+                            ),
+                            to_health,
+                            "Member should have changed health from {:?} to {:?}",
+                            from_health,
+                            to_health
+                        );
                     }
                     Ordering::Equal => {
-                        assert!(!ml.insert_mlw(member_one.clone(), to_health),
-                                "Transitioning from {:?} to {:?} (i.e., no change) should be a \
+                        assert!(
+                            !ml.insert_mlw(member_one.clone(), to_health),
+                            "Transitioning from {:?} to {:?} (i.e., no change) should be a \
                                  no-op",
-                                from_health,
-                                to_health);
-                        assert_eq!(ml.get_update_counter(),
-                                   update_counter_before,
-                                   "Transitioning from {:?} to {:?} (i.e., no change) should not \
+                            from_health,
+                            to_health
+                        );
+                        assert_eq!(
+                            ml.get_update_counter(),
+                            update_counter_before,
+                            "Transitioning from {:?} to {:?} (i.e., no change) should not \
                                     increment update counter",
-                                   from_health,
-                                   to_health);
-                        assert_eq!(ml.health_of_mlr(&member_one)
-                                     .expect("Expected member to exist in health after update, \
-                                              but it didn't"),
-                                   from_health,
-                                   "Member should have still have initial health {:?}",
-                                   from_health);
+                            from_health,
+                            to_health
+                        );
+                        assert_eq!(
+                            ml.health_of_mlr(&member_one).expect(
+                                "Expected member to exist in health after update, \
+                                              but it didn't"
+                            ),
+                            from_health,
+                            "Member should have still have initial health {:?}",
+                            from_health
+                        );
                     }
                 }
             }
@@ -1406,7 +1569,9 @@ mod tests {
                 // the name of a function, so we have to provide one :(
                 ($fn_name:ident, $from:expr, $to:expr) => {
                     #[test]
-                    fn $fn_name() { assert_insert_health_by_id_transition($from, $to); }
+                    fn $fn_name() {
+                        assert_insert_health_by_id_transition($from, $to);
+                    }
                 };
             }
 
@@ -1436,11 +1601,8 @@ mod tests {
         /// - MemberList::members_expired_to_confirmed_mlw
         /// - MemberList::members_expired_to_departed_mlw
         mod timed_expiration {
-            use crate::member::{Health,
-                                Member,
-                                MemberList};
-            use std::{thread,
-                      time::Duration};
+            use crate::member::{Health, Member, MemberList};
+            use std::{thread, time::Duration};
 
             #[test]
             fn timing_out_from_suspect_to_confirmed() {
@@ -1452,33 +1614,43 @@ mod tests {
                 let small_timeout = Duration::from_secs(small_seconds);
                 let large_timeout = Duration::from_secs(large_seconds);
 
-                assert!(ml.members_expired_to_confirmed_mlw(small_timeout)
-                          .is_empty(),
-                        "An empty MemberList shouldn't have anything that's timing out to being \
-                         Confirmed");
+                assert!(
+                    ml.members_expired_to_confirmed_mlw(small_timeout)
+                        .is_empty(),
+                    "An empty MemberList shouldn't have anything that's timing out to being \
+                         Confirmed"
+                );
 
                 assert!(ml.insert_mlw(member_one.clone(), Health::Alive));
 
-                assert!(ml.members_expired_to_confirmed_mlw(small_timeout)
-                          .is_empty(),
-                        "Should be no newly Confirmed members when they're all Alive");
+                assert!(
+                    ml.members_expired_to_confirmed_mlw(small_timeout)
+                        .is_empty(),
+                    "Should be no newly Confirmed members when they're all Alive"
+                );
 
                 assert!(ml.insert_mlw(member_one.clone(), Health::Suspect));
 
-                assert!(ml.members_expired_to_confirmed_mlw(large_timeout)
-                          .is_empty(),
-                        "Nothing should have timed out to Confirmed with a large timeout");
+                assert!(
+                    ml.members_expired_to_confirmed_mlw(large_timeout)
+                        .is_empty(),
+                    "Nothing should have timed out to Confirmed with a large timeout"
+                );
 
                 // Allow the Suspect to age
                 thread::sleep(Duration::from_secs(small_seconds));
 
                 let newly_confirmed = ml.members_expired_to_confirmed_mlw(small_timeout);
-                assert!(newly_confirmed.contains(&member_one.id),
-                        "Member should be newly Confirmed after timing out");
+                assert!(
+                    newly_confirmed.contains(&member_one.id),
+                    "Member should be newly Confirmed after timing out"
+                );
 
-                assert_eq!(ml.health_of_mlr(&member_one),
-                           Some(Health::Confirmed),
-                           "Member should have a health of Confirmed after timing out");
+                assert_eq!(
+                    ml.health_of_mlr(&member_one),
+                    Some(Health::Confirmed),
+                    "Member should have a health of Confirmed after timing out"
+                );
             }
 
             #[test]
@@ -1491,36 +1663,50 @@ mod tests {
                 let small_timeout = Duration::from_secs(small_seconds);
                 let large_timeout = Duration::from_secs(large_seconds);
 
-                assert!(ml.members_expired_to_departed_mlw(small_timeout).is_empty(),
-                        "An empty MemberList shouldn't have anything that's timing out to being \
-                         Departed");
+                assert!(
+                    ml.members_expired_to_departed_mlw(small_timeout).is_empty(),
+                    "An empty MemberList shouldn't have anything that's timing out to being \
+                         Departed"
+                );
 
                 assert!(ml.insert_mlw(member_one.clone(), Health::Alive));
-                assert!(ml.members_expired_to_departed_mlw(small_timeout).is_empty(),
-                        "Should be no newly Departed members when they're all Alive");
+                assert!(
+                    ml.members_expired_to_departed_mlw(small_timeout).is_empty(),
+                    "Should be no newly Departed members when they're all Alive"
+                );
 
                 assert!(ml.insert_mlw(member_one.clone(), Health::Suspect));
-                assert!(ml.members_expired_to_departed_mlw(small_timeout).is_empty(),
-                        "Should be no newly Departed members when they're all Confirmed");
+                assert!(
+                    ml.members_expired_to_departed_mlw(small_timeout).is_empty(),
+                    "Should be no newly Departed members when they're all Confirmed"
+                );
 
                 assert!(ml.insert_mlw(member_one.clone(), Health::Confirmed));
 
-                assert!(ml.members_expired_to_departed_mlw(small_timeout).is_empty(),
-                        "Should be no newly Departed members when they're all Confirmed");
+                assert!(
+                    ml.members_expired_to_departed_mlw(small_timeout).is_empty(),
+                    "Should be no newly Departed members when they're all Confirmed"
+                );
 
-                assert!(ml.members_expired_to_departed_mlw(large_timeout).is_empty(),
-                        "Nothing should have timed out to Departed with a large timeout");
+                assert!(
+                    ml.members_expired_to_departed_mlw(large_timeout).is_empty(),
+                    "Nothing should have timed out to Departed with a large timeout"
+                );
 
                 // Allow the Confirmed to age
                 thread::sleep(Duration::from_secs(small_seconds));
 
                 let newly_departed = ml.members_expired_to_departed_mlw(small_timeout);
-                assert!(newly_departed.contains(&member_one.id),
-                        "Member should be newly Departed after timing out");
+                assert!(
+                    newly_departed.contains(&member_one.id),
+                    "Member should be newly Departed after timing out"
+                );
 
-                assert_eq!(ml.health_of_mlr(&member_one),
-                           Some(Health::Departed),
-                           "Member should have a health of Departed after timing out");
+                assert_eq!(
+                    ml.health_of_mlr(&member_one),
+                    Some(Health::Departed),
+                    "Member should have a health of Departed after timing out"
+                );
             }
 
             #[test]
@@ -1539,23 +1725,35 @@ mod tests {
                 let timeout = Duration::from_secs(2);
 
                 let newly_confirmed = ml.members_expired_to_confirmed_mlw(timeout);
-                assert!(newly_confirmed.contains(&member_1.id),
-                        "Member 1 should be newly Confirmed after timing out");
-                assert!(newly_confirmed.contains(&member_2.id),
-                        "Member 2 should be newly Confirmed after timing out");
-                assert!(!newly_confirmed.contains(&member_3.id),
-                        "Member 3 should NOT be newly Confirmed, because it hasn't timed out yet");
+                assert!(
+                    newly_confirmed.contains(&member_1.id),
+                    "Member 1 should be newly Confirmed after timing out"
+                );
+                assert!(
+                    newly_confirmed.contains(&member_2.id),
+                    "Member 2 should be newly Confirmed after timing out"
+                );
+                assert!(
+                    !newly_confirmed.contains(&member_3.id),
+                    "Member 3 should NOT be newly Confirmed, because it hasn't timed out yet"
+                );
 
-                assert_eq!(ml.health_of_mlr(&member_1),
-                           Some(Health::Confirmed),
-                           "Member 1 should have a health of Confirmed after timing out");
-                assert_eq!(ml.health_of_mlr(&member_2),
-                           Some(Health::Confirmed),
-                           "Member 2 should have a health of Confirmed after timing out");
-                assert_eq!(ml.health_of_mlr(&member_3),
-                           Some(Health::Suspect),
-                           "Member 3 should still have a health of Suspect, because it hasn't \
-                            timed out yet");
+                assert_eq!(
+                    ml.health_of_mlr(&member_1),
+                    Some(Health::Confirmed),
+                    "Member 1 should have a health of Confirmed after timing out"
+                );
+                assert_eq!(
+                    ml.health_of_mlr(&member_2),
+                    Some(Health::Confirmed),
+                    "Member 2 should have a health of Confirmed after timing out"
+                );
+                assert_eq!(
+                    ml.health_of_mlr(&member_3),
+                    Some(Health::Suspect),
+                    "Member 3 should still have a health of Suspect, because it hasn't \
+                            timed out yet"
+                );
             }
 
             #[test]
@@ -1574,23 +1772,35 @@ mod tests {
                 let timeout = Duration::from_secs(2);
 
                 let newly_departed = ml.members_expired_to_departed_mlw(timeout);
-                assert!(newly_departed.contains(&member_1.id),
-                        "Member 1 should be newly Departed after timing out");
-                assert!(newly_departed.contains(&member_2.id),
-                        "Member 2 should be newly Departed after timing out");
-                assert!(!newly_departed.contains(&member_3.id),
-                        "Member 3 should NOT be newly Departed, because it hasn't timed out yet");
+                assert!(
+                    newly_departed.contains(&member_1.id),
+                    "Member 1 should be newly Departed after timing out"
+                );
+                assert!(
+                    newly_departed.contains(&member_2.id),
+                    "Member 2 should be newly Departed after timing out"
+                );
+                assert!(
+                    !newly_departed.contains(&member_3.id),
+                    "Member 3 should NOT be newly Departed, because it hasn't timed out yet"
+                );
 
-                assert_eq!(ml.health_of_mlr(&member_1),
-                           Some(Health::Departed),
-                           "Member 1 should have a health of Departed after timing out");
-                assert_eq!(ml.health_of_mlr(&member_2),
-                           Some(Health::Departed),
-                           "Member 2 should have a health of Departed after timing out");
-                assert_eq!(ml.health_of_mlr(&member_3),
-                           Some(Health::Confirmed),
-                           "Member 3 should still have a health of Confirmed, because it hasn't \
-                            timed out yet");
+                assert_eq!(
+                    ml.health_of_mlr(&member_1),
+                    Some(Health::Departed),
+                    "Member 1 should have a health of Departed after timing out"
+                );
+                assert_eq!(
+                    ml.health_of_mlr(&member_2),
+                    Some(Health::Departed),
+                    "Member 2 should have a health of Departed after timing out"
+                );
+                assert_eq!(
+                    ml.health_of_mlr(&member_3),
+                    Some(Health::Confirmed),
+                    "Member 3 should still have a health of Confirmed, because it hasn't \
+                            timed out yet"
+                );
             }
         }
     }

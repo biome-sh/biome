@@ -1,8 +1,8 @@
-use habitat_launcher_protocol as protocol;
+use biome_launcher_protocol as protocol;
 use std::io;
 use thiserror::Error;
 
-/// Errors that occur when attempting to estabish an IPC channel to the Habitat Launcher
+/// Errors that occur when attempting to estabish an IPC channel to the Biome Launcher
 #[derive(Debug, Error)]
 pub enum ConnectError {
     #[error("Failed to establish IPC connection to the launcher")]
@@ -17,7 +17,7 @@ pub enum ConnectError {
     LauncherRegisterReceive(#[source] IPCReadError),
 }
 
-/// Errors that occur when remotely executing a command on the Habitat Launcher
+/// Errors that occur when remotely executing a command on the Biome Launcher
 #[derive(Debug, Error)]
 pub enum IPCCommandError {
     #[error("Failed to send '{0}' command to launcher")]
@@ -26,7 +26,7 @@ pub enum IPCCommandError {
     Receive(&'static str, #[source] ReceiveError),
 }
 
-/// Errors that occur when trying to remotely executing a command on the Habitat Launcher
+/// Errors that occur when trying to remotely executing a command on the Biome Launcher
 #[derive(Debug, Error)]
 pub enum TryIPCCommandError {
     #[error("Failed to send '{0}' command to launcher")]
@@ -35,7 +35,7 @@ pub enum TryIPCCommandError {
     TryReceive(&'static str, #[source] TryReceiveError),
 }
 
-/// Errors that occur when attempting to read an IPC response from the Habitat Launcher
+/// Errors that occur when attempting to read an IPC response from the Biome Launcher
 #[derive(Debug, Error)]
 pub enum IPCReadError {
     #[error("Failed to deserialize launcher protocol message: {0}")]
@@ -46,7 +46,7 @@ pub enum IPCReadError {
     LauncherCommand(protocol::NetErr),
 }
 
-///  Errors that occur when attempting to send a command to the Habitat Launcher via IPC
+///  Errors that occur when attempting to send a command to the Biome Launcher via IPC
 #[derive(Debug, Error)]
 pub enum SendError {
     #[error("Failed to serialize launcher protocol message: {0}")]
@@ -57,7 +57,7 @@ pub enum SendError {
     IPCSend(#[source] ipc_channel::IpcError),
 }
 
-/// Errors that occur when attempting to blocking receive command responses from the Habitat
+/// Errors that occur when attempting to blocking receive command responses from the Biome
 /// Launcher via IPC
 #[derive(Debug, Error)]
 pub enum ReceiveError {
@@ -67,7 +67,7 @@ pub enum ReceiveError {
     IPCReceive(#[from] ipc_channel::IpcError),
 }
 
-/// Errors that occur when attempting to non-blocking receive command responses from the Habitat
+/// Errors that occur when attempting to non-blocking receive command responses from the Biome
 /// Launcher via IPC
 #[derive(Debug, Error)]
 pub enum TryReceiveError {

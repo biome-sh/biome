@@ -10,7 +10,8 @@ use anyhow::Result;
 /// * If permissions for files and/or directories cannot be set
 #[cfg(unix)]
 pub(crate) fn create<T>(root: T) -> Result<()>
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     use std::fs;
 
@@ -24,7 +25,8 @@ pub(crate) fn create<T>(root: T) -> Result<()>
 
 #[cfg(windows)]
 pub(crate) fn create<T>(_root: T) -> Result<()>
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     Ok(())
 }

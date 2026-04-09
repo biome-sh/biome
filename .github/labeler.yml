@@ -1,4 +1,0 @@
-documentation:
-- any:
-  - changed-files:
-    - any-glob-to-any-file: 'components/docs-chef-io/**/*'

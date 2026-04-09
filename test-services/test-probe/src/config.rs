@@ -1,27 +1,26 @@
-use crate::error::{Error,
-                   Result};
+use crate::error::{Error, Result};
 use clap::ArgMatches;
-use serde::{Deserialize,
-            Serialize};
-use std::{fs,
-          path::PathBuf};
+use serde::{Deserialize, Serialize};
+use std::{fs, path::PathBuf};
 
-pub const DEFAULT_JSON_SOURCE: &str = "/hab/svc/test-probe/config/render_context_file.json";
+pub const DEFAULT_JSON_SOURCE: &str = "/bio/svc/test-probe/config/render_context_file.json";
 pub const DEFAULT_HOST: &str = "0.0.0.0";
 pub const DEFAULT_PORT: u16 = 8000;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
-    pub host:                String,
-    pub port:                u16,
+    pub host: String,
+    pub port: u16,
     pub render_context_file: PathBuf,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Config { host:                DEFAULT_HOST.to_string(),
-                 port:                DEFAULT_PORT,
-                 render_context_file: PathBuf::from(DEFAULT_JSON_SOURCE), }
+        Config {
+            host: DEFAULT_HOST.to_string(),
+            port: DEFAULT_PORT,
+            render_context_file: PathBuf::from(DEFAULT_JSON_SOURCE),
+        }
     }
 }
 

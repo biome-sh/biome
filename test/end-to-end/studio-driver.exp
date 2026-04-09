@@ -1,6 +1,6 @@
 #!/usr/bin/env expect
 
-set env(HAB_NOCOLORING) true
+set env(BIO_NOCOLORING) true
 set studio_test [lindex $argv 0]
 # Print out some helpful tracing messages in the test output.
 
@@ -16,7 +16,7 @@ exit -onexit {
 # Installing packages can take time
 set timeout 60
 
-spawn hab studio enter
+spawn bio studio enter
 expect {
   {\[default:/src:0]#} { 
     log "Studio entered successfully"

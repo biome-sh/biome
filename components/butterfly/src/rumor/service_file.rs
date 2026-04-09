@@ -2,39 +2,38 @@
 //!
 //! Holds the toml configuration injected for a service.
 
-use crate::{error::{Error,
-                    Result},
-            protocol::{self,
-                       FromProto,
-                       newscast::{self,
-                                  Rumor as ProtoRumor}},
-            rumor::{Rumor,
-                    RumorPayload,
-                    RumorType}};
-use habitat_core::{crypto::keys::{KeyCache,
-                                  SignedBox},
-                   service::ServiceGroup};
+use crate::{
+    error::{Error, Result},
+    protocol::{
+        self, FromProto,
+        newscast::{self, Rumor as ProtoRumor},
+    },
+    rumor::{Rumor, RumorPayload, RumorType},
+};
+use biome_core::{
+    crypto::keys::{KeyCache, SignedBox},
+    service::ServiceGroup,
+};
 use serde::Serialize;
-use std::{cmp::Ordering,
-          fmt,
-          mem,
-          str::FromStr};
+use std::{cmp::Ordering, fmt, mem, str::FromStr};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ServiceFile {
-    pub from_id:       String,
+    pub from_id: String,
     pub service_group: ServiceGroup,
-    pub incarnation:   u64,
-    pub encrypted:     bool,
-    pub filename:      String,
-    pub body:          Vec<u8>,
+    pub incarnation: u64,
+    pub encrypted: bool,
+    pub filename: String,
+    pub body: Vec<u8>,
 }
 
 impl fmt::Display for ServiceFile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "ServiceFile i/{} m/{} sg/{} fn/{}",
-               self.incarnation, self.from_id, self.service_group, self.filename)
+        write!(
+            f,
+            "ServiceFile i/{} m/{} sg/{} fn/{}",
+            self.incarnation, self.from_id, self.service_group, self.filename
+        )
     }
 }
 
@@ -51,29 +50,33 @@ impl PartialOrd for ServiceFile {
 impl PartialEq for ServiceFile {
     fn eq(&self, other: &ServiceFile) -> bool {
         self.service_group == other.service_group
-        && self.incarnation == other.incarnation
-        && self.encrypted == other.encrypted
-        && self.filename == other.filename
-        && self.body == other.body
+            && self.incarnation == other.incarnation
+            && self.encrypted == other.encrypted
+            && self.filename == other.filename
+            && self.body == other.body
     }
 }
 
 impl ServiceFile {
     /// Creates a new ServiceFile.
-    pub fn new<S1, S2>(member_id: S1,
-                       service_group: ServiceGroup,
-                       filename: S2,
-                       body: Vec<u8>)
-                       -> Self
-        where S1: Into<String>,
-              S2: Into<String>
+    pub fn new<S1, S2>(
+        member_id: S1,
+        service_group: ServiceGroup,
+        filename: S2,
+        body: Vec<u8>,
+    ) -> Self
+    where
+        S1: Into<String>,
+        S2: Into<String>,
     {
-        ServiceFile { from_id: member_id.into(),
-                      service_group,
-                      incarnation: 0,
-                      encrypted: false,
-                      filename: filename.into(),
-                      body }
+        ServiceFile {
+            from_id: member_id.into(),
+            service_group,
+            incarnation: 0,
+            encrypted: false,
+            filename: filename.into(),
+            body,
+        }
     }
 
     /// Return the body of the service file as a stream of bytes. Always returns a new copy, due to
@@ -106,26 +109,31 @@ impl FromProto<ProtoRumor> for ServiceFile {
             RumorPayload::ServiceFile(payload) => payload,
             _ => panic!("from-bytes service-config"),
         };
-        Ok(ServiceFile { from_id:       rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
-                         service_group:
-                             payload.service_group
-                                    .ok_or(Error::ProtocolMismatch("service-group"))
-                                    .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
-                         incarnation:   payload.incarnation.unwrap_or(0),
-                         encrypted:     payload.encrypted.unwrap_or(false),
-                         filename:      payload.filename
-                                               .ok_or(Error::ProtocolMismatch("filename"))?,
-                         body:          payload.body.unwrap_or_default(), })
+        Ok(ServiceFile {
+            from_id: rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
+            service_group: payload
+                .service_group
+                .ok_or(Error::ProtocolMismatch("service-group"))
+                .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
+            incarnation: payload.incarnation.unwrap_or(0),
+            encrypted: payload.encrypted.unwrap_or(false),
+            filename: payload
+                .filename
+                .ok_or(Error::ProtocolMismatch("filename"))?,
+            body: payload.body.unwrap_or_default(),
+        })
     }
 }
 
 impl From<ServiceFile> for newscast::ServiceFile {
     fn from(value: ServiceFile) -> Self {
-        newscast::ServiceFile { service_group: Some(value.service_group.to_string()),
-                                incarnation:   Some(value.incarnation),
-                                encrypted:     Some(value.encrypted),
-                                filename:      Some(value.filename),
-                                body:          Some(value.body), }
+        newscast::ServiceFile {
+            service_group: Some(value.service_group.to_string()),
+            incarnation: Some(value.incarnation),
+            encrypted: Some(value.encrypted),
+            filename: Some(value.filename),
+            body: Some(value.body),
+        }
     }
 }
 
@@ -141,27 +149,34 @@ impl Rumor for ServiceFile {
         }
     }
 
-    fn kind(&self) -> RumorType { RumorType::ServiceFile }
+    fn kind(&self) -> RumorType {
+        RumorType::ServiceFile
+    }
 
-    fn id(&self) -> &str { &self.filename }
+    fn id(&self) -> &str {
+        &self.filename
+    }
 
-    fn key(&self) -> &str { &self.service_group }
+    fn key(&self) -> &str {
+        &self.service_group
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::rumor::Rumor;
-    use habitat_core::service::ServiceGroup;
-    use std::{cmp::Ordering,
-              str::FromStr};
+    use biome_core::service::ServiceGroup;
+    use std::{cmp::Ordering, str::FromStr};
 
     fn create_service_file(member_id: &str, filename: &str, body: &str) -> ServiceFile {
         let body_bytes: Vec<u8> = Vec::from(body);
-        ServiceFile::new(member_id,
-                         ServiceGroup::new("neurosis", "production", None).unwrap(),
-                         filename,
-                         body_bytes)
+        ServiceFile::new(
+            member_id,
+            ServiceGroup::new("neurosis", "production", None).unwrap(),
+            filename,
+            body_bytes,
+        )
     }
 
     #[test]
@@ -228,8 +243,12 @@ mod tests {
     fn config_comes_back_as_a_string() {
         let s1 = create_service_file("adam", "yep", "tcp-backlog = 128");
         let mock_cache_key_path = KeyCache::new(std::path::PathBuf::new());
-        assert_eq!(String::from_utf8(s1.body(&mock_cache_key_path).unwrap()).expect("cannot get a utf-8 string for \
-                                                                 the body"),
-                   String::from("tcp-backlog = 128"));
+        assert_eq!(
+            String::from_utf8(s1.body(&mock_cache_key_path).unwrap()).expect(
+                "cannot get a utf-8 string for \
+                                                                 the body"
+            ),
+            String::from("tcp-backlog = 128")
+        );
     }
 }

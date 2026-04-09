@@ -1,32 +1,31 @@
 use crate::error::Result;
 use clap::Parser;
 
-use habitat_butterfly::rumor::{Departure,
-                               Election,
-                               ElectionUpdate,
-                               Service,
-                               ServiceConfig,
-                               ServiceFile,
-                               dat_file};
+use biome_butterfly::rumor::{
+    Departure, Election, ElectionUpdate, Service, ServiceConfig, ServiceFile, dat_file,
+};
 use log::error;
-use std::{path::PathBuf,
-          process};
+use std::{path::PathBuf, process};
 
 mod error;
 
 #[derive(Debug, Clone, Parser)]
-#[command(name = "Habitat Rst Reader",
-          about = "Introspection for the butterfly RST file.",
-          arg_required_else_help = true,
-          help_template = "{name}\n{about-section}\n{usage-heading} {usage}\n\n{all-args}")]
+#[command(
+    name = "Biome Rst Reader",
+    about = "Introspection for the butterfly RST file.",
+    arg_required_else_help = true,
+    help_template = "{name}\n{about-section}\n{usage-heading} {usage}\n\n{all-args}"
+)]
 struct RstReader {
     #[arg(name = "FILE", help = "Path to the RST file.")]
     file: String,
 
-    #[arg(name = "STATS",
-          short = 's',
-          long = "stats",
-          help = "Display statistics about the contents of the file.")]
+    #[arg(
+        name = "STATS",
+        short = 's',
+        long = "stats",
+        help = "Display statistics about the contents of the file."
+    )]
     stats: bool,
 }
 
@@ -37,12 +36,13 @@ fn main() -> error::Result<()> {
 
     let dat_file =
         dat_file::DatFileReader::read(PathBuf::from(&rst_reader.file)).unwrap_or_else(|e| {
-                                                                          error!("Could not read \
+            error!(
+                "Could not read \
                                                                                   dat file {}: {}",
-                                                                                 &rst_reader.file,
-                                                                                 e);
-                                                                          process::exit(1);
-                                                                      });
+                &rst_reader.file, e
+            );
+            process::exit(1);
+        });
 
     let result = if rst_reader.stats {
         output_stats(dat_file)

@@ -1,4 +1,4 @@
-# Basic set of tests for the hab pkg download command
+# Basic set of tests for the bio pkg download command
 #
 # There are a number of pieces of this which are fragile, and could be
 # implemented in a more clever fashion. There are many opportunites
@@ -11,13 +11,13 @@
 # 1. ${CACHE_DIR} can be set to a writable location on the filesystem
 
 
-# Test the Habitat package downloader.
+# Test the Biome package downloader.
 #
-# Uses the `HAB_INTERNAL_BLDR_CHANNEL` environment variable to control
+# Uses the `BIO_INTERNAL_BLDR_CHANNEL` environment variable to control
 # the base packages channel for the exporter.
 #
 # Developers most likely want to run:
-# HAB_TEST_CMD=./target/debug/hab test/end-to-end/test_pkg_download.sh
+# BIO_TEST_CMD=./target/debug/bio test/end-to-end/test_pkg_download.sh
 #
 $cacheDir = "test-cache"
 # use aarch64-darwin channel on macOS
@@ -78,7 +78,7 @@ function Test-RustIdent {
     }
 }
 
-Describe "hab pkg download" {
+Describe "bio pkg download" {
     $identFile = "ident_file"
     $fixtures = "$PSScriptRoot/fixtures/pkg_download"
 
@@ -88,89 +88,89 @@ Describe "hab pkg download" {
         }
     }
 
-    It "'hab pkg download --channel $downloadChannel --download-directory $cacheDir core/gzip' succeeds" {
-        hab pkg download --channel $downloadChannel --download-directory $cacheDir core/gzip
+    It "'bio pkg download --channel $downloadChannel --download-directory $cacheDir core/gzip' succeeds" {
+        bio pkg download --channel $downloadChannel --download-directory $cacheDir core/gzip
         Test-GzipIdent
     }
-    It "'hab pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile' succeeds" {
+    It "'bio pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile' succeeds" {
         Set-Content $identFile -Value "core/gzip"
-        hab pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile
+        bio pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile
         Test-GzipIdent
     }
-    It "'hab pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile' succeeds with comments and empty lines" {
+    It "'bio pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile' succeeds with comments and empty lines" {
         Set-Content $identFile -Value @"
 # this is a series
 # of comments, followed by empty lines and whitespaces
 
  core/gzip
 "@
-        hab pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile
+        bio pkg download --channel $downloadChannel --download-directory $cacheDir --file $identFile
         Test-GzipIdent
     }
-    It "'hab pkg download --channel LTS-2024 --download-directory $cacheDir core/rust --target=x86_64-windows' succeeds" {
-        hab pkg download --channel LTS-2024 --download-directory $cacheDir core/rust --target=x86_64-windows
+    It "'bio pkg download --channel LTS-2024 --download-directory $cacheDir core/rust --target=x86_64-windows' succeeds" {
+        bio pkg download --channel LTS-2024 --download-directory $cacheDir core/rust --target=x86_64-windows
         Test-RustIdent
     }
     It "fails when package is invalid" {
-        hab pkg download --download-directory $cacheDir arglebargle
+        bio pkg download --download-directory $cacheDir arglebargle
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when no package is provided" {
-        hab pkg download --download-directory $cacheDir
+        bio pkg download --download-directory $cacheDir
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when invalid package is provided in file" {
         Set-Content $identFile -Value "arglebargle"
-        hab pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile
+        bio pkg download --channel LTS-2024 --download-directory $cacheDir --file $identFile
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when package does not exist" {
-        hab pkg download --download-directory $cacheDir "core/half_life_4"
+        bio pkg download --download-directory $cacheDir "core/half_life_4"
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when cache dir cannot be created" {
         New-Item $cacheDir
-        hab pkg download --download-directory $cacheDir "core/gzip"
+        bio pkg download --download-directory $cacheDir "core/gzip"
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when target is invalid" {
-        hab pkg download --download-directory $cacheDir "core/gzip" --target=6502-commodore
+        bio pkg download --download-directory $cacheDir "core/gzip" --target=6502-commodore
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when token is invalid" {
-        hab pkg download --download-directory $cacheDir "core/gzip" --auth asdfa
+        bio pkg download --download-directory $cacheDir "core/gzip" --auth asdfa
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when url is invalid" {
-        hab pkg download --download-directory $cacheDir "core/gzip" --url https://www.example.org
+        bio pkg download --download-directory $cacheDir "core/gzip" --url https://www.example.org
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "fails when channel is invalid" {
-        hab pkg download --download-directory $cacheDir "core/gzip" --channel number_5
+        bio pkg download --download-directory $cacheDir "core/gzip" --channel number_5
         $LASTEXITCODE | Should -Not -Be 0
     }
     It "succeeds with valid toml" {
-        hab pkg download --download-directory $cacheDir --file "$fixtures/happy_path.toml"
+        bio pkg download --download-directory $cacheDir --file "$fixtures/happy_path.toml"
         $LASTEXITCODE | Should -Be 0
     }
     It "succeeds with valid toml without a header" {
-        hab pkg download --download-directory $cacheDir --file "$fixtures/no_header.toml"
+        bio pkg download --download-directory $cacheDir --file "$fixtures/no_header.toml"
         $LASTEXITCODE | Should -Be 0
     }
     It "fails with toml that has a bad header" {
-        hab pkg download --download-directory $cacheDir --file "$fixtures/bad_header.toml"
+        bio pkg download --download-directory $cacheDir --file "$fixtures/bad_header.toml"
         $LASTEXITCODE | Should -Be 1
     }
     It "fails with toml that has a bad ident" {
-        hab pkg download --download-directory $cacheDir --file "$fixtures/bad_ident.toml"
+        bio pkg download --download-directory $cacheDir --file "$fixtures/bad_ident.toml"
         $LASTEXITCODE | Should -Be 1
     }
     It "fails with toml that has a bad target" {
-        hab pkg download --download-directory $cacheDir --file "$fixtures/bad_target.toml"
+        bio pkg download --download-directory $cacheDir --file "$fixtures/bad_target.toml"
         $LASTEXITCODE | Should -Be 1
     }
     It "fails with toml that has no target" {
-        hab pkg download --download-directory $cacheDir --file "$fixtures/no_target.toml"
+        bio pkg download --download-directory $cacheDir --file "$fixtures/no_target.toml"
         $LASTEXITCODE | Should -Be 1
     }
 }

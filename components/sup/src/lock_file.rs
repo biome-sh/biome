@@ -1,9 +1,9 @@
 //! Pidfile / Lockfile of the Launcher
 //!
 //! When the Supervisor starts, it is given the PID of the Launcher that started
-//! it. It then writes this PID to `/hab/sup/default/LOCK` (see `path()` below)
+//! it. It then writes this PID to `/bio/sup/default/LOCK` (see `path()` below)
 //! to serve as a record of the currently-running process. This is used to
-//! discover which process to terminate (when running `hab sup term`), and also
+//! discover which process to terminate (when running `bio sup term`), and also
 //! helps ensure that only one Supervisor process is running at a time.
 //!
 //! To maintain this exclusivity, we hold a shared file lock on the file for the
@@ -13,22 +13,20 @@
 //! of the exclusive lock.
 //!
 //! In an ideal world, this file would probably be written by the Launcher
-//! itself. However, the file currently resides in the `/hab/sup` directory
+//! itself. However, the file currently resides in the `/bio/sup` directory
 //! hierarchy, which the Supervisor is responsible for maintaining.
 use crate::manager::PROC_LOCK_FILE;
+use biome_core::{env, os::process::Pid};
+use biome_launcher_client::LAUNCHER_PID_ENV;
 use fs2::FileExt;
-use habitat_core::{env,
-                   os::process::Pid};
-use habitat_launcher_client::LAUNCHER_PID_ENV;
 use log::error;
-use std::{fmt,
-          fs::{File,
-               OpenOptions},
-          io::{Read,
-               Write},
-          path::{Path,
-                 PathBuf},
-          str::FromStr};
+use std::{
+    fmt,
+    fs::{File, OpenOptions},
+    io::{Read, Write},
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 type Result<T> = std::result::Result<T, Error>;
 
@@ -76,7 +74,9 @@ pub enum Error {
 /// Also used directly in error implementations to provide context. Everything
 /// in this module deals with the same file, and manually wiring it through in
 /// `map_err()` calls is tedious.
-fn lock_file_path() -> PathBuf { habitat_sup_protocol::sup_root(None).join(PROC_LOCK_FILE) }
+fn lock_file_path() -> PathBuf {
+    biome_sup_protocol::sup_root(None).join(PROC_LOCK_FILE)
+}
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -110,11 +110,15 @@ impl FromStr for PositiveNonZeroPid {
 }
 
 impl From<PositiveNonZeroPid> for Pid {
-    fn from(src: PositiveNonZeroPid) -> Self { src.0 }
+    fn from(src: PositiveNonZeroPid) -> Self {
+        src.0
+    }
 }
 
 impl fmt::Display for PositiveNonZeroPid {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -140,9 +144,9 @@ impl LockFile {
     /// preventing another instance from being created. Ultimately, this is used
     /// to prevent multiple Supervisors from running on a host at the same time.
     pub fn acquire() -> Result<Self> {
-        let pid: PositiveNonZeroPid =
-            env::var(LAUNCHER_PID_ENV).map_err(Error::InvalidEnvironment)?
-                                      .parse()?;
+        let pid: PositiveNonZeroPid = env::var(LAUNCHER_PID_ENV)
+            .map_err(Error::InvalidEnvironment)?
+            .parse()?;
 
         let path = lock_file_path();
         Self::acquire_impl(path, pid)
@@ -152,7 +156,8 @@ impl LockFile {
     /// from the logic of determining the file path and the PID to write to that
     /// file.
     fn acquire_impl<P>(path: P, pid: PositiveNonZeroPid) -> Result<Self>
-        where P: AsRef<Path>
+    where
+        P: AsRef<Path>,
     {
         // Create the file in a block simply to contain the mutability.
         let file = {
@@ -171,11 +176,12 @@ impl LockFile {
             // on files, and comes with a lot of other caveats. To quote the Linux
             // Programming Interface, Section 55.4, "the use of mandatory locks is
             // best avoided".
-            let mut file = OpenOptions::new().write(true)
-                                              .create(true)
-                                              .truncate(false) // NEVER TRUE!
-                                              .open(path)
-                                              .map_err(Error::CannotOpen)?;
+            let mut file = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(false) // NEVER TRUE!
+                .open(path)
+                .map_err(Error::CannotOpen)?;
 
             // If we can't get an exclusive lock, then something else has locked the
             // file. Assume it's another Supervisor and bail.
@@ -224,13 +230,13 @@ impl LockFile {
         // [LockFileEx](https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex)
         // for more.
         fs2::FileExt::try_lock_shared(&file).map_err(|e| {
-                                                if cfg!(windows) {
-                                                    Error::CannotAcquireSharedLock(e)
-                                                } else {
-                                                    // Unix, Linux, et al.
-                                                    Error::LockDowngrade(e)
-                                                }
-                                            })?;
+            if cfg!(windows) {
+                Error::CannotAcquireSharedLock(e)
+            } else {
+                // Unix, Linux, et al.
+                Error::LockDowngrade(e)
+            }
+        })?;
         if cfg!(windows) {
             fs2::FileExt::unlock(&file).map_err(Error::CannotReleaseExclusiveLock)?;
         }
@@ -268,9 +274,11 @@ impl Drop for LockFile {
     /// [2]: http://www.guido-flohr.net/never-delete-your-pid-file/
     fn drop(&mut self) {
         if let Err(e) = fs2::FileExt::unlock(&self.file) {
-            error!("Error unlocking '{}'; proceeding anyway: {:?}",
-                   lock_file_path().display(),
-                   e);
+            error!(
+                "Error unlocking '{}'; proceeding anyway: {:?}",
+                lock_file_path().display(),
+                e
+            );
         }
     }
 }
@@ -280,7 +288,7 @@ impl Drop for LockFile {
 /// Reads the contents of the Supervisor / Launcher lock file to obtain the PID
 /// inside.
 ///
-/// This is intended to support the `hab sup term` use case, where we use this
+/// This is intended to support the `bio sup term` use case, where we use this
 /// function to determine which process to terminate.
 ///
 /// If the following are true:
@@ -292,16 +300,20 @@ impl Drop for LockFile {
 ///
 /// - the process identified by that PID holds the lock, and
 /// - the process identified by the PID is the Launcher.
-pub fn read_lock_file() -> Result<Pid> { read_lock_file_impl(lock_file_path()) }
+pub fn read_lock_file() -> Result<Pid> {
+    read_lock_file_impl(lock_file_path())
+}
 
 /// Implementation of main lockfile reading logic, separate from the specific
 /// file being read. Done to facilitate testing.
 fn read_lock_file_impl<P>(path: P) -> Result<Pid>
-    where P: AsRef<Path>
+where
+    P: AsRef<Path>,
 {
-    let mut file = OpenOptions::new().read(true)
-                                     .open(path)
-                                     .map_err(Error::IOError)?;
+    let mut file = OpenOptions::new()
+        .read(true)
+        .open(path)
+        .map_err(Error::IOError)?;
 
     // This function is expected to be called in a context where a Supervisor is
     // already running. As a result, we should *NOT* be able to acquire an
@@ -315,9 +327,10 @@ fn read_lock_file_impl<P>(path: P) -> Result<Pid>
     let pid: PositiveNonZeroPid = {
         let mut buffer = String::new();
         file.read_to_string(&mut buffer).map_err(Error::IOError)?;
-        buffer.trim()
-              .parse()
-              .map_err(|e| Error::CorruptLockFile(Box::new(e)))?
+        buffer
+            .trim()
+            .parse()
+            .map_err(|e| Error::CorruptLockFile(Box::new(e)))?
     };
 
     Ok(pid.into())
@@ -326,10 +339,8 @@ fn read_lock_file_impl<P>(path: P) -> Result<Pid>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::{Path,
-                    PathBuf};
-    use tempfile::{TempDir,
-                   tempdir};
+    use std::path::{Path, PathBuf};
+    use tempfile::{TempDir, tempdir};
 
     /// Create a directory to put lock files in, and create a `PathBuf` that
     /// points to a location in that directory.
@@ -344,20 +355,23 @@ mod tests {
     /// Given a path and a string, write the string to the path and return an
     /// open file handle.
     fn write_to_file<P, C>(path: P, content: C) -> File
-        where P: AsRef<Path>,
-              C: AsRef<str>
+    where
+        P: AsRef<Path>,
+        C: AsRef<str>,
     {
-        let mut file = std::fs::OpenOptions::new().write(true)
-                                                  .truncate(true)
-                                                  .create(true)
-                                                  .open(path.as_ref())
-                                                  .unwrap();
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open(path.as_ref())
+            .unwrap();
         write!(file, "{}", content.as_ref()).unwrap();
         file
     }
 
     fn assert_file_contents<P>(path: P, expected_content: &str)
-        where P: AsRef<Path>
+    where
+        P: AsRef<Path>,
     {
         assert!(path.as_ref().exists());
         let actual_content = std::fs::read_to_string(path.as_ref()).unwrap();

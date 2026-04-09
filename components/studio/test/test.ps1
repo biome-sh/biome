@@ -7,23 +7,23 @@
 
 $ErrorActionPreference = "Stop"
 
-$env:HAB_LICENSE = "accept-no-persist"
+$env:BIO_LICENSE = "accept-no-persist"
 
-hab pkg install core/powershell
-hab pkg install core/7zip
-hab pkg install chef/hab-plan-build-ps1
+bio pkg install core/powershell
+bio pkg install core/7zip
+bio pkg install biome/bio-plan-build-ps1
 
 mkdir "bin/powershell" | Out-Null
-mkdir "bin/hab" | Out-Null
+mkdir "bin/bio" | Out-Null
 mkdir "bin/7zip" | Out-Null
 
-Copy-Item "$(hab pkg path core/powershell)/bin/*" "bin/powershell" -Recurse
-Copy-Item "$(hab pkg path chef/hab)/bin/*" "bin/hab"
-Copy-Item "$(hab pkg path core/7zip)/bin/*" "bin/7zip"
-Copy-Item "$(hab pkg path chef/hab-plan-build-ps1)/bin/*" "bin/"
+Copy-Item "$(bio pkg path core/powershell)/bin/*" "bin/powershell" -Recurse
+Copy-Item "$(bio pkg path biome/bio)/bin/*" "bin/bio"
+Copy-Item "$(bio pkg path core/7zip)/bin/*" "bin/7zip"
+Copy-Item "$(bio pkg path biome/bio-plan-build-ps1)/bin/*" "bin/"
 
 try {
-    & bin/powershell/pwsh.exe -NoProfile -ExecutionPolicy bypass -NoLogo -File "bin/hab-studio.ps1" new
+    & bin/powershell/pwsh.exe -NoProfile -ExecutionPolicy bypass -NoLogo -File "bin/bio-studio.ps1" new
     $exit_code = $LASTEXITCODE
 } finally {
     # The test can exit before the Studio has closed all open
@@ -32,9 +32,9 @@ try {
     Start-Sleep 5
     Remove-Item "bin/7zip" -Recurse
     Remove-Item "bin/powershell" -Recurse
-    Remove-Item "bin/hab" -Recurse
+    Remove-Item "bin/bio" -Recurse
     Remove-Item "bin/environment.ps1"
     Remove-Item "bin/shared.ps1"
-    Remove-Item "bin/hab-plan-build.ps1"
+    Remove-Item "bin/bio-plan-build.ps1"
 }
 exit $exit_code

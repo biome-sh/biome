@@ -1,0 +1,16 @@
+[build]
+
+[build.environment]
+  HUGO_ENABLEGITINFO = "true"
+  NODE_ENV = "development"
+
+[build.processing]
+  skip_processing = true
+
+[context.deploy-preview]
+  publish = "biome-web-docs/public"
+  command = "make preview_netlify"
+
+[context.production]
+  publish = "netlify_production"
+  command = ""

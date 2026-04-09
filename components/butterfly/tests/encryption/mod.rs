@@ -1,6 +1,6 @@
 use crate::btest;
-use habitat_butterfly::member::Health;
-use habitat_core::crypto::keys::RingKey;
+use biome_butterfly::member::Health;
+use biome_core::crypto::keys::RingKey;
 
 #[test]
 fn symmetric_encryption_of_wire_payloads() {
@@ -10,8 +10,11 @@ fn symmetric_encryption_of_wire_payloads() {
     assert_wait_for_health_of_mlr!(net, [0..2, 0..2], Health::Alive);
     net.add_service(0, "core/beast/1.2.3/20161208121212");
     net.wait_for_gossip_rounds(2);
-    assert!(net[1].service_store
-                  .lock_rsr()
-                  .service_group("beast.prod")
-                  .contains_id(net[0].member_id()));
+    assert!(
+        net[1]
+            .service_store
+            .lock_rsr()
+            .service_group("beast.prod")
+            .contains_id(net[0].member_id())
+    );
 }

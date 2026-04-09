@@ -3,7 +3,7 @@
 load 'helpers'
 
 setup() {
-    reset_hab_root
+    reset_bio_root
     start_supervisor
 }
 
@@ -11,20 +11,20 @@ teardown() {
     stop_supervisor
 }
 
-@test "hab svc load: a bad topology value is rejected" {
-    run ${hab} svc load --topology=beelzebub core/redis
+@test "bio svc load: a bad topology value is rejected" {
+    run ${bio} svc load --topology=beelzebub core/redis
     assert_failure
     [[ "${output}" =~ "'beelzebub' isn't a valid value for '--topology <TOPOLOGY>'" ]]
 }
 
-@test "hab svc load: a bad strategy value is rejected" {
-    run ${hab} svc load --strategy=beelzebub core/redis
+@test "bio svc load: a bad strategy value is rejected" {
+    run ${bio} svc load --strategy=beelzebub core/redis
     assert_failure
     [[ "${output}" =~ "Invalid value for '--strategy <STRATEGY>'" ]]
 }
 
-@test "hab svc load: origin/name (standalone service)" {
-    run ${hab} svc load core/redis
+@test "bio svc load: origin/name (standalone service)" {
+    run ${bio} svc load core/redis
     assert_success
 
     wait_for_service_to_run redis
@@ -40,11 +40,11 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
-@test "hab svc load: origin/name/version (standalone service)" {
-    run ${hab} svc load core/redis/3.2.4
+@test "bio svc load: origin/name/version (standalone service)" {
+    run ${bio} svc load core/redis/3.2.4
     assert_success
 
     wait_for_service_to_run redis
@@ -59,12 +59,12 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
-@test "hab svc load: origin/name/version/release (standalone service)" {
+@test "bio svc load: origin/name/version/release (standalone service)" {
     desired_version="core/redis/3.2.3/20160920131015"
-    run ${hab} svc load "${desired_version}"
+    run ${bio} svc load "${desired_version}"
     assert_success
 
     wait_for_service_to_run redis
@@ -78,17 +78,17 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
-@test "hab svc load: local hart file (standalone service)" {
+@test "bio svc load: local hart file (standalone service)" {
     # First, grab a hart file!
     desired_version="core/redis/3.2.4/20170514150022"
     hart_path=$(download_hart_for "${desired_version}")
 
-    run ${hab} pkg install "${hart_path}"
+    run ${bio} pkg install "${hart_path}"
     assert_success
-    run ${hab} svc load "${desired_version}"
+    run ${bio} svc load "${desired_version}"
     assert_success
 
     wait_for_service_to_run redis
@@ -102,16 +102,16 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
-@test "hab svc load: prefer local packages over pulling from Builder" {
+@test "bio svc load: prefer local packages over pulling from Builder" {
     desired_version="core/redis/3.2.3/20160920131015"
     # Pre-install this older package. Loading the service should not cause a
     # newer package to be installed.
-    run ${hab} pkg install "${desired_version}"
+    run ${bio} pkg install "${desired_version}"
 
-    run ${hab} svc load "core/redis"
+    run ${bio} svc load "core/redis"
     assert_success
 
     wait_for_service_to_run redis
@@ -120,8 +120,8 @@ teardown() {
     assert_spec_exists_for redis
 }
 
-@test "hab svc load: change spec with --force (standalone service)" {
-    run ${hab} svc load core/redis
+@test "bio svc load: change spec with --force (standalone service)" {
+    run ${bio} svc load core/redis
     assert_success
 
     wait_for_service_to_run redis
@@ -133,10 +133,10 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 
     # Now, "reload" and change a few settings (chosen here arbitrarily)
-    run ${hab} svc load --force --channel=unstable --strategy=at-once core/redis
+    run ${bio} svc load --force --channel=unstable --strategy=at-once core/redis
     assert_success
 
     # Assert the spec values after the update
@@ -146,11 +146,11 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy at-once # <-- changed!
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
-@test "hab svc load: loading an existing service without --force is an error" {
-    run ${hab} svc load core/redis
+@test "bio svc load: loading an existing service without --force is an error" {
+    run ${bio} svc load core/redis
     assert_success
 
     wait_for_service_to_run redis
@@ -162,10 +162,10 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 
     # Now, try to load again, but without --force
-    run ${hab} svc load --channel=unstable --strategy=at-once core/redis
+    run ${bio} svc load --channel=unstable --strategy=at-once core/redis
     assert_failure
 
     # Check that the spec file values didn't change
@@ -175,11 +175,11 @@ teardown() {
     assert_spec_value redis topology standalone
     assert_spec_value redis update_strategy none
     assert_spec_value redis desired_state up
-    assert_spec_value redis bldr_url "https://bldr.habitat.sh"
+    assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
-@test "hab svc load: application and environment are properly set in a spec" {
-    run ${hab} svc load core/redis
+@test "bio svc load: application and environment are properly set in a spec" {
+    run ${bio} svc load core/redis
     assert_success
 
     wait_for_service_to_run redis
@@ -187,22 +187,22 @@ teardown() {
     assert_spec_value redis ident core/redis
 }
 
-@test "hab svc load: spec idents can change when force-loading using a different ident" {
+@test "bio svc load: spec idents can change when force-loading using a different ident" {
     vsn="core/redis/3.2.3/20160920131015"
 
     stop_supervisor
 
-    HAB_UPDATE_STRATEGY_PERIOD_MS=5000 background ${hab} run
+    BIO_UPDATE_STRATEGY_PERIOD_MS=5000 background ${bio} run
     retry 5 1 launcher_is_alive
 
-    run ${hab} svc load "${vsn}"
+    run ${bio} svc load "${vsn}"
     assert_success
     wait_for_service_to_run redis
     initial_pid=$(pid_of_service redis)
 
     assert_spec_value redis ident "${vsn}"
 
-    run ${hab} svc load --channel=unstable --strategy=at-once --force core/redis
+    run ${bio} svc load --channel=unstable --strategy=at-once --force core/redis
     assert_success
 
     # loading causes a restart anyway

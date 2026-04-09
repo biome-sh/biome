@@ -1,0 +1,15 @@
++++
+title = "Container Orchestration"
+description = "Container Orchestration with Biome"
+gh_repo = "biome"
+
+[menu]
+  [menu.biome]
+    title = "Container Orchestration"
+    identifier = "biome/containers/container-orchestration"
+    parent = "biome/containers"
+    weight = 20
+
++++
+
+Biome packages may be exported with the Supervisor directly into a [variety of container formats]({{< relref "pkg_exports" >}}), but frequently the container is running in a container orchestrator such as Kubernetes. Container orchestrators provide scheduling and resource allocation, ensuring workloads are running and available. Containerized Biome packages can run within these runtimes, managing the applications while the runtimes handle the environment surrounding the application (ie. compute, networking, security).

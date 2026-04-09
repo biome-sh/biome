@@ -1,18 +1,13 @@
 //! Utility functions to standardize reading certificates
-use crate::{error::Result,
-            fs::cache_ssl_path};
+use crate::{error::Result, fs::cache_ssl_path};
 use log::debug;
 use native_tls::Certificate;
-use std::{fs,
-          path::Path,
-          result::Result as StdResult};
+use std::{fs, path::Path, result::Result as StdResult};
 
 #[cfg(not(target_os = "macos"))]
-use crate::package::{PackageIdent,
-                     PackageInstall};
+use crate::package::{PackageIdent, PackageInstall};
 #[cfg(not(target_os = "macos"))]
-use std::{path::PathBuf,
-          str::FromStr};
+use std::{path::PathBuf, str::FromStr};
 #[cfg(not(target_os = "macos"))]
 const CACERTS_PKG_IDENT: &str = "core/cacerts";
 #[cfg(not(target_os = "macos"))]
@@ -24,10 +19,10 @@ const CACERT_PEM: &str = include_str!(concat!(env!("OUT_DIR"), "/cacert.pem"));
 /// IN ADDITION to any system certificates that may be available (e.g., in /etc/ssl/certs or
 /// specified by a `SSL_CERT_FILE` environment variable):
 ///
-/// 1. If the `core/cacerts` Habitat package is installed locally, then use the latest release's
+/// 1. If the `core/cacerts` Biome package is installed locally, then use the latest release's
 ///    `cacert.pem` file.
 /// 2. If there is no 'core/cacerts packages, then a copy of `cacert.pem` will be written in an SSL
-///    cache directory (by default `/hab/cache/ssl` for a root user and `$HOME/.hab/cache/ssl` for a
+///    cache directory (by default `/bio/cache/ssl` for a root user and `$HOME/.bio/cache/ssl` for a
 ///    non-root user) and this will be used. The contents of this file will be inlined in this crate
 ///    at build time as a fallback, which means that if the program using this code is operating in
 ///    a minimal environment which may not contain any system certificates, it can still operate.
@@ -56,9 +51,10 @@ pub fn certificates(fs_root_path: Option<&Path>) -> Result<Vec<Certificate>> {
 }
 
 pub fn certificates_as_der(fs_root_path: Option<&Path>) -> Result<Vec<Vec<u8>>> {
-    Ok(certificates(fs_root_path)?.iter()
-                                  .map(Certificate::to_der)
-                                  .collect::<StdResult<_, _>>()?)
+    Ok(certificates(fs_root_path)?
+        .iter()
+        .map(Certificate::to_der)
+        .collect::<StdResult<_, _>>()?)
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -68,12 +64,14 @@ fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
     match PackageInstall::load(&cacerts_ident, fs_root_path) {
         Ok(pkg_install) => {
             let cert_path = pkg_install.installed_path().join("ssl/cert.pem");
-            debug!("Found an installed Habitat core/cacerts package at: {}",
-                   cert_path.display());
+            debug!(
+                "Found an installed Biome core/cacerts package at: {}",
+                cert_path.display()
+            );
             Ok(Some(cert_path))
         }
         _ => {
-            debug!("No installed Habitat core/cacerts package found");
+            debug!("No installed Biome core/cacerts package found");
             Ok(None)
         }
     }
@@ -83,8 +81,10 @@ fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
 fn populate_cache(cache_path: &Path) -> Result<()> {
     let cached_certs = cache_path.join("cert.pem");
     if !cached_certs.exists() {
-        debug!("Adding embedded cert file to Habitat SSL cache path {} as fallback",
-               cached_certs.display());
+        debug!(
+            "Adding embedded cert file to Biome SSL cache path {} as fallback",
+            cached_certs.display()
+        );
         fs::create_dir_all(cache_path)?;
         fs::write(cached_certs, CACERT_PEM)?;
     }
@@ -118,9 +118,11 @@ fn process_cert_file(certificates: &mut Vec<Certificate>, file_path: &Path) {
             certificates.append(&mut certs)
         }
         Err(err) => {
-            debug!("Unable to process cert file: {}, err={}",
-                   file_path.display(),
-                   err)
+            debug!(
+                "Unable to process cert file: {}, err={}",
+                file_path.display(),
+                err
+            )
         }
     }
 }
@@ -134,9 +136,10 @@ fn certs_from_pem_file(buf: &[u8]) -> Result<Vec<Certificate>> {
     // `pem::parse_many` does not return an error. It simply parses what it can and ignores the
     // rest.
     Certificate::from_pem(buf)?;
-    pem::parse_many(buf)?.iter()
-                         .map(|cert| Ok(Certificate::from_der(cert.contents())?))
-                         .collect()
+    pem::parse_many(buf)?
+        .iter()
+        .map(|cert| Ok(Certificate::from_der(cert.contents())?))
+        .collect()
 }
 
 #[cfg(target_os = "macos")]
@@ -154,10 +157,10 @@ fn certs_from_pem_file(buf: &[u8]) -> Result<Vec<Certificate>> {
     // Convert PEM contents to certificates, filtering out any that fail validation
     // (macOS has stricter certificate validation)
     // TODO: Consider logging/warning about certificates that fail validation
-    let valid_certs: Vec<Certificate> =
-        pem_data.iter()
-                .filter_map(|cert| Certificate::from_der(cert.contents()).ok())
-                .collect();
+    let valid_certs: Vec<Certificate> = pem_data
+        .iter()
+        .filter_map(|cert| Certificate::from_der(cert.contents()).ok())
+        .collect();
 
     // If no certificates were successfully validated, return an error
     if valid_certs.is_empty() {
@@ -218,8 +221,8 @@ flc9nF9Ca/UHLbXwgpP5WW+uZPpY5Yse42O+tYHNbwKMeQ==
         // From multiple pems
         let mut file = NamedTempFile::new().unwrap();
         write!(
-               file,
-               "{}
+            file,
+            "{}
 -----BEGIN CERTIFICATE-----
 MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF
 ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6
@@ -241,8 +244,9 @@ o/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU
 rqXRfboQnoZsG4q5WTP468SQvvG5
 -----END CERTIFICATE-----
 ",
-               PEM_CERT
-        ).unwrap();
+            PEM_CERT
+        )
+        .unwrap();
 
         // Multiple certificate handling differs between platforms due to validation strictness:
         // - Linux: Successfully parses both test certificates (exactly 2)
@@ -252,9 +256,11 @@ rqXRfboQnoZsG4q5WTP468SQvvG5
             Ok(result) => {
                 if cfg!(target_os = "macos") {
                     // If macOS succeeds, it should return at least 1 valid certificate
-                    assert!(!result.is_empty(),
-                            "Expected at least 1 valid certificate after macOS filtering, got {}",
-                            result.len());
+                    assert!(
+                        !result.is_empty(),
+                        "Expected at least 1 valid certificate after macOS filtering, got {}",
+                        result.len()
+                    );
                 } else {
                     // Linux should parse both certificates successfully
                     assert_eq!(result.len(), 2);
@@ -263,8 +269,10 @@ rqXRfboQnoZsG4q5WTP468SQvvG5
             Err(_) if cfg!(target_os = "macos") => {
                 // On macOS, complete failure is acceptable due to stricter certificate validation
                 // This happens when all certificates in the file fail macOS validation
-                println!("Multiple certificate validation failed on macOS (expected due to \
-                          stricter validation)");
+                println!(
+                    "Multiple certificate validation failed on macOS (expected due to \
+                          stricter validation)"
+                );
             }
             Err(e) => {
                 // Linux should succeed with these test certificates
@@ -275,11 +283,12 @@ rqXRfboQnoZsG4q5WTP468SQvvG5
         // Invalid cert gives an error
         let mut file = NamedTempFile::new().unwrap();
         write!(
-               file,
-               "-----BEGIN CERTIFICATE-----
+            file,
+            "-----BEGIN CERTIFICATE-----
 a bad cert
 -----END CERTIFICATE-----"
-        ).unwrap();
+        )
+        .unwrap();
         assert!(certs_from_file(file.path()).is_err());
     }
 }

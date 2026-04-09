@@ -3,39 +3,39 @@
 $ErrorActionPreference="stop"
 
 function Remove-CachedCertificate {
-    $hab_ssl_cache="/hab/cache/ssl"
-    Remove-Item -Force "$hab_ssl_cache/*" -ErrorAction SilentlyContinue
+    $bio_ssl_cache="/bio/cache/ssl"
+    Remove-Item -Force "$bio_ssl_cache/*" -ErrorAction SilentlyContinue
 }
 
-hab origin key generate "$env:HAB_ORIGIN"
+bio origin key generate "$env:BIO_ORIGIN"
 
 $tempdir = New-TemporaryDirectory
 $e2e_certname = "e2e-ssl.pem"
-hab pkg install core/openssl --channel stable
-hab pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout key.pem -x509 -days 365 -out (Join-Path $tempdir $e2e_certname)
+bio pkg install core/openssl --channel stable
+bio pkg exec core/openssl openssl req -newkey rsa:2048 -batch -nodes -keyout key.pem -x509 -days 365 -out (Join-Path $tempdir $e2e_certname)
 
 if($IsLinux) {
     $sslCertFileCheck = "test -f `$SSL_CERT_FILE"
     $sslCertFilePrint = "echo `$SSL_CERT_FILE"
-    $sslCacheCertFileCheck = "test -f '/hab/cache/ssl/$e2e_certname'"
-    $sslCertFileNotSetCheck = "test `$SSL_CERT_FILE = `$(hab pkg path core/cacerts)/ssl/certs/cacert.pem"
+    $sslCacheCertFileCheck = "test -f '/bio/cache/ssl/$e2e_certname'"
+    $sslCertFileNotSetCheck = "test `$SSL_CERT_FILE = `$(bio pkg path core/cacerts)/ssl/certs/cacert.pem"
 } else {
     $sslCertFileCheck = "exit (!(Test-Path `$env:SSL_CERT_FILE))"
     $sslCertFilePrint = "`$env:SSL_CERT_FILE.Replace('\','/')"
-    $sslCacheCertFileCheck = "exit (!(Test-Path '/hab/cache/ssl/$e2e_certname'))"
+    $sslCacheCertFileCheck = "exit (!(Test-Path '/bio/cache/ssl/$e2e_certname'))"
     $sslCertFIleNotSetCheck = "exit `$(!!(`$env:SSL_CERT_FILE))"
 }
 
 Context "SSL_CERT_FILE is passed into the studio" {
     BeforeEach {
-        hab studio rm
+        bio studio rm
         Remove-CachedCertificate
     }
 
     Describe "SSL_CERT_FILE is a valid certificate" {
         $env:SSL_CERT_FILE = (Join-Path $tempdir $e2e_certname)
         It "Sets env:SSL_CERT_FILE in the studio"  {
-            $expected = "/hab/cache/ssl/$e2e_certname"
+            $expected = "/bio/cache/ssl/$e2e_certname"
             $result = Invoke-StudioRun $sslCertFilePrint
             $result[-1] | Should -BeLike "*$expected"
         }
@@ -46,16 +46,16 @@ Context "SSL_CERT_FILE is passed into the studio" {
         }
 
         It "Can search builder for packages when SSL_CERT_FILE is set" {
-            $result = Invoke-StudioRun "hab pkg search core/nginx"
+            $result = Invoke-StudioRun "bio pkg search core/nginx"
             $result | Should -Contain "core/nginx"
         }
     }
 
     Describe "Custom SSL cert" {
         if($IsLinux) {
-            sudo cp $(Join-Path $tempdir $e2e_certname) /hab/cache/ssl/
+            sudo cp $(Join-Path $tempdir $e2e_certname) /bio/cache/ssl/
         } else {
-            Copy-Item (Join-Path $tempdir $e2e_certname) /hab/cache/ssl/
+            Copy-Item (Join-Path $tempdir $e2e_certname) /bio/cache/ssl/
         }
 
         It "is available in studio" {
@@ -69,20 +69,20 @@ Context "SSL_CERT_FILE is passed into the studio" {
         Set-Content -Path $env:SSL_CERT_FILE -Value "I am not a certificate"
 
         It "Can still search packages on builder" {
-            $result = Invoke-StudioRun "hab pkg search core/nginx"
+            $result = Invoke-StudioRun "bio pkg search core/nginx"
             $result | Should -Contain "core/nginx"
         }
     }
 
     Describe "SSL_CERT_FILE is an invalid cached certificate" {
         if($IsLinux) {
-            sudo sh -c 'echo "I am not a certificate" > /hab/cache/ssl/invalid-ssl-cert.pem'
+            sudo sh -c 'echo "I am not a certificate" > /bio/cache/ssl/invalid-ssl-cert.pem'
         } else {
-            Set-Content -Path /hab/cache/ssl/invalid-ssl-cert.pem -Value "I am not a certificate"
+            Set-Content -Path /bio/cache/ssl/invalid-ssl-cert.pem -Value "I am not a certificate"
         }
 
         It "Can still search packages on builder" {
-            $result = Invoke-StudioRun "hab pkg search core/nginx"
+            $result = Invoke-StudioRun "bio pkg search core/nginx"
             $result | Should -Contain "core/nginx"
         }
     }
@@ -98,7 +98,7 @@ Context "SSL_CERT_FILE is passed into the studio" {
 
         It "Should not copy the directory into the studio" {
             if($isLinux) {
-                Invoke-StudioRun "test -e /hab/cache/ssl/cert-as-directory"
+                Invoke-StudioRun "test -e /bio/cache/ssl/cert-as-directory"
             } else {
                 Invoke-StudioRun $sslCertFileCheck
             }
@@ -107,7 +107,7 @@ Context "SSL_CERT_FILE is passed into the studio" {
         }
 
         It "Can still search packages on builder" {
-            $result = Invoke-StudioRun "hab pkg search core/nginx"
+            $result = Invoke-StudioRun "bio pkg search core/nginx"
             $result | Should -Contain "core/nginx"
         }
     }
@@ -120,7 +120,7 @@ Context "SSL_CERT_FILE is passed into the studio" {
 
         It "Should not copy the file into the studio" {
             if($isLinux) {
-                Invoke-StudioRun "test -e /hab/cache/ssl/non-existant-file"
+                Invoke-StudioRun "test -e /bio/cache/ssl/non-existant-file"
             } else {
                 Invoke-StudioRun $sslCertFileCheck
             }
@@ -133,7 +133,7 @@ Context "SSL_CERT_FILE is passed into the studio" {
         }
 
         It "Can still search packages on builder" {
-            $result = Invoke-StudioRun "hab pkg search core/nginx"
+            $result = Invoke-StudioRun "bio pkg search core/nginx"
             $result | Should -Contain "core/nginx"
         }
     }
@@ -144,8 +144,8 @@ Context "SSL_CERT_FILE isn't set" {
         Remove-CachedCertificate
         # Ensure SSL_CERT_FILE isn't set
         Remove-Item Env:\SSL_CERT_FILE
-        hab studio rm
-        hab pkg uninstall chef/hab-studio
+        bio studio rm
+        bio pkg uninstall biome/bio-studio
     }
 
     Describe "Studio is auto-installed on first run" {

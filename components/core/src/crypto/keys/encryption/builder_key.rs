@@ -1,14 +1,13 @@
 //! Encryption logic used by Builder to encrypt secrets at rest.
 
-use crate::{crypto::keys::{Key,
-                           NamedRevision,
-                           SignedBox,
-                           encryption::{SECRET_BOX_KEY_SUFFIX,
-                                        SECRET_BOX_KEY_VERSION,
-                                        primitives}},
-            error::{Error,
-                    Result},
-            fs::Permissions};
+use crate::{
+    crypto::keys::{
+        Key, NamedRevision, SignedBox,
+        encryption::{SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION, primitives},
+    },
+    error::{Error, Result},
+    fs::Permissions,
+};
 
 pub const BUILDER_KEY_NAME: &str = "bldr";
 
@@ -21,8 +20,10 @@ pub fn generate_builder_encryption_key() -> Result<BuilderSecretEncryptionKey> {
     let named_revision = NamedRevision::new(BUILDER_KEY_NAME.to_string());
     let (_pk, sk) = primitives::gen_keypair()?;
 
-    Ok(BuilderSecretEncryptionKey { named_revision,
-                                    key: sk })
+    Ok(BuilderSecretEncryptionKey {
+        named_revision,
+        key: sk,
+    })
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -39,7 +40,8 @@ impl BuilderSecretEncryptionKey {
     /// have encrypted the data, and we are the only ones that can
     /// decrypt it.
     pub fn encrypt<B>(&self, bytes: B) -> Result<SignedBox>
-        where B: AsRef<[u8]>
+    where
+        B: AsRef<[u8]>,
     {
         let nonce = primitives::gen_nonce();
 
@@ -51,10 +53,12 @@ impl BuilderSecretEncryptionKey {
         // Even though we don't have a `BuilderPublicEncryptionKey`
         // here, we know its named revision would be the same as
         // `self.named_revision()`, so we'll just copy it.
-        Ok(SignedBox::new(self.named_revision.clone(),
-                          self.named_revision.clone(),
-                          ciphertext,
-                          nonce))
+        Ok(SignedBox::new(
+            self.named_revision.clone(),
+            self.named_revision.clone(),
+            ciphertext,
+            nonce,
+        ))
     }
 
     /// Decrypt a signed message we sent to ourself.
@@ -62,13 +66,18 @@ impl BuilderSecretEncryptionKey {
         // Recover the public key material from the secret key itself.
         let my_public_key = self.key().public_key()?;
 
-        primitives::open(signed_box.ciphertext(),
-                         signed_box.nonce(),
-                         &my_public_key,
-                         self.key()).map_err(|_| {
-            Error::CryptoError("Secret key, public key, and nonce could not \
+        primitives::open(
+            signed_box.ciphertext(),
+            signed_box.nonce(),
+            &my_public_key,
+            self.key(),
+        )
+        .map_err(|_| {
+            Error::CryptoError(
+                "Secret key, public key, and nonce could not \
                                                 decrypt ciphertext"
-                                                                   .to_string())
+                    .to_string(),
+            )
         })
     }
 }
@@ -94,20 +103,23 @@ mod tests {
     fn decryption() {
         let key: BuilderSecretEncryptionKey =
             "BOX-SEC-1\nbldr-20200825205529\n\nM9u8wuJmZMsmVG4tNgngYJDapjIJE1RnxJAFVN97Bxs="
-            .parse()
-            .unwrap();
+                .parse()
+                .unwrap();
 
         #[rustfmt::skip]
         let encrypted = "BOX-1\nbldr-20200825205529\nbldr-20200825205529\nilnFU7aVNfkq6PrNXzXh3l1FTQftMzoM\nr6B4EAUIRO2tf169nPMeDPxVzZ7tslS/Oiv2ZQCcFBRyotwv5rh0NjN6KR5pCFOPWAmp62tSQQz6FIiKqHC2bBlk3A4MLugX"
             .parse::<SignedBox>()
             .unwrap();
 
-        let decrypted = key.decrypt(&encrypted)
-                           .map(String::from_utf8)
-                           .unwrap()
-                           .unwrap();
-        assert_eq!(decrypted,
-                   "Fear is the little-death that brings total obliteration.");
+        let decrypted = key
+            .decrypt(&encrypted)
+            .map(String::from_utf8)
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            decrypted,
+            "Fear is the little-death that brings total obliteration."
+        );
     }
 
     #[test]
@@ -116,10 +128,11 @@ mod tests {
         let message = "Walk without rhythm and you won't attract the worm";
 
         let encrypted = key.encrypt(message).unwrap();
-        let decrypted = key.decrypt(&encrypted)
-                           .map(String::from_utf8)
-                           .unwrap()
-                           .unwrap();
+        let decrypted = key
+            .decrypt(&encrypted)
+            .map(String::from_utf8)
+            .unwrap()
+            .unwrap();
 
         assert_eq!(decrypted, message);
     }

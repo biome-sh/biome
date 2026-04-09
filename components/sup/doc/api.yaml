@@ -1,17 +1,17 @@
 openapi: 3.0.0
 info:
-  title: Habitat Supervisor
+  title: Biome Supervisor
   description: |
-    The Chef Habitat Supervisor exposes a comprehensive HTTP API for accessing
+    The Biome Supervisor exposes a comprehensive HTTP API for accessing
     cluster metadata, diagnostics, and detailed information about supervised
-    Habitat packages, including their build and runtime dependencies.
+    Biome packages, including their build and runtime dependencies.
   version: 1.0.0
 servers:
   - url: http://{rootUri}
-    description: Habitat Supervisor API
+    description: Biome Supervisor API
     variables:
       rootUri:
-        description: The root URI for the Habitat Supervisor
+        description: The root URI for the Biome Supervisor
         default: localhost:9631
 paths:
   /butterfly:

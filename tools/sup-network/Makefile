@@ -6,11 +6,11 @@ SHELL := bash
 .SUFFIXES:
 
 # Configuration variables
-HAB_SUP_TEST_NETWORK_LOG_SERVICE ?= rando
-HAB_SUP_TEST_NETWORK_SIZE ?= 3
-HAB_SUP_TEST_NETWORK_PEER_NAME ?= rando_1
-DOCKER_IMAGE_NAME := hab-sup-network
-NETWORK_NAME := hab-sup-network
+BIO_SUP_TEST_NETWORK_LOG_SERVICE ?= rando
+BIO_SUP_TEST_NETWORK_SIZE ?= 3
+BIO_SUP_TEST_NETWORK_PEER_NAME ?= rando_1
+DOCKER_IMAGE_NAME := bio-sup-network
+NETWORK_NAME := bio-sup-network
 PROJECT_ROOT := $(shell cd ../.. && pwd)
 
 # Phony targets
@@ -32,22 +32,22 @@ help: ## Show this help message
 # File targets
 CTL_SECRET:
 	@echo "$(GREEN)Generating CTL_SECRET...$(RESET)"
-	hab sup secret generate > $@
+	bio sup secret generate > $@
 
 # Build targets
-build: ## Build Habitat binaries
-	@echo "$(GREEN)Building Habitat components...$(RESET)"
-	cd $(PROJECT_ROOT) && cargo build -p habitat-launcher
-	cd $(PROJECT_ROOT) && cargo build -p habitat_sup
-	cd $(PROJECT_ROOT) && cargo build -p hab
+build: ## Build Biome binaries
+	@echo "$(GREEN)Building Biome components...$(RESET)"
+	cd $(PROJECT_ROOT) && cargo build -p biome-launcher
+	cd $(PROJECT_ROOT) && cargo build -p biome_sup
+	cd $(PROJECT_ROOT) && cargo build -p bio
 	@echo "$(GREEN)Build complete$(RESET)"
 
 # Docker targets
 up: build CTL_SECRET ## Build and start the network
 	@echo "$(GREEN)Building Docker image...$(RESET)"
 	docker build -t $(DOCKER_IMAGE_NAME) .
-	@echo "$(GREEN)Starting network with $(HAB_SUP_TEST_NETWORK_SIZE) rando instances...$(RESET)"
-	docker-compose up -d --scale rando=$(HAB_SUP_TEST_NETWORK_SIZE)
+	@echo "$(GREEN)Starting network with $(BIO_SUP_TEST_NETWORK_SIZE) rando instances...$(RESET)"
+	docker-compose up -d --scale rando=$(BIO_SUP_TEST_NETWORK_SIZE)
 
 down: ## Stop and remove containers, networks, and secrets
 	@echo "$(YELLOW)Stopping network...$(RESET)"
@@ -65,33 +65,33 @@ restart: stop start ## Restart all containers
 
 # Utility targets
 logs-for: ## Follow logs for specified service (default: rando)
-	docker-compose logs -f $(HAB_SUP_TEST_NETWORK_LOG_SERVICE)
+	docker-compose logs -f $(BIO_SUP_TEST_NETWORK_LOG_SERVICE)
 
 console: ## Open bash shell in specified container
-	@CONTAINER_ID=$$(docker ps -qf name=$(HAB_SUP_TEST_NETWORK_PEER_NAME)); \
+	@CONTAINER_ID=$$(docker ps -qf name=$(BIO_SUP_TEST_NETWORK_PEER_NAME)); \
 	if [ -z "$$CONTAINER_ID" ]; then \
-		echo "$(RED)Error: Container $(HAB_SUP_TEST_NETWORK_PEER_NAME) not found or not running$(RESET)"; \
+		echo "$(RED)Error: Container $(BIO_SUP_TEST_NETWORK_PEER_NAME) not found or not running$(RESET)"; \
 		exit 1; \
 	fi; \
 	docker exec -it $$CONTAINER_ID /bin/bash
 
 kill: ## Stop specified container to simulate departure
-	@CONTAINER_ID=$$(docker ps -qf name=$(HAB_SUP_TEST_NETWORK_PEER_NAME)); \
+	@CONTAINER_ID=$$(docker ps -qf name=$(BIO_SUP_TEST_NETWORK_PEER_NAME)); \
 	if [ -z "$$CONTAINER_ID" ]; then \
-		echo "$(RED)Error: Container $(HAB_SUP_TEST_NETWORK_PEER_NAME) not found or not running$(RESET)"; \
+		echo "$(RED)Error: Container $(BIO_SUP_TEST_NETWORK_PEER_NAME) not found or not running$(RESET)"; \
 		exit 1; \
 	fi; \
 	docker stop $$CONTAINER_ID; \
-	echo "$(GREEN)Stopped container: $(HAB_SUP_TEST_NETWORK_PEER_NAME)$(RESET)"
+	echo "$(GREEN)Stopped container: $(BIO_SUP_TEST_NETWORK_PEER_NAME)$(RESET)"
 
-ip-of: ## Get IP address of specified container (pass via HAB_SUP_TEST_NETWORK_PEER_NAME)
+ip-of: ## Get IP address of specified container (pass via BIO_SUP_TEST_NETWORK_PEER_NAME)
 	@docker network inspect $(NETWORK_NAME) 2>/dev/null | \
-		jq -r ".[].Containers | to_entries[] | select(.value.Name | contains(\"$(HAB_SUP_TEST_NETWORK_PEER_NAME)\")) | .value.IPv4Address" | \
+		jq -r ".[].Containers | to_entries[] | select(.value.Name | contains(\"$(BIO_SUP_TEST_NETWORK_PEER_NAME)\")) | .value.IPv4Address" | \
 		cut -d '/' -f 1 | head -1 || \
-		echo "$(RED)Error: Could not find IP for $(HAB_SUP_TEST_NETWORK_PEER_NAME)$(RESET)"
+		echo "$(RED)Error: Could not find IP for $(BIO_SUP_TEST_NETWORK_PEER_NAME)$(RESET)"
 
 ip-addresses: ## Get IP addresses of all containers
-	@docker network inspect hab-sup-network | \
+	@docker network inspect bio-sup-network | \
 	jq -r '[ .[].Containers.[] | {Name: .Name, IPv4: .IPv4Address} ] | sort_by(.Name) | .[] | [.Name, .IPv4] | @tsv' | \
 	column -t --table-columns Name,"IP Address"
 
@@ -101,7 +101,7 @@ status: ## Show status of all containers
 # Maintenance targets
 clean: down ## Clean up everything including volumes and images
 	@echo "$(YELLOW)Cleaning up volumes and images...$(RESET)"
-	-docker volume rm hab-cache hab-pkgs 2>/dev/null
+	-docker volume rm bio-cache bio-pkgs 2>/dev/null
 	-docker image rm $(DOCKER_IMAGE_NAME) 2>/dev/null
 	@echo "$(GREEN)Cleanup complete$(RESET)"
 
@@ -122,13 +122,13 @@ shell: ## Open shell in bastion container
 	docker exec -it $$CONTAINER_ID /bin/bash
 
 scale: ## Scale rando service (use: make scale SIZE=5)
-	docker-compose up -d --scale rando=$(if $(SIZE),$(SIZE),$(HAB_SUP_TEST_NETWORK_SIZE))
+	docker-compose up -d --scale rando=$(if $(SIZE),$(SIZE),$(BIO_SUP_TEST_NETWORK_SIZE))
 
 # Debug target
 debug: ## Show configuration variables
 	@echo "$(GREEN)Configuration:$(RESET)"
-	@echo "  LOG_SERVICE: $(HAB_SUP_TEST_NETWORK_LOG_SERVICE)"
-	@echo "  NETWORK_SIZE: $(HAB_SUP_TEST_NETWORK_SIZE)"
-	@echo "  PEER_NAME: $(HAB_SUP_TEST_NETWORK_PEER_NAME)"
+	@echo "  LOG_SERVICE: $(BIO_SUP_TEST_NETWORK_LOG_SERVICE)"
+	@echo "  NETWORK_SIZE: $(BIO_SUP_TEST_NETWORK_SIZE)"
+	@echo "  PEER_NAME: $(BIO_SUP_TEST_NETWORK_PEER_NAME)"
 	@echo "  IMAGE_NAME: $(DOCKER_IMAGE_NAME)"
 	@echo "  PROJECT_ROOT: $(PROJECT_ROOT)"

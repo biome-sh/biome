@@ -8,7 +8,7 @@
 //!
 //! Currently our fixtures are limited to testing packages. We have
 //! `*.spec` files and package directories, which you can think of as
-//! minimal expanded Habitat artifacts.
+//! minimal expanded Biome artifacts.
 //!
 //! For example, the current fixtures for the `compilation` test suite
 //! are as follows:
@@ -41,20 +41,23 @@
 //!
 //! In general, each fixture should be used by a single test.
 
-use std::{path::{Path,
-                 PathBuf},
-          string::ToString};
+use std::{
+    path::{Path, PathBuf},
+    string::ToString,
+};
 
 #[derive(Clone, Debug)]
 pub struct FixtureRoot(PathBuf);
 
 impl FixtureRoot {
     pub fn new<S>(suite_name: S) -> FixtureRoot
-        where S: AsRef<Path>
+    where
+        S: AsRef<Path>,
     {
-        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
-                                                            .join("fixtures")
-                                                            .join(suite_name.as_ref());
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join(suite_name.as_ref());
         FixtureRoot(root)
     }
 
@@ -68,12 +71,15 @@ impl FixtureRoot {
     /// Fixture files for an expanded bundle... think of what a .hart
     /// expands into.
     pub fn expanded_package_dir<P>(&self, package_name: P) -> PathBuf
-        where P: AsRef<Path>
+    where
+        P: AsRef<Path>,
     {
         self.0.to_path_buf().join(package_name.as_ref())
     }
 }
 
 impl AsRef<Path> for FixtureRoot {
-    fn as_ref(&self) -> &Path { self.0.as_path() }
+    fn as_ref(&self) -> &Path {
+        self.0.as_path()
+    }
 }

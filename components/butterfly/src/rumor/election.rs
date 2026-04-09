@@ -11,22 +11,22 @@
 use log::debug;
 use serde::Serialize;
 
-pub use crate::protocol::newscast::{Election as ProtoElection,
-                                    election::Status as ElectionStatus};
-use crate::{error::{Error,
-                    Result},
-            protocol::{self,
-                       FromProto,
-                       newscast::{self,
-                                  Rumor as ProtoRumor}},
-            rumor::{ConstIdRumor,
-                    Rumor,
-                    RumorPayload,
-                    RumorType}};
-use std::{convert::TryFrom,
-          fmt,
-          ops::{Deref,
-                DerefMut}};
+pub use crate::protocol::newscast::{
+    Election as ProtoElection, election::Status as ElectionStatus,
+};
+use crate::{
+    error::{Error, Result},
+    protocol::{
+        self, FromProto,
+        newscast::{self, Rumor as ProtoRumor},
+    },
+    rumor::{ConstIdRumor, Rumor, RumorPayload, RumorType},
+};
+use std::{
+    convert::TryFrom,
+    fmt,
+    ops::{Deref, DerefMut},
+};
 
 pub trait ElectionRumor: ConstIdRumor {
     fn member_id(&self) -> &str;
@@ -40,44 +40,50 @@ pub type Term = u64;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Election {
-    pub member_id:     String,
+    pub member_id: String,
     pub service_group: String,
-    pub term:          u64,
-    pub suitability:   u64,
-    pub status:        ElectionStatus,
-    pub votes:         Vec<String>,
+    pub term: u64,
+    pub suitability: u64,
+    pub status: ElectionStatus,
+    pub votes: Vec<String>,
 }
 
 impl fmt::Display for Election {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "Election m/{} sg/{}, t/{}, su/{}, st/{:?}",
-               self.member_id, self.service_group, self.term, self.suitability, self.status)
+        write!(
+            f,
+            "Election m/{} sg/{}, t/{}, su/{}, st/{:?}",
+            self.member_id, self.service_group, self.term, self.suitability, self.status
+        )
     }
 }
 
 impl Election {
     /// Create a new election, voting for the given member id, for the given service group, and
     /// with the given suitability.
-    pub fn new<S1>(member_id: S1,
-                   service_group: &str,
-                   term: u64,
-                   suitability: u64,
-                   has_quorum: bool)
-                   -> Election
-        where S1: Into<String>
+    pub fn new<S1>(
+        member_id: S1,
+        service_group: &str,
+        term: u64,
+        suitability: u64,
+        has_quorum: bool,
+    ) -> Election
+    where
+        S1: Into<String>,
     {
         let from_id = member_id.into();
-        Election { member_id: from_id.clone(),
-                   service_group: service_group.into(),
-                   term,
-                   suitability,
-                   status: if has_quorum {
-                       ElectionStatus::Running
-                   } else {
-                       ElectionStatus::NoQuorum
-                   },
-                   votes: vec![from_id] }
+        Election {
+            member_id: from_id.clone(),
+            service_group: service_group.into(),
+            term,
+            suitability,
+            status: if has_quorum {
+                ElectionStatus::Running
+            } else {
+                ElectionStatus::NoQuorum
+            },
+            votes: vec![from_id],
+        }
     }
 
     /// Insert a vote for the election.
@@ -95,32 +101,44 @@ impl Election {
     }
 
     /// Sets the status of the election to "running".
-    pub fn running(&mut self) { self.status = ElectionStatus::Running; }
+    pub fn running(&mut self) {
+        self.status = ElectionStatus::Running;
+    }
 
     /// Sets the status of the election to "finished"
-    pub fn finish(&mut self) { self.status = ElectionStatus::Finished; }
+    pub fn finish(&mut self) {
+        self.status = ElectionStatus::Finished;
+    }
 
     /// Sets the status of the election to "NoQuorum"
-    pub fn no_quorum(&mut self) { self.status = ElectionStatus::NoQuorum; }
+    pub fn no_quorum(&mut self) {
+        self.status = ElectionStatus::NoQuorum;
+    }
 }
 
 impl ElectionRumor for Election {
-    fn member_id(&self) -> &str { &self.member_id }
+    fn member_id(&self) -> &str {
+        &self.member_id
+    }
 
-    fn is_finished(&self) -> bool { self.status == ElectionStatus::Finished }
+    fn is_finished(&self) -> bool {
+        self.status == ElectionStatus::Finished
+    }
 
-    fn term(&self) -> u64 { self.term }
+    fn term(&self) -> u64 {
+        self.term
+    }
 }
 
 impl PartialEq for Election {
     /// We ignore id in equality checking, because we only have one per service group
     fn eq(&self, other: &Election) -> bool {
         self.service_group == other.service_group
-        && self.member_id == other.member_id
-        && self.suitability == other.suitability
-        && self.votes == other.votes
-        && self.status == other.status
-        && self.term == other.term
+            && self.member_id == other.member_id
+            && self.suitability == other.suitability
+            && self.votes == other.votes
+            && self.status == other.status
+            && self.term == other.term
     }
 }
 
@@ -135,26 +153,32 @@ impl FromProto<ProtoRumor> for Election {
             _ => panic!("from-bytes election"),
         };
         let from_id = rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?;
-        Ok(Election { member_id:     from_id,
-                      service_group: payload.service_group
-                                            .ok_or(Error::ProtocolMismatch("service-group"))?,
-                      term:          payload.term.unwrap_or(0),
-                      suitability:   payload.suitability.unwrap_or(0),
-                      status:        payload.status
-                                            .and_then(|es| ElectionStatus::try_from(es).ok())
-                                            .unwrap_or(ElectionStatus::Running),
-                      votes:         payload.votes, })
+        Ok(Election {
+            member_id: from_id,
+            service_group: payload
+                .service_group
+                .ok_or(Error::ProtocolMismatch("service-group"))?,
+            term: payload.term.unwrap_or(0),
+            suitability: payload.suitability.unwrap_or(0),
+            status: payload
+                .status
+                .and_then(|es| ElectionStatus::try_from(es).ok())
+                .unwrap_or(ElectionStatus::Running),
+            votes: payload.votes,
+        })
     }
 }
 
 impl From<Election> for newscast::Election {
     fn from(value: Election) -> Self {
-        newscast::Election { member_id:     Some(value.member_id),
-                             service_group: Some(value.service_group.to_string()),
-                             term:          Some(value.term),
-                             suitability:   Some(value.suitability),
-                             status:        Some(value.status as i32),
-                             votes:         value.votes, }
+        newscast::Election {
+            member_id: Some(value.member_id),
+            service_group: Some(value.service_group.to_string()),
+            term: Some(value.term),
+            suitability: Some(value.suitability),
+            status: Some(value.status as i32),
+            votes: value.votes,
+        }
     }
 }
 
@@ -172,12 +196,16 @@ impl Rumor for Election {
             true
         } else if other.term == self.term && self.status == ElectionStatus::Finished {
             if other.status == ElectionStatus::Finished {
-                debug!("stored rumor is finished and received rumor is for same term; nothing to \
-                        do");
+                debug!(
+                    "stored rumor is finished and received rumor is for same term; nothing to \
+                        do"
+                );
                 false
             } else {
-                debug!("stored rumor is finished and received rumor is for same term; Received \
-                        rumor is not 'Finished'. Taking their votes and sharing ourselves.");
+                debug!(
+                    "stored rumor is finished and received rumor is for same term; Received \
+                        rumor is not 'Finished'. Taking their votes and sharing ourselves."
+                );
                 self.steal_votes(&mut other);
                 true
             }
@@ -189,8 +217,10 @@ impl Rumor for Election {
             self.steal_votes(&mut other);
             true
         } else if other.suitability > self.suitability {
-            debug!("received rumor is more suitable; take stored rumor's votes, replace stored \
-                    and share");
+            debug!(
+                "received rumor is more suitable; take stored rumor's votes, replace stored \
+                    and share"
+            );
             other.steal_votes(self);
             *self = other;
             true
@@ -199,23 +229,33 @@ impl Rumor for Election {
             self.steal_votes(&mut other);
             true
         } else {
-            debug!("received rumor wins tie-breaker; take stored rumor's votes, replace stored \
-                    and share");
+            debug!(
+                "received rumor wins tie-breaker; take stored rumor's votes, replace stored \
+                    and share"
+            );
             other.steal_votes(self);
             *self = other;
             true
         }
     }
 
-    fn kind(&self) -> RumorType { RumorType::Election }
+    fn kind(&self) -> RumorType {
+        RumorType::Election
+    }
 
-    fn id(&self) -> &str { Self::const_id() }
+    fn id(&self) -> &str {
+        Self::const_id()
+    }
 
-    fn key(&self) -> &str { self.service_group.as_ref() }
+    fn key(&self) -> &str {
+        self.service_group.as_ref()
+    }
 }
 
 impl ConstIdRumor for Election {
-    fn const_id() -> &'static str { "election" }
+    fn const_id() -> &'static str {
+        "election"
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -223,24 +263,24 @@ pub struct ElectionUpdate(Election);
 
 impl fmt::Display for ElectionUpdate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "ElectionUpdate m/{} sg/{}, t/{}, su/{}, st/{:?}",
-               self.0.member_id,
-               self.0.service_group,
-               self.0.term,
-               self.0.suitability,
-               self.0.status)
+        write!(
+            f,
+            "ElectionUpdate m/{} sg/{}, t/{}, su/{}, st/{:?}",
+            self.0.member_id, self.0.service_group, self.0.term, self.0.suitability, self.0.status
+        )
     }
 }
 
 impl ElectionUpdate {
-    pub fn new<S1>(member_id: S1,
-                   service_group: &str,
-                   term: u64,
-                   suitability: u64,
-                   has_quorum: bool)
-                   -> ElectionUpdate
-        where S1: Into<String>
+    pub fn new<S1>(
+        member_id: S1,
+        service_group: &str,
+        term: u64,
+        suitability: u64,
+        has_quorum: bool,
+    ) -> ElectionUpdate
+    where
+        S1: Into<String>,
     {
         let election = Election::new(member_id, service_group, term, suitability, has_quorum);
         ElectionUpdate(election)
@@ -248,25 +288,37 @@ impl ElectionUpdate {
 }
 
 impl ElectionRumor for ElectionUpdate {
-    fn member_id(&self) -> &str { &self.member_id }
+    fn member_id(&self) -> &str {
+        &self.member_id
+    }
 
-    fn is_finished(&self) -> bool { self.status == ElectionStatus::Finished }
+    fn is_finished(&self) -> bool {
+        self.status == ElectionStatus::Finished
+    }
 
-    fn term(&self) -> u64 { self.term }
+    fn term(&self) -> u64 {
+        self.term
+    }
 }
 
 impl Deref for ElectionUpdate {
     type Target = Election;
 
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 impl DerefMut for ElectionUpdate {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
 }
 
 impl From<Election> for ElectionUpdate {
-    fn from(other: Election) -> Self { ElectionUpdate(other) }
+    fn from(other: Election) -> Self {
+        ElectionUpdate(other)
+    }
 }
 
 impl protocol::Message<ProtoRumor> for ElectionUpdate {
@@ -280,51 +332,69 @@ impl FromProto<ProtoRumor> for ElectionUpdate {
 }
 
 impl From<ElectionUpdate> for newscast::Election {
-    fn from(value: ElectionUpdate) -> Self { value.0.into() }
+    fn from(value: ElectionUpdate) -> Self {
+        value.0.into()
+    }
 }
 
 impl Rumor for ElectionUpdate {
-    fn merge(&mut self, other: ElectionUpdate) -> bool { self.0.merge(other.0) }
+    fn merge(&mut self, other: ElectionUpdate) -> bool {
+        self.0.merge(other.0)
+    }
 
-    fn kind(&self) -> RumorType { RumorType::ElectionUpdate }
+    fn kind(&self) -> RumorType {
+        RumorType::ElectionUpdate
+    }
 
-    fn id(&self) -> &str { Self::const_id() }
+    fn id(&self) -> &str {
+        Self::const_id()
+    }
 
-    fn key(&self) -> &str { self.0.key() }
+    fn key(&self) -> &str {
+        self.0.key()
+    }
 }
 
 impl ConstIdRumor for ElectionUpdate {
-    fn const_id() -> &'static str { "election" }
+    fn const_id() -> &'static str {
+        "election"
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::rumor::{ConstIdRumor as _,
-                       Rumor,
-                       RumorStore,
-                       election::{Election,
-                                  ElectionUpdate,
-                                  Term}};
-    use habitat_core::service::ServiceGroup;
+    use crate::rumor::{
+        ConstIdRumor as _, Rumor, RumorStore,
+        election::{Election, ElectionUpdate, Term},
+    };
+    use biome_core::service::ServiceGroup;
 
-    fn create_election_rumor_store() -> RumorStore<Election> { RumorStore::default() }
+    fn create_election_rumor_store() -> RumorStore<Election> {
+        RumorStore::default()
+    }
 
-    fn create_election_update_rumor_store() -> RumorStore<ElectionUpdate> { RumorStore::default() }
+    fn create_election_update_rumor_store() -> RumorStore<ElectionUpdate> {
+        RumorStore::default()
+    }
 
     fn create_election(member_id: &str, suitability: u64) -> Election {
-        Election::new(member_id,
-                      &ServiceGroup::new("tdep", "prod", None).unwrap(),
-                      Term::default(),
-                      suitability,
-                      true /* has_quorum */)
+        Election::new(
+            member_id,
+            &ServiceGroup::new("tdep", "prod", None).unwrap(),
+            Term::default(),
+            suitability,
+            true, /* has_quorum */
+        )
     }
 
     fn create_election_update(member_id: &str, suitability: u64) -> ElectionUpdate {
-        ElectionUpdate::new(member_id,
-                            &ServiceGroup::new("tdep", "prod", None).unwrap(),
-                            Term::default(),
-                            suitability,
-                            true /* has_quorum */)
+        ElectionUpdate::new(
+            member_id,
+            &ServiceGroup::new("tdep", "prod", None).unwrap(),
+            Term::default(),
+            suitability,
+            true, /* has_quorum */
+        )
     }
 
     #[test]

@@ -6,7 +6,7 @@ ip = "172.17.0.5"
 
 [cfg]
 
-[hab]
+[bio]
 version = "0.0.0"
 
 [pkg]
@@ -14,17 +14,17 @@ exposes = []
 ident = "smith/lsyncd/0.1.0/20170215230753"
 name = "lsyncd"
 origin = "smith"
-path = "/hab/pkgs/smith/lsyncd/0.1.0/20170215230753"
+path = "/bio/pkgs/smith/lsyncd/0.1.0/20170215230753"
 release = "20170215230753"
-svc_config_path = "/hab/svc/lsyncd/config"
-svc_data_path = "/hab/svc/lsyncd/data"
-svc_files_path = "/hab/svc/lsyncd/files"
-svc_group = "hab"
-svc_path = "/hab/svc/lsyncd"
-svc_static_path = "/hab/svc/lsyncd/static"
-svc_user = "hab"
-svc_var_path = "/hab/svc/lsyncd/var"
-svc_pid_file = "/hab/svc/lsyncd/PID"
+svc_config_path = "/bio/svc/lsyncd/config"
+svc_data_path = "/bio/svc/lsyncd/data"
+svc_files_path = "/bio/svc/lsyncd/files"
+svc_group = "bio"
+svc_path = "/bio/svc/lsyncd"
+svc_static_path = "/bio/svc/lsyncd/static"
+svc_user = "bio"
+svc_var_path = "/bio/svc/lsyncd/var"
+svc_pid_file = "/bio/svc/lsyncd/PID"
 version = "0.1.0"
 
 [[pkg.deps]]

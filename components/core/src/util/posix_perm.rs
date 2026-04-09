@@ -1,29 +1,28 @@
-use libc::{self,
-           c_char,
-           c_int,
-           mode_t};
+use libc::{self, c_char, c_int, mode_t};
 use log::debug;
-use std::{ffi::CString,
-          path::Path};
+use std::{ffi::CString, path::Path};
 
 use crate::users;
 
-use crate::error::{Error,
-                   Result};
+use crate::error::{Error, Result};
 
 pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> Result<()> {
-    debug!("Attempting to set owner of {:?} to {:?}:{:?}",
-           &path.as_ref(),
-           &owner.as_ref(),
-           &group.as_ref());
+    debug!(
+        "Attempting to set owner of {:?} to {:?}:{:?}",
+        &path.as_ref(),
+        &owner.as_ref(),
+        &group.as_ref()
+    );
 
     let uid = match users::get_uid_by_name(owner.as_ref())? {
         Some(user) => user,
         None => {
-            let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting user.",
-                              &path.as_ref(),
-                              &owner.as_ref(),
-                              &group.as_ref());
+            let msg = format!(
+                "Can't change owner of {:?} to {:?}:{:?}, error getting user.",
+                &path.as_ref(),
+                &owner.as_ref(),
+                &group.as_ref()
+            );
             return Err(Error::PermissionFailed(msg));
         }
     };
@@ -31,10 +30,12 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
     let gid = match users::get_gid_by_name(group.as_ref())? {
         Some(group) => group,
         None => {
-            let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting group.",
-                              &path.as_ref(),
-                              &owner.as_ref(),
-                              &group.as_ref());
+            let msg = format!(
+                "Can't change owner of {:?} to {:?}:{:?}, error getting group.",
+                &path.as_ref(),
+                &owner.as_ref(),
+                &group.as_ref()
+            );
             return Err(Error::PermissionFailed(msg));
         }
     };
@@ -42,7 +43,10 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
         None => {
-            return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())));
+            return Err(Error::PermissionFailed(format!(
+                "Invalid path {:?}",
+                &path.as_ref()
+            )));
         }
     };
     let result = chown(s_path, uid, gid);
@@ -50,17 +54,17 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
     match result {
         Err(err) => Err(err),
         Ok(0) => Ok(()),
-        _ => {
-            Err(Error::PermissionFailed(format!("Can't change owner of \
+        _ => Err(Error::PermissionFailed(format!(
+            "Can't change owner of \
                                                  {:?} to {:?}:{:?}",
-                                                &path.as_ref(),
-                                                &owner.as_ref(),
-                                                &group.as_ref())))
-        }
+            &path.as_ref(),
+            &owner.as_ref(),
+            &group.as_ref()
+        ))),
     }
 }
 
-// This is required on machines where umask is set to a higher value like `0077`. (See CHEF-10987)
+// This is required on machines where umask is set to a higher value like `0077`. (See BIOME-10987)
 // This has a side effect of potentially changing the *mode* of directories not created by us but
 // this is done in order to ensure the ability to execute in the face of the variety of scenarios
 // that may be encounter "in the wild". This is as such not a huge problem as we are only changing
@@ -70,7 +74,7 @@ pub(crate) fn ensure_path_permissions(path: &Path, permissions: u32) -> Result<(
     let egid = users::get_effective_gid();
     for ancestor in path.ancestors() {
         // This short circuit is vital. A specific instance is in the case of exporting containers
-        // where hab is rooted in /tmp. Without this check /tmp permissions will be changed and
+        // where bio is rooted in /tmp. Without this check /tmp permissions will be changed and
         // things that depend on /tmp having "1775/drwxrwxrwt" permissions will break.
         if ancestor.ends_with(crate::fs::ROOT_PATH) {
             break;
@@ -94,7 +98,10 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
         None => {
-            return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())));
+            return Err(Error::PermissionFailed(format!(
+                "Invalid path {:?}",
+                &path.as_ref()
+            )));
         }
     };
 
@@ -102,12 +109,12 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
     match result {
         Err(err) => Err(err),
         Ok(0) => Ok(()),
-        _ => {
-            Err(Error::PermissionFailed(format!("Can't set permissions \
+        _ => Err(Error::PermissionFailed(format!(
+            "Can't set permissions \
                                                  on {:?} to {:?}",
-                                                &path.as_ref(),
-                                                &mode)))
-        }
+            &path.as_ref(),
+            &mode
+        ))),
     }
 }
 
@@ -115,9 +122,11 @@ fn validate_raw_path(path: &str) -> Result<*mut c_char> {
     let c_path = match CString::new(path) {
         Ok(c) => c,
         Err(e) => {
-            return Err(Error::PermissionFailed(format!("Can't create string \
+            return Err(Error::PermissionFailed(format!(
+                "Can't create string \
                                                         from path {:?}: {}",
-                                                       path, e)));
+                path, e
+            )));
         }
     };
     Ok(c_path.into_raw())
@@ -137,9 +146,11 @@ fn chmod(path: &str, mode: u32) -> Result<c_int> {
     let c_path = match CString::new(path) {
         Ok(c) => c,
         Err(e) => {
-            return Err(Error::PermissionFailed(format!("Can't create string \
+            return Err(Error::PermissionFailed(format!(
+                "Can't create string \
                                                         from path {:?}: {}",
-                                                       path, e)));
+                path, e
+            )));
         }
     };
     let r_path = c_path.into_raw();
@@ -153,9 +164,7 @@ fn chmod(path: &str, mode: u32) -> Result<c_int> {
 
 #[cfg(test)]
 mod tests {
-    use std::{fs::File,
-              io::Write,
-              path::Path};
+    use std::{fs::File, io::Write, path::Path};
 
     use tempfile::Builder;
 
@@ -164,9 +173,10 @@ mod tests {
 
     #[test]
     fn chmod_ok_test() {
-        let tmp_dir = Builder::new().prefix("foo")
-                                    .tempdir()
-                                    .expect("create temp dir");
+        let tmp_dir = Builder::new()
+            .prefix("foo")
+            .tempdir()
+            .expect("create temp dir");
         let file_path = tmp_dir.path().join("test.txt");
         let mut tmp_file = File::create(&file_path).expect("create temp file");
         writeln!(tmp_file, "foobar123").expect("write temp file");
@@ -188,8 +198,10 @@ mod tests {
             }
             Err(Error::PermissionFailed(_)) => { /* OK */ }
             Err(e) => {
-                panic!("Got unexpected error chmodding a non-existent file: {:?}",
-                       e);
+                panic!(
+                    "Got unexpected error chmodding a non-existent file: {:?}",
+                    e
+                );
             }
         }
     }

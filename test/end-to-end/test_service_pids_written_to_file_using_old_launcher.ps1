@@ -5,7 +5,7 @@
 Describe "Using a Launcher that cannot provide service PIDs" {
     # This was the last stable Linux Launcher prior to the Launcher
     # being able to provide service PIDs to the Supervisor directly.
-    hab pkg install core/hab-launcher/12605/20191112144831
+    bio pkg install core/bio-launcher/12605/20191112144831
 
     $supLog = New-SupervisorLogFile("using_a_launcher_that_cannot_provide_service_pids")
     Start-Supervisor -LogFile $supLog -Timeout 20
@@ -13,15 +13,15 @@ Describe "Using a Launcher that cannot provide service PIDs" {
     Wait-ProcessStart redis-server -Timeout 10
 
     It "should create PID file" {
-        Test-Path "/hab/svc/redis/PID" | Should -Be $true
+        Test-Path "/bio/svc/redis/PID" | Should -Be $true
     }
 
     Context "Supervisor is restarted" {
-        $supProc = Get-Process hab-sup
+        $supProc = Get-Process bio-sup
         $redisProc = Get-Process "redis-server *:6379"
         Restart-Supervisor
         Wait-ProcessStart redis-server -Timeout 10
-        $newSupProc = Get-Process hab-sup
+        $newSupProc = Get-Process bio-sup
         $newRedisProc = Get-Process "redis-server *:6379"
 
         It "starts a new supervisor process" {

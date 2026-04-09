@@ -1,32 +1,29 @@
-use habitat_butterfly::{error::Error,
-                        member::{Health,
-                                 Member},
-                        rumor::{ConstIdRumor as _,
-                                Election,
-                                departure::Departure,
-                                election::ElectionStatus,
-                                service::{Service,
-                                          SysInfo},
-                                service_config::ServiceConfig,
-                                service_file::ServiceFile},
-                        server::{Server,
-                                 Suitability,
-                                 timing::Timing}};
-use habitat_core::{crypto::keys::RingKey,
-                   package::{Identifiable,
-                             PackageIdent},
-                   service::ServiceGroup};
-use std::{net::{IpAddr,
-                Ipv4Addr,
-                SocketAddr},
-          ops::{Deref,
-                DerefMut,
-                Range},
-          str::FromStr,
-          sync::{Arc,
-                 Mutex},
-          thread,
-          time::Duration};
+use biome_butterfly::{
+    error::Error,
+    member::{Health, Member},
+    rumor::{
+        ConstIdRumor as _, Election,
+        departure::Departure,
+        election::ElectionStatus,
+        service::{Service, SysInfo},
+        service_config::ServiceConfig,
+        service_file::ServiceFile,
+    },
+    server::{Server, Suitability, timing::Timing},
+};
+use biome_core::{
+    crypto::keys::RingKey,
+    package::{Identifiable, PackageIdent},
+    service::ServiceGroup,
+};
+use std::{
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    ops::{Deref, DerefMut, Range},
+    str::FromStr,
+    sync::{Arc, Mutex},
+    thread,
+    time::Duration,
+};
 
 lazy_static::lazy_static! {
     static ref SERVER_PORT: Mutex<u16> = Mutex::new(6666);
@@ -35,7 +32,9 @@ lazy_static::lazy_static! {
 #[derive(Debug)]
 struct NSuitability(u64);
 impl Suitability for NSuitability {
-    fn suitability_for_msr(&self, _service_group: &str) -> u64 { self.0 }
+    fn suitability_for_msr(&self, _service_group: &str) -> u64 {
+        self.0
+    }
 }
 
 /// # Locking (see locking.md)
@@ -53,19 +52,25 @@ pub fn start_server_smw_rhw(name: &str, ring_key: Option<RingKey>, suitability: 
     }
     let listen_swim = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), swim_port);
     let listen_gossip = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
-    let member = Member { swim_port,
-                          gossip_port,
-                          ..Default::default() };
+    let member = Member {
+        swim_port,
+        gossip_port,
+        ..Default::default()
+    };
 
-    let mut server = Server::new(listen_swim,
-                                 listen_gossip,
-                                 member,
-                                 ring_key,
-                                 Some(String::from(name)),
-                                 None,
-                                 Arc::new(NSuitability(suitability))).unwrap();
-    server.start_rsw_mlw_smw_rhw_msr(&Timing::default())
-          .expect("Cannot start server");
+    let mut server = Server::new(
+        listen_swim,
+        listen_gossip,
+        member,
+        ring_key,
+        Some(String::from(name)),
+        None,
+        Arc::new(NSuitability(suitability)),
+    )
+    .unwrap();
+    server
+        .start_rsw_mlw_smw_rhw_msr(&Timing::default())
+        .expect("Cannot start server");
     server
 }
 
@@ -92,25 +97,28 @@ pub struct SwimNet {
 impl Deref for SwimNet {
     type Target = Vec<Server>;
 
-    fn deref(&self) -> &Vec<Server> { &self.members }
+    fn deref(&self) -> &Vec<Server> {
+        &self.members
+    }
 }
 
 impl DerefMut for SwimNet {
-    fn deref_mut(&mut self) -> &mut Vec<Server> { &mut self.members }
+    fn deref_mut(&mut self) -> &mut Vec<Server> {
+        &mut self.members
+    }
 }
 
 impl SwimNet {
     /// # Locking (see locking.md)
     /// * `RumorHeat::inner` (write)
     pub fn new_with_suitability_rhw(suitabilities: Vec<u64>) -> SwimNet {
-        SwimNet { members: suitabilities.into_iter()
-                                        .enumerate()
-                                        .map(|(x, suitability)| {
-                                            start_server_smw_rhw(&format!("{}", x),
-                                                                 None,
-                                                                 suitability)
-                                        })
-                                        .collect(), }
+        SwimNet {
+            members: suitabilities
+                .into_iter()
+                .enumerate()
+                .map(|(x, suitability)| start_server_smw_rhw(&format!("{}", x), None, suitability))
+                .collect(),
+        }
     }
 
     /// # Locking (see locking.md)
@@ -158,22 +166,26 @@ impl SwimNet {
     }
 
     pub fn block(&self, from_entry: usize, to_entry: usize) {
-        let from = self.members
-                       .get(from_entry)
-                       .expect("Asked for a network member who is out of bounds");
-        let to = self.members
-                     .get(to_entry)
-                     .expect("Asked for a network member who is out of bounds");
+        let from = self
+            .members
+            .get(from_entry)
+            .expect("Asked for a network member who is out of bounds");
+        let to = self
+            .members
+            .get(to_entry)
+            .expect("Asked for a network member who is out of bounds");
         from.add_to_block_list_sblw(String::from(to.member_id()));
     }
 
     pub fn unblock(&self, from_entry: usize, to_entry: usize) {
-        let from = self.members
-                       .get(from_entry)
-                       .expect("Asked for a network member who is out of bounds");
-        let to = self.members
-                     .get(to_entry)
-                     .expect("Asked for a network member who is out of bounds");
+        let from = self
+            .members
+            .get(from_entry)
+            .expect("Asked for a network member who is out of bounds");
+        let to = self
+            .members
+            .get(to_entry)
+            .expect("Asked for a network member who is out of bounds");
         from.remove_from_block_list_sblw(to.member_id());
     }
 
@@ -184,22 +196,27 @@ impl SwimNet {
         /// `health_of_by_id`.
         const HEALTH_OF_TIMEOUT: Duration = Duration::from_secs(5);
 
-        let from = self.members
-                       .get(from_entry)
-                       .expect("Asked for a network member who is out of bounds");
+        let from = self
+            .members
+            .get(from_entry)
+            .expect("Asked for a network member who is out of bounds");
 
-        let to = self.members
-                     .get(to_entry)
-                     .expect("Asked for a network member who is out of bounds");
+        let to = self
+            .members
+            .get(to_entry)
+            .expect("Asked for a network member who is out of bounds");
 
-        match from.member_list
-                  .health_of_by_id_with_timeout_mlr(to.member_id(), HEALTH_OF_TIMEOUT)
+        match from
+            .member_list
+            .health_of_by_id_with_timeout_mlr(to.member_id(), HEALTH_OF_TIMEOUT)
         {
             Ok(health) => Some(health),
             Err(Error::UnknownMember(_)) => None,
             Err(Error::Timeout(_)) => {
-                panic!("Timed out after waiting {:?} querying member health",
-                       HEALTH_OF_TIMEOUT);
+                panic!(
+                    "Timed out after waiting {:?} querying member health",
+                    HEALTH_OF_TIMEOUT
+                );
             }
             Err(e) => {
                 println!("Unexpected error from health_of_by_id_with_timeout: {}", e);
@@ -222,11 +239,17 @@ impl SwimNet {
         health_summary
     }
 
-    pub fn max_rounds(&self) -> isize { 4 }
+    pub fn max_rounds(&self) -> isize {
+        4
+    }
 
-    pub fn max_gossip_rounds(&self) -> isize { 8 }
+    pub fn max_gossip_rounds(&self) -> isize {
+        8
+    }
 
-    pub fn rounds(&self) -> Vec<isize> { self.members.iter().map(Server::swim_rounds).collect() }
+    pub fn rounds(&self) -> Vec<isize> {
+        self.members.iter().map(Server::swim_rounds).collect()
+    }
 
     pub fn rounds_in(&self, count: isize) -> Vec<isize> {
         self.rounds().iter().map(|r| r + count).collect()
@@ -240,10 +263,11 @@ impl SwimNet {
         self.gossip_rounds().iter().map(|r| r + count).collect()
     }
 
-    fn check_rounds_impl(&self,
-                         rounds_in: &[isize],
-                         get_rounds: impl Fn(&Server) -> isize)
-                         -> bool {
+    fn check_rounds_impl(
+        &self,
+        rounds_in: &[isize],
+        get_rounds: impl Fn(&Server) -> isize,
+    ) -> bool {
         for (member, round) in self.members.iter().zip(rounds_in) {
             if !member.paused() && get_rounds(member) <= *round {
                 return false;
@@ -282,27 +306,32 @@ impl SwimNet {
         }
     }
 
-    pub fn wait_for_election_status(&self,
-                                    e_num: usize,
-                                    key: &str,
-                                    status: ElectionStatus)
-                                    -> bool {
+    pub fn wait_for_election_status(
+        &self,
+        e_num: usize,
+        key: &str,
+        status: ElectionStatus,
+    ) -> bool {
         let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
         loop {
-            let server = self.members
-                             .get(e_num)
-                             .expect("Asked for a network member who is out of bounds");
-            let result = server.election_store
-                               .lock_rsr()
-                               .service_group(key)
-                               .map_rumor(Election::const_id(), |stored| stored.status == status)
-                               .unwrap_or(false);
+            let server = self
+                .members
+                .get(e_num)
+                .expect("Asked for a network member who is out of bounds");
+            let result = server
+                .election_store
+                .lock_rsr()
+                .service_group(key)
+                .map_rumor(Election::const_id(), |stored| stored.status == status)
+                .unwrap_or(false);
             if result {
                 return true;
             }
             if self.check_gossip_rounds(&rounds_in) {
-                println!("Failed election check for status {:?}: {:#?}",
-                         status, self.members[e_num].election_store);
+                println!(
+                    "Failed election check for status {:?}: {:#?}",
+                    status, self.members[e_num].election_store
+                );
                 return false;
             }
         }
@@ -311,31 +340,37 @@ impl SwimNet {
     pub fn wait_for_equal_election(&self, left: usize, right: usize, key: &str) -> bool {
         let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
         loop {
-            let left_server = self.members
-                                  .get(left)
-                                  .expect("Asked for a network member who is out of bounds")
-                                  .election_store
-                                  .lock_rsr();
-            let right_server = self.members
-                                   .get(right)
-                                   .expect("Asked for a network member who is out of bounds")
-                                   .election_store
-                                   .lock_rsr();
+            let left_server = self
+                .members
+                .get(left)
+                .expect("Asked for a network member who is out of bounds")
+                .election_store
+                .lock_rsr();
+            let right_server = self
+                .members
+                .get(right)
+                .expect("Asked for a network member who is out of bounds")
+                .election_store
+                .lock_rsr();
 
-            let result = left_server.service_group(key)
-                                    .map_rumor(Election::const_id(), |l| {
-                                        right_server.service_group(key)
-                                                    .map_rumor(Election::const_id(), |r| l == r)
-                                                    .unwrap_or(false)
-                                    })
-                                    .unwrap_or(false);
+            let result = left_server
+                .service_group(key)
+                .map_rumor(Election::const_id(), |l| {
+                    right_server
+                        .service_group(key)
+                        .map_rumor(Election::const_id(), |r| l == r)
+                        .unwrap_or(false)
+                })
+                .unwrap_or(false);
 
             if result {
                 return true;
             }
             if self.check_gossip_rounds(&rounds_in) {
-                println!("Failed election check for equality:\nL: {:#?}\n\nR: {:#?}",
-                         self.members[left].election_store, self.members[right].election_store,);
+                println!(
+                    "Failed election check for equality:\nL: {:#?}\n\nR: {:#?}",
+                    self.members[left].election_store, self.members[right].election_store,
+                );
                 return false;
             }
         }
@@ -392,22 +427,25 @@ impl SwimNet {
 
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
-    pub fn wait_for_health_of_mlr(&self,
-                                  from_entry: usize,
-                                  to_check: usize,
-                                  health: Health)
-                                  -> bool {
+    pub fn wait_for_health_of_mlr(
+        &self,
+        from_entry: usize,
+        to_check: usize,
+        health: Health,
+    ) -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
             if let Some(real_health) = self.health_of_mlr(from_entry, to_check)
-               && real_health == health
+                && real_health == health
             {
                 return true;
             }
             if self.check_rounds(&rounds_in) {
                 println!("MEMBERS: {:#?}", self.members);
-                println!("Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",
-                         self.members[from_entry], self.members[to_check]);
+                println!(
+                    "Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",
+                    self.members[from_entry], self.members[to_check]
+                );
                 return false;
             }
         }
@@ -433,31 +471,39 @@ impl SwimNet {
     }
 
     pub fn add_service(&mut self, member: usize, package: &str) {
-        let ident = PackageIdent::from_str(package).expect("package needs to be a fully \
-                                                            qualified package identifier");
+        let ident = PackageIdent::from_str(package).expect(
+            "package needs to be a fully \
+                                                            qualified package identifier",
+        );
         let sg = ServiceGroup::new(ident.name(), "prod", None).unwrap();
-        let s = Service::new(self[member].member_id().to_string(),
-                             &ident,
-                             sg,
-                             SysInfo::default(),
-                             None);
+        let s = Service::new(
+            self[member].member_id().to_string(),
+            &ident,
+            sg,
+            SysInfo::default(),
+            None,
+        );
         self[member].insert_service_rsw_mlw_rhw(s);
     }
 
     pub fn add_service_config(&mut self, member: usize, service: &str, config: &str) {
         let config_bytes: Vec<u8> = Vec::from(config);
-        let s = ServiceConfig::new(self[member].member_id(),
-                                   ServiceGroup::new(service, "prod", None).unwrap(),
-                                   config_bytes);
+        let s = ServiceConfig::new(
+            self[member].member_id(),
+            ServiceGroup::new(service, "prod", None).unwrap(),
+            config_bytes,
+        );
         self[member].insert_service_config_rsw_rhw(s);
     }
 
     pub fn add_service_file(&mut self, member: usize, service: &str, filename: &str, body: &str) {
         let body_bytes: Vec<u8> = Vec::from(body);
-        let s = ServiceFile::new(self[member].member_id(),
-                                 ServiceGroup::new(service, "prod", None).unwrap(),
-                                 filename,
-                                 body_bytes);
+        let s = ServiceFile::new(
+            self[member].member_id(),
+            ServiceGroup::new(service, "prod", None).unwrap(),
+            filename,
+            body_bytes,
+        );
         self[member].insert_service_file_rsw_rhw(s);
     }
 
@@ -467,9 +513,11 @@ impl SwimNet {
     }
 
     pub fn add_election(&mut self, member: usize, service: &str) {
-        self[member].start_election_rsw_mlr_rhw_msr(&ServiceGroup::new(service, "prod",
-                                                                       None).unwrap(),
-                                                    0, None);
+        self[member].start_election_rsw_mlr_rhw_msr(
+            &ServiceGroup::new(service, "prod", None).unwrap(),
+            0,
+            None,
+        );
     }
 }
 
@@ -477,19 +525,24 @@ impl SwimNet {
 #[macro_export]
 macro_rules! assert_health_of {
     ($network:expr, $to:expr, $health:expr) => {
-        assert!($network.network_health_of_mlr($to)
-                        .into_iter()
-                        .all(|x| x == $health),
-                "Member {} does not always have health {}",
-                $to,
-                $health)
+        assert!(
+            $network
+                .network_health_of_mlr($to)
+                .into_iter()
+                .all(|x| x == $health),
+            "Member {} does not always have health {}",
+            $to,
+            $health
+        )
     };
     ($network:expr, $from:expr, $to:expr, $health:expr) => {
-        assert!($network.health_of($from, $to) == $health,
-                "Member {} does not see {} as {}",
-                $from,
-                $to,
-                $health)
+        assert!(
+            $network.health_of($from, $to) == $health,
+            "Member {} does not see {} as {}",
+            $from,
+            $to,
+            $health
+        )
     };
 }
 
@@ -503,31 +556,39 @@ macro_rules! assert_wait_for_health_of_mlr {
                 if l == r {
                     continue;
                 }
-                assert!($network.wait_for_health_of_mlr(*l, *r, $health),
-                        "Member {} does not see {} as {}",
-                        l,
-                        r,
-                        $health);
-                assert!($network.wait_for_health_of_mlr(*r, *l, $health),
-                        "Member {} does not see {} as {}",
-                        r,
-                        l,
-                        $health);
+                assert!(
+                    $network.wait_for_health_of_mlr(*l, *r, $health),
+                    "Member {} does not see {} as {}",
+                    l,
+                    r,
+                    $health
+                );
+                assert!(
+                    $network.wait_for_health_of_mlr(*r, *l, $health),
+                    "Member {} does not see {} as {}",
+                    r,
+                    l,
+                    $health
+                );
             }
         }
     };
     ($network:expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_network_health_of_mlr($to, $health),
-                "Member {} does not always have health {}",
-                $to,
-                $health);
+        assert!(
+            $network.wait_for_network_health_of_mlr($to, $health),
+            "Member {} does not always have health {}",
+            $to,
+            $health
+        );
     };
     ($network:expr, $from:expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_health_of_mlr($from, $to, $health),
-                "Member {} does not see {} as {}",
-                $from,
-                $to,
-                $health);
+        assert!(
+            $network.wait_for_health_of_mlr($from, $to, $health),
+            "Member {} does not see {} as {}",
+            $from,
+            $to,
+            $health
+        );
     };
 }
 
@@ -556,10 +617,12 @@ macro_rules! assert_wait_for_equal_election {
                 if l == r {
                     continue;
                 }
-                assert!($network.wait_for_equal_election(*l, *r, $key),
-                        "Member {} is not equal to {}",
-                        l,
-                        r);
+                assert!(
+                    $network.wait_for_equal_election(*l, *r, $key),
+                    "Member {} is not equal to {}",
+                    l,
+                    r
+                );
             }
         }
     };

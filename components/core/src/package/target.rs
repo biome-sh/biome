@@ -24,10 +24,10 @@
 //!
 //! # Determining Package Target
 //!
-//! At build time, the build system will produce a Habitat artifact which is unconditionally
+//! At build time, the build system will produce a Biome artifact which is unconditionally
 //! encoded with a specific package target by including a `TARGET` metafile in the root of the
 //! package's installed directory. For convenience, the package target string representation is
-//! also used in the naming of the so-called "hart" file (or Habitat ARTifact).
+//! also used in the naming of the so-called "hart" file (or Biome ARTifact).
 //!
 //! After a package has been built, there are a few ways to check the [`PackageTarget`]:
 //!
@@ -41,7 +41,7 @@
 //!
 //! The optional variant does **not** correspond to a `<vendor>` or `<abi>` as taken from a
 //! traditional target triple (another reason why this concept is called a "package target" in
-//! Habitat and not a "target triple"). In particular, the traditional understanding of [ABI]
+//! Biome and not a "target triple"). In particular, the traditional understanding of [ABI]
 //! doesn't fully apply where it relates to [C standard library][libc] implementations as multiple
 //! libc implementations can live alongside each other within one package target set of packages.
 //! For example, in the `x86_64-linux` package target there already exists a mature and default
@@ -63,13 +63,9 @@
 //! [musl]: https://www.musl-libc.org/
 //! [rust_triple]: https://github.com/rust-lang/rust/tree/master/src/librustc_back/target
 
-use crate::{error::Error,
-            util};
+use crate::{error::Error, util};
 use regex::Regex;
-use std::{fmt,
-          ops::Deref,
-          result,
-          str::FromStr};
+use std::{fmt, ops::Deref, result, str::FromStr};
 
 macro_rules! package_targets {
     (
@@ -283,10 +279,10 @@ package_targets! {
     /// NOTE: While we no longer support building for this package target, we still support
     /// storing and loading packages with this target.
     ///
-    /// This Habitat package target is intended for software with older buildtime or runtime
+    /// This Biome package target is intended for software with older buildtime or runtime
     /// requirements than those supported by the current `x86_64-linux` package target.
     /// Specifically, software with this package target should run on systems from around the year
-    /// 2016, when the Habitat project was publicly launched. This Habitat package target will run
+    /// 2016, when the Biome project was publicly launched. This Biome package target will run
     /// on Linux systems equipped with kernel versions as low as 2.6.32.
     ///
     /// [Linux kernel]: https://en.wikipedia.org/wiki/Linux_kernel
@@ -342,7 +338,7 @@ lazy_static::lazy_static! {
 /// # Examples
 ///
 /// ```
-/// use habitat_core::package::target::{self,
+/// use biome_core::package::target::{self,
 ///                                     PackageTarget};
 /// use std::str::FromStr;
 ///
@@ -372,7 +368,7 @@ impl PackageTarget {
     /// # Examples
     ///
     /// ```
-    /// use habitat_core::package::target;
+    /// use biome_core::package::target;
     ///
     /// let mut it = target::X86_64_LINUX.iter();
     ///
@@ -381,8 +377,10 @@ impl PackageTarget {
     /// assert_eq!(it.next(), None);
     /// ```
     pub fn iter(&self) -> Iter<'_> {
-        Iter { target: self,
-               pos:    0, }
+        Iter {
+            target: self,
+            pos: 0,
+        }
     }
 
     /// Returns the `PackageTarget` that is determined at compile time for the currently running
@@ -397,19 +395,21 @@ impl PackageTarget {
     /// # Examples
     ///
     /// ```
-    /// use habitat_core::package::PackageTarget;
+    /// use biome_core::package::PackageTarget;
     ///
     /// let active = PackageTarget::active_target();
     /// println!("The active target for this system is '{}'", active);
     /// ```
-    pub fn active_target() -> Self { *ACTIVE_PACKAGE_TARGET }
+    pub fn active_target() -> Self {
+        *ACTIVE_PACKAGE_TARGET
+    }
 
     /// Produces an iterator over all supported `PackageTarget`s.
     ///
     /// # Examples
     ///
     /// ```
-    /// use habitat_core::package::PackageTarget;
+    /// use biome_core::package::PackageTarget;
     ///
     /// // The iterator allows the caller to use the result directly in a loop
     /// for target in PackageTarget::targets() {
@@ -421,11 +421,15 @@ impl PackageTarget {
     /// let targets: Vec<_> = PackageTarget::targets().map(|t| t.as_ref()).collect();
     /// println!("All supported targets: [{}]", targets.join(", "));
     /// ```
-    pub fn targets() -> ::std::slice::Iter<'static, PackageTarget> { PACKAGE_TARGETS.iter() }
+    pub fn targets() -> ::std::slice::Iter<'static, PackageTarget> {
+        PACKAGE_TARGETS.iter()
+    }
 }
 
 impl fmt::Display for PackageTarget {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0.as_str()) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0.as_str())
+    }
 }
 
 impl FromStr for PackageTarget {
@@ -439,16 +443,21 @@ impl FromStr for PackageTarget {
 impl Deref for PackageTarget {
     type Target = str;
 
-    fn deref(&self) -> &'static str { self.0.as_str() }
+    fn deref(&self) -> &'static str {
+        self.0.as_str()
+    }
 }
 
 impl AsRef<str> for PackageTarget {
-    fn as_ref(&self) -> &str { self.0.as_str() }
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
 }
 
 impl<'d> serde::Deserialize<'d> for PackageTarget {
     fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
-        where D: serde::Deserializer<'d>
+    where
+        D: serde::Deserializer<'d>,
     {
         util::serde::string::deserialize(deserializer)
     }
@@ -456,7 +465,8 @@ impl<'d> serde::Deserialize<'d> for PackageTarget {
 
 impl serde::Serialize for PackageTarget {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: serde::Serializer
+    where
+        S: serde::Serializer,
     {
         serializer.serialize_str(self.0.as_str())
     }
@@ -465,28 +475,31 @@ impl serde::Serialize for PackageTarget {
 impl Type {
     /// Returns the architecture component of the underlying target type.
     fn architecture(&self) -> &str {
-        TYPE_FROM_STR_RE.captures(self.as_str())
-                        .unwrap()
-                        .name("architecture")
-                        .unwrap()
-                        .as_str()
+        TYPE_FROM_STR_RE
+            .captures(self.as_str())
+            .unwrap()
+            .name("architecture")
+            .unwrap()
+            .as_str()
     }
 
     /// Returns the system component of the underlying target type.
     fn system(&self) -> &str {
-        TYPE_FROM_STR_RE.captures(self.as_str())
-                        .unwrap()
-                        .name("system")
-                        .unwrap()
-                        .as_str()
+        TYPE_FROM_STR_RE
+            .captures(self.as_str())
+            .unwrap()
+            .name("system")
+            .unwrap()
+            .as_str()
     }
 
     /// Returns the variant component of the underlying target type, if one is present.
     fn variant(self) -> Option<&'static str> {
-        TYPE_FROM_STR_RE.captures(self.as_str())
-                        .unwrap()
-                        .name("variant")
-                        .map(|v| v.as_str())
+        TYPE_FROM_STR_RE
+            .captures(self.as_str())
+            .unwrap()
+            .name("variant")
+            .map(|v| v.as_str())
     }
 }
 
@@ -502,7 +515,7 @@ impl Type {
 /// # Examples
 ///
 /// ```
-/// use habitat_core::package::target;
+/// use biome_core::package::target;
 /// use std::str::FromStr;
 ///
 /// let target = target::X86_64_LINUX;
@@ -513,7 +526,7 @@ impl Type {
 /// ```
 pub struct Iter<'a> {
     target: &'a PackageTarget,
-    pos:    usize,
+    pos: usize,
 }
 
 impl<'a> Iterator for Iter<'a> {
@@ -537,8 +550,7 @@ impl<'a> Iterator for Iter<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde::{Deserialize,
-                Serialize};
+    use serde::{Deserialize, Serialize};
 
     // This test explicitly runs the function which returns the active `PackageTarget` for the
     // binary on the current running system. If compiletime support has not yet been added for this
@@ -555,8 +567,10 @@ mod tests {
     #[test]
     #[cfg(feature = "x86_64-linux")]
     fn package_target_from_str() {
-        assert_eq!(PackageTarget(Type::X86_64_Linux),
-                   PackageTarget::from_str("x86_64-linux").unwrap());
+        assert_eq!(
+            PackageTarget(Type::X86_64_Linux),
+            PackageTarget::from_str("x86_64-linux").unwrap()
+        );
     }
 
     // The `Type::as_str()` implementation is already tested for every enum variant, so this
@@ -583,7 +597,9 @@ mod tests {
         struct Data {
             target: PackageTarget,
         }
-        let data = Data { target: PackageTarget(Type::X86_64_Linux), };
+        let data = Data {
+            target: PackageTarget(Type::X86_64_Linux),
+        };
         let toml = toml::to_string(&data).unwrap();
 
         assert!(toml.starts_with(r#"target = "x86_64-linux""#));

@@ -1,2 +1,2 @@
 @echo off
-pwsh.exe -NoProfile -ExecutionPolicy bypass -NoLogo -Command ". '%~dp0habitat.ps1';Install-HabService" %*
+pwsh.exe -NoProfile -ExecutionPolicy bypass -NoLogo -Command ". '%~dp0biome.ps1';Install-BioService" %*

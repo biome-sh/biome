@@ -15,7 +15,9 @@ impl OsStrExt3 for OsStr {
         unsafe { mem::transmute(b) }
     }
 
-    fn as_bytes(&self) -> &[u8] { self.to_str().map(str::as_bytes).expect(INVALID_UTF8) }
+    fn as_bytes(&self) -> &[u8] {
+        self.to_str().map(str::as_bytes).expect(INVALID_UTF8)
+    }
 }
 
 #[doc(hidden)]

@@ -2,13 +2,13 @@
 //! Supervisor.
 
 use super::EventCore;
-use crate::manager::service::{HealthCheckResult as DomainHealthCheckResult,
-                              Service,
-                              UpdateStrategy as DomainUpdateStrategy};
+use crate::manager::service::{
+    HealthCheckResult as DomainHealthCheckResult, Service, UpdateStrategy as DomainUpdateStrategy,
+};
 use prost::Message;
 use std::fmt::Debug;
 
-include!(concat!(env!("OUT_DIR"), "/chef.habitat.supervisor.event.rs"));
+include!(concat!(env!("OUT_DIR"), "/biome.biome.supervisor.event.rs"));
 
 // Note: `HealthCheckResult` here is the protobuf-generated type for
 // the event we're sending out; `DomainHealthCheckResult` is the one we use
@@ -33,10 +33,12 @@ impl Service {
     // kick off the health checking future for a service, rather than
     // cloning the entire service for eventing.
     pub fn to_service_metadata(&self) -> ServiceMetadata {
-        ServiceMetadata { package_ident: self.pkg.ident.to_string(),
-                          spec_ident:    self.spec_ident().to_string(),
-                          service_group: self.service_group.to_string(),
-                          update_config: self.update_config(), }
+        ServiceMetadata {
+            package_ident: self.pkg.ident.to_string(),
+            spec_ident: self.spec_ident().to_string(),
+            service_group: self.service_group.to_string(),
+            update_config: self.update_config(),
+        }
     }
 
     /// `UpdateConfig` is a (currently protobuf-only) type that
@@ -54,8 +56,10 @@ impl Service {
             DomainUpdateStrategy::Rolling => UpdateStrategy::Rolling,
         };
 
-        Some(UpdateConfig { strategy: strategy.into(),
-                            channel:  self.channel().to_string(), })
+        Some(UpdateConfig {
+            strategy: strategy.into(),
+            channel: self.channel().to_string(),
+        })
     }
 }
 
@@ -63,14 +67,16 @@ impl EventCore {
     /// Create a protobuf metadata struct for all event messages.
     pub(super) fn to_event_metadata(&self) -> EventMetadata {
         // occurred_at will be set to Some when the event is published.
-        EventMetadata { supervisor_id: self.supervisor_id.clone(),
-                        ip_address:    self.ip_address.to_string(),
-                        fqdn:          self.fqdn.clone(),
-                        application:   self.application.clone(),
-                        environment:   self.environment.clone(),
-                        site:          self.site.clone().unwrap_or_default(),
-                        occurred_at:   None,
-                        meta:          self.meta.clone().into(), }
+        EventMetadata {
+            supervisor_id: self.supervisor_id.clone(),
+            ip_address: self.ip_address.to_string(),
+            fqdn: self.fqdn.clone(),
+            application: self.application.clone(),
+            environment: self.environment.clone(),
+            site: self.site.clone().unwrap_or_default(),
+            occurred_at: None,
+            meta: self.meta.clone().into(),
+        }
     }
 }
 

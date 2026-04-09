@@ -23,7 +23,7 @@ test/builder-api/node_modules
 test/builder-api/services.log
 tmp/
 CTL_SECRET
-components/studio/libexec/hab
+components/studio/libexec/bio
 components/studio/libexec/busybox
 package.json
 package-lock.json

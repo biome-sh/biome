@@ -1,29 +1,28 @@
 use crate::os::process::can_run_services_as_svc_user;
 #[cfg(not(target_os = "macos"))]
 use log::warn;
-use nix::{sys::signal::{SigSet,
-                        SigmaskHow,
-                        pthread_sigmask},
-          unistd::{Gid,
-                   Uid,
-                   setgid,
-                   setuid}};
-use std::{ffi::OsStr,
-          io,
-          os::unix::process::CommandExt,
-          process::{Command,
-                    Stdio},
-          result};
+use nix::{
+    sys::signal::{SigSet, SigmaskHow, pthread_sigmask},
+    unistd::{Gid, Uid, setgid, setuid},
+};
+use std::{
+    ffi::OsStr,
+    io,
+    os::unix::process::CommandExt,
+    process::{Command, Stdio},
+    result,
+};
 
 /// Prepare a `Command` to execute a lifecycle hook.
 // TODO (CM): Ideally, `ids` would not be an `Option`, but separate
 // `Uid` and `Gid` inputs. However, the `Option` interface provides
 // the least disruption to other existing code for the time being.
 pub fn hook_command<X, I, K, V>(executable: X, env: I, ids: Option<(Uid, Gid)>) -> Command
-    where X: AsRef<OsStr>,
-          I: IntoIterator<Item = (K, V)>,
-          K: AsRef<OsStr>,
-          V: AsRef<OsStr>
+where
+    X: AsRef<OsStr>,
+    I: IntoIterator<Item = (K, V)>,
+    K: AsRef<OsStr>,
+    V: AsRef<OsStr>,
 {
     let mut cmd = Command::new(executable);
 
@@ -31,9 +30,9 @@ pub fn hook_command<X, I, K, V>(executable: X, env: I, ids: Option<(Uid, Gid)>) 
     // called here! They are set in `with_user_and_group_information`;
     // see there for further details.
     cmd.stdin(Stdio::null())
-       .stdout(Stdio::piped())
-       .stderr(Stdio::piped())
-       .envs(env);
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .envs(env);
 
     with_own_process_group(&mut cmd);
     if let Some((uid, gid)) = ids {
@@ -45,10 +44,10 @@ pub fn hook_command<X, I, K, V>(executable: X, env: I, ids: Option<(Uid, Gid)>) 
     // other signals from reaching processes spawned via our launcher.
     unsafe {
         cmd.pre_exec(|| {
-               let newset = SigSet::all();
-               pthread_sigmask(SigmaskHow::SIG_UNBLOCK, Some(&newset), None)?;
-               Ok(())
-           });
+            let newset = SigSet::all();
+            pthread_sigmask(SigmaskHow::SIG_UNBLOCK, Some(&newset), None)?;
+            Ok(())
+        });
     }
 
     cmd
@@ -111,9 +110,10 @@ fn with_user_and_group_information(cmd: &mut Command, uid: Uid, gid: Gid) -> &mu
 /// Once https://github.com/rust-lang/rust/pull/72160 merges, we can
 /// use all `CommandExt` methods, and thus simplify things a (little)
 /// bit.
-fn set_supplementary_groups(user_id: Uid,
-                            group_id: Gid)
-                            -> impl Fn() -> result::Result<(), io::Error> {
+fn set_supplementary_groups(
+    user_id: Uid,
+    group_id: Gid,
+) -> impl Fn() -> result::Result<(), io::Error> {
     // Note: since this function will be run a separate process that doesn't
     // inherit RUST_LOG, none of the log! macros will work actually
     // work here.
@@ -132,57 +132,60 @@ fn set_supplementary_groups(user_id: Uid,
             // bit for now.
             #[cfg(not(target_os = "macos"))]
             {
-                use nix::unistd::{User,
-                                  getgrouplist,
-                                  setgroups};
+                use nix::unistd::{User, getgrouplist, setgroups};
                 use std::ffi::CString;
 
                 match User::from_uid(user_id).map_err(|e| {
-                                                 eprintln!("Error resolving user from ID: {:?}", e);
-                                                 io::Error::last_os_error()
-                                             })? {
+                    eprintln!("Error resolving user from ID: {:?}", e);
+                    io::Error::last_os_error()
+                })? {
                     Some(user) => {
                         let user = CString::new(user.name).map_err(|e| {
-                                                              eprintln!("User name cannot \
+                            eprintln!(
+                                "User name cannot \
                                                                          convert to CString!: \
                                                                          {:?}",
-                                                                        e);
-                                                              e
-                                                          })?;
+                                e
+                            );
+                            e
+                        })?;
 
                         // There are some platforms (ex. SUSE 12 sp5) that may return
                         // EINVAL from getgrouplist. This only appears to occur from
-                        // statically compiled (MUSL) executables like the hab CLI. The
+                        // statically compiled (MUSL) executables like the bio CLI. The
                         // error has not been reproducible from a dynamic executable like
                         // the supervisor.
-                        let groups =
-                            getgrouplist(&user, group_id).unwrap_or_else(|e| {
-                                                             warn!("unable to get supplementary \
+                        let groups = getgrouplist(&user, group_id).unwrap_or_else(|e| {
+                            warn!(
+                                "unable to get supplementary \
                                                                     groups with getgrouplist: {}",
-                                                                   e);
-                                                             vec![group_id]
-                                                         });
+                                e
+                            );
+                            vec![group_id]
+                        });
                         setgroups(&groups).map_err(|e| {
-                                              eprintln!("setgroups failed! {:?}", e);
-                                              io::Error::last_os_error()
-                                          })?; // CAP_SETGID
+                            eprintln!("setgroups failed! {:?}", e);
+                            io::Error::last_os_error()
+                        })?; // CAP_SETGID
                     }
                     _ => {
-                        eprintln!("Could not find user from user ID. Wil not set supplementary \
-                                   groups.");
+                        eprintln!(
+                            "Could not find user from user ID. Wil not set supplementary \
+                                   groups."
+                        );
                     }
                 }
             }
 
             // These calls replace `CommandExt::uid` and `CommandExt::gid`
             setgid(group_id).map_err(|e| {
-                                eprintln!("setgid failed! {:?}", e);
-                                io::Error::last_os_error()
-                            })?; // CAP_SETGID
+                eprintln!("setgid failed! {:?}", e);
+                io::Error::last_os_error()
+            })?; // CAP_SETGID
             setuid(user_id).map_err(|e| {
-                               eprintln!("setuid failed! {:?}", e);
-                               io::Error::last_os_error()
-                           })?; // CAP_SETUID
+                eprintln!("setuid failed! {:?}", e);
+                io::Error::last_os_error()
+            })?; // CAP_SETUID
         }
 
         Ok(())

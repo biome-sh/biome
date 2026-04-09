@@ -1,13 +1,13 @@
-//! Common constants like `hab` package name etc.
+//! Common constants like `bio` package name etc.
 
-/// Default `hab` package ident
-pub const DEFAULT_HAB_PKG_IDENT: &str = "chef/hab";
+/// Default `bio` package ident
+pub const DEFAULT_BIO_PKG_IDENT: &str = "biome/bio";
 
-/// Default `hab-sup` package ident
-pub const DEFAULT_HAB_SUP_PKG_IDENT: &str = "chef/hab-sup";
+/// Default `bio-sup` package ident
+pub const DEFAULT_BIO_SUP_PKG_IDENT: &str = "biome/bio-sup";
 
-/// Default `hab-launcher` package ident
-pub const DEFAULT_HAB_LAUNCHER_PKG_IDENT: &str = "chef/hab-launcher";
+/// Default `bio-launcher` package ident
+pub const DEFAULT_BIO_LAUNCHER_PKG_IDENT: &str = "biome/bio-launcher";
 
 /// Default builder URL
-pub const DEFAULT_BUILDER_URL: &str = "https://bldr.habitat.sh";
+pub const DEFAULT_BUILDER_URL: &str = "https://bldr.biome.sh";

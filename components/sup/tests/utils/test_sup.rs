@@ -1,32 +1,29 @@
-//! Encapsulate running the `hab-sup` executable for tests.
+//! Encapsulate running the `bio-sup` executable for tests.
 use crate::hcore::url::BLDR_URL_ENVVAR;
-use anyhow::{Context,
-             Result,
-             anyhow};
-use habitat_core::os::process::Pid;
-use rand::{self,
-           distr::{Distribution,
-                   Uniform}};
+use anyhow::{Context, Result, anyhow};
+use biome_core::os::process::Pid;
+use rand::{
+    self,
+    distr::{Distribution, Uniform},
+};
 use reqwest::Method;
 use serde_json::Value;
-use std::{collections::HashSet,
-          env,
-          io,
-          net::{Ipv4Addr,
-                SocketAddrV4},
-          path::{Path,
-                 PathBuf},
-          process::Stdio,
-          time::Duration};
-use tokio::{net::{TcpListener,
-                  TcpStream},
-            process::{Child,
-                      Command},
-            sync::Mutex,
-            time::Instant};
+use std::{
+    collections::HashSet,
+    env, io,
+    net::{Ipv4Addr, SocketAddrV4},
+    path::{Path, PathBuf},
+    process::Stdio,
+    time::Duration,
+};
+use tokio::{
+    net::{TcpListener, TcpStream},
+    process::{Child, Command},
+    sync::Mutex,
+    time::Instant,
+};
 
-use super::{test_butterfly,
-            test_helpers::assert_valid};
+use super::{test_butterfly, test_helpers::assert_valid};
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -39,14 +36,14 @@ lazy_static! {
 }
 
 pub struct TestSup {
-    pub hab_root:         PathBuf,
-    pub http_port:        u16,
-    pub butterfly_port:   u16,
-    pub control_port:     u16,
+    pub bio_root: PathBuf,
+    pub http_port: u16,
+    pub butterfly_port: u16,
+    pub control_port: u16,
     pub butterfly_client: test_butterfly::Client,
-    pub api_client:       reqwest::Client,
-    pub cmd:              Command,
-    pub process:          Option<Child>,
+    pub api_client: reqwest::Client,
+    pub cmd: Command,
+    pub process: Option<Child>,
 }
 
 /// Return a free TCP port number. We test to see that the system has
@@ -92,16 +89,16 @@ async fn unclaimed_port(max_attempts: u16) -> Result<u16> {
             }
             // If we are unable to bind for any other reason, bubble that up
             Err(err) => {
-                return Err(anyhow!(err)).with_context(|| {
-                                            format!("Failed to bind TCP port {} due to io error",
-                                                    port)
-                                        });
+                return Err(anyhow!(err))
+                    .with_context(|| format!("Failed to bind TCP port {} due to io error", port));
             }
         }
         if attempts > max_attempts {
-            return Err(anyhow!("Failed to find an unclaimed TCP port in {} \
+            return Err(anyhow!(
+                "Failed to find an unclaimed TCP port in {} \
                                 attempts",
-                               max_attempts));
+                max_attempts
+            ));
         }
     }
 }
@@ -119,18 +116,24 @@ fn random_port() -> u16 {
 ///
 /// Thus if the current executable is
 ///
-///    /home/me/habitat/target/debug/deps/compilation-ccaf2f45c24e3840
+///    /home/me/biome/target/debug/deps/compilation-ccaf2f45c24e3840
 ///
-/// and we look for `hab-sup`, we'll find it at
+/// and we look for `bio-sup`, we'll find it at
 ///
-///    /home/me/habitat/target/debug/hab-sup
+///    /home/me/biome/target/debug/bio-sup
 fn find_exe<B>(binary_name: B) -> Result<PathBuf>
-    where B: AsRef<Path>
+where
+    B: AsRef<Path>,
 {
-    let exe_root = env::current_exe().context("Failed to find the integration test executable")?
+    let exe_root = env::current_exe()
+        .context("Failed to find the integration test executable")?
         .parent() // deps
         .and_then(Path::parent)
-        .ok_or_else(|| anyhow!("Failed to access the parent directories of the current integration test executable"))?
+        .ok_or_else(|| {
+            anyhow!(
+                "Failed to access the parent directories of the current integration test executable"
+            )
+        })?
         .to_path_buf();
     let bin = exe_root.join(binary_name.as_ref());
     if bin.exists() {
@@ -158,12 +161,16 @@ async fn await_local_tcp_port(port: u16, timeout: Duration) -> Result<()> {
     loop {
         let timeout = timeout.saturating_sub(started_at.elapsed());
         if timeout == Duration::ZERO {
-            return Err(anyhow!("Timed out waiting for tcp port {} to open up", port));
+            return Err(anyhow!(
+                "Timed out waiting for tcp port {} to open up",
+                port
+            ));
         }
-        match tokio::time::timeout(timeout,
-                                   TcpStream::connect(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0,
-                                                                                      1),
-                                                                        port))).await
+        match tokio::time::timeout(
+            timeout,
+            TcpStream::connect(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), port)),
+        )
+        .await
         {
             Ok(Ok(_)) => return Ok(()),
             Ok(Err(err)) if err.kind() == io::ErrorKind::ConnectionRefused => {
@@ -172,11 +179,15 @@ async fn await_local_tcp_port(port: u16, timeout: Duration) -> Result<()> {
             }
             Ok(Err(err)) => {
                 return Err(anyhow!(err)).with_context(|| {
-                                            format!("Failed to connect to tcp address 127.0.0.1:{}",
-                                                    port)
-                                        });
+                    format!("Failed to connect to tcp address 127.0.0.1:{}", port)
+                });
             }
-            Err(_) => return Err(anyhow!("Timed out waiting for tcp port {} to open up", port)),
+            Err(_) => {
+                return Err(anyhow!(
+                    "Timed out waiting for tcp port {} to open up",
+                    port
+                ));
+            }
         }
     }
 }
@@ -184,29 +195,29 @@ async fn await_local_tcp_port(port: u16, timeout: Duration) -> Result<()> {
 // TODO: Replace these types with the actual serialized types
 // once https://github.com/habitat-sh/habitat/issues/8470 is resolved.
 pub mod sup_gateway_api {
-    use habitat_core::os::process::Pid;
-    use habitat_sup::manager::service::ProcessTerminationReason;
+    use biome_core::os::process::Pid;
+    use biome_sup::manager::service::ProcessTerminationReason;
     use serde::Deserialize;
 
     #[derive(Debug, Deserialize, PartialEq, Eq)]
     pub struct Process {
         pub state: String,
-        pub pid:   Option<Pid>,
+        pub pid: Option<Pid>,
     }
 
     #[derive(Debug, Deserialize, PartialEq, Eq)]
     pub struct LastProcessState {
-        pub pid:                Option<Pid>,
+        pub pid: Option<Pid>,
         pub termination_reason: ProcessTerminationReason,
-        pub terminated_at:      u64,
+        pub terminated_at: u64,
     }
     #[derive(Debug, Deserialize, PartialEq, Eq)]
     pub struct Service {
-        pub desired_state:      String,
-        pub process:            Process,
+        pub desired_state: String,
+        pub process: Process,
         pub last_process_state: Option<LastProcessState>,
-        pub next_restart_at:    Option<u64>,
-        pub restart_count:      u64,
+        pub next_restart_at: Option<u64>,
+        pub restart_count: u64,
     }
 }
 
@@ -216,37 +227,41 @@ impl TestSup {
     /// parallel don't step on each other.
     ///
     /// See also `new`.
-    pub async fn new_with_random_ports<R>(fs_root: R,
-                                          service_min_backoff_period: Duration,
-                                          service_max_backoff_period: Duration,
-                                          service_restart_cooldown_period: Duration)
-                                          -> Result<TestSup>
-        where R: AsRef<Path>
+    pub async fn new_with_random_ports<R>(
+        fs_root: R,
+        service_min_backoff_period: Duration,
+        service_max_backoff_period: Duration,
+        service_restart_cooldown_period: Duration,
+    ) -> Result<TestSup>
+    where
+        R: AsRef<Path>,
     {
         // We'll give 10 tries to find a free port number
-        let http_port =
-            unclaimed_port(10).await
-                              .context("Failed to allocate an unclaimed port for the \
-                                        supervisor HTTP server")?;
-        let butterfly_port =
-            unclaimed_port(10).await
-                              .context("Failed to allocate an unclaimed port for the \
-                                        supervisor Butterfly server")?;
-        let control_port =
-            unclaimed_port(10).await
-                              .context("Failed to allocate an unclaimed port for the \
-                                        supervisor Control Gateway server")?;
+        let http_port = unclaimed_port(10).await.context(
+            "Failed to allocate an unclaimed port for the \
+                                        supervisor HTTP server",
+        )?;
+        let butterfly_port = unclaimed_port(10).await.context(
+            "Failed to allocate an unclaimed port for the \
+                                        supervisor Butterfly server",
+        )?;
+        let control_port = unclaimed_port(10).await.context(
+            "Failed to allocate an unclaimed port for the \
+                                        supervisor Control Gateway server",
+        )?;
 
-        TestSup::new(fs_root,
-                     http_port,
-                     butterfly_port,
-                     control_port,
-                     service_min_backoff_period,
-                     service_max_backoff_period,
-                     service_restart_cooldown_period)
+        TestSup::new(
+            fs_root,
+            http_port,
+            butterfly_port,
+            control_port,
+            service_min_backoff_period,
+            service_max_backoff_period,
+            service_restart_cooldown_period,
+        )
     }
 
-    /// Bundle up a Habitat Supervisor process along with an
+    /// Bundle up a Biome Supervisor process along with an
     /// associated Butterfly client for injecting new configuration
     /// values. The Supervisor executable is the one that has been
     /// compiled for the current `cargo test` invocation.
@@ -264,83 +279,89 @@ impl TestSup {
     ///
     /// (No HTTP interaction with the Supervisor is currently called
     /// for, so we don't have a HTTP client.)
-    pub fn new<R>(fs_root: R,
-                  http_port: u16,
-                  butterfly_port: u16,
-                  control_port: u16,
-                  service_min_backoff_period: Duration,
-                  service_max_backoff_period: Duration,
-                  service_restart_cooldown_period: Duration)
-                  -> Result<TestSup>
-        where R: AsRef<Path>
+    pub fn new<R>(
+        fs_root: R,
+        http_port: u16,
+        butterfly_port: u16,
+        control_port: u16,
+        service_min_backoff_period: Duration,
+        service_max_backoff_period: Duration,
+        service_restart_cooldown_period: Duration,
+    ) -> Result<TestSup>
+    where
+        R: AsRef<Path>,
     {
-        let sup_exe = find_exe("hab-sup").context("Failed to find 'hab-sup' executable")?;
+        let sup_exe = find_exe("bio-sup").context("Failed to find 'bio-sup' executable")?;
         let launcher_exe =
-            find_exe("hab-launch").context("Failed to find 'hab-launch' executable")?;
+            find_exe("bio-launch").context("Failed to find 'bio-launch' executable")?;
 
         let mut cmd = Command::new(launcher_exe);
         let listen_host = "0.0.0.0";
 
-        cmd.env(
-            "FS_ROOT",
-            fs_root.as_ref().to_string_lossy().as_ref(),
-        )
-        // .env("HAB_INTERPRETER_IDENT", format!("{}/{}", origin, pkg_name))
-        .env("HAB_SUP_BINARY", &sup_exe)
-        .env(BLDR_URL_ENVVAR, "https://bldr.habitat.sh")
-        .env("HAB_BLDR_CHANNEL", "dev")
-        .arg("run")
-        .arg("--listen-gossip")
-        .arg(format!("{}:{}", listen_host, butterfly_port))
-        .arg("--listen-http")
-        .arg(format!("{}:{}", listen_host, http_port))
-        .arg("--listen-ctl")
-        .arg(format!("{}:{}", listen_host, control_port))
-        .arg("--service-min-backoff-period")
-        .arg(format!("{}", service_min_backoff_period.as_secs()))
-        .arg("--service-max-backoff-period")
-        .arg(format!("{}", service_max_backoff_period.as_secs()))
-        .arg("--service-restart-cooldown-period")
-        .arg(format!("{}", service_restart_cooldown_period.as_secs()))
-        // Note: we will have already dropped off the spec files
-        // needed to run our test service, so we don't supply a
-        // package identifier here
-        .stdin(Stdio::null());
+        cmd.env("FS_ROOT", fs_root.as_ref().to_string_lossy().as_ref())
+            // .env("BIO_INTERPRETER_IDENT", format!("{}/{}", origin, pkg_name))
+            .env("BIO_SUP_BINARY", &sup_exe)
+            .env(BLDR_URL_ENVVAR, "https://bldr.biome.sh")
+            .env("BIO_BLDR_CHANNEL", "dev")
+            .arg("run")
+            .arg("--listen-gossip")
+            .arg(format!("{}:{}", listen_host, butterfly_port))
+            .arg("--listen-http")
+            .arg(format!("{}:{}", listen_host, http_port))
+            .arg("--listen-ctl")
+            .arg(format!("{}:{}", listen_host, control_port))
+            .arg("--service-min-backoff-period")
+            .arg(format!("{}", service_min_backoff_period.as_secs()))
+            .arg("--service-max-backoff-period")
+            .arg(format!("{}", service_max_backoff_period.as_secs()))
+            .arg("--service-restart-cooldown-period")
+            .arg(format!("{}", service_restart_cooldown_period.as_secs()))
+            // Note: we will have already dropped off the spec files
+            // needed to run our test service, so we don't supply a
+            // package identifier here
+            .stdin(Stdio::null());
         if !nocapture_set() {
             cmd.stdout(Stdio::null());
             cmd.stderr(Stdio::null());
         }
         cmd.kill_on_drop(true);
 
-        let bc = test_butterfly::Client::new(butterfly_port).context("Failed to create \
+        let bc = test_butterfly::Client::new(butterfly_port).context(
+            "Failed to create \
                                                                       butterfly client for test \
-                                                                      supervsior")?;
-        let api_client =
-            reqwest::ClientBuilder::new().build()
-                                         .context("Failed to create reqwest API client for \
-                                                   test supervisor")?;
-        Ok(TestSup { hab_root: fs_root.as_ref().to_path_buf(),
-                     http_port,
-                     butterfly_port,
-                     control_port,
-                     butterfly_client: bc,
-                     api_client,
-                     cmd,
-                     process: None })
+                                                                      supervsior",
+        )?;
+        let api_client = reqwest::ClientBuilder::new().build().context(
+            "Failed to create reqwest API client for \
+                                                   test supervisor",
+        )?;
+        Ok(TestSup {
+            bio_root: fs_root.as_ref().to_path_buf(),
+            http_port,
+            butterfly_port,
+            control_port,
+            butterfly_client: bc,
+            api_client,
+            cmd,
+            process: None,
+        })
     }
 
     /// Spawn a process actually running the Supervisor.
     pub async fn start(&mut self, timeout: Duration) -> Result<()> {
         let started_at = Instant::now();
-        let child = self.cmd
-                        .spawn()
-                        .context("Failed to spawn supervisor process")?;
+        let child = self
+            .cmd
+            .spawn()
+            .context("Failed to spawn supervisor process")?;
         self.process = Some(child);
         let timeout = timeout.saturating_sub(started_at.elapsed());
-        tokio::try_join!(await_local_tcp_port(self.http_port, timeout),
-                         await_local_tcp_port(self.butterfly_port, timeout),
-                         await_local_tcp_port(self.control_port, timeout)
-                        ).context("Timed out waiting for test supervisor to start")?;
+        tokio::try_join!(
+            await_local_tcp_port(self.http_port, timeout),
+            await_local_tcp_port(self.butterfly_port, timeout),
+            await_local_tcp_port(self.control_port, timeout)
+        )
+        .context("Timed out waiting for test supervisor to start")?;
         Ok(())
     }
 
@@ -359,31 +380,39 @@ impl TestSup {
         if let Some(mut process) = self.process.take() {
             if cfg!(not(windows)) {
                 if let Some(pid) = process.id() {
-                    nix::sys::signal::kill(nix::unistd::Pid::from_raw(pid as i32),
-                                           nix::sys::signal::SIGTERM).context("Failed to send \
+                    nix::sys::signal::kill(
+                        nix::unistd::Pid::from_raw(pid as i32),
+                        nix::sys::signal::SIGTERM,
+                    )
+                    .context(
+                        "Failed to send \
                                                                                SIGTERM to test \
                                                                                supervisor \
-                                                                               process")?;
-                    process.wait()
-                           .await
-                           .context("Failed to kill supervisor process")?;
+                                                                               process",
+                    )?;
+                    process
+                        .wait()
+                        .await
+                        .context("Failed to kill supervisor process")?;
                 }
             } else {
-                process.kill()
-                       .await
-                       .context("Failed to kill supervisor process")?;
+                process
+                    .kill()
+                    .await
+                    .context("Failed to kill supervisor process")?;
             }
         }
         Ok(())
     }
 
-    /// The equivalent of performing `hab apply` with the given
+    /// The equivalent of performing `bio apply` with the given
     /// configuration.
-    pub async fn apply_config(&mut self,
-                              package_name: &str,
-                              service_group: &str,
-                              toml_config: &str)
-                              -> Result<()> {
+    pub async fn apply_config(
+        &mut self,
+        package_name: &str,
+        service_group: &str,
+        toml_config: &str,
+    ) -> Result<()> {
         self.butterfly_client
             .apply(package_name, service_group, toml_config)
             .context("Failed to apply configuration")
@@ -391,16 +420,23 @@ impl TestSup {
 
     /// Attempt to get state of the service from the API. This does not reattempt to
     /// fetch the state if there is a failure.
-    pub async fn try_get_service_state(&self,
-                                       package_name: &str,
-                                       service_group: &str)
-                                       -> Result<Option<sup_gateway_api::Service>> {
-        let req = self.api_client
-                      .request(Method::GET,
-                               format!("http://localhost:{}/services/{}/{}",
-                                       self.http_port, package_name, service_group).as_str())
-                      .build()
-                      .context("Failed to construct API request to supervisor HTTP endpoint")?;
+    pub async fn try_get_service_state(
+        &self,
+        package_name: &str,
+        service_group: &str,
+    ) -> Result<Option<sup_gateway_api::Service>> {
+        let req = self
+            .api_client
+            .request(
+                Method::GET,
+                format!(
+                    "http://localhost:{}/services/{}/{}",
+                    self.http_port, package_name, service_group
+                )
+                .as_str(),
+            )
+            .build()
+            .context("Failed to construct API request to supervisor HTTP endpoint")?;
         let res = self.api_client.execute(req).await.ok();
         if let Some(res) = res {
             let json = res.json::<Value>().await.ok();
@@ -420,25 +456,31 @@ impl TestSup {
 
     /// Attempt to get state of the service from the API. This reattempts
     /// fetching the state if there is a failure until it times out
-    pub async fn get_service_state(&self,
-                                   package_name: &str,
-                                   service_group: &str,
-                                   timeout: Duration)
-                                   -> Result<sup_gateway_api::Service> {
+    pub async fn get_service_state(
+        &self,
+        package_name: &str,
+        service_group: &str,
+        timeout: Duration,
+    ) -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
-                return Err(anyhow!("Timed out trying to get state of the service \
+                return Err(anyhow!(
+                    "Timed out trying to get state of the service \
                                     {}.{}",
-                                   package_name,
-                                   service_group));
+                    package_name,
+                    service_group
+                ));
             }
-            if let Some(service_state) = self.try_get_service_state(package_name, service_group)
-                                             .await
-                                             .with_context(|| {
-                                                 format!("Failed to get state of the service {}.{}",
-                                                         package_name, service_group)
-                                             })?
+            if let Some(service_state) = self
+                .try_get_service_state(package_name, service_group)
+                .await
+                .with_context(|| {
+                    format!(
+                        "Failed to get state of the service {}.{}",
+                        package_name, service_group
+                    )
+                })?
             {
                 return Ok(service_state);
             }
@@ -449,26 +491,26 @@ impl TestSup {
     /// If you wish to ensure the service has started use `ensure_service_started` after calling
     /// this.
     pub async fn service_start(&self, origin: &str, package_name: &str) -> Result<()> {
-        let hab_exe = find_exe("hab").context("Failed to find 'hab' executable")?;
-        let mut cmd = Command::new(&hab_exe);
-        cmd.env("FS_ROOT", self.hab_root.display().to_string())
-           .env("HAB_LICENSE", "accept-no-persist")
-           .arg("svc")
-           .arg("start")
-           .arg(format!("{}/{}", origin, package_name))
-           .arg("--remote-sup")
-           .arg(format!("localhost:{}", self.control_port))
-           .stdin(Stdio::null());
+        let bio_exe = find_exe("bio").context("Failed to find 'bio' executable")?;
+        let mut cmd = Command::new(&bio_exe);
+        cmd.env("FS_ROOT", self.bio_root.display().to_string())
+            .env("BIO_LICENSE", "accept-no-persist")
+            .arg("svc")
+            .arg("start")
+            .arg(format!("{}/{}", origin, package_name))
+            .arg("--remote-sup")
+            .arg(format!("localhost:{}", self.control_port))
+            .stdin(Stdio::null());
         if !nocapture_set() {
             cmd.stdout(Stdio::null());
             cmd.stderr(Stdio::null());
         }
         cmd.kill_on_drop(true);
         cmd.spawn()
-           .context("Failed to run hab cli")?
-           .wait()
-           .await
-           .with_context(|| format!("Failed to start service {}/{}", origin, package_name))?;
+            .context("Failed to run bio cli")?
+            .wait()
+            .await
+            .with_context(|| format!("Failed to start service {}/{}", origin, package_name))?;
         Ok(())
     }
 
@@ -476,26 +518,26 @@ impl TestSup {
     /// If you wish to ensure the service has stopped use `ensure_service_stopped` after calling
     /// this.
     pub async fn service_stop(&self, origin: &str, package_name: &str) -> Result<()> {
-        let hab_exe = find_exe("hab").context("Failed to find 'hab' executable")?;
-        let mut cmd = Command::new(&hab_exe);
-        cmd.env("FS_ROOT", self.hab_root.display().to_string())
-           .env("HAB_LICENSE", "accept-no-persist")
-           .arg("svc")
-           .arg("stop")
-           .arg(format!("{}/{}", origin, package_name))
-           .arg("--remote-sup")
-           .arg(format!("localhost:{}", self.control_port))
-           .stdin(Stdio::null());
+        let bio_exe = find_exe("bio").context("Failed to find 'bio' executable")?;
+        let mut cmd = Command::new(&bio_exe);
+        cmd.env("FS_ROOT", self.bio_root.display().to_string())
+            .env("BIO_LICENSE", "accept-no-persist")
+            .arg("svc")
+            .arg("stop")
+            .arg(format!("{}/{}", origin, package_name))
+            .arg("--remote-sup")
+            .arg(format!("localhost:{}", self.control_port))
+            .stdin(Stdio::null());
         if !nocapture_set() {
             cmd.stdout(Stdio::null());
             cmd.stderr(Stdio::null());
         }
         cmd.kill_on_drop(true);
         cmd.spawn()
-           .context("Failed to run hab cli")?
-           .wait()
-           .await
-           .with_context(|| format!("Failed to stop service {}/{}", origin, package_name))?;
+            .context("Failed to run bio cli")?
+            .wait()
+            .await
+            .with_context(|| format!("Failed to stop service {}/{}", origin, package_name))?;
         Ok(())
     }
 
@@ -507,29 +549,37 @@ impl TestSup {
     /// service.process.state == "up"; // must eventually hold
     /// service.process.pid == Some(pid); // must eventually hold
     /// ```
-    pub async fn ensure_service_started(&self,
-                                        package_name: &str,
-                                        service_group: &str,
-                                        timeout: Duration)
-                                        -> Result<sup_gateway_api::Service> {
+    pub async fn ensure_service_started(
+        &self,
+        package_name: &str,
+        service_group: &str,
+        timeout: Duration,
+    ) -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
-                return Err(anyhow!("Test supervisor failed to start service '{}.{}' \
+                return Err(anyhow!(
+                    "Test supervisor failed to start service '{}.{}' \
                                     within {:.2}secs",
-                                   package_name,
-                                   service_group,
-                                   timeout.as_secs_f64()));
+                    package_name,
+                    service_group,
+                    timeout.as_secs_f64()
+                ));
             }
-            if let Some(service) = self.try_get_service_state(package_name, service_group)
-                                       .await
-                                       .with_context(|| {
-                                           format!("Failed to get state of service {}.{}",
-                                                   package_name, service_group)
-                                       })?
-               && let ("up", "Up", Some(_)) = (service.process.state.as_str(),
-                                               service.desired_state.as_str(),
-                                               service.process.pid)
+            if let Some(service) = self
+                .try_get_service_state(package_name, service_group)
+                .await
+                .with_context(|| {
+                    format!(
+                        "Failed to get state of service {}.{}",
+                        package_name, service_group
+                    )
+                })?
+                && let ("up", "Up", Some(_)) = (
+                    service.process.state.as_str(),
+                    service.desired_state.as_str(),
+                    service.process.pid,
+                )
             {
                 return Ok(service);
             }
@@ -545,37 +595,46 @@ impl TestSup {
     /// service.process.state == "down"; // must eventually hold
     /// service.process.pid == None; // must eventually hold
     /// ```
-    pub async fn ensure_service_stopped(&self,
-                                        package_name: &str,
-                                        service_group: &str,
-                                        timeout: Duration)
-                                        -> Result<sup_gateway_api::Service> {
+    pub async fn ensure_service_stopped(
+        &self,
+        package_name: &str,
+        service_group: &str,
+        timeout: Duration,
+    ) -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
-                return Err(anyhow!("Test supervisor failed to stop service {}.{} \
+                return Err(anyhow!(
+                    "Test supervisor failed to stop service {}.{} \
                                     within {:.2} secs",
-                                   package_name,
-                                   service_group,
-                                   timeout.as_secs_f64()));
+                    package_name,
+                    service_group,
+                    timeout.as_secs_f64()
+                ));
             }
-            if let Some(service) = self.try_get_service_state(package_name, service_group)
-                                       .await
-                                       .with_context(|| {
-                                           format!("Failed to get state of service {}.{}",
-                                                   package_name, service_group)
-                                       })?
+            if let Some(service) = self
+                .try_get_service_state(package_name, service_group)
+                .await
+                .with_context(|| {
+                    format!(
+                        "Failed to get state of service {}.{}",
+                        package_name, service_group
+                    )
+                })?
             {
-                if let ("down", "Down", None) = (service.process.state.as_str(),
-                                                 service.desired_state.as_str(),
-                                                 service.process.pid)
-                {
+                if let ("down", "Down", None) = (
+                    service.process.state.as_str(),
+                    service.desired_state.as_str(),
+                    service.process.pid,
+                ) {
                     return Ok(service);
                 }
             } else {
-                return Err(anyhow!("Test supervisor is not running the service {}.{}",
-                                   package_name,
-                                   service_group));
+                return Err(anyhow!(
+                    "Test supervisor is not running the service {}.{}",
+                    package_name,
+                    service_group
+                ));
             }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
@@ -589,40 +648,50 @@ impl TestSup {
     /// service.process.state == "down"; // must always hold
     /// service.process.pid == None; // must always hold
     /// ```
-    pub async fn ensure_service_has_failed_to_start(&self,
-                                                    package_name: &str,
-                                                    service_group: &str,
-                                                    timeout: Duration)
-                                                    -> Result<sup_gateway_api::Service> {
+    pub async fn ensure_service_has_failed_to_start(
+        &self,
+        package_name: &str,
+        service_group: &str,
+        timeout: Duration,
+    ) -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
-            if let Some(service) = self.try_get_service_state(package_name, service_group)
-                                       .await
-                                       .with_context(|| {
-                                           format!("Failed to get state of service {}.{}",
-                                                   package_name, service_group)
-                                       })?
+            if let Some(service) = self
+                .try_get_service_state(package_name, service_group)
+                .await
+                .with_context(|| {
+                    format!(
+                        "Failed to get state of service {}.{}",
+                        package_name, service_group
+                    )
+                })?
             {
                 if service.desired_state != "Up" {
-                    return Err(anyhow!("The service {}.{} must have a desired state of \
+                    return Err(anyhow!(
+                        "The service {}.{} must have a desired state of \
                                         'Up'",
-                                       package_name,
-                                       service_group));
+                        package_name,
+                        service_group
+                    ));
                 }
                 if service.process.state == "up" || service.process.pid.is_some() {
-                    return Err(anyhow!("Test supervisor started service {}.{} within \
+                    return Err(anyhow!(
+                        "Test supervisor started service {}.{} within \
                                         {:.2} secs",
-                                       package_name,
-                                       service_group,
-                                       timeout.as_secs_f64()));
+                        package_name,
+                        service_group,
+                        timeout.as_secs_f64()
+                    ));
                 }
                 if started_at.elapsed() > timeout {
                     return Ok(service);
                 }
             } else if started_at.elapsed() > timeout {
-                return Err(anyhow!("Test supervisor is not running the service {}.{}",
-                                   package_name,
-                                   service_group));
+                return Err(anyhow!(
+                    "Test supervisor is not running the service {}.{}",
+                    package_name,
+                    service_group
+                ));
             }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
@@ -635,44 +704,54 @@ impl TestSup {
     /// service.desired_state == "Up"; // must always hold
     /// service.process.state == "up" && service.process.pid != old_process_id; // must eventually hold
     /// ```
-    pub async fn ensure_service_restarted(&self,
-                                          old_process_id: Pid,
-                                          package_name: &str,
-                                          service_group: &str,
-                                          timeout: Duration)
-                                          -> Result<sup_gateway_api::Service> {
+    pub async fn ensure_service_restarted(
+        &self,
+        old_process_id: Pid,
+        package_name: &str,
+        service_group: &str,
+        timeout: Duration,
+    ) -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
             if started_at.elapsed() > timeout {
-                return Err(anyhow!("Test supervisor failed to restart service \
+                return Err(anyhow!(
+                    "Test supervisor failed to restart service \
                                     '{}.{}' within {:.2} secs",
-                                   package_name,
-                                   service_group,
-                                   timeout.as_secs_f64()));
+                    package_name,
+                    service_group,
+                    timeout.as_secs_f64()
+                ));
             }
-            if let Some(service) = self.try_get_service_state(package_name, service_group)
-                                       .await
-                                       .with_context(|| {
-                                           format!("Failed to get state of service {}.{}",
-                                                   package_name, service_group)
-                                       })?
+            if let Some(service) = self
+                .try_get_service_state(package_name, service_group)
+                .await
+                .with_context(|| {
+                    format!(
+                        "Failed to get state of service {}.{}",
+                        package_name, service_group
+                    )
+                })?
             {
                 if service.desired_state != "Up" {
-                    return Err(anyhow!("The service {}.{} must have a desired state of \
+                    return Err(anyhow!(
+                        "The service {}.{} must have a desired state of \
                                         'Up'",
-                                       package_name,
-                                       service_group));
+                        package_name,
+                        service_group
+                    ));
                 }
                 if let ("up", Some(process_id)) =
                     (service.process.state.as_str(), service.process.pid)
-                   && process_id != old_process_id
+                    && process_id != old_process_id
                 {
                     return Ok(service);
                 }
             } else {
-                return Err(anyhow!("Test supervisor is not running the service {}.{}",
-                                   package_name,
-                                   service_group));
+                return Err(anyhow!(
+                    "Test supervisor is not running the service {}.{}",
+                    package_name,
+                    service_group
+                ));
             }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
@@ -690,42 +769,51 @@ impl TestSup {
         old_process_id: Pid,
         package_name: &str,
         service_group: &str,
-        timeout: Duration)
-        -> Result<sup_gateway_api::Service> {
+        timeout: Duration,
+    ) -> Result<sup_gateway_api::Service> {
         let started_at = Instant::now();
         loop {
-            if let Some(service) = self.try_get_service_state(package_name, service_group)
-                                       .await
-                                       .context("Failed to get state of service")?
+            if let Some(service) = self
+                .try_get_service_state(package_name, service_group)
+                .await
+                .context("Failed to get state of service")?
             {
                 if service.desired_state != "Up" {
-                    return Err(anyhow!("The service {}.{} must have a desired state of \
+                    return Err(anyhow!(
+                        "The service {}.{} must have a desired state of \
                                         'Up'",
-                                       package_name,
-                                       service_group));
+                        package_name,
+                        service_group
+                    ));
                 }
                 if let ("up", Some(process_id)) =
                     (service.process.state.as_str(), service.process.pid)
                 {
                     if process_id != old_process_id {
-                        return Err(anyhow!("Test supervisor restarted service {}.{} within \
+                        return Err(anyhow!(
+                            "Test supervisor restarted service {}.{} within \
                                             {:.2} secs",
-                                           package_name,
-                                           service_group,
-                                           timeout.as_secs_f64()));
+                            package_name,
+                            service_group,
+                            timeout.as_secs_f64()
+                        ));
                     }
                 } else {
-                    return Err(anyhow!("Test supervisor is not running the service {}.{}",
-                                       package_name,
-                                       service_group));
+                    return Err(anyhow!(
+                        "Test supervisor is not running the service {}.{}",
+                        package_name,
+                        service_group
+                    ));
                 }
                 if started_at.elapsed() > timeout {
                     return Ok(service);
                 }
             } else {
-                return Err(anyhow!("Test supervisor is not running the service {}.{}",
-                                   package_name,
-                                   service_group));
+                return Err(anyhow!(
+                    "Test supervisor is not running the service {}.{}",
+                    package_name,
+                    service_group
+                ));
             }
             tokio::time::sleep(Duration::from_millis(500)).await;
         }

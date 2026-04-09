@@ -1,6 +1,6 @@
 $pkg_name="pkg_version"
-$pkg_origin="habitat-testing"
-$pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+$pkg_origin="biome-testing"
+$pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 
 function Invoke-SetupEnvironment {
     Push-RuntimeEnv "SomeVar" "SomeValue"

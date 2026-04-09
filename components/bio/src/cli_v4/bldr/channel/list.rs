@@ -1,0 +1,41 @@
+use clap_v4 as clap;
+
+use clap::Parser;
+
+use crate::{
+    cli_v4::utils::origin_param_or_env, command::bldr::channel::list::start,
+    error::Result as BioResult,
+};
+
+use biome_common::ui::UI;
+use biome_core::origin::Origin;
+
+#[derive(Debug, Clone, Parser)]
+#[command(help_template = "{name} {version} {author-section} \
+                           {about-section}\n{usage-heading}\n{usage}\n\n{all-args}\n")]
+pub(crate) struct ListOpts {
+    /// Include sandbox channels for the origin
+    #[arg(name = "SANDBOX", short = 's', long = "sandbox")]
+    sandbox: bool,
+
+    /// Specify an alternate Builder endpoint
+    #[arg(
+        short = 'u',
+        long = "url",
+        value_name = "BLDR_URL",
+        env = "BIO_BLDR_URL",
+        default_value = "https://bldr.biome.sh"
+    )]
+    url: String,
+
+    /// Sets the origin to which the channel belongs. Default is from 'BIO_ORIGIN' or cli.toml
+    #[arg(value_name = "ORIGIN", index=1, value_parser = clap::value_parser!(Origin))]
+    origin: Option<Origin>,
+}
+
+impl ListOpts {
+    pub(crate) async fn do_list(&self, ui: &mut UI) -> BioResult<()> {
+        let origin = origin_param_or_env(&self.origin)?;
+        start(ui, &self.url, &origin, self.sandbox).await
+    }
+}

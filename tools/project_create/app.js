@@ -1,7 +1,7 @@
 //
 // Usage: Usage: node app.js <app id> <path to PEM file>
 //
-// Note: The Habitat Dev App Id is 5629
+// Note: The Biome Dev App Id is 5629
 //
 
 const createApp = require('github-app');

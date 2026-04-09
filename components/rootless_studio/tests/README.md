@@ -1,7 +1,7 @@
 Automated Tests
 ===============
 
-We're building out a suite of automated tests for the studio and other Habitat products. For now, these haven't been wired up to an automated build process, but they will be shortly. In the meantime, you can run them manually.
+We're building out a suite of automated tests for the studio and other Biome products. For now, these haven't been wired up to an automated build process, but they will be shortly. In the meantime, you can run them manually.
 
 # Prerequisites
 
@@ -20,7 +20,7 @@ sudo apt-get install bats expect dejagnu
 ## BATS
 
 ```bash
-cd $HABITAT_REPO/components/rootless_studio/tests
+cd $BIOME_REPO/components/rootless_studio/tests
 bats ./bats
 ```
 
@@ -29,14 +29,14 @@ bats ./bats
 To run an entire suite, use DejaGNU's `runtest` executable:
 
 ```bash
-cd $HABITAT_REPO/components/rootless_studio/tests/dejagnu
+cd $BIOME_REPO/components/rootless_studio/tests/dejagnu
 runtest --tool=studio
 ```
 
 Individual tests can also be executed by passing the test file as an argument:
 
 ```bash
-cd $HABITAT_REPO/components/rootless_studio/tests/dejagnu
+cd $BIOME_REPO/components/rootless_studio/tests/dejagnu
 runtest --tool=studio secrets_are_passed.exp
 ```
 

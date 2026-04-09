@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 
 public class SupervisorBootstrapper {
-    private static String logPath = Path.Combine(Environment.GetEnvironmentVariable("HAB_STUDIO_ENTER_ROOT"), "hab\\sup\\default\\out.log");
+    private static String logPath = Path.Combine(Environment.GetEnvironmentVariable("BIO_STUDIO_ENTER_ROOT"), "bio\\sup\\default\\out.log");
 
     public static void Run(bool isAnsiSupported, String supArgs) {
         var proc = new Process();
@@ -11,13 +11,13 @@ public class SupervisorBootstrapper {
         proc.StartInfo.CreateNoWindow = true;
         proc.StartInfo.RedirectStandardOutput = true;
         proc.StartInfo.RedirectStandardError = true;
-        proc.StartInfo.FileName = "hab.exe";
+        proc.StartInfo.FileName = "bio.exe";
         if (isAnsiSupported) {
             proc.StartInfo.Arguments = "sup run";
         }
         else {
             proc.StartInfo.Arguments = "sup run --no-color";
-            proc.StartInfo.EnvironmentVariables["HAB_NOCOLORING"] = "1";
+            proc.StartInfo.EnvironmentVariables["BIO_NOCOLORING"] = "1";
         }
 
         if(!String.IsNullOrWhiteSpace(supArgs)) {

@@ -1,11 +1,6 @@
-use owning_ref::{OwningRef,
-                 OwningRefMut,
-                 StableAddress};
-use parking_lot::{MutexGuard,
-                  RwLockReadGuard,
-                  RwLockWriteGuard};
-use std::ops::{Deref,
-               DerefMut};
+use owning_ref::{OwningRef, OwningRefMut, StableAddress};
+use parking_lot::{MutexGuard, RwLockReadGuard, RwLockWriteGuard};
+use std::ops::{Deref, DerefMut};
 
 // A wrapper around `MutexGuard` needed to implement the `StableAddress` trait to use `OwningRef`
 pub struct StableMutexGuard<'a, T: ?Sized>(MutexGuard<'a, T>);
@@ -15,15 +10,21 @@ unsafe impl<T: ?Sized> StableAddress for StableMutexGuard<'_, T> {}
 impl<T: ?Sized> Deref for StableMutexGuard<'_, T> {
     type Target = T;
 
-    fn deref(&self) -> &T { &self.0 }
+    fn deref(&self) -> &T {
+        &self.0
+    }
 }
 
 impl<T: ?Sized> DerefMut for StableMutexGuard<'_, T> {
-    fn deref_mut(&mut self) -> &mut T { &mut self.0 }
+    fn deref_mut(&mut self) -> &mut T {
+        &mut self.0
+    }
 }
 
 impl<'a, T> From<MutexGuard<'a, T>> for StableMutexGuard<'a, T> {
-    fn from(guard: MutexGuard<'a, T>) -> StableMutexGuard<'a, T> { Self(guard) }
+    fn from(guard: MutexGuard<'a, T>) -> StableMutexGuard<'a, T> {
+        Self(guard)
+    }
 }
 
 // A wrapper around `RwLockReadGuard` needed to implement the `StableAddress` trait to use
@@ -35,11 +36,15 @@ unsafe impl<T: ?Sized> StableAddress for StableRwLockReadGuard<'_, T> {}
 impl<T: ?Sized> Deref for StableRwLockReadGuard<'_, T> {
     type Target = T;
 
-    fn deref(&self) -> &T { &self.0 }
+    fn deref(&self) -> &T {
+        &self.0
+    }
 }
 
 impl<'a, T> From<RwLockReadGuard<'a, T>> for StableRwLockReadGuard<'a, T> {
-    fn from(guard: RwLockReadGuard<'a, T>) -> StableRwLockReadGuard<'a, T> { Self(guard) }
+    fn from(guard: RwLockReadGuard<'a, T>) -> StableRwLockReadGuard<'a, T> {
+        Self(guard)
+    }
 }
 
 // A wrapper around `RwLockWriteGuard` needed to implement the `StableAddress` trait to use
@@ -51,15 +56,21 @@ unsafe impl<T: ?Sized> StableAddress for StableRwLockWriteGuard<'_, T> {}
 impl<T: ?Sized> Deref for StableRwLockWriteGuard<'_, T> {
     type Target = T;
 
-    fn deref(&self) -> &T { &self.0 }
+    fn deref(&self) -> &T {
+        &self.0
+    }
 }
 
 impl<T: ?Sized> DerefMut for StableRwLockWriteGuard<'_, T> {
-    fn deref_mut(&mut self) -> &mut T { &mut self.0 }
+    fn deref_mut(&mut self) -> &mut T {
+        &mut self.0
+    }
 }
 
 impl<'a, T> From<RwLockWriteGuard<'a, T>> for StableRwLockWriteGuard<'a, T> {
-    fn from(guard: RwLockWriteGuard<'a, T>) -> StableRwLockWriteGuard<'a, T> { Self(guard) }
+    fn from(guard: RwLockWriteGuard<'a, T>) -> StableRwLockWriteGuard<'a, T> {
+        Self(guard)
+    }
 }
 
 /// Typedef of a owning reference that uses a `MutexGuard` as the owner.
@@ -79,8 +90,7 @@ pub type RwLockWriteGuardRefMut<'a, T, U = T> = OwningRefMut<'a, StableRwLockWri
 
 #[test]
 fn raii_locks() {
-    use parking_lot::{Mutex,
-                      RwLock};
+    use parking_lot::{Mutex, RwLock};
     {
         let a = Mutex::new(1);
         let a = {

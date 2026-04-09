@@ -1,50 +1,44 @@
-use super::{TemplateRenderer,
-            package::Pkg};
-use crate::{FeatureFlag,
-            error::{Error,
-                    Result},
-            outputln,
-            templating,
-            ui::{Status,
-                 UIWriter}};
+use super::{TemplateRenderer, package::Pkg};
+use crate::{
+    FeatureFlag,
+    error::{Error, Result},
+    outputln, templating,
+    ui::{Status, UIWriter},
+};
 #[cfg(windows)]
-use habitat_core::os::process::windows_child::{Child,
-                                               ExitStatus};
-use habitat_core::{crypto::Blake2bHash,
-                   fs,
-                   fs::svc_hooks_path,
-                   package::PackageInstall,
-                   util::BufReadLossy};
-use log::{debug,
-          error};
-use serde::{Serialize,
-            Serializer};
+use biome_core::os::process::windows_child::{Child, ExitStatus};
+use biome_core::{
+    crypto::Blake2bHash, fs, fs::svc_hooks_path, package::PackageInstall, util::BufReadLossy,
+};
+use log::{debug, error};
+use serde::{Serialize, Serializer};
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt;
 #[cfg(not(windows))]
-use std::process::{Child,
-                   ExitStatus};
-use std::{ffi::OsStr,
-          fmt,
-          fs::File,
-          io::{BufReader,
-               prelude::*},
-          path::{Path,
-                 PathBuf},
-          result};
+use std::process::{Child, ExitStatus};
+use std::{
+    ffi::OsStr,
+    fmt,
+    fs::File,
+    io::{BufReader, prelude::*},
+    path::{Path, PathBuf},
+    result,
+};
 
 #[cfg(not(windows))]
 pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &str = "HK";
 
 pub fn stdout_log_path<T>(package_name: &str) -> PathBuf
-    where T: Hook
+where
+    T: Hook,
 {
     fs::svc_logs_path(package_name).join(format!("{}.stdout.log", T::FILE_NAME))
 }
 
 pub fn stderr_log_path<T>(package_name: &str) -> PathBuf
-    where T: Hook
+where
+    T: Hook,
 {
     fs::svc_logs_path(package_name).join(format!("{}.stderr.log", T::FILE_NAME))
 }
@@ -53,7 +47,9 @@ pub fn stderr_log_path<T>(package_name: &str) -> PathBuf
 pub struct ExitCode(pub i32);
 
 impl Default for ExitCode {
-    fn default() -> ExitCode { ExitCode(-1) }
+    fn default() -> ExitCode {
+        ExitCode(-1)
+    }
 }
 
 // Hook and ExitValue must (currently) be Send so we can use them in
@@ -70,22 +66,26 @@ pub trait Hook: fmt::Debug + Sized + Send {
     /// Tries to load a hook if a hook file exists.
     ///
     /// Returns the hook if template file is found
-    fn load<C, T>(package_name: &str,
-                  concrete_path: C,
-                  template_path: T,
-                  feature_flags: FeatureFlag)
-                  -> Option<Self>
-        where C: AsRef<Path>,
-              T: AsRef<Path>
+    fn load<C, T>(
+        package_name: &str,
+        concrete_path: C,
+        template_path: T,
+        feature_flags: FeatureFlag,
+    ) -> Option<Self>
+    where
+        C: AsRef<Path>,
+        T: AsRef<Path>,
     {
         let file_name = Self::FILE_NAME;
         let concrete = concrete_path.as_ref().join(file_name);
         let template = template_path.as_ref().join(file_name);
 
         if !template.exists() {
-            debug!("{} not found at {}, not loading",
-                   &file_name,
-                   template.display());
+            debug!(
+                "{} not found at {}, not loading",
+                &file_name,
+                template.display()
+            );
             return None;
         }
 
@@ -104,7 +104,8 @@ pub trait Hook: fmt::Debug + Sized + Send {
     ///
     /// Returns `true` if the hook has changed.
     fn compile<T>(&self, service_group: &str, ctx: &T) -> Result<bool>
-        where T: Serialize
+    where
+        T: Serialize,
     {
         let content = self.renderer().0.render(Self::FILE_NAME, ctx)?;
         let path = self.path().with_file_name(Self::FILE_NAME);
@@ -115,23 +116,25 @@ pub trait Hook: fmt::Debug + Sized + Send {
             Self::set_permissions(&path)?;
             Ok(true)
         } else {
-            debug!("{}, already compiled to {}",
-                   Self::FILE_NAME,
-                   &path.display());
+            debug!(
+                "{}, already compiled to {}",
+                Self::FILE_NAME,
+                &path.display()
+            );
             Ok(false)
         }
     }
 
     #[cfg(not(windows))]
-    fn set_permissions<T: AsRef<Path>>(path: T) -> habitat_core::error::Result<()> {
-        use habitat_core::util::posix_perm;
+    fn set_permissions<T: AsRef<Path>>(path: T) -> biome_core::error::Result<()> {
+        use biome_core::util::posix_perm;
 
         posix_perm::set_permissions(path.as_ref(), HOOK_PERMISSIONS)
     }
 
     #[cfg(windows)]
-    fn set_permissions<T: AsRef<Path>>(path: T) -> habitat_core::error::Result<()> {
-        use habitat_core::util::win_perm;
+    fn set_permissions<T: AsRef<Path>>(path: T) -> biome_core::error::Result<()> {
+        use biome_core::util::win_perm;
 
         win_perm::harden_path(path.as_ref())
     }
@@ -157,67 +160,76 @@ pub trait Hook: fmt::Debug + Sized + Send {
     /// See https://doc.rust-lang.org/1.30.1/std/process/struct.ExitStatus.html#method.code
     #[cfg(windows)]
     fn output_termination_message(_: &str, _: ExitStatus) {
-        panic!("ExitStatus::code should never return None on Windows; please report this to the \
-                Habitat core developers");
+        panic!(
+            "ExitStatus::code should never return None on Windows; please report this to the \
+                Biome core developers"
+        );
     }
 
     /// Run a compiled hook.
-    fn run<T>(&self,
-              service_group: &str,
-              pkg: &Pkg,
-              svc_encrypted_password: Option<T>)
-              -> Result<Self::ExitValue>
-        where T: ToString
+    fn run<T>(
+        &self,
+        service_group: &str,
+        pkg: &Pkg,
+        svc_encrypted_password: Option<T>,
+    ) -> Result<Self::ExitValue>
+    where
+        T: ToString,
     {
         self.run_impl(service_group, pkg, svc_encrypted_password)
     }
 
-    fn run_impl<T>(&self,
-                   service_group: &str,
-                   pkg: &Pkg,
-                   svc_encrypted_password: Option<T>)
-                   -> Result<Self::ExitValue>
-        where T: ToString
+    fn run_impl<T>(
+        &self,
+        service_group: &str,
+        pkg: &Pkg,
+        svc_encrypted_password: Option<T>,
+    ) -> Result<Self::ExitValue>
+    where
+        T: ToString,
     {
         let mut child = Self::exec(self.path(), pkg, svc_encrypted_password).map_err(|err| {
-                            outputln!(preamble service_group,
+            outputln!(preamble service_group,
                                       "Hook failed to run, {}, {}", Self::FILE_NAME, err);
-                            err
-                        })?;
+            err
+        })?;
         let mut hook_output = HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
         hook_output.output_standard_streams::<Self>(service_group, &mut child);
-        Ok(child.wait()
-                .map_err(|err| {
-                    outputln!(preamble service_group,
+        Ok(child
+            .wait()
+            .map_err(|err| {
+                outputln!(preamble service_group,
                               "Hook failed to run, {}, {}", Self::FILE_NAME, err);
-                    err
-                })
-                .map(|status| self.handle_exit(pkg, &hook_output, status))?)
+                err
+            })
+            .map(|status| self.handle_exit(pkg, &hook_output, status))?)
     }
 
     #[cfg(windows)]
     fn exec<T, S>(path: S, pkg: &Pkg, svc_encrypted_password: Option<T>) -> Result<Child>
-        where T: ToString,
-              S: AsRef<OsStr>
+    where
+        T: ToString,
+        S: AsRef<OsStr>,
     {
-        use habitat_core::util;
+        use biome_core::util;
 
         let ps_cmd = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
-        Ok(util::spawn_pwsh(&ps_cmd,
-                            &pkg.env.to_hash_map(),
-                            &pkg.svc_user,
-                            svc_encrypted_password)?)
+        Ok(util::spawn_pwsh(
+            &ps_cmd,
+            &pkg.env.to_hash_map(),
+            &pkg.svc_user,
+            svc_encrypted_password,
+        )?)
     }
 
     #[cfg(unix)]
     fn exec<T, S>(path: S, pkg: &Pkg, _: Option<T>) -> Result<Child>
-        where T: ToString,
-              S: AsRef<OsStr>
+    where
+        T: ToString,
+        S: AsRef<OsStr>,
     {
-        use habitat_core::os::{process,
-                               users};
-        use nix::unistd::{Gid,
-                          Uid};
+        use biome_core::os::{process, users};
+        use nix::unistd::{Gid, Uid};
         use std::ops::Deref;
 
         let ids = if process::can_run_services_as_svc_user() {
@@ -225,16 +237,28 @@ pub trait Hook: fmt::Debug + Sized + Send {
             // user; otherwise, we'll just run it as ourselves.
             let uid = users::get_uid_by_name(&pkg.svc_user)?
                 .map(Uid::from_raw)
-                .ok_or_else(|| {Error::PermissionFailed(format!("No uid for user '{}' could be found", &pkg.svc_user))})?;
+                .ok_or_else(|| {
+                    Error::PermissionFailed(format!(
+                        "No uid for user '{}' could be found",
+                        &pkg.svc_user
+                    ))
+                })?;
             let gid = users::get_gid_by_name(&pkg.svc_group)?
                 .map(Gid::from_raw)
-                .ok_or_else(|| {Error::PermissionFailed(format!("No gid for group '{}' could be found", &pkg.svc_group))})?;
+                .ok_or_else(|| {
+                    Error::PermissionFailed(format!(
+                        "No gid for group '{}' could be found",
+                        &pkg.svc_group
+                    ))
+                })?;
             Some((uid, gid))
         } else {
-            debug!("Current user lacks sufficient capabilites to run {:?} as \"{}\"; running as \
+            debug!(
+                "Current user lacks sufficient capabilites to run {:?} as \"{}\"; running as \
                     self!",
-                   path.as_ref(),
-                   &pkg.svc_user);
+                path.as_ref(),
+                &pkg.svc_user
+            );
             None
         };
 
@@ -245,7 +269,9 @@ pub trait Hook: fmt::Debug + Sized + Send {
     fn handle_exit(&self, pkg: &Pkg, output: &HookOutput, status: ExitStatus) -> Self::ExitValue;
 
     /// Return true if this hook should be retried provided the exit value of the previous run.
-    fn should_retry(_exit_value: &Self::ExitValue) -> bool { false }
+    fn should_retry(_exit_value: &Self::ExitValue) -> bool {
+        false
+    }
 
     fn path(&self) -> &Path;
 
@@ -273,21 +299,25 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
     ///   `templating::compile_for_package_install`)
     /// * run the hook
     /// * return an error if we get a non-zero exit code
-    async fn find_run_and_error_for_status<U: UIWriter>(ui: &mut U,
-                                                        package: &PackageInstall,
-                                                        token: Option<&str>)
-                                                        -> Result<()> {
+    async fn find_run_and_error_for_status<U: UIWriter>(
+        ui: &mut U,
+        package: &PackageInstall,
+        token: Option<&str>,
+    ) -> Result<()> {
         let feature_flags = FeatureFlag::from_env(ui);
         let package_name = &package.ident.name;
-        match Self::load(package_name,
-                         svc_hooks_path(package_name),
-                         package.installed_path.join("hooks"),
-                         feature_flags)
-        {
+        match Self::load(
+            package_name,
+            svc_hooks_path(package_name),
+            package.installed_path.join("hooks"),
+            feature_flags,
+        ) {
             Some(ref hook) => {
                 let hook_name = Self::FILE_NAME;
-                ui.status(Status::Executing,
-                          format!("{} hook for '{}'", hook_name, package.ident()))?;
+                ui.status(
+                    Status::Executing,
+                    format!("{} hook for '{}'", hook_name, package.ident()),
+                )?;
                 templating::compile_for_package_install(package, feature_flags).await?;
 
                 // Only windows uses svc_password
@@ -296,14 +326,15 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
                     let mut pkg = Pkg::from_install(package).await?;
                     // Hooks do not have access to svc_passwords so we execute them under the
                     // current user account.
-                    if let Some(user) = habitat_core::os::users::get_current_username()? {
+                    if let Some(user) = biome_core::os::users::get_current_username()? {
                         pkg.svc_user = user;
                     }
                     // Pass through auth token if provided
                     if let Some(token_value) = token {
-                        pkg.env
-                           .with_additional_env(habitat_core::AUTH_TOKEN_ENVVAR.to_string(),
-                                                token_value.to_string());
+                        pkg.env.with_additional_env(
+                            biome_core::AUTH_TOKEN_ENVVAR.to_string(),
+                            token_value.to_string(),
+                        );
                     }
                     pkg
                 };
@@ -312,20 +343,21 @@ pub trait PackageMaintenanceHookExt: Hook<ExitValue = ExitStatus> + Sync {
                     let mut pkg = Pkg::from_install(package).await?;
                     // Pass through auth token if provided
                     if let Some(token_value) = token {
-                        pkg.env
-                           .with_additional_env(habitat_core::AUTH_TOKEN_ENVVAR.to_string(),
-                                                token_value.to_string());
+                        pkg.env.with_additional_env(
+                            biome_core::AUTH_TOKEN_ENVVAR.to_string(),
+                            token_value.to_string(),
+                        );
                     }
                     pkg
                 };
 
                 match hook.run(package_name, &pkg, None::<&str>) {
                     Ok(exit_status) if exit_status.success() => Ok(()),
-                    Ok(exit_status) => {
-                        Err(Error::hook_exit_status(pkg.ident.clone(),
-                                                    hook_name,
-                                                    exit_status))
-                    }
+                    Ok(exit_status) => Err(Error::hook_exit_status(
+                        pkg.ident.clone(),
+                        hook_name,
+                        exit_status,
+                    )),
                     Err(error) => Err(Error::hook_run_error(pkg.ident.clone(), hook_name, error)),
                 }
             }
@@ -338,7 +370,7 @@ impl<T: Hook<ExitValue = ExitStatus> + Sync> PackageMaintenanceHookExt for T {}
 
 #[derive(Debug, Serialize)]
 pub struct InstallHook {
-    render_pair:     RenderPair,
+    render_pair: RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -353,9 +385,11 @@ impl Hook for InstallHook {
     const FILE_NAME: &'static str = "install";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
-        InstallHook { render_pair:     pair,
-                      stdout_log_path: stdout_log_path::<Self>(package_name),
-                      stderr_log_path: stderr_log_path::<Self>(package_name), }
+        InstallHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(package_name),
+            stderr_log_path: stderr_log_path::<Self>(package_name),
+        }
     }
 
     fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -400,18 +434,26 @@ impl Hook for InstallHook {
         status
     }
 
-    fn path(&self) -> &Path { &self.render_pair.path }
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
 
-    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
+    }
 
-    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
 
-    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
 }
 
 #[derive(Debug, Serialize)]
 pub struct UninstallHook {
-    render_pair:     RenderPair,
+    render_pair: RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -426,9 +468,11 @@ impl Hook for UninstallHook {
     const FILE_NAME: &'static str = "uninstall";
 
     fn new(package_name: &str, pair: RenderPair, _feature_flags: FeatureFlag) -> Self {
-        UninstallHook { render_pair:     pair,
-                        stdout_log_path: stdout_log_path::<Self>(package_name),
-                        stderr_log_path: stderr_log_path::<Self>(package_name), }
+        UninstallHook {
+            render_pair: pair,
+            stdout_log_path: stdout_log_path::<Self>(package_name),
+            stderr_log_path: stderr_log_path::<Self>(package_name),
+        }
     }
 
     fn handle_exit(&self, pkg: &Pkg, _: &HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -451,13 +495,21 @@ impl Hook for UninstallHook {
         status
     }
 
-    fn path(&self) -> &Path { &self.render_pair.path }
+    fn path(&self) -> &Path {
+        &self.render_pair.path
+    }
 
-    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+    fn renderer(&self) -> &TemplateRenderer {
+        &self.render_pair.renderer
+    }
 
-    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+    fn stdout_log_path(&self) -> &Path {
+        &self.stdout_log_path
+    }
 
-    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+    fn stderr_log_path(&self) -> &Path {
+        &self.stderr_log_path
+    }
 }
 
 /// Cryptographically hash the contents of the compiled hook
@@ -465,7 +517,8 @@ impl Hook for UninstallHook {
 ///
 /// If the file does not exist, an empty string is returned.
 fn hash_content<T>(path: T) -> Result<Option<Blake2bHash>>
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     if path.as_ref().exists() {
         let hash = Blake2bHash::from_file(path).map_err(Error::from)?;
@@ -476,12 +529,13 @@ fn hash_content<T>(path: T) -> Result<Option<Blake2bHash>>
 }
 
 fn write_hook<T>(content: &str, path: T) -> Result<bool>
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     let content_hash = Blake2bHash::from_bytes(content);
     let existing_hash = hash_content(path.as_ref())?;
     if let Some(existing_hash) = existing_hash
-       && existing_hash == content_hash
+        && existing_hash == content_hash
     {
         return Ok(false);
     }
@@ -492,19 +546,22 @@ fn write_hook<T>(content: &str, path: T) -> Result<bool>
 }
 
 pub struct RenderPair {
-    pub path:     PathBuf,
+    pub path: PathBuf,
     pub renderer: TemplateRenderer,
 }
 
 impl RenderPair {
     pub fn new<C, T>(concrete_path: C, template_path: T, name: &'static str) -> Result<RenderPair>
-        where C: Into<PathBuf>,
-              T: AsRef<Path>
+    where
+        C: Into<PathBuf>,
+        T: AsRef<Path>,
     {
         let mut renderer = TemplateRenderer::new();
         renderer.register_template_file(name, template_path.as_ref())?;
-        Ok(RenderPair { path: concrete_path.into(),
-                        renderer })
+        Ok(RenderPair {
+            path: concrete_path.into(),
+            renderer,
+        })
     }
 }
 
@@ -516,16 +573,19 @@ impl fmt::Debug for RenderPair {
 
 impl Serialize for RenderPair {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_str(&self.path.as_os_str().to_string_lossy())
     }
 }
 
-habitat_core::env_config_int!(HookStandardStreamByteLimit,
-                              u64,
-                              HAB_HOOK_STANDARD_STREAM_BYTE_LIMIT,
-                              1024);
+biome_core::env_config_int!(
+    HookStandardStreamByteLimit,
+    u64,
+    BIO_HOOK_STANDARD_STREAM_BYTE_LIMIT,
+    1024
+);
 
 pub struct HookOutput<'a> {
     stdout_log_file: &'a Path,
@@ -534,8 +594,10 @@ pub struct HookOutput<'a> {
 
 impl<'a> HookOutput<'a> {
     pub fn new(stdout_log: &'a Path, stderr_log: &'a Path) -> Self {
-        Self { stdout_log_file: stdout_log,
-               stderr_log_file: stderr_log, }
+        Self {
+            stdout_log_file: stdout_log,
+            stderr_log_file: stderr_log,
+        }
     }
 
     pub fn stdout(&self) -> Result<BufReader<File>> {
@@ -577,18 +639,19 @@ impl<'a> HookOutput<'a> {
     fn tee_standard_stream(preamble_str: &str, reader: impl Read, path: &Path) {
         let mut file_result = File::create(path);
         if let Err(e) = &file_result {
-            error!("Failed to create file {:?} to write hook output, {}",
-                   path, e);
+            error!(
+                "Failed to create file {:?} to write hook output, {}",
+                path, e
+            );
         }
-        for line in BufReader::new(reader).lines_lossy()
-                                          .filter_map(result::Result::ok)
+        for line in BufReader::new(reader)
+            .lines_lossy()
+            .filter_map(result::Result::ok)
         {
             outputln!(preamble preamble_str, &line);
             if let Ok(file) = &mut file_result {
-                writeln!(file, "{}", &line).unwrap_or_else(|e| {
-                                               error!("Failed to write hook output to {:?}, {}",
-                                                      path, e)
-                                           });
+                writeln!(file, "{}", &line)
+                    .unwrap_or_else(|e| error!("Failed to write hook output to {:?}, {}", path, e));
             }
         }
     }
@@ -617,17 +680,19 @@ impl<'a> HookOutput<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::templating::{config::Cfg,
-                            context::RenderContext,
-                            package::Pkg,
-                            test_helpers::*};
-    #[cfg(not(any(all(target_os = "linux",
-                          any(target_arch = "x86_64", target_arch = "aarch64")),
-                      all(target_os = "windows", target_arch = "x86_64"),)))]
-    use habitat_core::package::metadata::MetaFile;
-    use habitat_core::{package::{PackageIdent,
-                                 PackageInstall},
-                       service::ServiceGroup};
+    use crate::templating::{config::Cfg, context::RenderContext, package::Pkg, test_helpers::*};
+    #[cfg(not(any(
+        all(
+            target_os = "linux",
+            any(target_arch = "x86_64", target_arch = "aarch64")
+        ),
+        all(target_os = "windows", target_arch = "x86_64"),
+    )))]
+    use biome_core::package::metadata::MetaFile;
+    use biome_core::{
+        package::{PackageIdent, PackageInstall},
+        service::ServiceGroup,
+    };
     use tempfile::TempDir;
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
@@ -648,19 +713,23 @@ mod tests {
 
     #[cfg(not(windows))]
     fn hook_fixtures_path() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
-                                                 .join("fixtures")
-                                                 .join("hooks")
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("hooks")
     }
 
     fn hook_templates_path() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
-                                                 .join("fixtures")
-                                                 .join("hooks")
-                                                 .join("hook_templates")
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("hooks")
+            .join("hook_templates")
     }
 
-    fn rendered_hooks_path() -> TempDir { TempDir::new().expect("create temp dir") }
+    fn rendered_hooks_path() -> TempDir {
+        TempDir::new().expect("create temp dir")
+    }
 
     fn service_group() -> ServiceGroup {
         ServiceGroup::new("test_service", "test_group", None).expect("couldn't create ServiceGroup")
@@ -674,11 +743,16 @@ mod tests {
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
 
-        let hook = InstallHook::load(&service_group,
-                                     &concrete_path,
-                                     template_path,
-                                     FeatureFlag::empty()).expect("Could not create testing \
-                                                                   install hook");
+        let hook = InstallHook::load(
+            &service_group,
+            &concrete_path,
+            template_path,
+            FeatureFlag::empty(),
+        )
+        .expect(
+            "Could not create testing \
+                                                                   install hook",
+        );
 
         let content = r#"
 #!/bin/bash
@@ -687,8 +761,12 @@ echo "The message is Hello World"
 "#;
         create_with_content(&hook, content);
 
-        assert_eq!(hash_content(hook.path()).unwrap().unwrap(),
-                   "1cece41b2f4d5fddc643fc809d80c17d6658634b28ec1c5ceb80e512e20d2e72".parse::<Blake2bHash>().unwrap());
+        assert_eq!(
+            hash_content(hook.path()).unwrap().unwrap(),
+            "1cece41b2f4d5fddc643fc809d80c17d6658634b28ec1c5ceb80e512e20d2e72"
+                .parse::<Blake2bHash>()
+                .unwrap()
+        );
     }
 
     #[test]
@@ -696,11 +774,16 @@ echo "The message is Hello World"
         let service_group = service_group();
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
-        let hook = InstallHook::load(&service_group,
-                                     &concrete_path,
-                                     template_path,
-                                     FeatureFlag::empty()).expect("Could not create testing \
-                                                                   install hook");
+        let hook = InstallHook::load(
+            &service_group,
+            &concrete_path,
+            template_path,
+            FeatureFlag::empty(),
+        )
+        .expect(
+            "Could not create testing \
+                                                                   install hook",
+        );
 
         assert_eq!(hash_content(hook.path()).unwrap(), None);
     }
@@ -711,11 +794,16 @@ echo "The message is Hello World"
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
 
-        let hook = InstallHook::load(&service_group,
-                                     &concrete_path,
-                                     template_path,
-                                     FeatureFlag::empty()).expect("Could not create testing \
-                                                                   install hook");
+        let hook = InstallHook::load(
+            &service_group,
+            &concrete_path,
+            template_path,
+            FeatureFlag::empty(),
+        )
+        .expect(
+            "Could not create testing \
+                                                                   install hook",
+        );
 
         // Since we're trying to update a file that should already
         // exist, we need to actually create it :P
@@ -744,11 +832,16 @@ echo "The message is Hello World"
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
 
-        let hook = InstallHook::load(&service_group,
-                                     &concrete_path,
-                                     template_path,
-                                     FeatureFlag::empty()).expect("Could not create testing \
-                                                                   install hook");
+        let hook = InstallHook::load(
+            &service_group,
+            &concrete_path,
+            template_path,
+            FeatureFlag::empty(),
+        )
+        .expect(
+            "Could not create testing \
+                                                                   install hook",
+        );
 
         // In this test, we'll start with *no* rendered content.
         assert!(!hook.as_ref().exists());
@@ -774,11 +867,16 @@ echo "The message is Hello World"
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
 
-        let hook = InstallHook::load(&service_group,
-                                     &concrete_path,
-                                     template_path,
-                                     FeatureFlag::empty()).expect("Could not create testing \
-                                                                   install hook");
+        let hook = InstallHook::load(
+            &service_group,
+            &concrete_path,
+            template_path,
+            FeatureFlag::empty(),
+        )
+        .expect(
+            "Could not create testing \
+                                                                   install hook",
+        );
 
         let initial_content = r#"
 #!/bin/bash
@@ -835,47 +933,66 @@ echo "The message is Hola Mundo"
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
 
-        let hook = InstallHook::load(&service_group,
-                                     &concrete_path,
-                                     &template_path,
-                                     FeatureFlag::empty()).expect("Could not create testing \
-                                                                   install hook");
+        let hook = InstallHook::load(
+            &service_group,
+            &concrete_path,
+            &template_path,
+            FeatureFlag::empty(),
+        )
+        .expect(
+            "Could not create testing \
+                                                                   install hook",
+        );
 
         ////////////////////////////////////////////////////////////////////////
         // BEGIN RENDER CONTEXT SETUP
         // (See comment above)
 
-        let pg_id = PackageIdent::new("testing",
-                                      service_group.service(),
-                                      Some("1.0.0"),
-                                      Some("20170712000000"));
+        let pg_id = PackageIdent::new(
+            "testing",
+            service_group.service(),
+            Some("1.0.0"),
+            Some("20170712000000"),
+        );
 
-        let pkg_install = PackageInstall::new_from_parts(pg_id,
-                                                         PathBuf::from("/tmp"),
-                                                         PathBuf::from("/tmp"),
-                                                         PathBuf::from("/tmp"));
+        let pkg_install = PackageInstall::new_from_parts(
+            pg_id,
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+        );
 
         // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(any(all(target_os = "linux",
-                          any(target_arch = "x86_64", target_arch = "aarch64")),
-                      all(target_os = "windows", target_arch = "x86_64"))))]
+        #[cfg(not(any(
+            all(
+                target_os = "linux",
+                any(target_arch = "x86_64", target_arch = "aarch64")
+            ),
+            all(target_os = "windows", target_arch = "x86_64")
+        )))]
         {
-            tokio::fs::create_dir_all(pkg_install.installed_path()).await
-                                                                   .unwrap();
-            create_with_content(pkg_install.installed_path()
-                                           .join(MetaFile::PackageType.to_string()),
-                                "native");
+            tokio::fs::create_dir_all(pkg_install.installed_path())
+                .await
+                .unwrap();
+            create_with_content(
+                pkg_install
+                    .installed_path()
+                    .join(MetaFile::PackageType.to_string()),
+                "native",
+            );
         }
-        let pkg = Pkg::from_install(&pkg_install).await
-                                                 .expect("Could not create package!");
+        let pkg = Pkg::from_install(&pkg_install)
+            .await
+            .expect("Could not create package!");
 
         // This is gross, but it actually works
         let cfg_path = concrete_path.as_ref().join("default.toml");
         create_with_content(cfg_path, "message = \"Hello\"");
 
-        let cfg =
-            Cfg::new(&pkg, Some(&concrete_path.as_ref().to_path_buf())).expect("Could not create \
-                                                                                config");
+        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_ref().to_path_buf())).expect(
+            "Could not create \
+                                                                                config",
+        );
 
         let ctx = RenderContext::new(&pkg, &cfg);
 
@@ -899,7 +1016,9 @@ echo "The message is Hello"
         #[cfg(unix)]
         {
             // Run the hook
-            assert!(matches!(hook.run(&service_group, &pkg, None::<&str>), Ok(exit_status) if exit_status.success()));
+            assert!(
+                matches!(hook.run(&service_group, &pkg, None::<&str>), Ok(exit_status) if exit_status.success())
+            );
 
             // Remove the hook file and try run this should fail
             std::fs::remove_dir_all(&concrete_path).expect("remove temp dir");
@@ -912,31 +1031,37 @@ echo "The message is Hello"
     #[test]
     #[cfg(not(windows))]
     fn hook_output() {
-        use habitat_core::locked_env_var;
-        use std::{fs as stdfs,
-                  fs::DirBuilder,
-                  process::{Command,
-                            Stdio}};
+        use biome_core::locked_env_var;
+        use std::{
+            fs as stdfs,
+            fs::DirBuilder,
+            process::{Command, Stdio},
+        };
 
-        locked_env_var!(HAB_HOOK_STANDARD_STREAM_BYTE_LIMIT,
-                        hab_hook_standard_stream_byte_limit);
+        locked_env_var!(
+            BIO_HOOK_STANDARD_STREAM_BYTE_LIMIT,
+            bio_hook_standard_stream_byte_limit
+        );
 
         let tmp_dir = TempDir::new().expect("create temp dir");
         let logs_dir = tmp_dir.path().join("logs");
-        DirBuilder::new().recursive(true)
-                         .create(logs_dir)
-                         .expect("couldn't create logs dir");
+        DirBuilder::new()
+            .recursive(true)
+            .create(logs_dir)
+            .expect("couldn't create logs dir");
         let mut cmd = Command::new(hook_fixtures_path().join(InstallHook::FILE_NAME));
         cmd.stdin(Stdio::null())
-           .stdout(Stdio::piped())
-           .stderr(Stdio::piped());
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
         let mut child = cmd.spawn().expect("couldn't run hook");
-        let stdout_log = tmp_dir.path()
-                                .join("logs")
-                                .join(format!("{}.stdout.log", InstallHook::FILE_NAME));
-        let stderr_log = tmp_dir.path()
-                                .join("logs")
-                                .join(format!("{}.stderr.log", InstallHook::FILE_NAME));
+        let stdout_log = tmp_dir
+            .path()
+            .join("logs")
+            .join(format!("{}.stdout.log", InstallHook::FILE_NAME));
+        let stderr_log = tmp_dir
+            .path()
+            .join("logs")
+            .join(format!("{}.stderr.log", InstallHook::FILE_NAME));
         let mut hook_output = HookOutput::new(&stdout_log, &stderr_log);
         let service_group =
             ServiceGroup::new("dummy", "service", None).expect("couldn't create ServiceGroup");
@@ -947,10 +1072,12 @@ echo "The message is Hello"
         assert_eq!(stdout, "This is stdout\nThis is stdout line 2\n");
 
         let stderr = hook_output.stderr_str().expect("to get stderr string");
-        assert_eq!(stderr,
-                   "This is stderr\nThis is stderr line 2\nThis is stderr line 3\n");
+        assert_eq!(
+            stderr,
+            "This is stderr\nThis is stderr line 2\nThis is stderr line 3\n"
+        );
 
-        let envvar = hab_hook_standard_stream_byte_limit();
+        let envvar = bio_hook_standard_stream_byte_limit();
         envvar.set("20");
         let stdout = hook_output.stdout_str().expect("to get stdout string");
         assert_eq!(stdout, "This is stdout\nThis ");

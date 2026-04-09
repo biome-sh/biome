@@ -5,7 +5,7 @@
         <appender-ref ref="RollingFileAppender" />
     </root>
     <appender name="RollingFileAppender" type="log4net.Appender.RollingFileAppender">
-        <file value="\hab\svc\windows-service\logs\Habitat.log" />
+        <file value="\bio\svc\windows-service\logs\Biome.log" />
         <appendToFile value="true" />
         <rollingStyle value="Size" />
         <maxSizeRollBackups value="10" />

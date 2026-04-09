@@ -3,7 +3,7 @@
 load 'helpers'
 
 setup() {
-    reset_hab_root
+    reset_bio_root
 }
 
 teardown() {
@@ -19,12 +19,12 @@ teardown() {
     # Start up an empty Supervisor in the background. The update
     # frequency is important for this test, otherwise we'll be waiting
     # too long.
-    HAB_UPDATE_STRATEGY_PERIOD_MS=5000 ${hab} run &
+    BIO_UPDATE_STRATEGY_PERIOD_MS=5000 ${bio} run &
     retry 5 1 launcher_is_alive
 
     # Load up our older Redis and ensure that it's running before
     # going any further
-    run ${hab} svc load ${old_redis}
+    run ${bio} svc load ${old_redis}
     assert_success
     wait_for_service_to_run redis
     initial_pid=$(pid_of_service redis)
@@ -38,7 +38,7 @@ teardown() {
     # to mean anything, because there's never a newer version of a
     # fully-qualified package! We need to reload with something that
     # can be updated (and also set the upgrade strategy, too!)
-    run ${hab} svc load --strategy=at-once --force core/redis
+    run ${bio} svc load --strategy=at-once --force core/redis
     assert_success
 
     # The first restart is due to the service reloading via `--force`

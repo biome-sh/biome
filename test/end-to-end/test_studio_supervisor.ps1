@@ -1,11 +1,11 @@
-$cliVersion = ((hab --version) -split " ")[1]
-$env:HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="dev"
-hab origin key generate $env:HAB_ORIGIN
+$cliVersion = ((bio --version) -split " ")[1]
+$env:BIO_STUDIO_SECRET_BIO_INTERNAL_BLDR_CHANNEL="dev"
+bio origin key generate $env:BIO_ORIGIN
 
 
 Describe "Studio supervisor" {
-    It "version should match hab cli" {
-        $result = (Invoke-StudioRun "hab sup --version")
+    It "version should match bio cli" {
+        $result = (Invoke-StudioRun "bio sup --version")
         $result[-1] | Should -match "sup $(($cliVersion -split '/')[0])/*"
     }
 
@@ -13,14 +13,14 @@ Describe "Studio supervisor" {
         $studioArgs = @("studio", "enter")
         if($env:DOCKER_STUDIO_TEST) {
             $port = (Get-Random -Minimum 8000 -Maximum 9000)
-            $env:HAB_DOCKER_OPTS = "-p ${port}:9631 -l buildkitejob=$env:BUILDKITE_JOB_ID"
+            $env:BIO_DOCKER_OPTS = "-p ${port}:9631 -l buildkitejob=$env:BUILDKITE_JOB_ID"
             $studioArgs += "-D"
         } else {
             $port = 9631
             $studioArgs += "-R"
         }
         $procArgs = @{
-            FilePath     = "hab"
+            FilePath     = "bio"
             ArgumentList = $studioArgs
             WindowStyle  = "hidden"
         }

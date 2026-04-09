@@ -1,6 +1,6 @@
 # Butterfly
 
-Butterfly is the Habitat gossip protocol. It's an implementation of
+Butterfly is the Biome gossip protocol. It's an implementation of
 SWIM+Inf+Susp for membership, and a ZeroMQ based newscast-inspired gossip
 protocol.
 
@@ -16,4 +16,4 @@ protocol.
 
 It's named after the swimming stroke. Because it's not just SWIM-ing - get it?
 
-Also, Butterflies are lovely. Who doesn't want a Butterfly in their habitat?
+Also, Butterflies are lovely. Who doesn't want a Butterfly in their biome?

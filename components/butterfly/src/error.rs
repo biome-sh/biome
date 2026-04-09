@@ -1,10 +1,4 @@
-use std::{error,
-          fmt,
-          io,
-          num,
-          path::PathBuf,
-          result,
-          str};
+use std::{error, fmt, io, num, path::PathBuf, result, str};
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -15,7 +9,7 @@ pub enum Error {
     DatFileIO(PathBuf, io::Error),
     DecodeError(prost::DecodeError),
     EncodeError(prost::EncodeError),
-    HabitatCore(habitat_core::error::Error),
+    BiomeCore(biome_core::error::Error),
     IncarnationIO(PathBuf, io::Error),
     IncarnationParse(PathBuf, num::ParseIntError),
     NonExistentRumor(String, String),
@@ -35,38 +29,50 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             Error::BadDataPath(ref path, ref err) => {
-                format!("Unable to read or write to data directory, {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Unable to read or write to data directory, {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::CannotBind(ref err) => format!("Cannot bind to port: {:?}", err),
             Error::DatFileIO(ref path, ref err) => {
-                format!("Error reading or writing to DatFile, {}, {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Error reading or writing to DatFile, {}, {}",
+                    path.display(),
+                    err
+                )
             }
             Error::UnknownIOError(ref err) => format!("Error reading or writing: {}", err),
             Error::DecodeError(ref err) => format!("Failed to decode protocol message: {}", err),
             Error::EncodeError(ref err) => format!("Failed to encode protocol message: {}", err),
-            Error::HabitatCore(ref err) => format!("{}", err),
+            Error::BiomeCore(ref err) => format!("{}", err),
             Error::IncarnationIO(ref path, ref err) => {
-                format!("Error reading or writing incarnation store file {}: {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Error reading or writing incarnation store file {}: {}",
+                    path.display(),
+                    err
+                )
             }
             Error::IncarnationParse(ref path, ref err) => {
-                format!("Error parsing value from incarnation store file {}: {}",
-                        path.display(),
-                        err)
+                format!(
+                    "Error parsing value from incarnation store file {}: {}",
+                    path.display(),
+                    err
+                )
             }
             Error::NonExistentRumor(ref member_id, ref rumor_id) => {
-                format!("Non existent rumor asked to be written to bytes: {} {}",
-                        member_id, rumor_id)
+                format!(
+                    "Non existent rumor asked to be written to bytes: {} {}",
+                    member_id, rumor_id
+                )
             }
             Error::OsError(ref err) => format!("OS error: {}", err),
             Error::ProtocolMismatch(ref field) => {
-                format!("Received an unsupported or bad protocol message. Missing field: {}",
-                        field)
+                format!(
+                    "Received an unsupported or bad protocol message. Missing field: {}",
+                    field
+                )
             }
             Error::ServiceConfigDecode(ref sg, ref err) => {
                 format!("Cannot decode service config: group={}, {}", sg, err)
@@ -91,15 +97,23 @@ impl fmt::Display for Error {
 impl error::Error for Error {}
 
 impl From<prost::DecodeError> for Error {
-    fn from(err: prost::DecodeError) -> Error { Error::DecodeError(err) }
+    fn from(err: prost::DecodeError) -> Error {
+        Error::DecodeError(err)
+    }
 }
 
 impl From<prost::EncodeError> for Error {
-    fn from(err: prost::EncodeError) -> Error { Error::EncodeError(err) }
+    fn from(err: prost::EncodeError) -> Error {
+        Error::EncodeError(err)
+    }
 }
-impl From<habitat_core::error::Error> for Error {
-    fn from(err: habitat_core::error::Error) -> Error { Error::HabitatCore(err) }
+impl From<biome_core::error::Error> for Error {
+    fn from(err: biome_core::error::Error) -> Error {
+        Error::BiomeCore(err)
+    }
 }
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error { Error::UnknownIOError(err) }
+    fn from(err: io::Error) -> Error {
+        Error::UnknownIOError(err)
+    }
 }

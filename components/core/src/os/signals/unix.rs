@@ -1,13 +1,14 @@
 //! Traps and notifies UNIX signals.
 use crate::os::process::SignalCode;
 use log::debug;
-use std::{io,
-          mem,
-          ptr,
-          sync::{Once,
-                 atomic::{AtomicBool,
-                          Ordering}},
-          thread};
+use std::{
+    io, mem, ptr,
+    sync::{
+        Once,
+        atomic::{AtomicBool, Ordering},
+    },
+    thread,
+};
 
 static INIT: Once = Once::new();
 static PENDING_HUP: AtomicBool = AtomicBool::new(false);
@@ -15,20 +16,22 @@ static PENDING_CHLD: AtomicBool = AtomicBool::new(false);
 
 pub fn init() {
     INIT.call_once(|| {
-            // TODO(ssd) 2019-10-16: We could bubble this error up
-            // further if we want, but in either case this should be a
-            // hard failure.
-            self::start_signal_handler().expect("starting signal handler failed");
-        });
+        // TODO(ssd) 2019-10-16: We could bubble this error up
+        // further if we want, but in either case this should be a
+        // hard failure.
+        self::start_signal_handler().expect("starting signal handler failed");
+    });
 }
 
 pub fn pending_sighup() -> bool {
-    PENDING_HUP.compare_exchange(true, false, Ordering::SeqCst, Ordering::SeqCst)
-               .unwrap_or_else(core::convert::identity)
+    PENDING_HUP
+        .compare_exchange(true, false, Ordering::SeqCst, Ordering::SeqCst)
+        .unwrap_or_else(core::convert::identity)
 }
 pub fn pending_sigchld() -> bool {
-    PENDING_CHLD.compare_exchange(true, false, Ordering::SeqCst, Ordering::SeqCst)
-                .unwrap_or_else(core::convert::identity)
+    PENDING_CHLD
+        .compare_exchange(true, false, Ordering::SeqCst, Ordering::SeqCst)
+        .unwrap_or_else(core::convert::identity)
 }
 
 fn start_signal_handler() -> io::Result<()> {
@@ -47,8 +50,9 @@ fn start_signal_handler() -> io::Result<()> {
     handled_signals.addsig(libc::SIGUSR2)?;
 
     handled_signals.setsigmask()?;
-    thread::Builder::new().name("signal-handler".to_string())
-                          .spawn(move || process_signals(&handled_signals))?;
+    thread::Builder::new()
+        .name("signal-handler".to_string())
+        .spawn(move || process_signals(&handled_signals))?;
     Ok(())
 }
 

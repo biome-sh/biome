@@ -5,18 +5,16 @@
 //! This allows us to swap out the `docker` CLI for `buildah` if we
 //! want to create containers as a non-root user, for instance.
 use anyhow::Result;
-use clap::{Arg,
-           ArgMatches,
-           value_parser};
-use habitat_core::fs::find_command;
+use biome_core::fs::find_command;
+use clap::{Arg, ArgMatches, value_parser};
 use log::debug;
-use std::{convert::TryFrom,
-          path::{Path,
-                 PathBuf},
-          process::{Command,
-                    ExitStatus},
-          result::Result as StdResult,
-          str::FromStr};
+use std::{
+    convert::TryFrom,
+    path::{Path, PathBuf},
+    process::{Command, ExitStatus},
+    result::Result as StdResult,
+    str::FromStr,
+};
 use thiserror::Error;
 
 #[cfg(not(windows))]
@@ -39,7 +37,9 @@ enum EngineError {
     #[error("Unknown Container Engine '{0}' was specified.")]
     UnknownEngine(String),
     #[cfg(not(windows))]
-    #[error("Cannot use `--engine=buildah` with `--multi-layer` due to https://github.com/containers/buildah/issues/2215. Please use `--engine=docker` or remove `--multi-layer`.")]
+    #[error(
+        "Cannot use `--engine=buildah` with `--multi-layer` due to https://github.com/containers/buildah/issues/2215. Please use `--engine=docker` or remove `--multi-layer`."
+    )]
     BuildahIncompatibleWithMultiLayer,
     #[cfg(not(windows))]
     #[error(transparent)]
@@ -61,7 +61,7 @@ enum EngineError {
 #[cfg(not(windows))]
 pub(crate) fn fail_if_buildah_and_multilayer(matches: &ArgMatches) -> Result<()> {
     if matches.get_one::<EngineKind>("ENGINE") == Some(&EngineKind::Buildah)
-       && matches.get_flag("MULTI_LAYER")
+        && matches.get_flag("MULTI_LAYER")
     {
         return Err(EngineError::BuildahIncompatibleWithMultiLayer.into());
     }
@@ -111,7 +111,7 @@ pub(crate) fn cli_arg() -> Arg {
         Arg::new("ENGINE").value_name("ENGINE")
         .value_parser(value_parser!(EngineKind))
         .long("engine")
-        .env("HAB_PKG_EXPORT_CONTAINER_ENGINE")
+        .env("BIO_PKG_EXPORT_CONTAINER_ENGINE")
         .default_value("docker")
         .help("The name of the container creation engine to use.");
 
@@ -168,7 +168,7 @@ pub(crate) trait Engine {
     fn image_push_command(&self, image_reference: &str, config_dir: &Path) -> Command;
 
     fn build_command(&self, build_context: &Path, tags: &[String], memory: Option<&str>)
-                     -> Command;
+    -> Command;
 
     /// Retrieve the ID of the given image, which is expected to exist.
     fn image_id(&self, image_reference: &str) -> Result<String> {
@@ -184,8 +184,10 @@ pub(crate) trait Engine {
 
     /// Delete the referenced image in the local image store.
     fn remove_image(&self, image_reference: &str) -> Result<()> {
-        run(self.image_removal_command(image_reference),
-            EngineError::RemoveFailed)
+        run(
+            self.image_removal_command(image_reference),
+            EngineError::RemoveFailed,
+        )
     }
 
     /// Pushes the specified container image to a remote repository, using
@@ -194,8 +196,10 @@ pub(crate) trait Engine {
     // TODO (CM): worth taking credential / repo information and
     // handling the config directory stuff internally?
     fn push_image(&self, image_reference: &str, config_dir: &Path) -> Result<()> {
-        run(self.image_push_command(image_reference, config_dir),
-            EngineError::PushFailed)
+        run(
+            self.image_push_command(image_reference, config_dir),
+            EngineError::PushFailed,
+        )
     }
 
     /// Actually create the image.
@@ -209,11 +213,14 @@ pub(crate) trait Engine {
     ///
     /// Returns the ID of the image that was built.
     fn build(&self, build_context: &Path, tags: &[String], memory: Option<&str>) -> Result<String> {
-        run(self.build_command(build_context, tags, memory),
-            EngineError::BuildFailed)?;
+        run(
+            self.build_command(build_context, tags, memory),
+            EngineError::BuildFailed,
+        )?;
 
-        let identifier = tags.first()
-                             .expect("There should always be at least one tag");
+        let identifier = tags
+            .first()
+            .expect("There should always be at least one tag");
         self.image_id(identifier)
     }
 }
@@ -223,7 +230,8 @@ pub(crate) trait Engine {
 /// Not part of the trait because nobody need to be calling this from
 /// outside.
 fn run<F>(mut cmd: Command, err_fn: F) -> Result<()>
-    where F: Fn(ExitStatus) -> EngineError
+where
+    F: Fn(ExitStatus) -> EngineError,
 {
     debug!("Running: {:?}", &cmd);
     let exit_status = cmd.spawn()?.wait()?;
@@ -234,7 +242,6 @@ fn run<F>(mut cmd: Command, err_fn: F) -> Result<()>
 }
 
 fn resolve_engine_binary(binary_name: &str) -> StdResult<PathBuf, EngineError> {
-    find_command(binary_name).ok_or_else(|| {
-                                 EngineError::ExecutableNotFound(binary_name.to_string())
-                             })
+    find_command(binary_name)
+        .ok_or_else(|| EngineError::ExecutableNotFound(binary_name.to_string()))
 }

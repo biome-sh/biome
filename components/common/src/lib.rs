@@ -1,14 +1,9 @@
-pub use self::error::{Error,
-                      Result};
-use crate::ui::{NullUi,
-                UIWriter};
-use habitat_api_client as api_client;
-use habitat_core as hcore;
+pub use self::error::{Error, Result};
+use crate::ui::{NullUi, UIWriter};
+use biome_api_client as api_client;
+use biome_core as hcore;
 use lazy_static::lazy_static;
-use std::{collections::HashMap,
-          env,
-          ffi::OsStr,
-          iter::FromIterator};
+use std::{collections::HashMap, env, ffi::OsStr, iter::FromIterator};
 
 pub mod cli;
 pub mod cli_config;
@@ -35,7 +30,7 @@ lazy_static::lazy_static! {
             Ok(path) => path.file_stem().and_then(OsStr::to_str).unwrap().to_string(),
             Err(e) => {
                 error!("Error getting path of current_exe: {}", e);
-                String::from("hab-?")
+                String::from("bio-?")
             }
         }
     };
@@ -57,7 +52,7 @@ lazy_static::lazy_static! {
 // concern. We can have any number of bitflags-generated structs.
 
 bitflags::bitflags! {
-    /// All the feature flags that are recogized by Habitat.
+    /// All the feature flags that are recogized by Biome.
     ///
     /// In general, feature flags are enabled by setting the corresponding
     /// environment variable.
@@ -90,18 +85,28 @@ bitflags::bitflags! {
 
 lazy_static! {
     static ref ENV_VARS: HashMap<FeatureFlag, &'static str> = {
-        let mapping =
-            vec![(FeatureFlag::LIST, "HAB_FEAT_LIST"),
-                 (FeatureFlag::TEST_EXIT, "HAB_FEAT_TEST_EXIT"),
-                 (FeatureFlag::TEST_BOOT_FAIL, "HAB_FEAT_BOOT_FAIL"),
-                 (FeatureFlag::REDACT_HTTP, "HAB_FEAT_REDACT_HTTP"),
-                 (FeatureFlag::OFFLINE_INSTALL, "HAB_FEAT_OFFLINE_INSTALL"),
-                 (FeatureFlag::TRIGGER_ELECTION, "HAB_FEAT_TRIGGER_ELECTION"),
-                 (FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK, "HAB_FEAT_NO_NAMED_PIPE_HEALTH_CHECK"),
-                 #[cfg(target_family = "unix")]
-                 (FeatureFlag::NATIVE_PACKAGE_SUPPORT, "HAB_FEAT_NATIVE_PACKAGE_SUPPORT"),
-                 #[cfg(target_family = "unix")]
-                 (FeatureFlag::MACOS_NATIVE_SUPPORT, "HAB_FEAT_MACOS_NATIVE_SUPPORT")];
+        let mapping = vec![
+            (FeatureFlag::LIST, "BIO_FEAT_LIST"),
+            (FeatureFlag::TEST_EXIT, "BIO_FEAT_TEST_EXIT"),
+            (FeatureFlag::TEST_BOOT_FAIL, "BIO_FEAT_BOOT_FAIL"),
+            (FeatureFlag::REDACT_HTTP, "BIO_FEAT_REDACT_HTTP"),
+            (FeatureFlag::OFFLINE_INSTALL, "BIO_FEAT_OFFLINE_INSTALL"),
+            (FeatureFlag::TRIGGER_ELECTION, "BIO_FEAT_TRIGGER_ELECTION"),
+            (
+                FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK,
+                "BIO_FEAT_NO_NAMED_PIPE_HEALTH_CHECK",
+            ),
+            #[cfg(target_family = "unix")]
+            (
+                FeatureFlag::NATIVE_PACKAGE_SUPPORT,
+                "BIO_FEAT_NATIVE_PACKAGE_SUPPORT",
+            ),
+            #[cfg(target_family = "unix")]
+            (
+                FeatureFlag::MACOS_NATIVE_SUPPORT,
+                "BIO_FEAT_MACOS_NATIVE_SUPPORT",
+            ),
+        ];
 
         HashMap::from_iter(mapping)
     };
@@ -112,13 +117,14 @@ impl FeatureFlag {
     /// If the environment variable for a flag is set to _anything_ but
     /// the empty string, it is activated.
     pub fn from_env<T>(ui: &mut T) -> Self
-        where T: UIWriter
+    where
+        T: UIWriter,
     {
         let mut flags = FeatureFlag::empty();
 
         for (feature, env_var) in ENV_VARS.iter() {
             if let Some(val) = env::var_os(env_var)
-               && !val.is_empty()
+                && !val.is_empty()
             {
                 flags.insert(*feature);
                 ui.warn(format!("Enabling feature: {:?}", feature)).unwrap();
@@ -135,13 +141,15 @@ impl FeatureFlag {
         // feature-flag.
         if flags.contains(FeatureFlag::LIST) {
             ui.warn("Listing feature flags environment variables:")
-              .unwrap();
+                .unwrap();
             for (feature, env_var) in ENV_VARS.iter() {
-                ui.warn(format!("  * {:?}: {}={:?}",
-                                feature,
-                                env_var,
-                                env::var_os(env_var).unwrap_or_default()))
-                  .unwrap();
+                ui.warn(format!(
+                    "  * {:?}: {}={:?}",
+                    feature,
+                    env_var,
+                    env::var_os(env_var).unwrap_or_default()
+                ))
+                .unwrap();
             }
         }
 
@@ -156,12 +164,13 @@ pub mod sync {
     mod deadlock_detection {
         use super::*;
         use parking_lot::deadlock;
-        use std::{sync::Once,
-                  thread};
+        use std::{sync::Once, thread};
 
         static INIT: Once = Once::new();
 
-        pub fn init() { INIT.call_once(spawn_deadlock_detector_thread); }
+        pub fn init() {
+            INIT.call_once(spawn_deadlock_detector_thread);
+        }
 
         fn spawn_deadlock_detector_thread() {
             thread::spawn(move || {
@@ -214,7 +223,11 @@ pub mod sync {
     }
 
     impl<T: Default> Default for Lock<T> {
-        fn default() -> Self { Self { inner: InnerLock::new(T::default()), } }
+        fn default() -> Self {
+            Self {
+                inner: InnerLock::new(T::default()),
+            }
+        }
     }
 
     impl<T> Lock<T> {
@@ -225,7 +238,9 @@ pub mod sync {
             #[cfg(feature = "deadlock_detection")]
             deadlock_detection::init();
 
-            Self { inner: InnerLock::new(val), }
+            Self {
+                inner: InnerLock::new(val),
+            }
         }
 
         /// This acquires a read lock and will not deadlock if the same thread tries to acquire

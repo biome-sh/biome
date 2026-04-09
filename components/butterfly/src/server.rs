@@ -13,89 +13,65 @@ mod pull;
 mod push;
 pub mod timing;
 
-use self::{incarnation_store::IncarnationStore,
-           sync::Myself};
-use crate::{error::{Error,
-                    Result},
-            member::{Health,
-                     Incarnation,
-                     Member,
-                     MemberList,
-                     MemberListProxy},
-            message,
-            probe_list::ProbeList,
-            rumor::{ConstIdRumor,
-                    Rumor,
-                    RumorKey,
-                    RumorStore,
-                    RumorStoreProxy,
-                    RumorType,
-                    dat_file::{DatFileReader,
-                               DatFileWriter},
-                    departure::Departure,
-                    election::{Election,
-                               ElectionRumor,
-                               ElectionUpdate},
-                    heat::sync::RumorHeat,
-                    service::Service,
-                    service_config::ServiceConfig,
-                    service_file::ServiceFile},
-            swim::Ack};
+use self::{incarnation_store::IncarnationStore, sync::Myself};
+use crate::{
+    error::{Error, Result},
+    member::{Health, Incarnation, Member, MemberList, MemberListProxy},
+    message,
+    probe_list::ProbeList,
+    rumor::{
+        ConstIdRumor, Rumor, RumorKey, RumorStore, RumorStoreProxy, RumorType,
+        dat_file::{DatFileReader, DatFileWriter},
+        departure::Departure,
+        election::{Election, ElectionRumor, ElectionUpdate},
+        heat::sync::RumorHeat,
+        service::Service,
+        service_config::ServiceConfig,
+        service_file::ServiceFile,
+    },
+    swim::Ack,
+};
 
-use habitat_common::{FeatureFlag,
-                     liveliness_checker,
-                     sync::Lock};
-use habitat_core::crypto::keys::RingKey;
+use biome_common::{FeatureFlag, liveliness_checker, sync::Lock};
+use biome_core::crypto::keys::RingKey;
 use lazy_static::lazy_static;
-use log::{debug,
-          error,
-          info,
-          trace,
-          warn};
-use prometheus::{HistogramTimer,
-                 HistogramVec,
-                 IntGauge,
-                 opts,
-                 register_histogram_vec,
-                 register_int_gauge};
-use serde::{Serialize,
-            Serializer,
-            ser::SerializeStruct};
-use std::{collections::{HashMap,
-                        HashSet},
-          fmt::{self,
-                Debug},
-          fs,
-          io,
-          net::{SocketAddr,
-                ToSocketAddrs,
-                UdpSocket},
-          path::{Path,
-                 PathBuf},
-          result,
-          sync::{Arc,
-                 Mutex,
-                 atomic::{AtomicBool,
-                          AtomicIsize,
-                          Ordering},
-                 mpsc::{self,
-                        channel}},
-          thread,
-          time::{Duration,
-                 Instant}};
+use log::{debug, error, info, trace, warn};
+use prometheus::{
+    HistogramTimer, HistogramVec, IntGauge, opts, register_histogram_vec, register_int_gauge,
+};
+use serde::{Serialize, Serializer, ser::SerializeStruct};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::{self, Debug},
+    fs, io,
+    net::{SocketAddr, ToSocketAddrs, UdpSocket},
+    path::{Path, PathBuf},
+    result,
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, AtomicIsize, Ordering},
+        mpsc::{self, channel},
+    },
+    thread,
+    time::{Duration, Instant},
+};
 
 /// The maximum number of other members we should notify when we shut
 /// down and leave the ring.
 const SELF_DEPARTURE_RUMOR_FANOUT: usize = 10;
 
 lazy_static! {
-    static ref INCARNATION: IntGauge =
-        register_int_gauge!(opts!("hab_butterfly_incarnation_number",
-                                  "Incarnation number of the supervisor")).unwrap();
-    static ref ELECTION_DURATION: HistogramVec =
-        register_histogram_vec!("hab_butterfly_election_duration_seconds",
-                                "How long it takes to complete an election",
-                                &["service_group"]).unwrap();
+    static ref INCARNATION: IntGauge = register_int_gauge!(opts!(
+        "bio_butterfly_incarnation_number",
+        "Incarnation number of the supervisor"
+    ))
+    .unwrap();
+    static ref ELECTION_DURATION: HistogramVec = register_histogram_vec!(
+        "bio_butterfly_election_duration_seconds",
+        "How long it takes to complete an election",
+        &["service_group"]
+    )
+    .unwrap();
 }
 
 // We need this here to track how long it takes to complete an election. We need to store the timer
@@ -104,7 +80,9 @@ lazy_static! {
 struct ElectionTimer(HistogramTimer);
 
 impl fmt::Debug for ElectionTimer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "An election timer!") }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "An election timer!")
+    }
 }
 
 type AckReceiver = mpsc::Receiver<(SocketAddr, Ack)>;
@@ -117,41 +95,54 @@ pub trait Suitability: Debug + Send + Sync {
 pub(crate) mod sync {
     use super::*;
     use crate::member::Member;
-    use habitat_common::sync::{Lock,
-                               ReadGuard,
-                               WriteGuard};
+    use biome_common::sync::{Lock, ReadGuard, WriteGuard};
     use log::debug;
 
     pub struct MyselfReadGuard<'a>(ReadGuard<'a, MyselfInner>);
 
     impl<'a> MyselfReadGuard<'a> {
-        fn new(lock: &'a Lock<MyselfInner>) -> Self { Self(lock.read()) }
+        fn new(lock: &'a Lock<MyselfInner>) -> Self {
+            Self(lock.read())
+        }
 
-        pub fn to_member(&self) -> Member { self.0.as_member() }
+        pub fn to_member(&self) -> Member {
+            self.0.as_member()
+        }
 
-        pub fn incarnation(&self) -> Incarnation { self.0.incarnation() }
+        pub fn incarnation(&self) -> Incarnation {
+            self.0.incarnation()
+        }
     }
 
     pub struct MyselfWriteGuard<'a>(WriteGuard<'a, MyselfInner>);
 
     impl<'a> MyselfWriteGuard<'a> {
-        fn new(lock: &'a Lock<MyselfInner>) -> Self { Self(lock.write()) }
+        fn new(lock: &'a Lock<MyselfInner>) -> Self {
+            Self(lock.write())
+        }
 
-        pub fn sync_incarnation(&mut self,
-                                store: incarnation_store::IncarnationStore)
-                                -> Result<()> {
+        pub fn sync_incarnation(
+            &mut self,
+            store: incarnation_store::IncarnationStore,
+        ) -> Result<()> {
             self.0.sync_incarnation(store)
         }
 
-        pub fn increment_incarnation(&mut self) { self.0.increment_incarnation() }
+        pub fn increment_incarnation(&mut self) {
+            self.0.increment_incarnation()
+        }
 
         pub fn refute_incarnation(&mut self, incoming: Incarnation) {
             self.0.refute_incarnation(incoming)
         }
 
-        pub fn mark_departed(&mut self) { self.0.mark_departed() }
+        pub fn mark_departed(&mut self) {
+            self.0.mark_departed()
+        }
 
-        pub fn set_persistent(&mut self) { self.0.set_persistent() }
+        pub fn set_persistent(&mut self) {
+            self.0.set_persistent()
+        }
     }
 
     /// Encapsulate a `Member` with the added understanding that this
@@ -176,21 +167,29 @@ pub(crate) mod sync {
         /// integration tests. This also needs to be fixed, since that
         /// signals a difference between testing and "real life".
         pub fn new(member: Member, incarnation_store: Option<IncarnationStore>) -> Self {
-            let inner = MyselfInner { member,
-                                      incarnation_store };
-            Self { inner: Lock::new(inner), }
+            let inner = MyselfInner {
+                member,
+                incarnation_store,
+            };
+            Self {
+                inner: Lock::new(inner),
+            }
         }
 
         #[must_use]
-        pub fn lock_smr(&self) -> MyselfReadGuard<'_> { MyselfReadGuard::new(&self.inner) }
+        pub fn lock_smr(&self) -> MyselfReadGuard<'_> {
+            MyselfReadGuard::new(&self.inner)
+        }
 
         #[must_use]
-        pub fn lock_smw(&self) -> MyselfWriteGuard<'_> { MyselfWriteGuard::new(&self.inner) }
+        pub fn lock_smw(&self) -> MyselfWriteGuard<'_> {
+            MyselfWriteGuard::new(&self.inner)
+        }
     }
 
     #[derive(Debug)]
     struct MyselfInner {
-        member:            Member,
+        member: Member,
         // TODO (CM): This is only optional because the current
         // implementation of Server requires it. See note there for more.
         incarnation_store: Option<incarnation_store::IncarnationStore>,
@@ -255,90 +254,102 @@ pub(crate) mod sync {
             self.member.incarnation = incoming + 1;
             INCARNATION.set(self.member.incarnation.to_i64());
             if let Some(ref mut s) = self.incarnation_store
-               && let Err(e) = s.store(self.member.incarnation)
+                && let Err(e) = s.store(self.member.incarnation)
             {
-                error!("Error persisting incarnation '{}' to disk: {:?}",
-                       self.member.incarnation, e);
+                error!(
+                    "Error persisting incarnation '{}' to disk: {:?}",
+                    self.member.incarnation, e
+                );
             }
         }
 
         /// Returns the current incarnation number.
-        fn incarnation(&self) -> Incarnation { self.member.incarnation }
+        fn incarnation(&self) -> Incarnation {
+            self.member.incarnation
+        }
 
-        fn mark_departed(&mut self) { self.member.departed = true }
+        fn mark_departed(&mut self) {
+            self.member.departed = true
+        }
 
         /// Return a copy of the underlying `Member`.
-        fn as_member(&self) -> Member { self.member.clone() }
+        fn as_member(&self) -> Member {
+            self.member.clone()
+        }
 
         // This is ONLY provided for some integration tests that currently
         // depend on being able to mutate the member. Ideally, the only
         // thing that should be mutable, once you actually have a fully
         // set-up Butterfly server, is the incarnation number, which is
         // accounted for in `Myself::increment_incarnation`.
-        fn set_persistent(&mut self) { self.member.persistent = true; }
+        fn set_persistent(&mut self) {
+            self.member.persistent = true;
+        }
     }
 }
 
 /// The server struct. Is thread-safe.
 #[derive(Debug)]
 pub struct Server {
-    name:                     Arc<String>,
-    member_id:                Arc<String>,
+    name: Arc<String>,
+    member_id: Arc<String>,
     // TODO (CM): This is currently public because butterfly tests
     // depends on it being so. Refactor so it can be private.
-    myself:                   Arc<Myself>,
-    pub member_list:          Arc<MemberList>,
-    pub probe_list:           Arc<ProbeList>,
-    ring_key:                 Arc<Option<RingKey>>,
-    rumor_heat:               Arc<RumorHeat>,
-    pub service_store:        RumorStore<Service>,
+    myself: Arc<Myself>,
+    pub member_list: Arc<MemberList>,
+    pub probe_list: Arc<ProbeList>,
+    ring_key: Arc<Option<RingKey>>,
+    rumor_heat: Arc<RumorHeat>,
+    pub service_store: RumorStore<Service>,
     pub service_config_store: RumorStore<ServiceConfig>,
-    pub service_file_store:   RumorStore<ServiceFile>,
-    pub election_store:       RumorStore<Election>,
-    pub update_store:         RumorStore<ElectionUpdate>,
-    pub departure_store:      RumorStore<Departure>,
-    swim_addr:                SocketAddr,
-    gossip_addr:              SocketAddr,
-    suitability_lookup:       Arc<dyn Suitability>,
-    data_path:                Option<PathBuf>,
-    dat_file:                 Option<Arc<Mutex<DatFileWriter>>>,
-    socket:                   Option<UdpSocket>,
-    departed:                 Arc<AtomicBool>,
+    pub service_file_store: RumorStore<ServiceFile>,
+    pub election_store: RumorStore<Election>,
+    pub update_store: RumorStore<ElectionUpdate>,
+    pub departure_store: RumorStore<Departure>,
+    swim_addr: SocketAddr,
+    gossip_addr: SocketAddr,
+    suitability_lookup: Arc<dyn Suitability>,
+    data_path: Option<PathBuf>,
+    dat_file: Option<Arc<Mutex<DatFileWriter>>>,
+    socket: Option<UdpSocket>,
+    departed: Arc<AtomicBool>,
     // These are all here for testing support
-    pause:                    Arc<AtomicBool>,
-    swim_rounds:              Arc<AtomicIsize>,
-    gossip_rounds:            Arc<AtomicIsize>,
-    block_list:               Arc<Lock<HashSet<String>>>,
-    election_timers:          Arc<Mutex<HashMap<String, ElectionTimer>>>,
+    pause: Arc<AtomicBool>,
+    swim_rounds: Arc<AtomicIsize>,
+    gossip_rounds: Arc<AtomicIsize>,
+    block_list: Arc<Lock<HashSet<String>>>,
+    election_timers: Arc<Mutex<HashMap<String, ElectionTimer>>>,
 }
 
 impl Clone for Server {
     fn clone(&self) -> Server {
-        Server { name:                 self.name.clone(),
-                 member_id:            self.member_id.clone(),
-                 myself:               self.myself.clone(),
-                 member_list:          self.member_list.clone(),
-                 probe_list:           self.probe_list.clone(),
-                 ring_key:             self.ring_key.clone(),
-                 rumor_heat:           self.rumor_heat.clone(),
-                 service_store:        self.service_store.clone(),
-                 service_config_store: self.service_config_store.clone(),
-                 service_file_store:   self.service_file_store.clone(),
-                 election_store:       self.election_store.clone(),
-                 update_store:         self.update_store.clone(),
-                 departure_store:      self.departure_store.clone(),
-                 swim_addr:            self.swim_addr,
-                 gossip_addr:          self.gossip_addr,
-                 suitability_lookup:   self.suitability_lookup.clone(),
-                 data_path:            self.data_path.clone(),
-                 dat_file:             self.dat_file.clone(),
-                 departed:             self.departed.clone(),
-                 pause:                self.pause.clone(),
-                 swim_rounds:          self.swim_rounds.clone(),
-                 gossip_rounds:        self.gossip_rounds.clone(),
-                 block_list:           self.block_list.clone(),
-                 socket:               None,
-                 election_timers:      self.election_timers.clone(), }
+        Server {
+            name: self.name.clone(),
+            member_id: self.member_id.clone(),
+            myself: self.myself.clone(),
+            member_list: self.member_list.clone(),
+            probe_list: self.probe_list.clone(),
+            ring_key: self.ring_key.clone(),
+            rumor_heat: self.rumor_heat.clone(),
+            service_store: self.service_store.clone(),
+            service_config_store: self.service_config_store.clone(),
+            service_file_store: self.service_file_store.clone(),
+            election_store: self.election_store.clone(),
+            update_store: self.update_store.clone(),
+            departure_store: self.departure_store.clone(),
+            swim_addr: self.swim_addr,
+            gossip_addr: self.gossip_addr,
+            suitability_lookup: self.suitability_lookup.clone(),
+            data_path: self.data_path.clone(),
+            dat_file: self.dat_file.clone(),
+            departed: self.departed.clone(),
+            pause: self.pause.clone(),
+            swim_rounds: self.swim_rounds.clone(),
+            gossip_rounds: self.gossip_rounds.clone(),
+            block_list: self.block_list.clone(),
+            socket: None,
+            election_timers: self.election_timers.clone(),
+        }
     }
 }
 
@@ -346,18 +357,19 @@ impl Server {
     /// Create a new server, bound to the `addr`, hosting a particular `member`, and with a
     /// ring_key if you want encryption on the wire, and an optional server name.
     #[allow(clippy::too_many_arguments)]
-    pub fn new(swim_addr: SocketAddr,
-               gossip_addr: SocketAddr,
-               mut member: Member,
-               ring_key: Option<RingKey>,
-               name: Option<String>,
-               // TODO (CM): having data_path as optional is only something
-               // that's used in testing, but it cascades outward and
-               // complicates other parts of this code. We should find a way
-               // to remove the optionality.
-               data_path: Option<&Path>,
-               suitability_lookup: Arc<dyn Suitability>)
-               -> Result<Server> {
+    pub fn new(
+        swim_addr: SocketAddr,
+        gossip_addr: SocketAddr,
+        mut member: Member,
+        ring_key: Option<RingKey>,
+        name: Option<String>,
+        // TODO (CM): having data_path as optional is only something
+        // that's used in testing, but it cascades outward and
+        // complicates other parts of this code. We should find a way
+        // to remove the optionality.
+        data_path: Option<&Path>,
+        suitability_lookup: Arc<dyn Suitability>,
+    ) -> Result<Server> {
         let maybe_swim_socket_addr = swim_addr.to_socket_addrs().map(|mut iter| iter.next());
         let maybe_gossip_socket_addr = gossip_addr.to_socket_addrs().map(|mut iter| iter.next());
 
@@ -375,39 +387,41 @@ impl Server {
                 // in the testing framework.
                 let myself = Myself::new(member, None);
 
-                Ok(Server { name: Arc::new(name.unwrap_or_else(|| member_id.clone())),
-                            // TODO (CM): could replace this with an accessor
-                            // on member, if we have a better type
-                            member_id: Arc::new(member_id),
-                            myself: Arc::new(myself),
-                            member_list: Arc::new(MemberList::new()),
-                            probe_list: Arc::new(ProbeList::new()),
-                            ring_key: Arc::new(ring_key),
-                            rumor_heat: Arc::default(),
-                            service_store: RumorStore::default(),
-                            service_config_store: RumorStore::default(),
-                            service_file_store: RumorStore::default(),
-                            election_store: RumorStore::default(),
-                            update_store: RumorStore::default(),
-                            departure_store: RumorStore::default(),
-                            swim_addr: swim_socket_addr,
-                            gossip_addr: gossip_socket_addr,
-                            suitability_lookup,
-                            data_path: data_path.as_ref().map(std::convert::Into::into),
-                            dat_file: None,
-                            departed: Arc::new(AtomicBool::new(false)),
-                            pause: Arc::new(AtomicBool::new(false)),
-                            swim_rounds: Arc::new(AtomicIsize::new(0)),
-                            gossip_rounds: Arc::new(AtomicIsize::new(0)),
-                            block_list: Arc::new(Lock::new(HashSet::new())),
-                            socket: None,
-                            election_timers: Arc::new(Mutex::new(HashMap::new())) })
+                Ok(Server {
+                    name: Arc::new(name.unwrap_or_else(|| member_id.clone())),
+                    // TODO (CM): could replace this with an accessor
+                    // on member, if we have a better type
+                    member_id: Arc::new(member_id),
+                    myself: Arc::new(myself),
+                    member_list: Arc::new(MemberList::new()),
+                    probe_list: Arc::new(ProbeList::new()),
+                    ring_key: Arc::new(ring_key),
+                    rumor_heat: Arc::default(),
+                    service_store: RumorStore::default(),
+                    service_config_store: RumorStore::default(),
+                    service_file_store: RumorStore::default(),
+                    election_store: RumorStore::default(),
+                    update_store: RumorStore::default(),
+                    departure_store: RumorStore::default(),
+                    swim_addr: swim_socket_addr,
+                    gossip_addr: gossip_socket_addr,
+                    suitability_lookup,
+                    data_path: data_path.as_ref().map(std::convert::Into::into),
+                    dat_file: None,
+                    departed: Arc::new(AtomicBool::new(false)),
+                    pause: Arc::new(AtomicBool::new(false)),
+                    swim_rounds: Arc::new(AtomicIsize::new(0)),
+                    gossip_rounds: Arc::new(AtomicIsize::new(0)),
+                    block_list: Arc::new(Lock::new(HashSet::new())),
+                    socket: None,
+                    election_timers: Arc::new(Mutex::new(HashMap::new())),
+                })
             }
             (Err(e), _) | (_, Err(e)) => Err(Error::CannotBind(e)),
-            (Ok(None), _) | (_, Ok(None)) => {
-                Err(Error::CannotBind(io::Error::new(io::ErrorKind::AddrNotAvailable,
-                                                     "No address discovered.")))
-            }
+            (Ok(None), _) | (_, Ok(None)) => Err(Error::CannotBind(io::Error::new(
+                io::ErrorKind::AddrNotAvailable,
+                "No address discovered.",
+            ))),
         }
     }
 
@@ -416,7 +430,9 @@ impl Server {
     ///
     /// This is useful in integration testing, to allow tests to time out after a worst-case
     /// boundary in rounds.
-    pub fn swim_rounds(&self) -> isize { self.swim_rounds.load(Ordering::SeqCst) }
+    pub fn swim_rounds(&self) -> isize {
+        self.swim_rounds.load(Ordering::SeqCst)
+    }
 
     /// Adds 1 to the current round, atomically.
     fn update_swim_round(&self) {
@@ -426,8 +442,10 @@ impl Server {
                 self.swim_rounds.fetch_add(1, Ordering::SeqCst);
             }
             None => {
-                debug!("Exceeded an isize integer in swim-rounds. Congratulations, this is a \
-                        very long running Supervisor!");
+                debug!(
+                    "Exceeded an isize integer in swim-rounds. Congratulations, this is a \
+                        very long running Supervisor!"
+                );
                 self.swim_rounds.store(0, Ordering::SeqCst);
             }
         }
@@ -438,7 +456,9 @@ impl Server {
     ///
     /// This is useful in integration testing, to allow tests to time out after a worst-case
     /// boundary in rounds.
-    pub fn gossip_rounds(&self) -> isize { self.gossip_rounds.load(Ordering::SeqCst) }
+    pub fn gossip_rounds(&self) -> isize {
+        self.gossip_rounds.load(Ordering::SeqCst)
+    }
 
     /// Adds 1 to the current round, atomically.
     fn update_gossip_round(&self) {
@@ -448,8 +468,10 @@ impl Server {
                 self.gossip_rounds.fetch_add(1, Ordering::SeqCst);
             }
             None => {
-                debug!("Exceeded an isize integer in gossip-rounds. Congratulations, this is a \
-                        very long running Supervisor!");
+                debug!(
+                    "Exceeded an isize integer in gossip-rounds. Congratulations, this is a \
+                        very long running Supervisor!"
+                );
                 self.gossip_rounds.store(0, Ordering::SeqCst);
             }
         }
@@ -470,7 +492,7 @@ impl Server {
     /// * Returns `Error::CannotBind` if the socket cannot be bound
     /// * Returns `Error::SocketSetReadTimeout` if the socket read timeout cannot be set
     pub fn start_rsw_mlw_smw_rhw_msr(&mut self, timing: &timing::Timing) -> Result<()> {
-        debug!("entering habitat_butterfly::server::Server::start");
+        debug!("entering biome_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();
         if let Some(ref path) = self.data_path {
             if let Some(err) = fs::create_dir_all(path).err() {
@@ -478,19 +500,23 @@ impl Server {
             }
 
             let dat_path = path.join(format!("{}.rst", &self.member_id));
-            let mut reader = DatFileReader::read_or_create_rsr_mlr(dat_path.clone(),
-                                                                   &self.member_list,
-                                                                   &self.service_store,
-                                                                   &self.service_config_store,
-                                                                   &self.service_file_store,
-                                                                   &self.election_store,
-                                                                   &self.update_store,
-                                                                   &self.departure_store)?;
+            let mut reader = DatFileReader::read_or_create_rsr_mlr(
+                dat_path.clone(),
+                &self.member_list,
+                &self.service_store,
+                &self.service_config_store,
+                &self.service_file_store,
+                &self.election_store,
+                &self.update_store,
+                &self.departure_store,
+            )?;
 
             match reader.read_into_rsw_mlw_rhw_msr(self) {
                 Ok(_) => {
-                    debug!("Successfully ingested rumors from {}",
-                           reader.path().display())
+                    debug!(
+                        "Successfully ingested rumors from {}",
+                        reader.path().display()
+                    )
                 }
                 Err(Error::DatFileIO(path, err)) => error!("{}", Error::DatFileIO(path, err)),
                 Err(err) => return Err(err),
@@ -510,33 +536,43 @@ impl Server {
         }
 
         let socket = UdpSocket::bind(self.swim_addr)?;
-        socket.set_read_timeout(Some(Duration::from_millis(1000)))
-              .map_err(Error::SocketSetReadTimeout)?;
-        socket.set_write_timeout(Some(Duration::from_millis(1000)))
-              .map_err(Error::SocketSetReadTimeout)?;
+        socket
+            .set_read_timeout(Some(Duration::from_millis(1000)))
+            .map_err(Error::SocketSetReadTimeout)?;
+        socket
+            .set_write_timeout(Some(Duration::from_millis(1000)))
+            .map_err(Error::SocketSetReadTimeout)?;
 
         self.socket = Some(clone_socket(&socket)?);
 
-        inbound::spawn_thread(format!("inbound-{}", self.name()),
-                              self.clone(),
-                              clone_socket(&socket)?,
-                              tx_outbound)?;
+        inbound::spawn_thread(
+            format!("inbound-{}", self.name()),
+            self.clone(),
+            clone_socket(&socket)?,
+            tx_outbound,
+        )?;
 
-        outbound::spawn_thread(format!("outbound-{}", self.name()),
-                               self.clone(),
-                               socket,
-                               rx_inbound,
-                               timing.clone())?;
+        outbound::spawn_thread(
+            format!("outbound-{}", self.name()),
+            self.clone(),
+            socket,
+            rx_inbound,
+            timing.clone(),
+        )?;
 
-        expire::spawn_thread(format!("expire-{}", self.name()),
-                             self.clone(),
-                             timing.clone())?;
+        expire::spawn_thread(
+            format!("expire-{}", self.name()),
+            self.clone(),
+            timing.clone(),
+        )?;
 
         pull::spawn_thread(format!("pull-{}", self.name()), self.clone())?;
 
-        push::spawn_thread(format!("push-{}", self.name()),
-                           self.clone(),
-                           timing.clone())?;
+        push::spawn_thread(
+            format!("push-{}", self.name()),
+            self.clone(),
+            timing.clone(),
+        )?;
 
         if self.dat_file.is_some() {
             spawn_persist_thread(format!("persist-{}", self.name()), self.clone())?;
@@ -548,7 +584,9 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read) Additionally `with_closure` is called with this lock held, so
     ///   the closure must not call any functions which take this lock.
-    pub fn need_peer_seeding_mlr(&self) -> bool { self.member_list.is_empty_mlr() }
+    pub fn need_peer_seeding_mlr(&self) -> bool {
+        self.member_list.is_empty_mlr()
+    }
 
     /// Persistently block a given address, causing no traffic to be seen.
     ///
@@ -582,24 +620,38 @@ impl Server {
     }
 
     /// Whether this server is currently paused.
-    pub fn paused(&self) -> bool { self.pause.load(Ordering::Relaxed) }
+    pub fn paused(&self) -> bool {
+        self.pause.load(Ordering::Relaxed)
+    }
 
     /// Return the port number of the swim socket we are bound to.
-    fn swim_port(&self) -> u16 { self.swim_addr.port() }
+    fn swim_port(&self) -> u16 {
+        self.swim_addr.port()
+    }
 
     /// Return the gossip address we are bound to
-    pub fn gossip_addr(&self) -> &SocketAddr { &self.gossip_addr }
+    pub fn gossip_addr(&self) -> &SocketAddr {
+        &self.gossip_addr
+    }
 
     /// Return the port number of the gossip socket we are bound to.
-    fn gossip_port(&self) -> u16 { self.gossip_addr.port() }
+    fn gossip_port(&self) -> u16 {
+        self.gossip_addr.port()
+    }
 
     /// Return the member ID of this server.
-    pub fn member_id(&self) -> &str { &self.member_id }
+    pub fn member_id(&self) -> &str {
+        &self.member_id
+    }
 
     /// Return the name of this server.
-    pub fn name(&self) -> &str { &self.name }
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 
-    pub fn myself(&self) -> &Myself { self.myself.as_ref() }
+    pub fn myself(&self) -> &Myself {
+        self.myself.as_ref()
+    }
 
     /// Insert a member to the `MemberList`, and update its `RumorKey` appropriately.
     ///
@@ -640,11 +692,14 @@ impl Server {
 
         let sender_id = sender.id.clone();
 
-        if self.member_list
-               .insert_member_ignore_incarnation_mlw(sender, Health::Alive)
+        if self
+            .member_list
+            .insert_member_ignore_incarnation_mlw(sender, Health::Alive)
         {
-            debug!("Marking member '{}' as 'Alive' again, startng a new rumour.",
-                   sender_id);
+            debug!(
+                "Marking member '{}' as 'Alive' again, startng a new rumour.",
+                sender_id
+            );
             self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
@@ -669,9 +724,11 @@ impl Server {
 
             // NOT calling RumorHeat::purge here because we'll be
             // shutting down soon anyway.
-            self.rumor_heat
-                .lock_rhw()
-                .start_hot_rumor(RumorKey::new(RumorType::Member, &*self.member_id, ""));
+            self.rumor_heat.lock_rhw().start_hot_rumor(RumorKey::new(
+                RumorType::Member,
+                &*self.member_id,
+                "",
+            ));
 
             let check_list = self.member_list.check_list_mlr(&self.member_id);
 
@@ -709,21 +766,27 @@ impl Server {
                     match mship.health {
                         Health::Alive | Health::Suspect => {
                             if mship.member.incarnation > member.incarnation {
-                                debug!("Member: {}, Incoming Incarnation {} is older, current \
+                                debug!(
+                                    "Member: {}, Incoming Incarnation {} is older, current \
                                         incarnation is {}. No-OP.",
-                                       member.id, member.incarnation, mship.member.incarnation);
+                                    member.id, member.incarnation, mship.member.incarnation
+                                );
                             } else {
-                                warn!("Member: {}, Our Information about the member is '{}', \
+                                warn!(
+                                    "Member: {}, Our Information about the member is '{}', \
                                        Incoming information is '{}'. Will Send a `ProbePing` to \
                                        the member.",
-                                      member.id, mship.health, health);
+                                    member.id, mship.health, health
+                                );
                                 self.probe_list.members_write().insert(member.clone());
                                 return;
                             }
                         }
                         _ => {
-                            debug!("Member: {}, Incoming Health {}, Member Health: {}. No-op",
-                                   member.id, health, mship.health);
+                            debug!(
+                                "Member: {}, Incoming Health {}, Member Health: {}. No-op",
+                                member.id, health, mship.health
+                            );
                         }
                     }
                 } else {
@@ -731,9 +794,11 @@ impl Server {
                 }
             }
         } else if health != Health::Alive {
-            trace!("member incarnation is {}. my incarnation is {}",
-                   member.incarnation,
-                   self.myself.lock_smr().incarnation());
+            trace!(
+                "member incarnation is {}. my incarnation is {}",
+                member.incarnation,
+                self.myself.lock_smr().incarnation()
+            );
             health = Health::Alive;
             if member.incarnation >= self.myself.lock_smr().incarnation() {
                 self.myself
@@ -769,49 +834,54 @@ impl Server {
     /// * `MemberList::entries` (write)
     /// * `RumorHeat::inner` (write)
     pub fn insert_service_rsw_mlw_rhw(&self, service: Service) {
-        Self::insert_service_impl(service,
-                                  &self.service_store,
-                                  &self.member_list,
-                                  &self.rumor_heat,
-                                  |k| self.check_quorum_mlr(k))
+        Self::insert_service_impl(
+            service,
+            &self.service_store,
+            &self.member_list,
+            &self.rumor_heat,
+            |k| self.check_quorum_mlr(k),
+        )
     }
 
-    fn insert_service_impl(service: Service,
-                           service_store: &RumorStore<Service>,
-                           member_list: &MemberList,
-                           rumor_heat: &RumorHeat,
-                           check_quorum: impl Fn(&str) -> bool) {
+    fn insert_service_impl(
+        service: Service,
+        service_store: &RumorStore<Service>,
+        member_list: &MemberList,
+        rumor_heat: &RumorHeat,
+        check_quorum: impl Fn(&str) -> bool,
+    ) {
         let rk = RumorKey::from(&service);
-        let RumorKey { key: service_group,
-                       id: member_id,
-                       .. } = &rk;
+        let RumorKey {
+            key: service_group,
+            id: member_id,
+            ..
+        } = &rk;
 
         // True if rumors exist for the service group, but none containing the given member.
-        let inserting_new_group_member =
-            service_store.lock_rsr()
-                         .get(service_group)
-                         .is_some_and(|rumors| !rumors.contains_key(member_id));
+        let inserting_new_group_member = service_store
+            .lock_rsr()
+            .get(service_group)
+            .is_some_and(|rumors| !rumors.contains_key(member_id));
 
         if service_store.insert_rsw(service) {
             if inserting_new_group_member && !check_quorum(service_group) {
                 // Depart one confirmed member to help maintain quorum. Choose the member with the
                 // minimum ID since that will most likely result in the same choice across nodes
-                if let Some(member_id_to_depart) =
-                    service_store.lock_rsr()
-                                 .service_group(service_group)
-                                 .rumors()
-                                 .map(Rumor::id)
-                                 .filter(|id| {
-                                     member_list.health_of_by_id_mlr(id) == Some(Health::Confirmed)
-                                 })
-                                 .min()
+                if let Some(member_id_to_depart) = service_store
+                    .lock_rsr()
+                    .service_group(service_group)
+                    .rumors()
+                    .map(Rumor::id)
+                    .filter(|id| member_list.health_of_by_id_mlr(id) == Some(Health::Confirmed))
+                    .min()
                 {
                     member_list.set_departed_mlw(member_id_to_depart);
                     rumor_heat.lock_rhw().purge(member_id_to_depart);
-                    rumor_heat.lock_rhw()
-                              .start_hot_rumor(RumorKey::new(RumorType::Member,
-                                                             member_id_to_depart,
-                                                             ""));
+                    rumor_heat.lock_rhw().start_hot_rumor(RumorKey::new(
+                        RumorType::Member,
+                        member_id_to_depart,
+                        "",
+                    ));
                 }
             }
 
@@ -859,9 +929,11 @@ impl Server {
 
         self.member_list.set_departed_mlw(&departure.member_id);
         self.rumor_heat.lock_rhw().purge(&departure.member_id);
-        self.rumor_heat
-            .lock_rhw()
-            .start_hot_rumor(RumorKey::new(RumorType::Member, &departure.member_id, ""));
+        self.rumor_heat.lock_rhw().start_hot_rumor(RumorKey::new(
+            RumorType::Member,
+            &departure.member_id,
+            "",
+        ));
 
         if self.departure_store.insert_rsw(departure) {
             self.rumor_heat.lock_rhw().start_hot_rumor(rk);
@@ -925,14 +997,11 @@ impl Server {
         #[allow(clippy::integer_division)]
         let has_quorum = alive_population > total_population / 2;
 
-        let quorum_log_entry = format!("check_quorum({}): {}/{} alive/total => {}, electorate: \
+        let quorum_log_entry = format!(
+            "check_quorum({}): {}/{} alive/total => {}, electorate: \
                                         {:?}, service_group: {:?}",
-                                       key,
-                                       alive_population,
-                                       total_population,
-                                       has_quorum,
-                                       electorate,
-                                       service_group_members);
+            key, alive_population, total_population, has_quorum, electorate, service_group_members
+        );
         if !has_quorum {
             warn!("{}", quorum_log_entry);
         } else {
@@ -950,19 +1019,22 @@ impl Server {
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (read)
-    pub fn start_election_rsw_mlr_rhw_msr(&self,
-                                          service_group: &str,
-                                          term: u64,
-                                          suitability: Option<u64>) {
-        let suitability = suitability.unwrap_or_else(|| {
-                                         self.suitability_lookup.suitability_for_msr(service_group)
-                                     });
+    pub fn start_election_rsw_mlr_rhw_msr(
+        &self,
+        service_group: &str,
+        term: u64,
+        suitability: Option<u64>,
+    ) {
+        let suitability = suitability
+            .unwrap_or_else(|| self.suitability_lookup.suitability_for_msr(service_group));
         let has_quorum = self.check_quorum_mlr(service_group);
-        let e = Election::new(self.member_id(),
-                              service_group,
-                              term,
-                              suitability,
-                              has_quorum);
+        let e = Election::new(
+            self.member_id(),
+            service_group,
+            term,
+            suitability,
+            has_quorum,
+        );
         if !has_quorum {
             warn!("start_election check_quorum failed: {:?}", e);
         }
@@ -977,16 +1049,20 @@ impl Server {
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
-    pub fn start_update_election_rsw_mlr_rhw(&self,
-                                             service_group: &str,
-                                             suitability: u64,
-                                             term: u64) {
+    pub fn start_update_election_rsw_mlr_rhw(
+        &self,
+        service_group: &str,
+        suitability: u64,
+        term: u64,
+    ) {
         let has_quorum = self.check_quorum_mlr(service_group);
-        let e = ElectionUpdate::new(self.member_id(),
-                                    service_group,
-                                    term,
-                                    suitability,
-                                    has_quorum);
+        let e = ElectionUpdate::new(
+            self.member_id(),
+            service_group,
+            term,
+            suitability,
+            has_quorum,
+        );
         if !has_quorum {
             warn!("start_election check_quorum failed: {:?}", e);
         }
@@ -1000,44 +1076,53 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (read)
     /// * `MemberList::entries` (read)
-    fn elections_to_restart_rsr_mlr<T>(&self,
-                                       elections: &RumorStore<T>,
-                                       feature_flags: FeatureFlag)
-                                       -> Vec<(String, u64)>
-        where T: Rumor + ElectionRumor + Debug
+    fn elections_to_restart_rsr_mlr<T>(
+        &self,
+        elections: &RumorStore<T>,
+        feature_flags: FeatureFlag,
+    ) -> Vec<(String, u64)>
+    where
+        T: Rumor + ElectionRumor + Debug,
     {
-        Self::elections_to_restart_impl(elections,
-                                        &self.service_store,
-                                        self.member_id(),
-                                        |k| self.check_quorum_mlr(k),
-                                        &self.member_list,
-                                        feature_flags,
-                                        &self.data_path)
+        Self::elections_to_restart_impl(
+            elections,
+            &self.service_store,
+            self.member_id(),
+            |k| self.check_quorum_mlr(k),
+            &self.member_list,
+            feature_flags,
+            &self.data_path,
+        )
     }
 
-    fn elections_to_restart_impl<T>(elections: &RumorStore<T>,
-                                    service_store: &RumorStore<Service>,
-                                    myself_member_id: &str,
-                                    check_quorum: impl Fn(&str) -> bool,
-                                    member_list: &MemberList,
-                                    feature_flags: FeatureFlag,
-                                    data_path: &Option<PathBuf>)
-                                    -> Vec<(String, u64)>
-        where T: ConstIdRumor + ElectionRumor + Debug
+    fn elections_to_restart_impl<T>(
+        elections: &RumorStore<T>,
+        service_store: &RumorStore<Service>,
+        myself_member_id: &str,
+        check_quorum: impl Fn(&str) -> bool,
+        member_list: &MemberList,
+        feature_flags: FeatureFlag,
+        data_path: &Option<PathBuf>,
+    ) -> Vec<(String, u64)>
+    where
+        T: ConstIdRumor + ElectionRumor + Debug,
     {
         let mut elections_to_restart = vec![];
 
         for (service_group, rumors) in elections.lock_rsr().iter() {
-            if service_store.lock_rsr()
-                            .service_group(service_group)
-                            .contains_id(myself_member_id)
+            if service_store
+                .lock_rsr()
+                .service_group(service_group)
+                .contains_id(myself_member_id)
             {
                 // This is safe; there is only one id for a ConstIdRumor
-                let election =
-                    rumors.get(T::const_id())
-                          .expect("Lost an election struct between looking it up and reading it.");
-                debug!("elections_to_restart: checking {} -> {:#?}",
-                       service_group, election);
+                let election = rumors
+                    .get(T::const_id())
+                    .expect("Lost an election struct between looking it up and reading it.");
+                debug!(
+                    "elections_to_restart: checking {} -> {:#?}",
+                    service_group, election
+                );
 
                 if election_trigger::maybe_trigger(service_group, feature_flags, data_path) {
                     elections_to_restart.push((String::from(&service_group[..]), election.term()));
@@ -1050,26 +1135,33 @@ impl Server {
                         // If we are the leader, and we have lost quorum, we should restart
                         // the election
                         if !check_quorum(election.key()) {
-                            warn!("Restarting election with a new term as the leader has lost \
+                            warn!(
+                                "Restarting election with a new term as the leader has lost \
                                    quorum: {:?}",
-                                  election);
-                            elections_to_restart.push((String::from(&service_group[..]),
-                                                       election.term()));
+                                election
+                            );
+                            elections_to_restart
+                                .push((String::from(&service_group[..]), election.term()));
                         }
                     } else if election.is_finished() {
-                        let leader_health = member_list.health_of_by_id_mlr(election.member_id())
-                                                       .unwrap_or_else(|| {
-                                                           debug!("No health information for {}; \
+                        let leader_health = member_list
+                            .health_of_by_id_mlr(election.member_id())
+                            .unwrap_or_else(|| {
+                                debug!(
+                                    "No health information for {}; \
                                                                    treating as Departed",
-                                                                  election.member_id());
-                                                           Health::Departed
-                                                       });
+                                    election.member_id()
+                                );
+                                Health::Departed
+                            });
                         if leader_health >= Health::Confirmed {
-                            warn!("Restarting election with a new term as the leader is dead {}: \
+                            warn!(
+                                "Restarting election with a new term as the leader is dead {}: \
                                    {:?}",
-                                  myself_member_id, election);
-                            elections_to_restart.push((String::from(&service_group[..]),
-                                                       election.term()));
+                                myself_member_id, election
+                            );
+                            elections_to_restart
+                                .push((String::from(&service_group[..]), election.term()));
                         }
                     }
                 }
@@ -1104,7 +1196,7 @@ impl Server {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", service_group, term);
             let suitability = if Some(self.member_id())
-                                 == self.election_store.lock_rsr().get_member_id(&service_group)
+                == self.election_store.lock_rsr().get_member_id(&service_group)
             {
                 Some(u64::MAX)
             } else {
@@ -1140,47 +1232,61 @@ impl Server {
         let rk = RumorKey::from(&election);
 
         // If this is an election for a service group we care about
-        if self.service_store
-               .lock_rsr()
-               .service_group(&election.service_group)
-               .contains_id(self.member_id())
+        if self
+            .service_store
+            .lock_rsr()
+            .service_group(&election.service_group)
+            .contains_id(self.member_id())
         {
-            trace!("{} is a member of {}",
-                   self.member_id(),
-                   election.service_group);
+            trace!(
+                "{} is a member of {}",
+                self.member_id(),
+                election.service_group
+            );
             // And the election store already has an election rumor for this election
             if self.election_store.lock_rsr().contains_rumor(&election) {
-                let new_term = self.election_store
-                                   .lock_rsr()
-                                   .get_term(election.key())
-                                   .map(|stored_term| election.term > stored_term)
-                                   .unwrap_or(false);
+                let new_term = self
+                    .election_store
+                    .lock_rsr()
+                    .get_term(election.key())
+                    .map(|stored_term| election.term > stored_term)
+                    .unwrap_or(false);
                 if new_term {
                     if Some(self.member_id())
-                       == self.election_store.lock_rsr().get_member_id(election.key())
+                        == self.election_store.lock_rsr().get_member_id(election.key())
                     {
                         debug!("I am the leader of previous term!");
-                        debug!("removing old rumor and starting new election with highest \
-                                `Suitability`");
+                        debug!(
+                            "removing old rumor and starting new election with highest \
+                                `Suitability`"
+                        );
                         self.election_store
                             .remove_rsw(election.key(), election.id());
-                        self.start_election_rsw_mlr_rhw_msr(&election.service_group,
-                                                            election.term,
-                                                            Some(u64::MAX));
+                        self.start_election_rsw_mlr_rhw_msr(
+                            &election.service_group,
+                            election.term,
+                            Some(u64::MAX),
+                        );
                     } else if Some(election.member_id.as_str())
-                              == self.election_store.lock_rsr().get_member_id(election.key())
+                        == self.election_store.lock_rsr().get_member_id(election.key())
                     {
-                        debug!("Received New Term election from the leader. Starting my own to \
+                        debug!(
+                            "Received New Term election from the leader. Starting my own to \
                                 merge. Term: {}",
-                               election.term);
+                            election.term
+                        );
                         self.election_store
                             .remove_rsw(election.key(), election.id());
-                        self.start_election_rsw_mlr_rhw_msr(&election.service_group,
-                                                            election.term,
-                                                            None);
+                        self.start_election_rsw_mlr_rhw_msr(
+                            &election.service_group,
+                            election.term,
+                            None,
+                        );
                     } else {
-                        warn!("Received a New Term Election, but not from the current leader, \
-                               ignoring!");
+                        warn!(
+                            "Received a New Term Election, but not from the current leader, \
+                               ignoring!"
+                        );
                         return;
                     }
                 }
@@ -1202,9 +1308,10 @@ impl Server {
                             // will only work as long as the same member starts and finishes the
                             // election (which is how it currently is). If we ever change elections
                             // so that any member can finish an election, this will break.
-                            let mut existing_timers = self.election_timers
-                                                          .lock()
-                                                          .expect("Election timers lock poisoned");
+                            let mut existing_timers = self
+                                .election_timers
+                                .lock()
+                                .expect("Election timers lock poisoned");
 
                             // Just to be extra clear, we don't need this timer any more because
                             // once we call observe_duration(), the HistogramVec contained in
@@ -1214,9 +1321,11 @@ impl Server {
                                 timer.0.observe_duration();
                             }
                         } else {
-                            debug!("I have quorum, but election is not finished {}/{}",
-                                   num_votes,
-                                   electorate.len());
+                            debug!(
+                                "I have quorum, but election is not finished {}/{}",
+                                num_votes,
+                                electorate.len()
+                            );
                         }
                     } else {
                         election.no_quorum();
@@ -1226,11 +1335,13 @@ impl Server {
             } else {
                 // Otherwise, we need to create a new election object for ourselves prior to
                 // merging.
-                let timer = ELECTION_DURATION.with_label_values(&[&election.service_group])
-                                             .start_timer();
-                let mut existing_timers = self.election_timers
-                                              .lock()
-                                              .expect("Election timers lock poisoned");
+                let timer = ELECTION_DURATION
+                    .with_label_values(&[&election.service_group])
+                    .start_timer();
+                let mut existing_timers = self
+                    .election_timers
+                    .lock()
+                    .expect("Election timers lock poisoned");
                 existing_timers.insert(election.service_group.clone(), ElectionTimer(timer));
                 self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term, None);
             }
@@ -1259,27 +1370,33 @@ impl Server {
         let rk = RumorKey::from(&election);
 
         // If this is an election for a service group we care about
-        if self.service_store
-               .lock_rsr()
-               .service_group(&election.service_group)
-               .contains_id(self.member_id())
+        if self
+            .service_store
+            .lock_rsr()
+            .service_group(&election.service_group)
+            .contains_id(self.member_id())
         {
-            trace!("{} is a member of {}",
-                   self.member_id(),
-                   election.service_group);
+            trace!(
+                "{} is a member of {}",
+                self.member_id(),
+                election.service_group
+            );
             // And the election store already has an election rumor for this election
             if self.update_store.lock_rsr().contains_rumor(&election) {
-                let new_term = self.update_store
-                                   .lock_rsr()
-                                   .get_term(election.key())
-                                   .map(|stored_term| election.term > stored_term)
-                                   .unwrap_or(false);
+                let new_term = self
+                    .update_store
+                    .lock_rsr()
+                    .get_term(election.key())
+                    .map(|stored_term| election.term > stored_term)
+                    .unwrap_or(false);
                 if new_term {
                     debug!("removing old rumor and starting new election");
                     self.update_store.remove_rsw(election.key(), election.id());
-                    self.start_update_election_rsw_mlr_rhw(&election.service_group,
-                                                           0,
-                                                           election.term);
+                    self.start_update_election_rsw_mlr_rhw(
+                        &election.service_group,
+                        0,
+                        election.term,
+                    );
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
@@ -1296,9 +1413,11 @@ impl Server {
                             debug!("Election is finished: {:#?}", election);
                             election.finish();
                         } else {
-                            debug!("I have quorum, but election is not finished {}/{}",
-                                   num_votes,
-                                   electorate.len());
+                            debug!(
+                                "I have quorum, but election is not finished {}/{}",
+                                num_votes,
+                                electorate.len()
+                            );
                         }
                     } else {
                         election.no_quorum();
@@ -1340,14 +1459,17 @@ impl Server {
     pub fn persist_data_rsr_mlr(&self) {
         if let Some(ref dat_file_lock) = self.dat_file {
             let dat_file = dat_file_lock.lock().expect("DatFile lock poisoned");
-            match dat_file.write_rsr_mlr(&self.member_list,
-                                         &self.service_store,
-                                         &self.service_config_store,
-                                         &self.service_file_store,
-                                         &self.election_store,
-                                         &self.update_store,
-                                         &self.departure_store)
-                          .err()
+            match dat_file
+                .write_rsr_mlr(
+                    &self.member_list,
+                    &self.service_store,
+                    &self.service_config_store,
+                    &self.service_file_store,
+                    &self.election_store,
+                    &self.update_store,
+                    &self.departure_store,
+                )
+                .err()
             {
                 Some(err) => {
                     error!("Error persisting rumors to disk, {}", err);
@@ -1360,28 +1482,33 @@ impl Server {
     }
 
     #[allow(dead_code)]
-    pub fn is_departed(&self) -> bool { self.departed.load(Ordering::Relaxed) }
+    pub fn is_departed(&self) -> bool {
+        self.departed.load(Ordering::Relaxed)
+    }
 }
 
 impl fmt::Display for Server {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "{}@{}/{}",
-               self.name(),
-               self.swim_port(),
-               self.gossip_port())
+        write!(
+            f,
+            "{}@{}/{}",
+            self.name(),
+            self.swim_port(),
+            self.gossip_port()
+        )
     }
 }
 
 fn spawn_persist_thread(name: String, server: Server) -> std::io::Result<()> {
-    thread::Builder::new().name(name)
-                          .spawn(move || -> ! { persist_loop(&server) })
-                          .map(|_| ())
+    thread::Builder::new()
+        .name(name)
+        .spawn(move || -> ! { persist_loop(&server) })
+        .map(|_| ())
 }
 
 fn persist_loop(server: &Server) -> ! {
-    habitat_core::env_config_duration!(PersistLoopPeriod,
-                                       HAB_PERSIST_LOOP_PERIOD_SECS => from_secs,
+    biome_core::env_config_duration!(PersistLoopPeriod,
+                                       BIO_PERSIST_LOOP_PERIOD_SECS => from_secs,
                                        Duration::from_secs(30));
 
     let min_loop_period: Duration = PersistLoopPeriod::configured_value().into();
@@ -1396,8 +1523,10 @@ fn persist_loop(server: &Server) -> ! {
         match min_loop_period.checked_sub(time_to_persist) {
             Some(time_to_wait) => thread::sleep(time_to_wait),
             None => {
-                warn!("Persisting data took longer than expected: {:?}",
-                      time_to_persist)
+                warn!(
+                    "Persisting data took longer than expected: {:?}",
+                    time_to_persist
+                )
             }
         }
     }
@@ -1412,23 +1541,25 @@ fn persist_loop(server: &Server) -> ! {
 #[cfg(windows)]
 fn clone_socket(socket: &UdpSocket) -> Result<UdpSocket> {
     use std::os::windows::io::AsRawSocket;
-    use winapi::um::{handleapi,
-                     winbase,
-                     winnt};
+    use winapi::um::{handleapi, winbase, winnt};
 
     let cloned = socket.try_clone()?;
     match unsafe {
-              handleapi::SetHandleInformation(cloned.as_raw_socket() as winnt::HANDLE,
-                                              winbase::HANDLE_FLAG_INHERIT,
-                                              0)
-          } {
+        handleapi::SetHandleInformation(
+            cloned.as_raw_socket() as winnt::HANDLE,
+            winbase::HANDLE_FLAG_INHERIT,
+            0,
+        )
+    } {
         0 => Err(Error::OsError(io::Error::last_os_error())),
         _ => Ok(cloned),
     }
 }
 
 #[cfg(unix)]
-fn clone_socket(socket: &UdpSocket) -> std::io::Result<UdpSocket> { socket.try_clone() }
+fn clone_socket(socket: &UdpSocket) -> std::io::Result<UdpSocket> {
+    socket.try_clone()
+}
 
 /// This is a proxy struct to represent what information we're writing to the dat file, and
 /// therefore what information gets sent out via the HTTP API. Right now, we're just wrapping the
@@ -1437,7 +1568,9 @@ fn clone_socket(socket: &UdpSocket) -> std::io::Result<UdpSocket> { socket.try_c
 pub struct ServerProxy<'a>(&'a Server);
 
 impl<'a> ServerProxy<'a> {
-    pub fn new(s: &'a Server) -> Self { ServerProxy(s) }
+    pub fn new(s: &'a Server) -> Self {
+        ServerProxy(s)
+    }
 }
 
 impl Serialize for ServerProxy<'_> {
@@ -1445,7 +1578,8 @@ impl Serialize for ServerProxy<'_> {
     /// * `MemberList::entries` (read)
     /// * `RumorStore::list` (read)
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let dsp = RumorStoreProxy::new(&self.0.departure_store);
         let esp = RumorStoreProxy::new(&self.0.election_store);
@@ -1477,50 +1611,51 @@ impl Serialize for ServerProxy<'_> {
 // Note: this is a separate module solely to facilitate targeted
 // logging, e.g.
 //
-//     RUST_LOG=habitat_butterfly::server::election_trigger=trace
+//     RUST_LOG=biome_butterfly::server::election_trigger=trace
 mod election_trigger {
-    use habitat_common::FeatureFlag;
-    use log::{info,
-              trace,
-              warn};
-    use std::{fs,
-              path::PathBuf};
+    use biome_common::FeatureFlag;
+    use log::{info, trace, warn};
+    use std::{fs, path::PathBuf};
 
-    /// If the HAB_FEAT_TRIGGER_ELECTION feature flag is enabled,
+    /// If the BIO_FEAT_TRIGGER_ELECTION feature flag is enabled,
     /// we'll look on disk to see if a sentinel file for the
     /// triggering of an election of this service group is present. If
     /// so, we should trigger that election.
     ///
     /// An election for service `foo.default` will be triggered if:
     ///
-    /// - the supervisor is running with `HAB_FEAT_TRIGGER_ELECTION=1`
-    /// - the file `/hab/sup/default/data/trigger_foo.default_election` is present _and can also be
+    /// - the supervisor is running with `BIO_FEAT_TRIGGER_ELECTION=1`
+    /// - the file `/bio/sup/default/data/trigger_foo.default_election` is present _and can also be
     ///   successfully deleted by the Supervisor_.
     ///
     /// The latter is important to prevent repeated triggering of an
     /// election. The user puts the file in place to signal their
     /// intent, and the Supervisor deletes it as an acknowledgment of
     /// that intent.
-    pub(super) fn maybe_trigger(service_group_name: &str,
-                                feature_flags: FeatureFlag,
-                                data_path: &Option<PathBuf>)
-                                -> bool {
+    pub(super) fn maybe_trigger(
+        service_group_name: &str,
+        feature_flags: FeatureFlag,
+        data_path: &Option<PathBuf>,
+    ) -> bool {
         if !feature_flags.contains(FeatureFlag::TRIGGER_ELECTION) {
-            trace!("HAB_FEAT_TRIGGER_ELECTION: Feature not enabled");
+            trace!("BIO_FEAT_TRIGGER_ELECTION: Feature not enabled");
             return false;
         }
 
         if data_path.is_none() {
-            trace!("HAB_FEAT_TRIGGER_ELECTION: In a test");
+            trace!("BIO_FEAT_TRIGGER_ELECTION: In a test");
             return false;
         }
 
-        let sentinel_file = data_path.as_ref()
-                                     .unwrap() // safe; data_path is Some
-                                     .join(format!("trigger_{}_election", service_group_name));
+        let sentinel_file = data_path
+            .as_ref()
+            .unwrap() // safe; data_path is Some
+            .join(format!("trigger_{}_election", service_group_name));
         if !sentinel_file.is_file() {
-            trace!("HAB_FEAT_TRIGGER_ELECTION: No trigger file found for {}",
-                   service_group_name);
+            trace!(
+                "BIO_FEAT_TRIGGER_ELECTION: No trigger file found for {}",
+                service_group_name
+            );
             return false;
         }
 
@@ -1528,13 +1663,17 @@ mod election_trigger {
             // If we trigger without being able to remove
             // the file, then we'll just constantly
             // trigger elections.
-            warn!("HAB_FEAT_TRIGGER_ELECTION: Could not delete sentinel file {:?}; NOT \
+            warn!(
+                "BIO_FEAT_TRIGGER_ELECTION: Could not delete sentinel file {:?}; NOT \
                    triggering election! {:?}",
-                  sentinel_file, e);
+                sentinel_file, e
+            );
             false
         } else {
-            info!("HAB_FEAT_TRIGGER_ELECTION: Manually triggering election for {}",
-                  service_group_name);
+            info!(
+                "BIO_FEAT_TRIGGER_ELECTION: Manually triggering election for {}",
+                service_group_name
+            );
             true
         }
     }
@@ -1544,20 +1683,24 @@ mod election_trigger {
 mod tests {
     use super::*;
     use crate::rumor::election::Term;
-    use habitat_core::service::ServiceGroup;
+    use biome_core::service::ServiceGroup;
     use std::str::FromStr;
 
-    fn check_quorum_returns(val: bool) -> impl Fn(&str) -> bool { move |_: &str| val }
+    fn check_quorum_returns(val: bool) -> impl Fn(&str) -> bool {
+        move |_: &str| val
+    }
 
     fn mock_service(member: &Member) -> Service {
-        Service { member_id:       member.id.clone(),
-                  service_group:   ServiceGroup::from_str("group.default").unwrap(),
-                  incarnation:     Default::default(),
-                  pkg_incarnation: Default::default(),
-                  initialized:     Default::default(),
-                  pkg:             Default::default(),
-                  cfg:             Default::default(),
-                  sys:             Default::default(), }
+        Service {
+            member_id: member.id.clone(),
+            service_group: ServiceGroup::from_str("group.default").unwrap(),
+            incarnation: Default::default(),
+            pkg_incarnation: Default::default(),
+            initialized: Default::default(),
+            pkg: Default::default(),
+            cfg: Default::default(),
+            sys: Default::default(),
+        }
     }
 
     #[test]
@@ -1572,23 +1715,27 @@ mod tests {
         let member_list = MemberList::new();
         let service = mock_service(&myself);
 
-        let mut election_with_unknown_leader = Election::new(unknown_leader_member_id,
-                                                             &service.service_group,
-                                                             Term::default(),
-                                                             suitability,
-                                                             true /* has_quorum */);
+        let mut election_with_unknown_leader = Election::new(
+            unknown_leader_member_id,
+            &service.service_group,
+            Term::default(),
+            suitability,
+            true, /* has_quorum */
+        );
         election_with_unknown_leader.finish();
         elections.insert_rsw(election_with_unknown_leader);
 
         service_store.insert_rsw(service.clone());
 
-        let to_restart = Server::elections_to_restart_impl(&elections,
-                                                           &service_store,
-                                                           &myself.id,
-                                                           check_quorum_returns(true),
-                                                           &member_list,
-                                                           FeatureFlag::empty(),
-                                                           &None);
+        let to_restart = Server::elections_to_restart_impl(
+            &elections,
+            &service_store,
+            &myself.id,
+            check_quorum_returns(true),
+            &member_list,
+            FeatureFlag::empty(),
+            &None,
+        );
 
         assert_eq!(to_restart, vec![(service.service_group.to_string(), term)]);
     }
@@ -1605,11 +1752,13 @@ mod tests {
         let member_list = MemberList::new();
         let service = mock_service(&myself);
 
-        let mut election_with_unknown_leader = Election::new(departed_leader.id.clone(),
-                                                             &service.service_group,
-                                                             Term::default(),
-                                                             suitability,
-                                                             true /* has_quorum */);
+        let mut election_with_unknown_leader = Election::new(
+            departed_leader.id.clone(),
+            &service.service_group,
+            Term::default(),
+            suitability,
+            true, /* has_quorum */
+        );
         election_with_unknown_leader.finish();
         elections.insert_rsw(election_with_unknown_leader);
 
@@ -1617,13 +1766,15 @@ mod tests {
 
         member_list.insert_mlw(departed_leader, Health::Departed);
 
-        let to_restart = Server::elections_to_restart_impl(&elections,
-                                                           &service_store,
-                                                           &myself.id,
-                                                           check_quorum_returns(true),
-                                                           &member_list,
-                                                           FeatureFlag::empty(),
-                                                           &None);
+        let to_restart = Server::elections_to_restart_impl(
+            &elections,
+            &service_store,
+            &myself.id,
+            check_quorum_returns(true),
+            &member_list,
+            FeatureFlag::empty(),
+            &None,
+        );
 
         assert_eq!(to_restart, vec![(service.service_group.to_string(), term)]);
     }
@@ -1635,11 +1786,13 @@ mod tests {
         let member_list = MemberList::new();
         let rumor_heat = RumorHeat::default();
 
-        Server::insert_service_impl(service.clone(),
-                                    &service_store,
-                                    &member_list,
-                                    &rumor_heat,
-                                    check_quorum_returns(false));
+        Server::insert_service_impl(
+            service.clone(),
+            &service_store,
+            &member_list,
+            &rumor_heat,
+            check_quorum_returns(false),
+        );
 
         assert!(service_store.lock_rsr().contains_rumor(&service));
     }
@@ -1657,23 +1810,31 @@ mod tests {
         member_list.insert_mlw(alive_member, Health::Alive);
         member_list.insert_mlw(confirmed_member.clone(), Health::Confirmed);
 
-        Server::insert_service_impl(confirmed_member_service_rumor,
-                                    &service_store,
-                                    &member_list,
-                                    &rumor_heat,
-                                    check_quorum_returns(false));
+        Server::insert_service_impl(
+            confirmed_member_service_rumor,
+            &service_store,
+            &member_list,
+            &rumor_heat,
+            check_quorum_returns(false),
+        );
 
-        assert_eq!(member_list.health_of_mlr(&confirmed_member),
-                   Some(Health::Confirmed));
+        assert_eq!(
+            member_list.health_of_mlr(&confirmed_member),
+            Some(Health::Confirmed)
+        );
 
-        Server::insert_service_impl(alive_member_service_rumor,
-                                    &service_store,
-                                    &member_list,
-                                    &rumor_heat,
-                                    check_quorum_returns(false));
+        Server::insert_service_impl(
+            alive_member_service_rumor,
+            &service_store,
+            &member_list,
+            &rumor_heat,
+            check_quorum_returns(false),
+        );
 
-        assert_eq!(member_list.health_of_mlr(&confirmed_member),
-                   Some(Health::Departed));
+        assert_eq!(
+            member_list.health_of_mlr(&confirmed_member),
+            Some(Health::Departed)
+        );
     }
 
     #[test]
@@ -1691,30 +1852,39 @@ mod tests {
         // when inserted, it could be departed immediately
         member_list.insert_mlw(confirmed_member.clone(), Health::Alive);
 
-        Server::insert_service_impl(alive_member_service_rumor.clone(),
-                                    &service_store,
-                                    &member_list,
-                                    &rumor_heat,
-                                    check_quorum_returns(false));
+        Server::insert_service_impl(
+            alive_member_service_rumor.clone(),
+            &service_store,
+            &member_list,
+            &rumor_heat,
+            check_quorum_returns(false),
+        );
 
-        Server::insert_service_impl(confirmed_member_service_rumor,
-                                    &service_store,
-                                    &member_list,
-                                    &rumor_heat,
-                                    check_quorum_returns(false));
+        Server::insert_service_impl(
+            confirmed_member_service_rumor,
+            &service_store,
+            &member_list,
+            &rumor_heat,
+            check_quorum_returns(false),
+        );
 
         member_list.insert_mlw(confirmed_member.clone(), Health::Confirmed);
 
-        Server::insert_service_impl(Service { incarnation: alive_member_service_rumor.incarnation
-                                                           + 1,
-                                              ..alive_member_service_rumor },
-                                    &service_store,
-                                    &member_list,
-                                    &rumor_heat,
-                                    check_quorum_returns(false));
+        Server::insert_service_impl(
+            Service {
+                incarnation: alive_member_service_rumor.incarnation + 1,
+                ..alive_member_service_rumor
+            },
+            &service_store,
+            &member_list,
+            &rumor_heat,
+            check_quorum_returns(false),
+        );
 
-        assert_eq!(member_list.health_of_mlr(&confirmed_member),
-                   Some(Health::Confirmed));
+        assert_eq!(
+            member_list.health_of_mlr(&confirmed_member),
+            Some(Health::Confirmed)
+        );
     }
 
     #[test]
@@ -1730,23 +1900,31 @@ mod tests {
         member_list.insert_mlw(alive_member, Health::Alive);
         member_list.insert_mlw(confirmed_member.clone(), Health::Confirmed);
 
-        Server::insert_service_impl(confirmed_member_service_rumor,
-                                    &service_store,
-                                    &member_list,
-                                    &rumor_heat,
-                                    check_quorum_returns(true));
+        Server::insert_service_impl(
+            confirmed_member_service_rumor,
+            &service_store,
+            &member_list,
+            &rumor_heat,
+            check_quorum_returns(true),
+        );
 
-        assert_eq!(member_list.health_of_mlr(&confirmed_member),
-                   Some(Health::Confirmed));
+        assert_eq!(
+            member_list.health_of_mlr(&confirmed_member),
+            Some(Health::Confirmed)
+        );
 
-        Server::insert_service_impl(alive_member_service_rumor,
-                                    &service_store,
-                                    &member_list,
-                                    &rumor_heat,
-                                    check_quorum_returns(true));
+        Server::insert_service_impl(
+            alive_member_service_rumor,
+            &service_store,
+            &member_list,
+            &rumor_heat,
+            check_quorum_returns(true),
+        );
 
-        assert_eq!(member_list.health_of_mlr(&confirmed_member),
-                   Some(Health::Confirmed));
+        assert_eq!(
+            member_list.health_of_mlr(&confirmed_member),
+            Some(Health::Confirmed)
+        );
     }
     mod myself {
         use super::super::*;
@@ -1757,11 +1935,12 @@ mod tests {
         /// Helper function to create an instance of `Myself` for
         /// tests.
         fn myself<P>(path: P) -> Myself
-            where P: AsRef<Path>
+        where
+            P: AsRef<Path>,
         {
             let mut i = IncarnationStore::new(path.as_ref());
             i.initialize()
-             .expect("Couldn't initialize incarnation store");
+                .expect("Couldn't initialize incarnation store");
             Myself::new(Member::default(), Some(i))
         }
 
@@ -1770,14 +1949,18 @@ mod tests {
             let path = Temp::new_dir().expect("Could not create temp file");
             let me = myself(path.as_ref().join("INCARNATION"));
 
-            assert_eq!(me.lock_smr().incarnation(),
-                       Incarnation::default(),
-                       "Incarnation should start at the default of {}",
-                       Incarnation::default());
+            assert_eq!(
+                me.lock_smr().incarnation(),
+                Incarnation::default(),
+                "Incarnation should start at the default of {}",
+                Incarnation::default()
+            );
             me.lock_smw().increment_incarnation();
-            assert_eq!(me.lock_smr().incarnation(),
-                       Incarnation::from(1),
-                       "Incarnation should have incremented by 1");
+            assert_eq!(
+                me.lock_smr().incarnation(),
+                Incarnation::from(1),
+                "Incarnation should have incremented by 1"
+            );
         }
 
         #[test]
@@ -1785,31 +1968,35 @@ mod tests {
             let path = Temp::new_dir().expect("Could not create temp file");
             let me = myself(path.as_ref().join("INCARNATION"));
 
-            assert_eq!(me.lock_smr().incarnation(),
-                       Incarnation::default(),
-                       "Incarnation should start at the default of {}",
-                       Incarnation::default());
+            assert_eq!(
+                me.lock_smr().incarnation(),
+                Incarnation::default(),
+                "Incarnation should start at the default of {}",
+                Incarnation::default()
+            );
 
             let incarnation_to_refute = Incarnation::from(25);
             me.lock_smw().refute_incarnation(incarnation_to_refute);
-            assert_eq!(me.lock_smr().incarnation(),
-                       incarnation_to_refute + 1,
-                       "Incarnation should be one greater than the refuted incarnation");
+            assert_eq!(
+                me.lock_smr().incarnation(),
+                incarnation_to_refute + 1,
+                "Incarnation should be one greater than the refuted incarnation"
+            );
         }
     }
 
     mod server {
         use super::*;
-        use crate::{member::Member,
-                    server::{Server,
-                             Suitability,
-                             timing::Timing}};
-        use std::{fs::File,
-                  io::prelude::*,
-                  net::{IpAddr,
-                        Ipv4Addr,
-                        SocketAddr},
-                  sync::Mutex};
+        use crate::{
+            member::Member,
+            server::{Server, Suitability, timing::Timing},
+        };
+        use std::{
+            fs::File,
+            io::prelude::*,
+            net::{IpAddr, Ipv4Addr, SocketAddr},
+            sync::Mutex,
+        };
         use tempfile::TempDir;
 
         lazy_static! {
@@ -1820,7 +2007,9 @@ mod tests {
         #[derive(Debug)]
         struct ZeroSuitability;
         impl Suitability for ZeroSuitability {
-            fn suitability_for_msr(&self, _service_group: &str) -> u64 { 0 }
+            fn suitability_for_msr(&self, _service_group: &str) -> u64 {
+                0
+            }
         }
 
         fn start_server() -> Server {
@@ -1838,16 +2027,21 @@ mod tests {
                 *gossip_port_guard += 1;
             }
             let gossip_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
-            let member = Member { swim_port,
-                                  gossip_port,
-                                  ..Default::default() };
-            Server::new(swim_listen,
-                        gossip_listen,
-                        member,
-                        None,
-                        None,
-                        None,
-                        Arc::new(ZeroSuitability)).unwrap()
+            let member = Member {
+                swim_port,
+                gossip_port,
+                ..Default::default()
+            };
+            Server::new(
+                swim_listen,
+                gossip_listen,
+                member,
+                None,
+                None,
+                None,
+                Arc::new(ZeroSuitability),
+            )
+            .unwrap()
         }
 
         fn start_with_corrupt_rumor_file(tmpdir: &TempDir) -> Server {
@@ -1865,39 +2059,48 @@ mod tests {
                 *gossip_port_guard += 1;
             }
             let gossip_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), gossip_port);
-            let member = Member { swim_port,
-                                  gossip_port,
-                                  ..Default::default() };
+            let member = Member {
+                swim_port,
+                gossip_port,
+                ..Default::default()
+            };
             let rumor_name = format!("{}{}", member.id, ".rst");
             let file_path = tmpdir.path().to_owned().join(rumor_name);
             let mut rumor_file = File::create(file_path).unwrap();
             writeln!(rumor_file, "This is not a valid rumor file!").unwrap();
-            Server::new(swim_listen,
-                        gossip_listen,
-                        member,
-                        None,
-                        None,
-                        Some(tmpdir.path()),
-                        Arc::new(ZeroSuitability)).unwrap()
+            Server::new(
+                swim_listen,
+                gossip_listen,
+                member,
+                None,
+                None,
+                Some(tmpdir.path()),
+                Arc::new(ZeroSuitability),
+            )
+            .unwrap()
         }
 
         #[test]
-        fn new() { start_server(); }
+        fn new() {
+            start_server();
+        }
 
         #[test]
         #[should_panic]
         fn new_with_corrupt_rumor_file() {
             let tmpdir = TempDir::new().unwrap();
             let mut server = start_with_corrupt_rumor_file(&tmpdir);
-            server.start_rsw_mlw_smw_rhw_msr(&Timing::default())
-                  .expect("Server failed to start");
+            server
+                .start_rsw_mlw_smw_rhw_msr(&Timing::default())
+                .expect("Server failed to start");
         }
 
         #[test]
         fn start_listener() {
             let mut server = start_server();
-            server.start_rsw_mlw_smw_rhw_msr(&Timing::default())
-                  .expect("Server failed to start");
+            server
+                .start_rsw_mlw_smw_rhw_msr(&Timing::default())
+                .expect("Server failed to start");
         }
     }
 }

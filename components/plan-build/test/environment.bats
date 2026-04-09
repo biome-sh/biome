@@ -22,7 +22,7 @@ load '../bin/environment'
 }
 
 @test "unprotected environment variable manipulation" {
-  run __fail_on_protected_env_var_manipulation 'HABITAT'
+  run __fail_on_protected_env_var_manipulation 'BIOME'
   [ "$status" -eq 0 ]
 }
 

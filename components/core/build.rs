@@ -1,19 +1,16 @@
-use std::{env,
-          fs,
-          path::Path};
+use std::{env, fs, path::Path};
 
 #[cfg(windows)]
 fn main() {
-    use base64::{Engine,
-                 engine::general_purpose::STANDARD};
-    use std::{fs::File,
-              io::prelude::*};
+    use base64::{Engine, engine::general_purpose::STANDARD};
+    use std::{fs::File, io::prelude::*};
 
-    cc::Build::new().file("./src/os/users/admincheck.c")
-                    .compile("libadmincheck.a");
+    cc::Build::new()
+        .file("./src/os/users/admincheck.c")
+        .compile("libadmincheck.a");
     let mut file =
-        File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("hab-crypt")).unwrap();
-    if let Ok(key) = env::var("HAB_CRYPTO_KEY") {
+        File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("bio-crypt")).unwrap();
+    if let Ok(key) = env::var("BIO_CRYPTO_KEY") {
         file.write_all(&STANDARD.decode(key).unwrap()).unwrap();
     }
 
@@ -21,7 +18,9 @@ fn main() {
 }
 
 #[cfg(not(windows))]
-fn main() { populate_cacert(); }
+fn main() {
+    populate_cacert();
+}
 
 pub fn populate_cacert() {
     if let Ok(src) = env::var("SSL_CERT_FILE") {
@@ -30,32 +29,42 @@ pub fn populate_cacert() {
         let cert_data =
             fs::read(&src).unwrap_or_else(|_| panic!("Failed to read SSL_CERT_FILE at {}", src));
         pem::parse_many(cert_data).unwrap_or_else(|_| {
-                                      panic!("The SSL_CERT_FILE {} contains one or more invalid \
+            panic!(
+                "The SSL_CERT_FILE {} contains one or more invalid \
                                               certificates",
-                                             src)
-                                  });
+                src
+            )
+        });
         if !dst.exists() {
             fs::copy(&src, &dst).unwrap_or_else(|_| {
-                                    panic!("Failed to copy CA certificates from '{}' to '{}' for \
+                panic!(
+                    "Failed to copy CA certificates from '{}' to '{}' for \
                                             compiliation.",
-                                           src,
-                                           dst.display())
-                                });
+                    src,
+                    dst.display()
+                )
+            });
         }
     } else if env::var("PROFILE").unwrap() == "release" {
-        panic!("SSL_CERT_FILE environment variable must contain path to minimal CA certificates \
-                files to be used by Habitat in environments where core/cacerts package or native \
-                platform CA certificates are not available.");
+        panic!(
+            "SSL_CERT_FILE environment variable must contain path to minimal CA certificates \
+                files to be used by Biome in environments where core/cacerts package or native \
+                platform CA certificates are not available."
+        );
     } else {
         let dst = Path::new(&env::var("OUT_DIR").unwrap()).join("cacert.pem");
         fs::write(&dst, "").unwrap_or_else(|_| {
-                               panic!("Failed to write empty CA certificates file at '{}' for \
+            panic!(
+                "Failed to write empty CA certificates file at '{}' for \
                                        compiliation.",
-                                      dst.display())
-                           });
-        println!("cargo:warning=SSL_CERT_FILE environment variable is not specified. Habitat \
+                dst.display()
+            )
+        });
+        println!(
+            "cargo:warning=SSL_CERT_FILE environment variable is not specified. Biome \
                   will be built without a minimal set of CA root certificates. This may cause it \
                   to fail on https requests in environments where core/cacerts package or native \
-                  platform CA certificates are not available.");
+                  platform CA certificates are not available."
+        );
     }
 }

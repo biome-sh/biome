@@ -4,7 +4,7 @@
 (import "dyld-support.sb")
 
 (define STUDIO_DIR (param "STUDIO_DIR"))
-(define STUDIO_HAB (param "STUDIO_HAB"))
+(define STUDIO_BIO (param "STUDIO_BIO"))
 (define PLAN_CONTEXT_DIR (param "PLAN_CONTEXT_DIR"))
 (define PKG_OUTPUT_PATH (param "PKG_OUTPUT_PATH"))
 
@@ -13,7 +13,7 @@
 ;; These are some things we actively disallow inside the sandbox.
 ;; We do this, as they would otherwise tend to interfere with the build process.
 ;; - /etc/localtime, /private/etc/localtime : This will leak the host machine's timezone into the build process
-;; - /hab/etc/cli.toml : This will leak the host's default Habitat CLI configuration into the studio
+;; - /bio/etc/cli.toml : This will leak the host's default Biome CLI configuration into the studio
 
 ;; Allow processes to fork
 (allow process-fork)
@@ -36,18 +36,18 @@
        (subpath PLAN_CONTEXT_DIR)
        (subpath PKG_OUTPUT_PATH))
 
-;; Allow access to the studio's habitat binary
-;; Also allow access to check the existence of accepted habitat licenses
-(allow file* process-exec (literal STUDIO_HAB))
+;; Allow access to the studio's biome binary
+;; Also allow access to check the existence of accepted biome licenses
+(allow file* process-exec (literal STUDIO_BIO))
 (allow file-read*
-    (literal "/hab/accepted-licenses")
-    (literal "/hab/accepted-licenses/habitat"))
+    (literal "/bio/accepted-licenses")
+    (literal "/bio/accepted-licenses/biome"))
 
-;; Allow access to read and execute habitat packages, and cache directory
+;; Allow access to read and execute biome packages, and cache directory
 (allow file* process-exec
-       (literal "/hab")
-       (subpath "/hab/pkgs")
-       (subpath "/hab/cache"))
+       (literal "/bio")
+       (subpath "/bio/pkgs")
+       (subpath "/bio/cache"))
 
 ;; Allow access to env and shell system binaries that are essential 
 ;; for proper execution of the plan build process

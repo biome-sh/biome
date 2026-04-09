@@ -4,17 +4,17 @@ version: '3.8'
 # The basic idea of all this is that we set up a self-contained
 # network of containers, each of which are running a Supervisor. At
 # least one of those Supervisors is a "bastion" Supervisor that all
-# the other Supervisors are peered to, thus forming a single Habitat
+# the other Supervisors are peered to, thus forming a single Biome
 # network.
 #
 # Finally, there is a "tester" container, which is the main entry
 # point of the test. This is a container that is in the same network
 # as the Supervisors, and can communicate remotely with them using the
-# shared CTL_SECRET and `--remote-sup` options for various `hab`
+# shared CTL_SECRET and `--remote-sup` options for various `bio`
 # commands. Think of this container as your workstation, from which
 # you can start, stop, and otherwise manipulate services across your
-# Habitat network. The command the tester container runs should
-# basically be a straightforward script of Habitat commands and
+# Biome network. The command the tester container runs should
+# basically be a straightforward script of Biome commands and
 # verification steps. If the command exits successfully, then the test
 # has passed; if it exits with an error, the test has failed.
 
@@ -24,16 +24,16 @@ version: '3.8'
   # CTL_SECRET, and have additional metadata set appropriately.
 x-base-config: &base-config
   image: ${SUPERVISOR_IMAGE}
-  domainname: habitat.dev
+  domainname: biome.dev
   environment:
-    HAB_LICENSE: accept-no-persist
-    HAB_NONINTERACTIVE: '1'
+    BIO_LICENSE: accept-no-persist
+    BIO_NONINTERACTIVE: '1'
     TESTCASE: ${TESTCASE}
     COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
-    HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
+    BIO_AUTH_TOKEN: ${BIO_AUTH_TOKEN}
   volumes:
     - source: ./CTL_SECRET
-      target: /hab/sup/default/CTL_SECRET
+      target: /bio/sup/default/CTL_SECRET
       type: bind
 
   # Defines a basic Supervisor service peered to our bastion
@@ -44,7 +44,7 @@ x-sup-base-config: &sup-base-config
   command:
     - run
     - --listen-ctl=0.0.0.0:9632
-    - --peer=bastion.habitat.dev
+    - --peer=bastion.biome.dev
 
 services:
   # The Supervisor containers are defined below. They're often simply
@@ -62,11 +62,11 @@ services:
       - --permanent-peer
     networks:
       default:
-        # This `bastion.habitat.dev` name is important, since other
+        # This `bastion.biome.dev` name is important, since other
         # Supervisors will peer to it by default (see base service
         # definition)
         aliases:
-        - bastion.habitat.dev
+        - bastion.biome.dev
 
   # These services define just plain old ordinary Supervisors; they're
   # not running any services, and they're remotely-accessible to the
@@ -78,7 +78,7 @@ services:
     networks:
       default:
         aliases:
-        - alpha.habitat.dev
+        - alpha.biome.dev
     depends_on:
       - bastion
 
@@ -88,7 +88,7 @@ services:
     networks:
       default:
         aliases:
-        - beta.habitat.dev
+        - beta.biome.dev
     depends_on:
       - bastion
 

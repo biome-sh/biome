@@ -1,18 +1,11 @@
-//! Watcher interface implementation for Habitat Supervisor.
-use habitat_core::package::target::{AARCH64_DARWIN,
-                                    PackageTarget};
+//! Watcher interface implementation for Biome Supervisor.
+use biome_core::package::target::{AARCH64_DARWIN, PackageTarget};
 use log::debug;
-use notify::{Config,
-             EventHandler,
-             RecommendedWatcher,
-             RecursiveMode,
-             Result,
-             Watcher,
-             WatcherKind,
-             poll::PollWatcher};
-use std::{env,
-          path::Path,
-          str::FromStr};
+use notify::{
+    Config, EventHandler, RecommendedWatcher, RecursiveMode, Result, Watcher, WatcherKind,
+    poll::PollWatcher,
+};
+use std::{env, path::Path, str::FromStr};
 
 #[derive(Debug)]
 pub enum SupWatcher {
@@ -22,15 +15,18 @@ pub enum SupWatcher {
 
 impl Watcher for SupWatcher {
     fn new<F: EventHandler>(event_handler: F, config: Config) -> Result<Self> {
-        let target = PackageTarget::from_str(&env::var("HAB_STUDIO_HOST_ARCH").
-                                             unwrap_or_default()).
-                                             unwrap_or_else(|_| PackageTarget::active_target());
+        let target = PackageTarget::from_str(&env::var("BIO_STUDIO_HOST_ARCH").unwrap_or_default())
+            .unwrap_or_else(|_| PackageTarget::active_target());
         if target == AARCH64_DARWIN {
             debug!("Using pollwatcher");
-            Ok(SupWatcher::Fallback(PollWatcher::new(event_handler, config).unwrap()))
+            Ok(SupWatcher::Fallback(
+                PollWatcher::new(event_handler, config).unwrap(),
+            ))
         } else {
             debug!("Using native watcher");
-            Ok(SupWatcher::Native(RecommendedWatcher::new(event_handler, config).unwrap()))
+            Ok(SupWatcher::Native(
+                RecommendedWatcher::new(event_handler, config).unwrap(),
+            ))
         }
     }
 
@@ -49,7 +45,8 @@ impl Watcher for SupWatcher {
     }
 
     fn kind() -> WatcherKind
-        where Self: Sized
+    where
+        Self: Sized,
     {
         unimplemented!("Required by the Watcher trait but we're not a watcher backend.");
         // https://github.com/notify-rs/notify/pull/441#discussion_r961970946
@@ -59,11 +56,10 @@ impl Watcher for SupWatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use habitat_core::locked_env_var;
-    use std::{sync::mpsc::channel,
-              time::Duration};
+    use biome_core::locked_env_var;
+    use std::{sync::mpsc::channel, time::Duration};
 
-    locked_env_var!(HAB_STUDIO_HOST_ARCH, lock_env_var);
+    locked_env_var!(BIO_STUDIO_HOST_ARCH, lock_env_var);
 
     #[test]
     fn sup_watcher_constructor_test_polling() {

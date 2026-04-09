@@ -1,13 +1,7 @@
-use crate::{error::Error,
-            fs::Permissions};
+use crate::{error::Error, fs::Permissions};
 use chrono::Utc;
 use regex::Regex;
-use std::{self,
-          fmt,
-          ops::Deref,
-          path::PathBuf,
-          result,
-          str::FromStr};
+use std::{self, fmt, ops::Deref, path::PathBuf, result, str::FromStr};
 
 lazy_static::lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
@@ -25,21 +19,19 @@ mod signing;
 pub use cache::KeyCache;
 pub use encryption::*;
 pub use ring_key::RingKey;
-pub use signing::{PublicOriginSigningKey,
-                  SecretOriginSigningKey,
-                  generate_signing_key_pair};
+pub use signing::{PublicOriginSigningKey, SecretOriginSigningKey, generate_signing_key_pair};
 
 ////////////////////////////////////////////////////////////////////////
 
-/// Defines the basic interface that all Habitat keys use.
+/// Defines the basic interface that all Biome keys use.
 ///
-/// All Habitat keys will have a `NamedRevision`, which identifies a
-/// key of this type uniquely. Additionally, each Habitat key wraps a
+/// All Biome keys will have a `NamedRevision`, which identifies a
+/// key of this type uniquely. Additionally, each Biome key wraps a
 /// type that implements the actual cryptographic primitives need to
 /// fulfill the responsibilities of the key.
 pub trait Key {
-    /// The actual cryptographic material used by this kind of Habitat
-    /// key. Different Habitat keys will use different kinds of underlying
+    /// The actual cryptographic material used by this kind of Biome
+    /// key. Different Biome keys will use different kinds of underlying
     /// cryptographic methods, depending on what what their purpose is.
     type Crypto: AsRef<[u8]>;
 
@@ -51,7 +43,7 @@ pub trait Key {
     fn named_revision(&self) -> &NamedRevision;
 }
 
-/// Encapsulates properties and logic for writing Habitat keys out to
+/// Encapsulates properties and logic for writing Biome keys out to
 /// files on disk.
 pub trait KeyFile: Key {
     /// Returns the permissions with which an item should be written
@@ -74,14 +66,16 @@ pub trait KeyFile: Key {
     /// a particular cache directory.
     fn filename(named_revision: &NamedRevision) -> PathBuf {
         // **DO NOT** use PathBuf::with_extension here, because it fails
-        // with service keys (whose name is like "core.redis@chef");
+        // with service keys (whose name is like "core.redis@biome");
         // `with_extension` will chop off the <group>@<org> portion of
         // that string!
         PathBuf::from(format!("{}.{}", named_revision, Self::extension()))
     }
 
     /// Same as `filename`, but for a specific key.
-    fn own_filename(&self) -> PathBuf { Self::filename(self.named_revision()) }
+    fn own_filename(&self) -> PathBuf {
+        Self::filename(self.named_revision())
+    }
 
     /// Returns what should be the contents of a file when rendering a
     /// key out to a file on disk.
@@ -92,22 +86,24 @@ pub trait KeyFile: Key {
     /// logging or other output.
     fn to_key_string(&self) -> String {
         let k = self.key();
-        format!("{}\n{}\n\n{}",
-                Self::version(),
-                self.named_revision(),
-                &crate::base64::encode(k))
+        format!(
+            "{}\n{}\n\n{}",
+            Self::version(),
+            self.named_revision(),
+            &crate::base64::encode(k)
+        )
     }
 }
 
 ////////////////////////////////////////////////////////////////////////
 
 /// The combination of a key name and a revision timestamp. For any
-/// given type of Habitat key, this will uniquely identify that key,
+/// given type of Biome key, this will uniquely identify that key,
 /// allowing it to be retrieved from a local key cache or from the
 /// Builder API.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NamedRevision {
-    name:     String,
+    name: String,
     revision: KeyRevision,
 }
 
@@ -117,15 +113,21 @@ impl NamedRevision {
     ///
     /// Only crate-public because nothing outside this crate should be
     /// creating these.
-    pub(crate) fn new(name: String) -> Self { Self::from_parts(name, KeyRevision::new()) }
+    pub(crate) fn new(name: String) -> Self {
+        Self::from_parts(name, KeyRevision::new())
+    }
 
     pub(crate) fn from_parts(name: String, revision: KeyRevision) -> Self {
         NamedRevision { name, revision }
     }
 
-    pub fn name(&self) -> &String { &self.name }
+    pub fn name(&self) -> &String {
+        &self.name
+    }
 
-    pub fn revision(&self) -> &KeyRevision { &self.revision }
+    pub fn revision(&self) -> &KeyRevision {
+        &self.revision
+    }
 }
 
 impl FromStr for NamedRevision {
@@ -170,7 +172,7 @@ impl fmt::Display for NamedRevision {
 
 ////////////////////////////////////////////////////////////////////////
 
-/// A timestamp string used to identify Habitat keys.
+/// A timestamp string used to identify Biome keys.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct KeyRevision(String);
 
@@ -191,7 +193,9 @@ impl KeyRevision {
 // consistent.
 
 impl fmt::Display for KeyRevision {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { self.0.fmt(f) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
+    }
 }
 
 // As a "newtype", KeyRevision can be thought of as a kind of "smart
@@ -200,7 +204,9 @@ impl fmt::Display for KeyRevision {
 impl Deref for KeyRevision {
     type Target = str;
 
-    fn deref(&self) -> &str { self.0.as_str() }
+    fn deref(&self) -> &str {
+        self.0.as_str()
+    }
 }
 
 #[cfg(test)]
@@ -208,7 +214,8 @@ impl KeyRevision {
     /// Unchecked constructor for testing purposes only; assumes the
     /// string being passed in is valid.
     pub(crate) fn unchecked<R>(rev: R) -> KeyRevision
-        where R: AsRef<str>
+    where
+        R: AsRef<str>,
     {
         KeyRevision(rev.as_ref().to_string())
     }
@@ -248,17 +255,21 @@ mod tests {
 
         #[test]
         fn to_string() {
-            let nr = NamedRevision { name:     "foo".to_string(),
-                                     revision: KeyRevision::unchecked("20160504220722"), };
+            let nr = NamedRevision {
+                name: "foo".to_string(),
+                revision: KeyRevision::unchecked("20160504220722"),
+            };
             assert_eq!(nr.to_string(), "foo-20160504220722");
         }
 
         /// These key names have a different structure!
         #[test]
         fn to_string_for_service_key_names() {
-            let nr = NamedRevision { name:     "core.redis@chef".to_string(),
-                                     revision: KeyRevision::unchecked("20160504220722"), };
-            assert_eq!(nr.to_string(), "core.redis@chef-20160504220722");
+            let nr = NamedRevision {
+                name: "core.redis@biome".to_string(),
+                revision: KeyRevision::unchecked("20160504220722"),
+            };
+            assert_eq!(nr.to_string(), "core.redis@biome-20160504220722");
         }
 
         #[test]

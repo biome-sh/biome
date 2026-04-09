@@ -1,8 +1,4 @@
-use std::{error::Error as StdError,
-          fmt,
-          io,
-          num,
-          result};
+use std::{error::Error as StdError, fmt, io, num, result};
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -28,13 +24,19 @@ impl fmt::Display for Error {
 impl StdError for Error {}
 
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error { Error::Io(err) }
+    fn from(err: io::Error) -> Error {
+        Error::Io(err)
+    }
 }
 
 impl From<serde_json::Error> for Error {
-    fn from(err: serde_json::Error) -> Error { Error::Json(err) }
+    fn from(err: serde_json::Error) -> Error {
+        Error::Json(err)
+    }
 }
 
 impl From<num::ParseIntError> for Error {
-    fn from(err: num::ParseIntError) -> Error { Error::Parse(err) }
+    fn from(err: num::ParseIntError) -> Error {
+        Error::Parse(err)
+    }
 }

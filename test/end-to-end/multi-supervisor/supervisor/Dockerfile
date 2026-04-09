@@ -6,30 +6,30 @@ FROM alpine as build_image
 ARG CHANNEL=stable
 
 # Always accept the license when we run this image.
-ENV HAB_LICENSE=accept-no-persist
+ENV BIO_LICENSE=accept-no-persist
 
-# Bootstrap us enough to get a `hab` binary on the box, but then clear
-# out the /hab directory. The `hab` binary isn't necessarily the one
+# Bootstrap us enough to get a `bio` binary on the box, but then clear
+# out the /bio directory. The `bio` binary isn't necessarily the one
 # that we want in the final image.
-RUN --mount=type=secret,id=hab_auth_token \
-    export HAB_AUTH_TOKEN="$(cat /run/secrets/hab_auth_token)" \
+RUN --mount=type=secret,id=bio_auth_token \
+    export BIO_AUTH_TOKEN="$(cat /run/secrets/bio_auth_token)" \
     && apk add bash wget \
-    && wget https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh \
+    && wget https://raw.githubusercontent.com/biome-sh/biome/main/components/bio/install.sh \
     && bash install.sh \
-    && mv /hab/pkgs/chef/hab/*/*/bin/hab /bin/ \
-    && rm -Rf /hab \
-    && unset HAB_AUTH_TOKEN
+    && mv /bio/pkgs/biome/bio/*/*/bin/bio /bin/ \
+    && rm -Rf /bio \
+    && unset BIO_AUTH_TOKEN
 
 # Install only what's needed to run the Supervisor
 # TODO: need a way to parameterize busybox
-RUN --mount=type=secret,id=hab_auth_token \
-    export HAB_AUTH_TOKEN="$(cat /run/secrets/hab_auth_token)" \
-    && hab pkg install --channel="${CHANNEL}" chef/hab \
-    && hab pkg install --channel="${CHANNEL}" chef/hab-sup \
-    && hab pkg install --channel="${CHANNEL}" chef/hab-launcher \
-    && hab pkg install --channel="base-2025" core/busybox \
-    && hab pkg binlink chef/hab -d /hab/bin \
-    && unset HAB_AUTH_TOKEN
+RUN --mount=type=secret,id=bio_auth_token \
+    export BIO_AUTH_TOKEN="$(cat /run/secrets/bio_auth_token)" \
+    && bio pkg install --channel="${CHANNEL}" biome/bio \
+    && bio pkg install --channel="${CHANNEL}" biome/bio-sup \
+    && bio pkg install --channel="${CHANNEL}" biome/bio-launcher \
+    && bio pkg install --channel="base-2025" core/busybox \
+    && bio pkg binlink biome/bio -d /bio/bin \
+    && unset BIO_AUTH_TOKEN
 
 # Create enough of a filesystem for the Supervisor to operate. We
 # can't do this in a `FROM scratch` image because there's no shell to
@@ -44,22 +44,22 @@ RUN mkdir tmp \
 # This is important because the Supervisor relies on busybox being
 # present for some functionality. Without these present, some packages
 # with auto-generated run hooks won't work.
-RUN --mount=type=secret,id=hab_auth_token \
-    export HAB_AUTH_TOKEN="$(cat /run/secrets/hab_auth_token)" \
-    && hab pkg binlink core/busybox --dest=/tmp/rootfs/bin \
-    && unset HAB_AUTH_TOKEN
+RUN --mount=type=secret,id=bio_auth_token \
+    export BIO_AUTH_TOKEN="$(cat /run/secrets/bio_auth_token)" \
+    && bio pkg binlink core/busybox --dest=/tmp/rootfs/bin \
+    && unset BIO_AUTH_TOKEN
 
 ########################################################################
 
 FROM scratch
 
 # Always accept the license when we run this image.
-ENV HAB_LICENSE=accept-no-persist
+ENV BIO_LICENSE=accept-no-persist
 
 # Copy everything we need from the build image
 COPY --from=build_image /tmp/rootfs/ /
-COPY --from=build_image /hab /hab
-COPY --from=build_image /hab/bin /bin
+COPY --from=build_image /bio /bio
+COPY --from=build_image /bio/bin /bin
 COPY etc/ /etc
-ENTRYPOINT ["hab", "sup"]
+ENTRYPOINT ["bio", "sup"]
 CMD ["run"]

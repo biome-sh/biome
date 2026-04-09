@@ -7,7 +7,7 @@ function New-CustomTag {
 
 # Export a core/redis container image.
 #
-# $extra_args are options for `hab pkg export container` to influence
+# $extra_args are options for `bio pkg export container` to influence
 # container creation. (e.g., pass "--multi-layer" to create a
 #multi-layer image.)
 function New-Image() {
@@ -17,13 +17,13 @@ function New-Image() {
     )
 
     # NOTE: the container exporter is installed in setup_environment.{sh,ps1}
-    $command = "hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --tag-custom=$tag $extra_args"
+    $command = "bio pkg export container --base-pkgs-channel=$env:BIO_BLDR_CHANNEL core/nginx --tag-custom=$tag $extra_args"
     Write-Host "running: $command"
     Write-Host (Invoke-Expression $command | Out-String)
     "core/nginx:$tag"
 }
 
-# Run a given Habitat container image in the background, returning the
+# Run a given Biome container image in the background, returning the
 # name of the container.
 #
 # $extra_args are for `docker run` and can affect how the container is
@@ -38,7 +38,7 @@ function Start-Container() {
     # We're using a non-standard port because we will also execute these
     # tests as a non-root user, and non-root users don't get to listen
     # on port 80.
-    $cmd = "docker run -d -p 9999:9999 --name=$name --rm --env=HAB_LICENSE=accept-no-persist --env=HAB_NGINX='http.listen.port = 9999' $extra_args $image"
+    $cmd = "docker run -d -p 9999:9999 --name=$name --rm --env=BIO_LICENSE=accept-no-persist --env=BIO_NGINX='http.listen.port = 9999' $extra_args $image"
     Write-Host "running $cmd"
     Write-Host (Invoke-Expression $cmd | Out-String)
     "$name"
@@ -56,7 +56,7 @@ function Confirm-ContainerBehavior() {
     [string]$headers.Server | Should -BeLike "nginx/*"
 }
 
-Describe "hab pkg export container" {
+Describe "bio pkg export container" {
     BeforeAll {
         $tag = New-CustomTag
         $script:image = New-Image $tag
@@ -101,7 +101,7 @@ Describe "hab pkg export container" {
     }
 }
 
-Describe "hab pkg export container --multi-layer" {
+Describe "bio pkg export container --multi-layer" {
     BeforeAll {
         $tag = New-CustomTag
         $script:image = New-Image $tag "--multi-layer"
@@ -148,11 +148,11 @@ Describe "hab pkg export container --multi-layer" {
 
 if ($IsLinux) {
     # TODO: Try to run the container when we have a core/podman package
-    Describe "hab pkg export container --engine=buildah" {
+    Describe "bio pkg export container --engine=buildah" {
         It "Runs successfully" {
             $tag = New-CustomTag
-            Invoke-NativeCommand hab pkg export container --base-pkgs-channel=$env:HAB_BLDR_CHANNEL core/nginx --engine=buildah --tag-custom="$tag"
-            Invoke-NativeCommand hab pkg exec core/buildah buildah rmi "core/nginx:$tag"
+            Invoke-NativeCommand bio pkg export container --base-pkgs-channel=$env:BIO_BLDR_CHANNEL core/nginx --engine=buildah --tag-custom="$tag"
+            Invoke-NativeCommand bio pkg exec core/buildah buildah rmi "core/nginx:$tag"
         }
     }
 }

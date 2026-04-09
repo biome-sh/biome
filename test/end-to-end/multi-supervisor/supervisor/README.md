@@ -3,12 +3,12 @@ Minimal Supervisor Image
 
 This `Dockerfile` defines a minimal Docker image containing only what
 is needed to run a Supervisor. It does not contain any services, as
-would happen with an image created using `hab pkg export docker`.
+would happen with an image created using `bio pkg export docker`.
 
 # Building
 
-To build an image using the latest stable `chef/hab`,
-`chef/hab-launcher`, and `chef/hab-sup` packages, run:
+To build an image using the latest stable `biome/bio`,
+`biome/bio-launcher`, and `biome/bio-sup` packages, run:
 
 ```sh
 make

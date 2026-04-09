@@ -33,15 +33,15 @@ Describe "event stream connected to automate" {
         Write-Host "starting automate container..."
         $script:cid = docker run --rm -d -p 4222:4222 automate
         Write-Host "Waiting for automate to get healthy..."
-        docker exec $cid chef-automate status -w
+        docker exec $cid biome-automate status -w
         Write-Host "Automate is healthy!"
         Write-Host "Applying automate license..."
-        docker exec $cid chef-automate license apply $env:A2_LICENSE
+        docker exec $cid biome-automate license apply $env:A2_LICENSE
         Write-Host "Creating auth token..."
-        $authToken = $(docker exec $cid chef-automate iam token create my_token --admin)
+        $authToken = $(docker exec $cid biome-automate iam token create my_token --admin)
         Write-Host "Obtained token: $authToken"
         $cert = New-TemporaryFile
-        docker exec $cid chef-automate external-cert show | Out-File $cert -Encoding utf8
+        docker exec $cid biome-automate external-cert show | Out-File $cert -Encoding utf8
         Write-Host "Retrieved server certificate to $cert"
 
         # Start the supervisor but do not require an initial event stream connection
@@ -56,12 +56,12 @@ Describe "event stream connected to automate" {
                 "--event-stream-server-certificate=$cert" `
         )
         Write-Host "Loading test-probe"
-        Load-SupervisorService -PackageName "habitat-testing/test-probe"
+        Load-SupervisorService -PackageName "biome-testing/test-probe"
         Write-Host "Service Loaded"
     }
 
     AfterAll {
-        Unload-SupervisorService -PackageName "habitat-testing/test-probe" -Timeout 20
+        Unload-SupervisorService -PackageName "biome-testing/test-probe" -Timeout 20
         Stop-Supervisor
         docker stop $script:cid
         docker rmi -f automate
@@ -73,11 +73,11 @@ Describe "event stream connected to automate" {
         Start-Sleep -Seconds 20
 
         # Check that the output contains a connect message and that the server received a health check message
-        $out = (docker exec $cid chef-automate applications show-svcs --service-name test-probe)
+        $out = (docker exec $cid biome-automate applications show-svcs --service-name test-probe)
         $out[1] | Should -BeLike "*OK"
         # This change to index into an array is a response to a change in Automate (linked below)
         # where the header line is now written to stdout as opposed to stderr.  This resulted in an
         # array that needs to be navigated as opposed to a string that could be searched directly.
-        # https://github.com/chef/automate/commit/5f5af20f562acb237668202992a76610c0a34896#diff-958adaffe8182cb66dec1ecbe75667e1052e051cc77b4e54f7d336ab427c1bfbL398
+        # https://github.com/biome/automate/commit/5f5af20f562acb237668202992a76610c0a34896#diff-958adaffe8182cb66dec1ecbe75667e1052e051cc77b4e54f7d336ab427c1bfbL398
     }
 }

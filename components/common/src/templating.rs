@@ -6,26 +6,22 @@ pub mod package;
 pub mod test_helpers;
 
 pub use self::context::RenderContext;
-use crate::{FeatureFlag,
-            error::{Error,
-                    Result},
-            hcore::{fs,
-                    package::PackageInstall},
-            templating::hooks::{Hook,
-                                InstallHook,
-                                UninstallHook}};
-use handlebars::{Handlebars,
-                 RenderError,
-                 TemplateError,
-                 TemplateErrorReason};
+use crate::{
+    FeatureFlag,
+    error::{Error, Result},
+    hcore::{fs, package::PackageInstall},
+    templating::hooks::{Hook, InstallHook, UninstallHook},
+};
+use handlebars::{Handlebars, RenderError, TemplateError, TemplateErrorReason};
 use lazy_static::lazy_static;
 use log::debug;
 use regex::Regex;
 use serde::Serialize;
-use std::{fmt,
-          ops::{Deref,
-                DerefMut},
-          result};
+use std::{
+    fmt,
+    ops::{Deref, DerefMut},
+    result,
+};
 
 // This is specifically for finding syntax violations to object access in handlebars templates.
 // This should eventually be removed when we have upgraded the handlebars library and provided
@@ -38,9 +34,10 @@ lazy_static! {
 
 /// A convenience method that compiles a package's install and uninstall hooks and any configuration
 /// templates in its config_install folder
-pub async fn compile_for_package_install(package: &PackageInstall,
-                                         feature_flags: FeatureFlag)
-                                         -> Result<()> {
+pub async fn compile_for_package_install(
+    package: &PackageInstall,
+    feature_flags: FeatureFlag,
+) -> Result<()> {
     let pkg = package::Pkg::from_install(package).await?;
 
     fs::SvcDir::new(&pkg.name, &pkg.svc_user, &pkg.svc_group).create()?;
@@ -50,18 +47,20 @@ pub async fn compile_for_package_install(package: &PackageInstall,
     let cfg_renderer = config::CfgRenderer::new(pkg.path.join("config_install"))?;
     cfg_renderer.compile(&pkg.name, &pkg, &pkg.svc_config_install_path, &ctx)?;
 
-    if let Some(ref hook) = InstallHook::load(&pkg.name,
-                                              fs::svc_hooks_path(&pkg.name),
-                                              package.installed_path.join("hooks"),
-                                              feature_flags)
-    {
+    if let Some(ref hook) = InstallHook::load(
+        &pkg.name,
+        fs::svc_hooks_path(&pkg.name),
+        package.installed_path.join("hooks"),
+        feature_flags,
+    ) {
         hook.compile(&pkg.name, &ctx)?;
     };
-    if let Some(ref hook) = UninstallHook::load(&pkg.name,
-                                                fs::svc_hooks_path(&pkg.name),
-                                                package.installed_path.join("hooks"),
-                                                feature_flags)
-    {
+    if let Some(ref hook) = UninstallHook::load(
+        &pkg.name,
+        fs::svc_hooks_path(&pkg.name),
+        package.installed_path.join("hooks"),
+        feature_flags,
+    ) {
         hook.compile(&pkg.name, &ctx)?;
     };
 
@@ -91,7 +90,8 @@ impl TemplateRenderer {
     }
 
     pub fn render<T>(&self, template: &str, ctx: &T) -> Result<String>
-        where T: Serialize
+    where
+        T: Serialize,
     {
         let raw = serde_json::to_value(ctx).map_err(Error::RenderContextSerialization)?;
         debug!("Rendering template with context, {}, {}", template, raw);
@@ -104,17 +104,17 @@ impl TemplateRenderer {
     // a deprecation message to users. More information here https://github.com/habitat-sh/habitat/issues/6323.
     // When Handlebars is upgraded and users have had sufficient time to update their templates this
     // can be safely removed.
-    pub fn register_template_file<P>(&mut self,
-                                     name: &str,
-                                     path: P)
-                                     -> result::Result<(), TemplateError>
-        where P: AsRef<std::path::Path>
+    pub fn register_template_file<P>(
+        &mut self,
+        name: &str,
+        path: P,
+    ) -> result::Result<(), TemplateError>
+    where
+        P: AsRef<std::path::Path>,
     {
         let path = path.as_ref();
-        let template_string = std::fs::read_to_string(path).map_err(|e| {
-                                  TemplateError::of(TemplateErrorReason::IoError(e,
-                                                                                 name.to_owned()))
-                              })?;
+        let template_string = std::fs::read_to_string(path)
+            .map_err(|e| TemplateError::of(TemplateErrorReason::IoError(e, name.to_owned())))?;
 
         // If we detect deprecated object access syntax notify the user.
         if RE.is_match(&template_string) {
@@ -150,15 +150,21 @@ impl fmt::Debug for TemplateRenderer {
 impl Deref for TemplateRenderer {
     type Target = Handlebars<'static>;
 
-    fn deref(&self) -> &Handlebars<'static> { &self.0 }
+    fn deref(&self) -> &Handlebars<'static> {
+        &self.0
+    }
 }
 
 impl DerefMut for TemplateRenderer {
-    fn deref_mut(&mut self) -> &mut Handlebars<'static> { &mut self.0 }
+    fn deref_mut(&mut self) -> &mut Handlebars<'static> {
+        &mut self.0
+    }
 }
 
 /// Disables HTML escaping which is enabled by default in Handlebars.
-fn never_escape(data: &str) -> String { String::from(data) }
+fn never_escape(data: &str) -> String {
+    String::from(data)
+}
 
 // Takes a string of text and replaces all occurrences of the pattern
 // object[key] with object.[key]
@@ -174,28 +180,39 @@ fn fix_handlebars_syntax(text: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{hcore::{fs::{FS_ROOT_PATH,
-                             pkg_root_path},
-                        package::PackageIdent},
-                templating::test_helpers::*};
-    #[cfg(not(any(all(target_os = "linux",
-                          any(target_arch = "x86_64", target_arch = "aarch64")),
-                      all(target_os = "windows", target_arch = "x86_64"),)))]
-    use habitat_core::package::metadata::MetaFile;
-    use std::{collections::BTreeMap,
-              env,
-              fs::File,
-              io::Read,
-              path::PathBuf};
+    use crate::{
+        hcore::{
+            fs::{FS_ROOT_PATH, pkg_root_path},
+            package::PackageIdent,
+        },
+        templating::test_helpers::*,
+    };
+    #[cfg(not(any(
+        all(
+            target_os = "linux",
+            any(target_arch = "x86_64", target_arch = "aarch64")
+        ),
+        all(target_os = "windows", target_arch = "x86_64"),
+    )))]
+    use biome_core::package::metadata::MetaFile;
+    use std::{collections::BTreeMap, env, fs::File, io::Read, path::PathBuf};
     use tempfile::TempDir;
 
-    pub fn root() -> PathBuf { PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests") }
+    pub fn root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
+    }
 
-    pub fn fixtures() -> PathBuf { root().join("fixtures") }
+    pub fn fixtures() -> PathBuf {
+        root().join("fixtures")
+    }
 
-    pub fn templates() -> PathBuf { fixtures().join("templates") }
+    pub fn templates() -> PathBuf {
+        fixtures().join("templates")
+    }
 
-    pub fn sample_configs() -> PathBuf { fixtures().join("sample_configs") }
+    pub fn sample_configs() -> PathBuf {
+        fixtures().join("sample_configs")
+    }
 
     pub fn service_config_json_from_toml_file(filename: &str) -> serde_json::Value {
         let mut file = File::open(sample_configs().join(filename)).unwrap();
@@ -211,9 +228,11 @@ mod tests {
 
     // Translates a toml table to a mustache data structure.
     fn toml_table_to_json(toml: toml::value::Table) -> serde_json::Value {
-        serde_json::Value::Object(toml.into_iter()
-                                      .map(|(k, v)| (k, toml_to_json(v)))
-                                      .collect())
+        serde_json::Value::Object(
+            toml.into_iter()
+                .map(|(k, v)| (k, toml_to_json(v)))
+                .collect(),
+        )
     }
 
     pub fn toml_to_json(value: toml::Value) -> serde_json::Value {
@@ -243,10 +262,11 @@ mod tests {
         let r = renderer.render("t", &m);
 
         assert_eq!(
-                   r.ok().unwrap(),
-                   r#"{
+            r.ok().unwrap(),
+            r#"{
   "test": "something"
-}"#.to_string()
+}"#
+            .to_string()
         );
     }
 
@@ -265,9 +285,10 @@ mod tests {
         let r = renderer.render("t", &m);
 
         assert_eq!(
-                   r.ok().unwrap(),
-                   r#"test = "something"
-"#.to_string()
+            r.ok().unwrap(),
+            r#"test = "something"
+"#
+            .to_string()
         );
     }
 
@@ -286,9 +307,10 @@ mod tests {
         let r = renderer.render("t", &m);
 
         assert_eq!(
-                   r.ok().unwrap(),
-                   r#"test: something
-"#.to_string()
+            r.ok().unwrap(),
+            r#"test: something
+"#
+            .to_string()
         );
     }
 
@@ -350,20 +372,24 @@ mod tests {
 
         let data = service_config_json_from_toml_file("complex_config.toml");
         let rendered = renderer.render("t", &data).unwrap();
-        assert_eq!(PathBuf::from(rendered),
-                   pkg_root_path(Some(&*FS_ROOT_PATH)).join("core/acl/2.2.52/20161208223311",));
+        assert_eq!(
+            PathBuf::from(rendered),
+            pkg_root_path(Some(&*FS_ROOT_PATH)).join("core/acl/2.2.52/20161208223311",)
+        );
     }
 
     #[test]
     fn each_alive_helper_content() {
         let mut renderer = TemplateRenderer::new();
         // template using the new `eachAlive` helper
-        renderer.register_template_file("each_alive", templates().join("each_alive.txt"))
-                .unwrap();
+        renderer
+            .register_template_file("each_alive", templates().join("each_alive.txt"))
+            .unwrap();
 
         // template using an each block with a nested if block filtering on `alive`
-        renderer.register_template_file("all_members", templates().join("all_members.txt"))
-                .unwrap();
+        renderer
+            .register_template_file("all_members", templates().join("all_members.txt"))
+            .unwrap();
 
         let data = service_config_json_from_toml_file("multiple_supervisors_config.toml");
 
@@ -377,12 +403,14 @@ mod tests {
     fn each_alive_helper_first_node() {
         let mut renderer = TemplateRenderer::new();
         // template using the new `eachAlive` helper
-        renderer.register_template_file("each_alive", templates().join("each_alive.txt"))
-                .unwrap();
+        renderer
+            .register_template_file("each_alive", templates().join("each_alive.txt"))
+            .unwrap();
 
         // template using an each block with a nested if block filtering on `alive`
-        renderer.register_template_file("all_members", templates().join("all_members.txt"))
-                .unwrap();
+        renderer
+            .register_template_file("all_members", templates().join("all_members.txt"))
+            .unwrap();
 
         let data = service_config_json_from_toml_file("one_supervisor_not_started.toml");
 
@@ -396,12 +424,14 @@ mod tests {
     fn each_alive_helper_with_idx() {
         let mut renderer = TemplateRenderer::new();
         // template using the new `eachAlive` helper
-        renderer.register_template_file("each_alive_idx", templates().join("each_alive_idx.txt"))
-                .unwrap();
+        renderer
+            .register_template_file("each_alive_idx", templates().join("each_alive_idx.txt"))
+            .unwrap();
 
         // template using an each block with a nested if block filtering on `alive`
-        renderer.register_template_file("all_members_idx", templates().join("all_members_idx.txt"))
-                .unwrap();
+        renderer
+            .register_template_file("all_members_idx", templates().join("all_members_idx.txt"))
+            .unwrap();
 
         let data = service_config_json_from_toml_file("multiple_supervisors_config.toml");
 
@@ -415,13 +445,17 @@ mod tests {
     fn each_alive_helper_with_identifier_alias() {
         let mut renderer = TemplateRenderer::new();
         // template using the new `eachAlive` helper
-        renderer.register_template_file("each_alive",
-                                        templates().join("each_alive_with_identifier.txt"))
-                .unwrap();
+        renderer
+            .register_template_file(
+                "each_alive",
+                templates().join("each_alive_with_identifier.txt"),
+            )
+            .unwrap();
 
         // template using an each block with a nested if block filtering on `alive`
-        renderer.register_template_file("all_members", templates().join("all_members.txt"))
-                .unwrap();
+        renderer
+            .register_template_file("all_members", templates().join("all_members.txt"))
+            .unwrap();
 
         let data = service_config_json_from_toml_file("multiple_supervisors_config.toml");
 
@@ -441,40 +475,59 @@ mod tests {
         let pkg_install =
             PackageInstall::new_from_parts(pg_id, root.clone(), root.clone(), root.clone());
         // Platforms without standard package support require all packages to be native packages
-        #[cfg(not(any(all(target_os = "linux",
-                          any(target_arch = "x86_64", target_arch = "aarch64")),
-                      all(target_os = "windows", target_arch = "x86_64"))))]
+        #[cfg(not(any(
+            all(
+                target_os = "linux",
+                any(target_arch = "x86_64", target_arch = "aarch64")
+            ),
+            all(target_os = "windows", target_arch = "x86_64")
+        )))]
         {
-            tokio::fs::create_dir_all(pkg_install.installed_path()).await
-                                                                   .unwrap();
-            create_with_content(pkg_install.installed_path()
-                                           .join(MetaFile::PackageType.to_string()),
-                                "native");
+            tokio::fs::create_dir_all(pkg_install.installed_path())
+                .await
+                .unwrap();
+            create_with_content(
+                pkg_install
+                    .installed_path()
+                    .join(MetaFile::PackageType.to_string()),
+                "native",
+            );
         }
         let toml_path = root.join("default.toml");
         create_with_content(toml_path, "message = \"Hello\"");
         let hooks_path = root.join("hooks");
         std::fs::create_dir_all(&hooks_path).unwrap();
-        create_with_content(hooks_path.join("install"),
-                            "install message is {{cfg.message}}");
-        create_with_content(hooks_path.join("uninstall"),
-                            "uninstall message is {{cfg.message}}");
+        create_with_content(
+            hooks_path.join("install"),
+            "install message is {{cfg.message}}",
+        );
+        create_with_content(
+            hooks_path.join("uninstall"),
+            "uninstall message is {{cfg.message}}",
+        );
         let config_path = root.join("config_install");
         std::fs::create_dir_all(&config_path).unwrap();
-        create_with_content(config_path.join("config.txt"),
-                            "config message is {{cfg.message}}");
+        create_with_content(
+            config_path.join("config.txt"),
+            "config message is {{cfg.message}}",
+        );
 
-        compile_for_package_install(&pkg_install, FeatureFlag::empty()).await
-                                                                       .expect("compile package");
+        compile_for_package_install(&pkg_install, FeatureFlag::empty())
+            .await
+            .expect("compile package");
 
         assert_eq!(
             file_content(fs::svc_config_install_path(&pkg_install.ident().name).join("config.txt")),
             "config message is Hello"
         );
-        assert_eq!(file_content(fs::svc_hooks_path(&pkg_install.ident().name).join("install")),
-                   "install message is Hello");
-        assert_eq!(file_content(fs::svc_hooks_path(&pkg_install.ident().name).join("uninstall")),
-                   "uninstall message is Hello");
+        assert_eq!(
+            file_content(fs::svc_hooks_path(&pkg_install.ident().name).join("install")),
+            "install message is Hello"
+        );
+        assert_eq!(
+            file_content(fs::svc_hooks_path(&pkg_install.ident().name).join("uninstall")),
+            "uninstall message is Hello"
+        );
 
         // TODO: Audit that the environment access only happens in single-threaded code.
         unsafe { env::remove_var(fs::FS_ROOT_ENVVAR) };

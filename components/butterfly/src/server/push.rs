@@ -3,46 +3,44 @@
 //! This is the thread for distributing rumors to members. It distributes to `FANOUT` members, no
 //! more often than `Timing::GOSSIP_PERIOD_DEFAULT_MS`.
 
-use crate::{ZMQ_CONTEXT,
-            member::{Member,
-                     Membership},
-            rumor::{RumorEnvelope,
-                    RumorKey,
-                    RumorKind,
-                    RumorType},
-            server::{Server,
-                     timing::Timing}};
-use habitat_common::liveliness_checker;
-use habitat_core::util::ToI64;
+use crate::{
+    ZMQ_CONTEXT,
+    member::{Member, Membership},
+    rumor::{RumorEnvelope, RumorKey, RumorKind, RumorType},
+    server::{Server, timing::Timing},
+};
+use biome_common::liveliness_checker;
+use biome_core::util::ToI64;
 use lazy_static::lazy_static;
-use log::{debug,
-          error,
-          warn};
-use prometheus::{IntCounterVec,
-                 IntGaugeVec,
-                 register_int_counter_vec,
-                 register_int_gauge_vec};
-use std::{thread,
-          time::{Duration,
-                 Instant}};
+use log::{debug, error, warn};
+use prometheus::{IntCounterVec, IntGaugeVec, register_int_counter_vec, register_int_gauge_vec};
+use std::{
+    thread,
+    time::{Duration, Instant},
+};
 
 const FANOUT: usize = 5;
 
 lazy_static! {
-    static ref GOSSIP_MESSAGES_SENT: IntCounterVec =
-        register_int_counter_vec!("hab_butterfly_gossip_messages_sent_total",
-                                  "Total number of gossip messages sent",
-                                  &["type", "mode"]).unwrap();
-    static ref GOSSIP_BYTES_SENT: IntGaugeVec =
-        register_int_gauge_vec!("hab_butterfly_gossip_sent_bytes",
-                                "Gossip message size sent in bytes",
-                                &["type", "mode"]).unwrap();
+    static ref GOSSIP_MESSAGES_SENT: IntCounterVec = register_int_counter_vec!(
+        "bio_butterfly_gossip_messages_sent_total",
+        "Total number of gossip messages sent",
+        &["type", "mode"]
+    )
+    .unwrap();
+    static ref GOSSIP_BYTES_SENT: IntGaugeVec = register_int_gauge_vec!(
+        "bio_butterfly_gossip_sent_bytes",
+        "Gossip message size sent in bytes",
+        &["type", "mode"]
+    )
+    .unwrap();
 }
 
 pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Result<()> {
-    thread::Builder::new().name(name)
-                          .spawn(move || -> ! { run_loop(&server, &timing) })
-                          .map(|_| ())
+    thread::Builder::new()
+        .name(name)
+        .spawn(move || -> ! { run_loop(&server, &timing) })
+        .map(|_| ())
 }
 
 /// Executes the Push thread. Gets a list of members to talk to that are not Confirmed; then
@@ -80,19 +78,18 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                 // persistent members that are confirmed dead. When the failure detector thread
                 // finds them alive again, we'll go ahead and get back to the business at hand.
                 if server.member_list.pingable_mlr(&member)
-                   && !server.member_list.persistent_and_confirmed_mlr(&member)
+                    && !server.member_list.persistent_and_confirmed_mlr(&member)
                 {
-                    let rumors = server.rumor_heat
-                                       .lock_rhr()
-                                       .currently_hot_rumors(&member.id);
+                    let rumors = server
+                        .rumor_heat
+                        .lock_rhr()
+                        .currently_hot_rumors(&member.id);
                     if !rumors.is_empty() {
                         let sc = server.clone();
-                        let guard = match thread::Builder::new().name(String::from("push-worker"))
-                                                                .spawn(move || {
-                                                                    send_rumors_rsr_mlr_rhw(&sc,
-                                                                                            &member,
-                                                                                            &rumors)
-                                                                }) {
+                        let guard = match thread::Builder::new()
+                            .name(String::from("push-worker"))
+                            .spawn(move || send_rumors_rsr_mlr_rhw(&sc, &member, &rumors))
+                        {
                             Ok(guard) => guard,
                             Err(e) => {
                                 error!("Could not spawn thread: {}", e);
@@ -152,19 +149,25 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
 // expected reward.
 #[allow(clippy::cognitive_complexity)]
 fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]) {
-    let socket = (**ZMQ_CONTEXT).as_mut()
-                                .socket(zmq::PUSH)
-                                .expect("Failure to create the ZMQ push socket");
-    socket.set_linger(1000)
-          .expect("Failure to set the ZMQ push socket to not linger");
-    socket.set_tcp_keepalive(0)
-          .expect("Failure to set the ZMQ push socket to not use keepalive");
-    socket.set_immediate(true)
-          .expect("Failure to set the ZMQ push socket to immediate");
-    socket.set_sndhwm(1000)
-          .expect("Failure to set the ZMQ push socket hwm");
-    socket.set_sndtimeo(500)
-          .expect("Failure to set the ZMQ send timeout");
+    let socket = (**ZMQ_CONTEXT)
+        .as_mut()
+        .socket(zmq::PUSH)
+        .expect("Failure to create the ZMQ push socket");
+    socket
+        .set_linger(1000)
+        .expect("Failure to set the ZMQ push socket to not linger");
+    socket
+        .set_tcp_keepalive(0)
+        .expect("Failure to set the ZMQ push socket to not use keepalive");
+    socket
+        .set_immediate(true)
+        .expect("Failure to set the ZMQ push socket to immediate");
+    socket
+        .set_sndhwm(1000)
+        .expect("Failure to set the ZMQ push socket hwm");
+    socket
+        .set_sndtimeo(500)
+        .expect("Failure to set the ZMQ send timeout");
     let to_addr = format!("{}:{}", member.address, member.gossip_port);
     match socket.connect(&format!("tcp://{}", to_addr)) {
         Ok(()) => debug!("Connected push socket to {:?}", member),
@@ -186,9 +189,11 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 match send_rumor.encode() {
                     Ok(bytes) => bytes,
                     Err(e) => {
-                        error!("Could not write our own rumor to bytes; abandoning sending \
+                        error!(
+                            "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                               e);
+                            e
+                        );
                         let label_values = &["member_rumor_encode", "failure"];
                         GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
                         GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
@@ -200,9 +205,11 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 match server.service_store.lock_rsr().encode_rumor_for(rumor_key) {
                     Ok(bytes) => bytes,
                     Err(e) => {
-                        error!("Could not write our own rumor to bytes; abandoning sending \
+                        error!(
+                            "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                               e);
+                            e
+                        );
                         let label_values = &["service_rumor_encode", "failure"];
                         GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
                         GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
@@ -211,15 +218,18 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 }
             }
             RumorType::ServiceConfig => {
-                match server.service_config_store
-                            .lock_rsr()
-                            .encode_rumor_for(rumor_key)
+                match server
+                    .service_config_store
+                    .lock_rsr()
+                    .encode_rumor_for(rumor_key)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
-                        error!("Could not write our own rumor to bytes; abandoning sending \
+                        error!(
+                            "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                               e);
+                            e
+                        );
                         let label_values = &["service_config_rumor_encode", "failure"];
                         GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
                         GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
@@ -228,15 +238,18 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 }
             }
             RumorType::ServiceFile => {
-                match server.service_file_store
-                            .lock_rsr()
-                            .encode_rumor_for(rumor_key)
+                match server
+                    .service_file_store
+                    .lock_rsr()
+                    .encode_rumor_for(rumor_key)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
-                        error!("Could not write our own rumor to bytes; abandoning sending \
+                        error!(
+                            "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                               e);
+                            e
+                        );
                         let label_values = &["service_file_rumor_encode", "failure"];
                         GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
                         GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
@@ -245,15 +258,18 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 }
             }
             RumorType::Departure => {
-                match server.departure_store
-                            .lock_rsr()
-                            .encode_rumor_for(rumor_key)
+                match server
+                    .departure_store
+                    .lock_rsr()
+                    .encode_rumor_for(rumor_key)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
-                        error!("Could not write our own rumor to bytes; abandoning sending \
+                        error!(
+                            "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                               e);
+                            e
+                        );
                         let label_values = &["departure_rumor_encode", "failure"];
                         GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
                         GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
@@ -265,9 +281,11 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 match server.election_store.lock_rsr().encode_rumor_for(rumor_key) {
                     Ok(bytes) => bytes,
                     Err(e) => {
-                        error!("Could not write our own rumor to bytes; abandoning sending \
+                        error!(
+                            "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                               e);
+                            e
+                        );
                         let label_values = &["election_rumor_encode", "failure"];
                         GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
                         GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
@@ -279,9 +297,11 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 match server.update_store.lock_rsr().encode_rumor_for(rumor_key) {
                     Ok(bytes) => bytes,
                     Err(e) => {
-                        error!("Could not write our own rumor to bytes; abandoning sending \
+                        error!(
+                            "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                               e);
+                            e
+                        );
                         let label_values = &["election_update_rumor_encode", "failure"];
                         GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
                         GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
@@ -301,24 +321,27 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 error!("Generating protobuf failed: {}", e);
                 let label_values = &["generate_wire", "failure"];
                 GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
-                GOSSIP_BYTES_SENT.with_label_values(label_values)
-                                 .set(rumor_len);
+                GOSSIP_BYTES_SENT
+                    .with_label_values(label_values)
+                    .set(rumor_len);
                 continue 'rumorlist;
             }
         };
         match socket.send(&payload, 0) {
             Ok(()) => {
-                GOSSIP_MESSAGES_SENT.with_label_values(&[&rumor_key.kind.to_string(),
-                                                         &String::from("success")])
-                                    .inc();
-                GOSSIP_BYTES_SENT.with_label_values(&[&rumor_key.kind.to_string(),
-                                                      &String::from("success")])
-                                 .set(payload.len().to_i64());
+                GOSSIP_MESSAGES_SENT
+                    .with_label_values(&[&rumor_key.kind.to_string(), &String::from("success")])
+                    .inc();
+                GOSSIP_BYTES_SENT
+                    .with_label_values(&[&rumor_key.kind.to_string(), &String::from("success")])
+                    .set(payload.len().to_i64());
                 debug!("Sent rumor {:?} to {:?}", rumor_key, member);
             }
             Err(e) => {
-                warn!("Could not send rumor to {:?} @ {:?}; ZMQ said: {:?}",
-                      member.id, to_addr, e)
+                warn!(
+                    "Could not send rumor to {:?} @ {:?}; ZMQ said: {:?}",
+                    member.id, to_addr, e
+                )
             }
         }
     }
@@ -332,12 +355,17 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
 /// * `MemberList::entries` (read)
 fn create_member_rumor_mlr(server: &Server, rumor_key: &RumorKey) -> Option<RumorEnvelope> {
     let member = server.member_list.get_cloned_mlr(&rumor_key.to_string())?;
-    let payload = Membership { member,
-                               health: server.member_list
-                                             .health_of_by_id_mlr(&rumor_key.to_string())
-                                             .unwrap() };
-    let rumor = RumorEnvelope { r#type:  RumorType::Member,
-                                from_id: server.member_id().to_string(),
-                                kind:    RumorKind::Membership(payload), };
+    let payload = Membership {
+        member,
+        health: server
+            .member_list
+            .health_of_by_id_mlr(&rumor_key.to_string())
+            .unwrap(),
+    };
+    let rumor = RumorEnvelope {
+        r#type: RumorType::Member,
+        from_id: server.member_id().to_string(),
+        kind: RumorKind::Membership(payload),
+    };
     Some(rumor)
 }

@@ -1,6 +1,6 @@
 # These functions constitute the public API of plan.sh
 #
-# These functions are supported by the Habitat project, and can be used in your
+# These functions are supported by the Biome project, and can be used in your
 # own plan.sh files.
 
 # Check that the command exists, 0 if it does, 1 if it does not.
@@ -26,7 +26,7 @@ exists() {
 # build_line "Checksum verified - ${pkg_shasum}"
 # ```
 build_line() {
-  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+  if [[ "${BIO_NOCOLORING:-}" == "true" ]]; then
     # shellcheck disable=2154
     echo "   ${pkg_name}: $1"
   else
@@ -49,7 +49,7 @@ build_line() {
 # warn "Checksum failed"
 # ```
 warn() {
-  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+  if [[ "${BIO_NOCOLORING:-}" == "true" ]]; then
     >&2 echo "   ${pkg_name}: WARN: $1"
   else
     case "${TERM:-}" in
@@ -79,7 +79,7 @@ debug() {
     return 0
   fi
 
-  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+  if [[ "${BIO_NOCOLORING:-}" == "true" ]]; then
     echo "   ${pkg_name}: DEBUG: $1"
   else
     case "${TERM:-}" in
@@ -100,7 +100,7 @@ debug() {
 # exit_with "Something bad went down" 55
 # ```
 exit_with() {
-  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+  if [[ "${BIO_NOCOLORING:-}" == "true" ]]; then
     echo "   ${pkg_name}: ERROR: $1"
   else
     case "${TERM:-}" in
@@ -135,17 +135,17 @@ trim() {
 #
 # ```
 # pkg_all_deps_resolved=(
-#   /hab/pkgs/acme/zlib/1.2.8/20151216221001
-#   /hab/pkgs/acme/nginx/1.8.0/20150911120000
-#   /hab/pkgs/acme/glibc/2.22/20151216221001
+#   /bio/pkgs/acme/zlib/1.2.8/20151216221001
+#   /bio/pkgs/acme/nginx/1.8.0/20150911120000
+#   /bio/pkgs/acme/glibc/2.22/20151216221001
 # )
 #
 # pkg_path_for acme/nginx
-# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
+# # /bio/pkgs/acme/nginx/1.8.0/20150911120000
 # pkg_path_for zlib
-# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
+# # /bio/pkgs/acme/zlib/1.2.8/20151216221001
 # pkg_path_for glibc/2.22
-# # /hab/pkgs/acme/glibc/2.22/20151216221001
+# # /bio/pkgs/acme/glibc/2.22/20151216221001
 # ```
 #
 # Will return 0 if a package is found locally on disk, and 1 if a package
@@ -154,7 +154,7 @@ pkg_path_for() {
   local dep="$1"
   local e
   local cutn
-  cutn="$(($(echo "$HAB_PKG_PATH" | grep -o '/' | wc -l)+2))"
+  cutn="$(($(echo "$BIO_PKG_PATH" | grep -o '/' | wc -l)+2))"
   # shellcheck disable=2154
   for e in "${pkg_all_deps_resolved[@]}"; do
     if echo "$e" | cut -d "/" -f ${cutn}- | grep -E -q "(^|/)${dep}(/|$)"; then
@@ -336,7 +336,7 @@ download_file() {
   local dst="$2"
   local sha="$3"
 
-  pushd "$HAB_CACHE_SRC_PATH" > /dev/null
+  pushd "$BIO_CACHE_SRC_PATH" > /dev/null
   if [[ -f $dst && -n "$sha" ]]; then
     build_line "Found previous file '$dst', attempting to re-use"
     if verify_file "$dst" "$sha"; then
@@ -374,7 +374,7 @@ verify_file() {
   expected_checksum=$(normalize_checksum "$expected_checksum")
 
   # shellcheck disable=2154
-  read -r computed_checksum _ < <($_shasum_cmd "$HAB_CACHE_SRC_PATH"/"$filename")
+  read -r computed_checksum _ < <($_shasum_cmd "$BIO_CACHE_SRC_PATH"/"$filename")
   computed_checksum=$(normalize_checksum "$computed_checksum")
 
   if [[ "$expected_checksum" = "$computed_checksum" ]]; then
@@ -411,11 +411,11 @@ normalize_checksum() {
 # message will be printed to stderr to provide context.
 unpack_file() {
   build_line "Unpacking $1"
-  local unpack_file="$HAB_CACHE_SRC_PATH/$1"
+  local unpack_file="$BIO_CACHE_SRC_PATH/$1"
   # Thanks to:
   # http://stackoverflow.com/questions/17420994/bash-regex-match-string
   if [[ -f $unpack_file ]]; then
-    pushd "$HAB_CACHE_SRC_PATH" > /dev/null
+    pushd "$BIO_CACHE_SRC_PATH" > /dev/null
     case $unpack_file in
       *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
         # shellcheck disable=2154
@@ -456,7 +456,7 @@ unpack_file() {
 # For example, to replace all the files in `node_modules/.bin` that
 # have `#!/usr/bin/env` with the `coreutils` path
 # to `bin/env` (which resolves to
-# /hab/pkgs/acme/coreutils/8.24/20160219013458/bin/env), be sure
+# /bio/pkgs/acme/coreutils/8.24/20160219013458/bin/env), be sure
 # to quote the wildcard target:
 #
 #     fix_interpreter "node_modules/.bin/*" acme/coreutils bin/env
@@ -467,7 +467,7 @@ unpack_file() {
 #
 # To get the interpreters exposed by a package, look in that package's
 # INTERPRETERS metadata file, e.g.,
-# `/hab/pkgs/acme/coreutils/8.24/20160219013458/INTERPRETERS`
+# `/bio/pkgs/acme/coreutils/8.24/20160219013458/INTERPRETERS`
 
 fix_interpreter() {
     local targets=$1
@@ -577,16 +577,16 @@ update_pkg_version() {
     pkg_dirname="${pkg_name}-${pkg_version}"
   fi
   # shellcheck disable=2034,2154
-  pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
+  pkg_prefix=$BIO_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
   # shellcheck disable=2034,2154
-  pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
+  pkg_artifact="$BIO_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
   # If the `$CACHE_PATH` and `$SRC_PATH` are the same, then we are building
   # third party software using `$pkg_source` and
   # downloading/verifying/unpacking it.
   if [[ "$CACHE_PATH" == "$SRC_PATH" ]]; then
     update_src_path=true
   fi
-  CACHE_PATH="$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  CACHE_PATH="$BIO_CACHE_SRC_PATH/$pkg_dirname"
   # Only update `$SRC_PATH` if we are building third party software using
   # `$pkg_source`.
   if [[ "${update_src_path:-}" == true ]]; then

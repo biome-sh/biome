@@ -1,7 +1,7 @@
 [package]
-name = "habitat-rst-reader"
+name = "biome-rst-reader"
 version = "0.0.0"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 edition = "2024"
 workspace = "../../"
 
@@ -13,5 +13,5 @@ doc = false
 [dependencies]
 clap = { version = "4", features = ["env", "derive", "string", "wrap_help"] }
 env_logger = "*"
-habitat_butterfly = { path = "../butterfly", default-features = false }
+biome_butterfly = { path = "../butterfly", default-features = false }
 log = "0.4"

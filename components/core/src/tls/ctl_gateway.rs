@@ -1,26 +1,24 @@
 //! Utilities for generating and reading the self-signed certificate for use with the control
 //! gateway.
 
-use crate::{crypto::keys::NamedRevision,
-            tls::rustls_wrapper::{self,
-                                  Error as RustlsReadersError}};
-use rcgen::{CertificateParams,
-            DistinguishedName,
-            DnType,
-            Error as RcgenError,
-            KeyPair,
-            PKCS_ECDSA_P256_SHA256};
+use crate::{
+    crypto::keys::NamedRevision,
+    tls::rustls_wrapper::{self, Error as RustlsReadersError},
+};
+use rcgen::{
+    CertificateParams, DistinguishedName, DnType, Error as RcgenError, KeyPair,
+    PKCS_ECDSA_P256_SHA256,
+};
 
-use rustls::{RootCertStore,
-             pki_types::{CertificateDer,
-                         DnsName,
-                         PrivatePkcs8KeyDer}};
-use std::{fs::{self,
-               File},
-          io::{Error as IoError,
-               Write},
-          path::{Path,
-                 PathBuf}};
+use rustls::{
+    RootCertStore,
+    pki_types::{CertificateDer, DnsName, PrivatePkcs8KeyDer},
+};
+use std::{
+    fs::{self, File},
+    io::{Error as IoError, Write},
+    path::{Path, PathBuf},
+};
 use thiserror::Error;
 
 const NAME_PREFIX: &str = "ctl-gateway";
@@ -39,16 +37,16 @@ pub enum Error {
     CertificateWrite(#[from] IoError),
 }
 
-pub fn generate_self_signed_certificate_and_key(subject_alternate_name: &DnsName,
-                                                path: impl AsRef<Path>)
-                                                -> Result<(), Error> {
+pub fn generate_self_signed_certificate_and_key(
+    subject_alternate_name: &DnsName,
+    path: impl AsRef<Path>,
+) -> Result<(), Error> {
     let mut params = CertificateParams::new(vec![
         Into::<&str>::into(subject_alternate_name.as_ref()).to_string(),
         "localhost".to_string(),
     ])?;
     let mut distinguished_name = DistinguishedName::new();
-    distinguished_name.push(DnType::OrganizationName,
-                            "Habitat Supervisor Control Gateway");
+    distinguished_name.push(DnType::OrganizationName, "Biome Supervisor Control Gateway");
     params.distinguished_name = distinguished_name;
 
     let key_pair = KeyPair::generate_for(&PKCS_ECDSA_P256_SHA256)?;
@@ -59,13 +57,15 @@ pub fn generate_self_signed_certificate_and_key(subject_alternate_name: &DnsName
     fs::create_dir_all(&path)?;
     let named_revision = NamedRevision::new(NAME_PREFIX.to_string());
 
-    let crt_path = path.as_ref()
-                       .join(format!("{}.{}", named_revision, CRT_EXTENSION));
+    let crt_path = path
+        .as_ref()
+        .join(format!("{}.{}", named_revision, CRT_EXTENSION));
     let mut crt_file = File::create(crt_path)?;
     crt_file.write_all(crt.as_bytes())?;
 
-    let key_path = path.as_ref()
-                       .join(format!("{}.{}", named_revision, KEY_EXTENSION));
+    let key_path = path
+        .as_ref()
+        .join(format!("{}.{}", named_revision, KEY_EXTENSION));
     let mut key_file = File::create(key_path)?;
     key_file.write_all(key.as_bytes())?;
 
@@ -76,11 +76,12 @@ pub fn generate_self_signed_certificate_and_key(subject_alternate_name: &DnsName
 fn get_last_path(search_directory: impl AsRef<Path>, file_pattern: &str) -> Result<PathBuf, Error> {
     let pattern = search_directory.as_ref().join(file_pattern);
     let pattern = pattern.to_string_lossy();
-    glob::glob(&pattern).expect("valid pattern")
-                        .filter_map(std::result::Result::ok)
-                        .filter(|p| p.metadata().map(|m| m.is_file()).unwrap_or(false))
-                        .max()
-                        .ok_or_else(|| Error::FailedToMatchPattern(pattern.to_string()))
+    glob::glob(&pattern)
+        .expect("valid pattern")
+        .filter_map(std::result::Result::ok)
+        .filter(|p| p.metadata().map(|m| m.is_file()).unwrap_or(false))
+        .max()
+        .ok_or_else(|| Error::FailedToMatchPattern(pattern.to_string()))
 }
 
 pub fn latest_certificates(path: impl AsRef<Path>) -> Result<Vec<CertificateDer<'static>>, Error> {
@@ -102,17 +103,18 @@ pub fn latest_root_certificate_store(path: impl AsRef<Path>) -> Result<RootCertS
 mod tests {
     use super::*;
     use rustls::pki_types::DnsName;
-    use std::{convert::TryFrom,
-              fs,
-              time::Duration};
+    use std::{convert::TryFrom, fs, time::Duration};
     use tempfile::TempDir;
 
     #[test]
     fn ctl_gateway_generate_and_read_tls_files() {
         let tmpdir = TempDir::new().unwrap();
 
-        generate_self_signed_certificate_and_key(&DnsName::try_from("a_test_domain").unwrap(),
-                                                 &tmpdir).unwrap();
+        generate_self_signed_certificate_and_key(
+            &DnsName::try_from("a_test_domain").unwrap(),
+            &tmpdir,
+        )
+        .unwrap();
         assert_eq!(fs::read_dir(&tmpdir).unwrap().count(), 2);
         let first_path =
             get_last_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();
@@ -126,8 +128,11 @@ mod tests {
         // name.
         std::thread::sleep(Duration::from_secs(2));
 
-        generate_self_signed_certificate_and_key(&DnsName::try_from("another_domain").unwrap(),
-                                                 &tmpdir).unwrap();
+        generate_self_signed_certificate_and_key(
+            &DnsName::try_from("another_domain").unwrap(),
+            &tmpdir,
+        )
+        .unwrap();
         assert_eq!(fs::read_dir(&tmpdir).unwrap().count(), 4);
         let second_path =
             get_last_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();

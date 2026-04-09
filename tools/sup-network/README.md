@@ -5,20 +5,20 @@ It takes much inspiration from
 [Terrarium](https://github.com/christophermaier/terrarium).
 
 ### Rationale
-I wanted a tool that I could use to get a network of Habitat supervisors up and
+I wanted a tool that I could use to get a network of Biome supervisors up and
 running quickly. More than that though, I specifically wanted to be able to
 test supervisors that were under active development. I wanted to run `cargo
 build` on the `sup` crate and then immediately be able to test the changes
 I had just made with a minimum of hassle and fuss. That's why I made this.
 
 ### Usage
-To start the network, run `make up`. This will build `hab`, `hab-launch`, and
-`hab-sup`, write out a `CTL_SECRET` file, and start the network. By default it
+To start the network, run `make up`. This will build `bio`, `bio-launch`, and
+`bio-sup`, write out a `CTL_SECRET` file, and start the network. By default it
 will start 1 bastion node and 3 peer nodes. The number of peer nodes that are
-started can be controlled via `HAB_SUP_TEST_NETWORK_SIZE`.
+started can be controlled via `BIO_SUP_TEST_NETWORK_SIZE`.
 
 ```
-make up HAB_SUP_TEST_NETWORK_SIZE=5
+make up BIO_SUP_TEST_NETWORK_SIZE=5
 ```
 
 To stop the network, run `make down`. This not only stops the network and all
@@ -29,20 +29,20 @@ file. If you want to just stop containers, without removing them, you can run
 Nodes are started up in detached mode. Presumably, you'd like to look at the
 logs for a service at some point. You can do that via `make logs`. This shows
 the logs for the `rando` service by default but you can display the logs of the
-bastion service by setting the `HAB_SUP_TEST_NETWORK_LOG_SERVICE` variable to
+bastion service by setting the `BIO_SUP_TEST_NETWORK_LOG_SERVICE` variable to
 `bastion`.
 
 ```
-make logs HAB_SUP_TEST_NETWORK_LOG_SERVICE=bastion
+make logs BIO_SUP_TEST_NETWORK_LOG_SERVICE=bastion
 ```
 
 If you would like to get a shell prompt into one of the containers, you can run
 `make console`. This will get you into the `rando_1` container by default. You
-can specify a different container using the `HAB_SUP_TEST_NETWORK_PEER_NAME`
+can specify a different container using the `BIO_SUP_TEST_NETWORK_PEER_NAME`
 variable.
 
 ```
-make console HAB_SUP_TEST_NETWORK_PEER_NAME=rando_2
+make console BIO_SUP_TEST_NETWORK_PEER_NAME=rando_2
 ```
 
 If you wish to simulate a departure, you can kill a container using `make

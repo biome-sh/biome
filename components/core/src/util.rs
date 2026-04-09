@@ -8,19 +8,16 @@ pub mod text_render;
 pub mod win_perm;
 
 #[cfg(windows)]
-use crate::{env as henv,
-            error::Result,
-            os::process::windows_child::Child};
+use crate::{env as henv, error::Result, os::process::windows_child::Child};
 use log::error;
 
 #[cfg(windows)]
-use std::{collections::HashMap,
-          env,
-          path::PathBuf};
+use std::{collections::HashMap, env, path::PathBuf};
 
-use std::{io::{self,
-               BufRead},
-          mem};
+use std::{
+    io::{self, BufRead},
+    mem,
+};
 
 // TODO: All of these ok_xxx macros appear to be unused
 
@@ -33,11 +30,13 @@ macro_rules! __ok_log {
         match $result {
             Ok(val) => Some(val),
             Err(e) => {
-                log!($log_level,
-                     "Intentionally ignored error ({}:{}): {:?}",
-                     file!(),
-                     line!(),
-                     e);
+                log!(
+                    $log_level,
+                    "Intentionally ignored error ({}:{}): {:?}",
+                    file!(),
+                    line!(),
+                    e
+                );
                 None
             }
         }
@@ -107,13 +106,15 @@ macro_rules! impl_try_from_string_and_into_string {
 
 /// Spawns a background powershell process optimized for running hooks.
 #[cfg(windows)]
-pub fn spawn_pwsh<U, P>(command: &str,
-                        env: &HashMap<String, String>,
-                        svc_user: U,
-                        svc_encrypted_password: Option<P>)
-                        -> Result<Child>
-    where U: ToString,
-          P: ToString
+pub fn spawn_pwsh<U, P>(
+    command: &str,
+    env: &HashMap<String, String>,
+    svc_user: U,
+    svc_encrypted_password: Option<P>,
+) -> Result<Child>
+where
+    U: ToString,
+    P: ToString,
 {
     // The NonInteractive flag specifies that the console is not intended to interact with
     // human input and allows ctrl+break signals to trigger a graceful termination similar to
@@ -122,11 +123,13 @@ pub fn spawn_pwsh<U, P>(command: &str,
     // hook execution will not fail because hook scripts are never signed. RemoteSigned is the
     // default policy and just requires remote scripts to be signeed. Supervisor hooks are
     // always local so "RemoteSigned" does not interfere with supervisor behavior.
-    let args = vec!["-NonInteractive",
-                    "-ExecutionPolicy",
-                    "RemoteSigned",
-                    "-Command",
-                    command];
+    let args = vec![
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "RemoteSigned",
+        "-Command",
+        command,
+    ];
 
     let mut new_env = HashMap::new();
     // Opts out of powershell application insights telemetry code on shell startup
@@ -135,11 +138,13 @@ pub fn spawn_pwsh<U, P>(command: &str,
 
     with_ps_module_path(&mut new_env);
 
-    Child::spawn("pwsh.exe",
-                 &args,
-                 &new_env,
-                 svc_user,
-                 svc_encrypted_password)
+    Child::spawn(
+        "pwsh.exe",
+        &args,
+        &new_env,
+        svc_user,
+        svc_encrypted_password,
+    )
 }
 
 /// Makes sure the modules path inside the same package as pwsh.exe
@@ -158,7 +163,7 @@ fn with_ps_module_path(env: &mut HashMap<String, String>) {
         }
 
         if let Some(pwsh_path) = pwsh_path
-           && let Some(pwsh_parent) = pwsh_path.parent()
+            && let Some(pwsh_parent) = pwsh_path.parent()
         {
             let psmodulepath = pwsh_parent.join("Modules");
             let mut new_psmodulepath = psmodulepath.clone().into_os_string();
@@ -178,8 +183,10 @@ fn with_ps_module_path(env: &mut HashMap<String, String>) {
                 new_psmodulepath = env::join_paths(paths).unwrap();
             }
 
-            env.insert("PSModulePath".to_string(),
-                       new_psmodulepath.to_string_lossy().to_string());
+            env.insert(
+                "PSModulePath".to_string(),
+                new_psmodulepath.to_string_lossy().to_string(),
+            );
         }
     }
 }
@@ -223,7 +230,8 @@ pub trait BufReadLossy: BufRead {
     }
 
     fn lines_lossy(self) -> LossyLines<Self>
-        where Self: Sized
+    where
+        Self: Sized,
     {
         LossyLines { buf: self }
     }
@@ -244,9 +252,11 @@ impl ToI64 for usize {
             if cfg!(debug_assertions) {
                 panic!("Tried to convert an out-of-range usize ({}) to i64", self);
             } else {
-                error!("Tried to convert an out-of-range usize ({}) to i64; using \
+                error!(
+                    "Tried to convert an out-of-range usize ({}) to i64; using \
                         i64::max_value()",
-                       self);
+                    self
+                );
                 i64::MAX
             }
         } else {
@@ -261,8 +271,10 @@ impl ToI64 for u64 {
             if cfg!(debug_assertions) {
                 panic!("Tried to convert an out-of-range u64 ({}) to i64", self);
             } else {
-                error!("Tried to convert an out-of-range u64 ({}) to i64; using i64::max_value()",
-                       self);
+                error!(
+                    "Tried to convert an out-of-range u64 ({}) to i64; using i64::max_value()",
+                    self
+                );
                 i64::MAX
             }
         } else {
@@ -366,15 +378,21 @@ mod tests {
         let ps_path = ps_temp.path();
         File::create(ps_path.join("pwsh.exe")).expect("couldn't create pwsh");
         File::create(ps_temp2.path().join("pwsh.exe")).expect("couldn't create pwsh");
-        env.insert("PATH".to_string(),
-                   format!("{};{}",
-                           ps_path.to_string_lossy(),
-                           ps_temp2.path().to_string_lossy()));
+        env.insert(
+            "PATH".to_string(),
+            format!(
+                "{};{}",
+                ps_path.to_string_lossy(),
+                ps_temp2.path().to_string_lossy()
+            ),
+        );
 
         with_ps_module_path(&mut env);
 
-        assert_eq!(env["PSModulePath"],
-                   ps_path.join("Modules").to_string_lossy())
+        assert_eq!(
+            env["PSModulePath"],
+            ps_path.join("Modules").to_string_lossy()
+        )
     }
 
     #[test]
@@ -390,8 +408,10 @@ mod tests {
 
         with_ps_module_path(&mut env);
 
-        assert_eq!(env["PSModulePath"],
-                   ps_path.join("Modules").to_string_lossy())
+        assert_eq!(
+            env["PSModulePath"],
+            ps_path.join("Modules").to_string_lossy()
+        )
     }
 
     #[test]
@@ -408,8 +428,10 @@ mod tests {
 
         with_ps_module_path(&mut env);
 
-        assert_eq!(env["PSModulePath"],
-                   format!("{}\\Modules;path1;path2", ps_str))
+        assert_eq!(
+            env["PSModulePath"],
+            format!("{}\\Modules;path1;path2", ps_str)
+        )
     }
 
     #[test]
@@ -425,8 +447,10 @@ mod tests {
 
         with_ps_module_path(&mut env);
 
-        assert_eq!(env["PSModulePath"],
-                   format!("{}\\Modules;provided_path", ps_str))
+        assert_eq!(
+            env["PSModulePath"],
+            format!("{}\\Modules;provided_path", ps_str)
+        )
     }
 
     #[test]
@@ -436,14 +460,18 @@ mod tests {
         let ps_temp = tempdir().expect("couldn't create tempdir");
         let ps_path = ps_temp.path();
         let ps_str = ps_path.to_string_lossy();
-        env.insert("PSModulePath".to_string(),
-                   format!("provided_path1;{}\\Modules;provided_path2", ps_str));
+        env.insert(
+            "PSModulePath".to_string(),
+            format!("provided_path1;{}\\Modules;provided_path2", ps_str),
+        );
         File::create(ps_path.join("pwsh.exe")).expect("couldn't create pwsh");
         env.insert("PATH".to_string(), ps_str.to_string());
 
         with_ps_module_path(&mut env);
 
-        assert_eq!(env["PSModulePath"],
-                   format!("{}\\Modules;provided_path1;provided_path2", ps_str))
+        assert_eq!(
+            env["PSModulePath"],
+            format!("{}\\Modules;provided_path1;provided_path2", ps_str)
+        )
     }
 }

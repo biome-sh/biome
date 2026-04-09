@@ -31,15 +31,16 @@
 //! tests that need access to the locked variable will be serialized,
 //! leaving the rest of the tests to proceed in parallel.
 
-use std::{env,
-          ffi::{OsStr,
-                OsString},
-          sync::MutexGuard};
+use std::{
+    env,
+    ffi::{OsStr, OsString},
+    sync::MutexGuard,
+};
 
 /// Models an exclusive "honor system" lock on a single environment variable.
 pub struct LockedEnvVar {
     /// The checked-out lock for the variable.
-    lock:           MutexGuard<'static, String>,
+    lock: MutexGuard<'static, String>,
     /// The original value of the environment variable, prior to any
     /// modifications through this lock.
     ///
@@ -60,13 +61,16 @@ impl LockedEnvVar {
             Err(env::VarError::NotPresent) => None,
             Err(env::VarError::NotUnicode(os_string)) => Some(os_string),
         };
-        LockedEnvVar { lock,
-                       original_value: original }
+        LockedEnvVar {
+            lock,
+            original_value: original,
+        }
     }
 
     /// Set the locked environment variable to `value`.
     pub fn set<V>(&self, value: V)
-        where V: AsRef<OsStr>
+    where
+        V: AsRef<OsStr>,
     {
         // TODO: Audit that the environment access only happens in single-threaded code.
         unsafe { env::set_var(&*self.lock, value.as_ref()) };
@@ -74,7 +78,9 @@ impl LockedEnvVar {
 
     /// Unsets an environment variable.
     // TODO: Audit that the environment access only happens in single-threaded code.
-    pub fn unset(&self) { unsafe { env::remove_var(&*self.lock) }; }
+    pub fn unset(&self) {
+        unsafe { env::remove_var(&*self.lock) };
+    }
 }
 
 impl Drop for LockedEnvVar {
@@ -128,28 +134,33 @@ macro_rules! locked_env_var {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{env::VarError,
-              thread};
+    use std::{env::VarError, thread};
 
     #[test]
     fn initially_unset_value_is_unset_after_drop() {
         // Don't use this variable for any other tests, because we're
         // going to be poking at it outside of the lock to verify the
         // macro and types behave properly!
-        locked_env_var!(HAB_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET, lock_var);
+        locked_env_var!(BIO_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET, lock_var);
 
-        assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
-                   Err(env::VarError::NotPresent));
+        assert_eq!(
+            env::var("BIO_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
+            Err(env::VarError::NotPresent)
+        );
 
         {
             let lock = lock_var();
             lock.set("foo");
-            assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
-                       Ok(String::from("foo")));
+            assert_eq!(
+                env::var("BIO_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
+                Ok(String::from("foo"))
+            );
         }
 
-        assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
-                   Err(env::VarError::NotPresent));
+        assert_eq!(
+            env::var("BIO_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
+            Err(env::VarError::NotPresent)
+        );
     }
 
     #[test]
@@ -157,43 +168,54 @@ mod tests {
         // Don't use this variable for any other tests, because we're
         // going to be poking at it outside of the lock to verify the
         // macro and types behave properly!
-        locked_env_var!(HAB_TESTING_LOCKED_ENV_VAR, lock_var);
+        locked_env_var!(BIO_TESTING_LOCKED_ENV_VAR, lock_var);
 
         // TODO: Audit that the environment access only happens in single-threaded code.
-        unsafe { env::set_var("HAB_TESTING_LOCKED_ENV_VAR", "original_value") };
+        unsafe { env::set_var("BIO_TESTING_LOCKED_ENV_VAR", "original_value") };
 
         {
             let lock = lock_var();
             lock.set("foo");
-            assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR"),
-                       Ok(String::from("foo")));
+            assert_eq!(
+                env::var("BIO_TESTING_LOCKED_ENV_VAR"),
+                Ok(String::from("foo"))
+            );
             lock.set("bar");
-            assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR"),
-                       Ok(String::from("bar")));
+            assert_eq!(
+                env::var("BIO_TESTING_LOCKED_ENV_VAR"),
+                Ok(String::from("bar"))
+            );
             lock.set("foobar");
-            assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR"),
-                       Ok(String::from("foobar")));
+            assert_eq!(
+                env::var("BIO_TESTING_LOCKED_ENV_VAR"),
+                Ok(String::from("foobar"))
+            );
             lock.unset();
-            assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR"),
-                       Err(VarError::NotPresent));
+            assert_eq!(
+                env::var("BIO_TESTING_LOCKED_ENV_VAR"),
+                Err(VarError::NotPresent)
+            );
         }
 
-        assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR"),
-                   Ok(String::from("original_value")));
+        assert_eq!(
+            env::var("BIO_TESTING_LOCKED_ENV_VAR"),
+            Ok(String::from("original_value"))
+        );
     }
 
     #[test]
     fn can_recover_from_poisoned_mutex() {
-        locked_env_var!(HAB_TESTING_LOCKED_ENV_VAR_POISONED, lock_var);
+        locked_env_var!(BIO_TESTING_LOCKED_ENV_VAR_POISONED, lock_var);
 
         // Poison the lock
-        let _ = thread::Builder::new().name("testing-locked-env-var-panic".into())
-                                      .spawn(move || {
-                                          let _lock = lock_var();
-                                          panic!("This is an intentional panic; it's OK");
-                                      })
-                                      .expect("Couldn't spawn thread!")
-                                      .join();
+        let _ = thread::Builder::new()
+            .name("testing-locked-env-var-panic".into())
+            .spawn(move || {
+                let _lock = lock_var();
+                panic!("This is an intentional panic; it's OK");
+            })
+            .expect("Couldn't spawn thread!")
+            .join();
 
         // We should still be able to do something with it; otherwise
         // any test that used this variable and failed would fail any
@@ -201,7 +223,9 @@ mod tests {
         let lock = lock_var();
         lock.set("poisoned foo");
 
-        assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR_POISONED"),
-                   Ok(String::from("poisoned foo")));
+        assert_eq!(
+            env::var("BIO_TESTING_LOCKED_ENV_VAR_POISONED"),
+            Ok(String::from("poisoned foo"))
+        );
     }
 }

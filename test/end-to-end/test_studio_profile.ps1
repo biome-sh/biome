@@ -3,41 +3,41 @@ function Stop-ProcessTree($Id) {
     Stop-Process -Id $Id -ErrorAction SilentlyContinue
 }
 
-Describe "hab studio enter with studio_profile.ps1" {
+Describe "bio studio enter with studio_profile.ps1" {
     BeforeAll {
         Set-Content studio_profile.ps1 -Value "write-host 'hohoho';kill `$PID"
-        hab origin key generate $env:HAB_ORIGIN
+        bio origin key generate $env:BIO_ORIGIN
     }
-    Context "No HAB_STUDIO_NOPROFILE set" {
-        $env:HAB_STUDIO_NOPROFILE = $null
+    Context "No BIO_STUDIO_NOPROFILE set" {
+        $env:BIO_STUDIO_NOPROFILE = $null
 
         It "sources studio_profile.ps1" {
             if($env:DOCKER_STUDIO_TEST) {
-                $habEnterCmd = "hab studio enter -D"
+                $bioEnterCmd = "bio studio enter -D"
             } else {
-                $habEnterCmd = "hab studio enter"
+                $bioEnterCmd = "bio studio enter"
             }
-            $result = Invoke-Expression $habEnterCmd
+            $result = Invoke-Expression $bioEnterCmd
             $result[-1] | Should -Be "hohoho"
         }
     }
-    Context "HAB_STUDIO_NOPROFILE is set" {
-        $env:HAB_STUDIO_NOPROFILE = $true
+    Context "BIO_STUDIO_NOPROFILE is set" {
+        $env:BIO_STUDIO_NOPROFILE = $true
 
         It "does not source studio_profile.ps1" {
             $studioArgs = @("studio", "enter")
             if($env:DOCKER_STUDIO_TEST) {
-                $env:HAB_DOCKER_OPTS = "-l buildkitejob=$env:BUILDKITE_JOB_ID"
+                $env:BIO_DOCKER_OPTS = "-l buildkitejob=$env:BUILDKITE_JOB_ID"
                 $studioArgs += "-D"
             }
             $procArgs = @{
-                FilePath               = "hab"
+                FilePath               = "bio"
                 ArgumentList           = $studioArgs
                 RedirectStandardOutput = "out.log"
                 PassThru               = $true
             }
             $proc = Start-Process @procArgs
-            Wait-PathIncludesContent -Path out.log -Content "Habitat:\src>"
+            Wait-PathIncludesContent -Path out.log -Content "Biome:\src>"
             Stop-ProcessTree $proc.Id
         }
     }

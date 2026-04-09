@@ -2,7 +2,7 @@
 //! part of the Supervisor to another.
 
 use super::service::ServiceSpec;
-use habitat_core::os::process::ShutdownTimeout;
+use biome_core::os::process::ShutdownTimeout;
 use std::sync::mpsc;
 
 /// Defines the parameters by which a service process is to be shut
@@ -22,11 +22,11 @@ pub struct ShutdownInput {
 #[allow(clippy::enum_variant_names)]
 pub enum SupervisorAction {
     StopService {
-        service_spec:   ServiceSpec,
+        service_spec: ServiceSpec,
         shutdown_input: ShutdownInput,
     },
     UnloadService {
-        service_spec:   ServiceSpec,
+        service_spec: ServiceSpec,
         shutdown_input: ShutdownInput,
     },
     UpdateService {
@@ -37,15 +37,19 @@ pub enum SupervisorAction {
 pub type ActionSender = mpsc::Sender<SupervisorAction>;
 
 #[allow(clippy::from_over_into)]
-impl Into<ShutdownInput> for habitat_sup_protocol::ctl::SvcUnload {
+impl Into<ShutdownInput> for biome_sup_protocol::ctl::SvcUnload {
     fn into(self) -> ShutdownInput {
-        ShutdownInput { timeout: self.timeout_in_seconds.map(ShutdownTimeout::from), }
+        ShutdownInput {
+            timeout: self.timeout_in_seconds.map(ShutdownTimeout::from),
+        }
     }
 }
 
 #[allow(clippy::from_over_into)]
-impl Into<ShutdownInput> for habitat_sup_protocol::ctl::SvcStop {
+impl Into<ShutdownInput> for biome_sup_protocol::ctl::SvcStop {
     fn into(self) -> ShutdownInput {
-        ShutdownInput { timeout: self.timeout_in_seconds.map(ShutdownTimeout::from), }
+        ShutdownInput {
+            timeout: self.timeout_in_seconds.map(ShutdownTimeout::from),
+        }
     }
 }

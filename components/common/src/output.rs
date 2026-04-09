@@ -20,21 +20,17 @@
 
 use crate::PROGRAM_NAME;
 use lazy_static::lazy_static;
-use serde::{Serialize,
-            Serializer,
-            ser::SerializeMap};
-use std::{fmt,
-          io::{self,
-               Write},
-          result,
-          sync::{Mutex,
-                 atomic::{AtomicBool,
-                          Ordering}}};
-use termcolor::{BufferWriter,
-                Color,
-                ColorChoice,
-                ColorSpec,
-                WriteColor};
+use serde::{Serialize, Serializer, ser::SerializeMap};
+use std::{
+    fmt,
+    io::{self, Write},
+    result,
+    sync::{
+        Mutex,
+        atomic::{AtomicBool, Ordering},
+    },
+};
+use termcolor::{BufferWriter, Color, ColorChoice, ColorSpec, WriteColor};
 
 static VERBOSITY: AtomicBool = AtomicBool::new(false);
 
@@ -44,10 +40,14 @@ lazy_static! {
 
 /// Get the OutputFormat for which content is to be rendered
 // Maybe return a &'static instead of cloning?
-pub fn get_format() -> OutputFormat { FORMAT.lock().expect("FORMAT lock poisoned").clone() }
+pub fn get_format() -> OutputFormat {
+    FORMAT.lock().expect("FORMAT lock poisoned").clone()
+}
 
 /// Set the OutputFormat for which content is to be rendered
-pub fn set_format(format: OutputFormat) { *FORMAT.lock().expect("FORMAT lock poisoned") = format }
+pub fn set_format(format: OutputFormat) {
+    *FORMAT.lock().expect("FORMAT lock poisoned") = format
+}
 
 /// Get the OutputVerbosity for which content is to be rendered
 pub fn get_verbosity() -> OutputVerbosity {
@@ -60,55 +60,63 @@ pub fn get_verbosity() -> OutputVerbosity {
 
 /// Set the OutputVerbosity for which content is to be rendered
 pub fn set_verbosity(format: OutputVerbosity) {
-    VERBOSITY.store(match format {
-                        OutputVerbosity::Verbose => true,
-                        OutputVerbosity::Normal => false,
-                    },
-                    Ordering::Relaxed)
+    VERBOSITY.store(
+        match format {
+            OutputVerbosity::Verbose => true,
+            OutputVerbosity::Normal => false,
+        },
+        Ordering::Relaxed,
+    )
 }
 
 /// Adds structure to printed output. Stores a preamble, a logkey, line, file, column, and content
 /// to print.
 pub struct StructuredOutput<'a> {
-    preamble:  &'a str,
-    logkey:    &'static str,
-    content:   &'a str,
+    preamble: &'a str,
+    logkey: &'static str,
+    content: &'a str,
     /// The verbosity level of rendered content
     verbosity: OutputVerbosityInternal,
     /// How should output be formatted
-    format:    OutputFormat,
+    format: OutputFormat,
 }
 
 impl<'a> StructuredOutput<'a> {
     /// Return a new StructuredOutput struct.
-    pub fn new(preamble: &'a str,
-               logkey: &'static str,
-               context: OutputContext,
-               format: OutputFormat,
-               verbosity: OutputVerbosity,
-               content: &'a str)
-               -> StructuredOutput<'a> {
+    pub fn new(
+        preamble: &'a str,
+        logkey: &'static str,
+        context: OutputContext,
+        format: OutputFormat,
+        verbosity: OutputVerbosity,
+        content: &'a str,
+    ) -> StructuredOutput<'a> {
         let verbosity = match verbosity {
             OutputVerbosity::Normal => OutputVerbosityInternal::Normal,
             OutputVerbosity::Verbose => OutputVerbosityInternal::Verbose(context),
         };
-        StructuredOutput { preamble,
-                           logkey,
-                           content,
-                           verbosity,
-                           format }
+        StructuredOutput {
+            preamble,
+            logkey,
+            content,
+            verbosity,
+            format,
+        }
     }
 
-    pub fn succinct(preamble: &'a str,
-                    logkey: &'static str,
-                    format: OutputFormat,
-                    content: &'a str)
-                    -> StructuredOutput<'a> {
-        StructuredOutput { preamble,
-                           logkey,
-                           content,
-                           verbosity: OutputVerbosityInternal::Normal,
-                           format }
+    pub fn succinct(
+        preamble: &'a str,
+        logkey: &'static str,
+        format: OutputFormat,
+        content: &'a str,
+    ) -> StructuredOutput<'a> {
+        StructuredOutput {
+            preamble,
+            logkey,
+            content,
+            verbosity: OutputVerbosityInternal::Normal,
+            format,
+        }
     }
 
     pub fn print(&self) -> io::Result<()> {
@@ -175,8 +183,11 @@ impl<'a> StructuredOutput<'a> {
                     self.verbosity
                 {
                     writer.write_all(b"[")?;
-                    writer.set_color(ColorSpec::new().set_fg(Some(Color::White))
-                                                     .set_underline(true))?;
+                    writer.set_color(
+                        ColorSpec::new()
+                            .set_fg(Some(Color::White))
+                            .set_underline(true),
+                    )?;
                     write!(writer, "{}:{}:{}", file, line, column)?;
                     writer.reset()?;
                     writer.write_all(b"]")?;
@@ -198,7 +209,8 @@ impl<'a> StructuredOutput<'a> {
 // behavior which isn't otherwise possible to derive.
 impl Serialize for StructuredOutput<'_> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         // Focused on JSON serialization right now, so the length hint
         // isn't needed; it might be later if we target other formats.
@@ -224,10 +236,10 @@ impl fmt::Display for StructuredOutput<'_> {
         let bufwtr = BufferWriter::stdout(self.format.color_choice());
         let mut buffer = bufwtr.buffer();
         match self.format(&mut buffer) {
-            Ok(_) => {
-                f.write_str(std::str::from_utf8(buffer.as_slice()).expect("termcolor buffer \
-                                                                           valid utf8"))
-            }
+            Ok(_) => f.write_str(std::str::from_utf8(buffer.as_slice()).expect(
+                "termcolor buffer \
+                                                                           valid utf8",
+            )),
             Err(e) => write!(f, "Error formatting StructuredOutput: {}", e),
         }
     }
@@ -264,8 +276,8 @@ pub enum OutputVerbosity {
 
 #[derive(Clone, Copy)]
 pub struct OutputContext {
-    pub line:   u32,
-    pub file:   &'static str,
+    pub line: u32,
+    pub file: &'static str,
     pub column: u32,
 }
 
@@ -340,41 +352,41 @@ macro_rules! outputln {
 mod tests {
     use std::io::Write;
 
-    use super::{OutputContext,
-                OutputFormat,
-                OutputVerbosity,
-                StructuredOutput};
-    use termcolor::{BufferWriter,
-                    Color,
-                    ColorChoice,
-                    ColorSpec,
-                    WriteColor};
+    use super::{OutputContext, OutputFormat, OutputVerbosity, StructuredOutput};
+    use termcolor::{BufferWriter, Color, ColorChoice, ColorSpec, WriteColor};
 
     use crate::PROGRAM_NAME;
 
     static LOGKEY: &str = "SOT";
 
-    fn so<'a>(preamble: &'a str,
-              content: &'a str,
-              format: OutputFormat,
-              verbosity: OutputVerbosity)
-              -> StructuredOutput<'a> {
-        StructuredOutput::new(preamble,
-                              LOGKEY,
-                              OutputContext { line:   1,
-                                              file:   file!(),
-                                              column: 2, },
-                              format,
-                              verbosity,
-                              content)
+    fn so<'a>(
+        preamble: &'a str,
+        content: &'a str,
+        format: OutputFormat,
+        verbosity: OutputVerbosity,
+    ) -> StructuredOutput<'a> {
+        StructuredOutput::new(
+            preamble,
+            LOGKEY,
+            OutputContext {
+                line: 1,
+                file: file!(),
+                column: 2,
+            },
+            format,
+            verbosity,
+            content,
+        )
     }
 
     #[test]
     fn new() {
-        let so = so("soup",
-                    "opeth is amazing",
-                    OutputFormat::NoColor,
-                    OutputVerbosity::Normal);
+        let so = so(
+            "soup",
+            "opeth is amazing",
+            OutputFormat::NoColor,
+            OutputVerbosity::Normal,
+        );
         assert_eq!(so.logkey, "SOT");
         assert_eq!(so.preamble, "soup");
         assert_eq!(so.content, "opeth is amazing");
@@ -382,10 +394,12 @@ mod tests {
 
     #[test]
     fn format() {
-        let so = so("soup",
-                    "opeth is amazing",
-                    OutputFormat::NoColor,
-                    OutputVerbosity::Normal);
+        let so = so(
+            "soup",
+            "opeth is amazing",
+            OutputFormat::NoColor,
+            OutputVerbosity::Normal,
+        );
         assert_eq!(format!("{}", so), "soup(SOT): opeth is amazing");
     }
 
@@ -395,89 +409,109 @@ mod tests {
         let content = "opeth is amazing";
         let mut cs = ColorSpec::new();
         cs.set_underline(true);
-        let so = StructuredOutput::new(progname,
-                                       LOGKEY,
-                                       OutputContext { line:   1,
-                                                       file:   file!(),
-                                                       column: 2, },
-                                       OutputFormat::Color(cs.clone()),
-                                       OutputVerbosity::Normal,
-                                       content);
+        let so = StructuredOutput::new(
+            progname,
+            LOGKEY,
+            OutputContext {
+                line: 1,
+                file: file!(),
+                column: 2,
+            },
+            OutputFormat::Color(cs.clone()),
+            OutputVerbosity::Normal,
+            content,
+        );
         let writer = BufferWriter::stdout(ColorChoice::Auto);
         let mut buffer = writer.buffer();
         buffer.reset().unwrap();
-        buffer.set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
-              .unwrap();
+        buffer
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .unwrap();
         buffer.write_all(progname.as_bytes()).unwrap();
         buffer.reset().unwrap();
         buffer.write_all(b"(").unwrap();
-        buffer.set_color(ColorSpec::new().set_fg(Some(Color::White)).set_bold(true))
-              .unwrap();
+        buffer
+            .set_color(ColorSpec::new().set_fg(Some(Color::White)).set_bold(true))
+            .unwrap();
         buffer.write_all(b"SOT").unwrap();
         buffer.reset().unwrap();
         buffer.write_all(b"): ").unwrap();
         buffer.set_color(&cs).unwrap();
         buffer.write_all(content.as_bytes()).unwrap();
         buffer.reset().unwrap();
-        assert_eq!(format!("{}", so),
-                   String::from_utf8_lossy(buffer.as_slice()));
+        assert_eq!(
+            format!("{}", so),
+            String::from_utf8_lossy(buffer.as_slice())
+        );
     }
 
     #[test]
     fn json_formatting() {
-        let so = so("monkeys",
-                    "I love monkeys",
-                    OutputFormat::Json,
-                    OutputVerbosity::Normal);
+        let so = so(
+            "monkeys",
+            "I love monkeys",
+            OutputFormat::Json,
+            OutputVerbosity::Normal,
+        );
 
         let actual: serde_json::Value =
             serde_json::from_str(&(format!("{}", so))).expect("Couldn't parse from JSON");
 
-        assert_eq!(actual,
-                   serde_json::json!({
-                       "preamble": "monkeys",
-                       "logkey": LOGKEY,
-                       "content": "I love monkeys"
-                   }));
+        assert_eq!(
+            actual,
+            serde_json::json!({
+                "preamble": "monkeys",
+                "logkey": LOGKEY,
+                "content": "I love monkeys"
+            })
+        );
     }
 
     #[test]
     fn verbose_json_formatting() {
-        let so = so("monkeys",
-                    "I love verbose monkeys",
-                    OutputFormat::Json,
-                    OutputVerbosity::Verbose);
+        let so = so(
+            "monkeys",
+            "I love verbose monkeys",
+            OutputFormat::Json,
+            OutputVerbosity::Verbose,
+        );
 
         let actual: serde_json::Value =
             serde_json::from_str(&(format!("{}", so))).expect("Couldn't parse from JSON");
 
-        assert_eq!(actual,
-                   serde_json::json!({
-                       "preamble": "monkeys",
-                       "logkey": LOGKEY,
-                       "line": 1,
-                       "file": file!(),
-                       "column": 2,
-                       "content": "I love verbose monkeys"
-                   }));
+        assert_eq!(
+            actual,
+            serde_json::json!({
+                "preamble": "monkeys",
+                "logkey": LOGKEY,
+                "line": 1,
+                "file": file!(),
+                "column": 2,
+                "content": "I love verbose monkeys"
+            })
+        );
     }
 
     #[test]
     fn json_formatting_ignores_color() {
-        let with_color = so("monkeys",
-                            "I love drab monkeys",
-                            OutputFormat::Json,
-                            OutputVerbosity::Normal);
+        let with_color = so(
+            "monkeys",
+            "I love drab monkeys",
+            OutputFormat::Json,
+            OutputVerbosity::Normal,
+        );
 
         let actual: serde_json::Value =
             serde_json::from_str(&(format!("{}", with_color))).expect("Couldn't parse from JSON");
 
-        assert_eq!(actual,
-                   serde_json::json!({
-                       "preamble": "monkeys",
-                       "logkey": LOGKEY,
-                       "content": "I love drab monkeys"
-                   }),
-                   "JSON output shouldn't have color, even if the colorized flag was set");
+        assert_eq!(
+            actual,
+            serde_json::json!({
+                "preamble": "monkeys",
+                "logkey": LOGKEY,
+                "content": "I love drab monkeys"
+            }),
+            "JSON output shouldn't have color, even if the colorized flag was set"
+        );
     }
 }

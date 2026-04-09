@@ -1,32 +1,30 @@
-use crate::{crypto::{hash::Blake2bHash,
-                     keys::{BuilderSecretEncryptionKey,
-                            KeyFile,
-                            NamedRevision,
-                            OriginPublicEncryptionKey,
-                            OriginSecretEncryptionKey,
-                            PublicOriginSigningKey,
-                            RingKey,
-                            SecretOriginSigningKey,
-                            ServicePublicEncryptionKey,
-                            ServiceSecretEncryptionKey,
-                            UserPublicEncryptionKey,
-                            UserSecretEncryptionKey,
-                            encryption::{BUILDER_KEY_NAME,
-                                         generate_origin_encryption_key_pair,
-                                         generate_service_encryption_key_pair,
-                                         generate_user_encryption_key_pair},
-                            generate_signing_key_pair}},
-            error::{Error,
-                    Result},
-            fs::AtomicWriter,
-            origin::Origin};
+use crate::{
+    crypto::{
+        hash::Blake2bHash,
+        keys::{
+            BuilderSecretEncryptionKey, KeyFile, NamedRevision, OriginPublicEncryptionKey,
+            OriginSecretEncryptionKey, PublicOriginSigningKey, RingKey, SecretOriginSigningKey,
+            ServicePublicEncryptionKey, ServiceSecretEncryptionKey, UserPublicEncryptionKey,
+            UserSecretEncryptionKey,
+            encryption::{
+                BUILDER_KEY_NAME, generate_origin_encryption_key_pair,
+                generate_service_encryption_key_pair, generate_user_encryption_key_pair,
+            },
+            generate_signing_key_pair,
+        },
+    },
+    error::{Error, Result},
+    fs::AtomicWriter,
+    origin::Origin,
+};
 use serde::Deserialize;
-use std::{convert::TryFrom,
-          io::Write,
-          path::{Path,
-                 PathBuf}};
+use std::{
+    convert::TryFrom,
+    io::Write,
+    path::{Path, PathBuf},
+};
 
-/// Represents the location of all Habitat keys (user, service,
+/// Represents the location of all Biome keys (user, service,
 /// origin, signing, and ring) locally on disk, as well as the APIs
 /// for retrieving and storing keys.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -34,12 +32,15 @@ pub struct KeyCache(PathBuf);
 
 impl AsRef<Path> for KeyCache {
     /// Expose the path to this key cache.
-    fn as_ref(&self) -> &Path { self.0.as_ref() }
+    fn as_ref(&self) -> &Path {
+        self.0.as_ref()
+    }
 }
 
 impl KeyCache {
     pub fn new<P>(path: P) -> Self
-        where P: Into<PathBuf>
+    where
+        P: Into<PathBuf>,
     {
         KeyCache(path.into())
     }
@@ -62,9 +63,10 @@ impl KeyCache {
     }
 
     /// Generate a new origin signing key pair and save both keys to disk.
-    pub fn new_signing_pair(&self,
-                            origin: &Origin)
-                            -> Result<(PublicOriginSigningKey, SecretOriginSigningKey)> {
+    pub fn new_signing_pair(
+        &self,
+        origin: &Origin,
+    ) -> Result<(PublicOriginSigningKey, SecretOriginSigningKey)> {
         let (public, secret) = generate_signing_key_pair(origin)?;
         self.write_pair(&public, &secret)?;
         Ok((public, secret))
@@ -73,8 +75,8 @@ impl KeyCache {
     /// Generate a new origin encryption key pair and save both keys to disk.
     pub fn new_origin_encryption_pair(
         &self,
-        origin: &Origin)
-        -> Result<(OriginPublicEncryptionKey, OriginSecretEncryptionKey)> {
+        origin: &Origin,
+    ) -> Result<(OriginPublicEncryptionKey, OriginSecretEncryptionKey)> {
         let (public, secret) = generate_origin_encryption_key_pair(origin)?;
         self.write_pair(&public, &secret)?;
         Ok((public, secret))
@@ -83,8 +85,8 @@ impl KeyCache {
     /// Generate a new user encryption key pair and save both keys to disk.
     pub fn new_user_encryption_pair(
         &self,
-        user: &str)
-        -> Result<(UserPublicEncryptionKey, UserSecretEncryptionKey)> {
+        user: &str,
+    ) -> Result<(UserPublicEncryptionKey, UserSecretEncryptionKey)> {
         let (public, secret) = generate_user_encryption_key_pair(user)?;
         self.write_pair(&public, &secret)?;
         Ok((public, secret))
@@ -94,8 +96,8 @@ impl KeyCache {
     pub fn new_service_encryption_pair(
         &self,
         org: &str,
-        service_group: &str)
-        -> Result<(ServicePublicEncryptionKey, ServiceSecretEncryptionKey)> {
+        service_group: &str,
+    ) -> Result<(ServicePublicEncryptionKey, ServiceSecretEncryptionKey)> {
         let (public, secret) = generate_service_encryption_key_pair(org, service_group)?;
         self.write_pair(&public, &secret)?;
         Ok((public, secret))
@@ -136,7 +138,8 @@ impl KeyCache {
     // have to be done in a backwards-compatible way for all the keys
     // currently in existence.
     pub fn write_key<K>(&self, key: &K) -> Result<()>
-        where K: KeyFile
+    where
+        K: KeyFile,
     {
         let keyfile = self.path_in_cache(key);
         let content = key.to_key_string();
@@ -145,12 +148,14 @@ impl KeyCache {
             let new_hash = Blake2bHash::from_bytes(&content);
             let existing_hash = Blake2bHash::from_file(&keyfile)?;
             if existing_hash != new_hash {
-                let msg = format!("Existing key file {} found but new version hash is different, \
+                let msg = format!(
+                    "Existing key file {} found but new version hash is different, \
                                    failing to write new file over existing. (existing = {}, \
                                    incoming = {})",
-                                  keyfile.display(),
-                                  existing_hash,
-                                  new_hash);
+                    keyfile.display(),
+                    existing_hash,
+                    new_hash
+                );
                 return Err(Error::CryptoError(msg));
             }
         } else {
@@ -170,15 +175,17 @@ impl KeyCache {
         self.fetch_latest_revision::<RingKey>(name)
     }
 
-    pub fn latest_secret_origin_signing_key(&self,
-                                            origin: &Origin)
-                                            -> Result<SecretOriginSigningKey> {
+    pub fn latest_secret_origin_signing_key(
+        &self,
+        origin: &Origin,
+    ) -> Result<SecretOriginSigningKey> {
         self.fetch_latest_revision::<SecretOriginSigningKey>(origin.as_ref())
     }
 
-    pub fn latest_public_origin_signing_key(&self,
-                                            origin: &Origin)
-                                            -> Result<PublicOriginSigningKey> {
+    pub fn latest_public_origin_signing_key(
+        &self,
+        origin: &Origin,
+    ) -> Result<PublicOriginSigningKey> {
         self.fetch_latest_revision::<PublicOriginSigningKey>(origin.as_ref())
     }
 
@@ -186,9 +193,10 @@ impl KeyCache {
         self.fetch_latest_revision::<UserSecretEncryptionKey>(user_name)
     }
 
-    pub fn latest_origin_public_encryption_key(&self,
-                                               origin: &Origin)
-                                               -> Result<OriginPublicEncryptionKey> {
+    pub fn latest_origin_public_encryption_key(
+        &self,
+        origin: &Origin,
+    ) -> Result<OriginPublicEncryptionKey> {
         self.fetch_latest_revision::<OriginPublicEncryptionKey>(origin.as_ref())
     }
 
@@ -207,35 +215,40 @@ impl KeyCache {
 
     /// Attempt to retrieve the specified signing key from the cache,
     /// if it exists and is valid.
-    pub fn public_signing_key(&self,
-                              named_revision: &NamedRevision)
-                              -> Result<PublicOriginSigningKey> {
+    pub fn public_signing_key(
+        &self,
+        named_revision: &NamedRevision,
+    ) -> Result<PublicOriginSigningKey> {
         self.fetch_specific_revision::<PublicOriginSigningKey>(named_revision)
     }
 
-    pub fn secret_signing_key(&self,
-                              named_revision: &NamedRevision)
-                              -> Result<SecretOriginSigningKey> {
+    pub fn secret_signing_key(
+        &self,
+        named_revision: &NamedRevision,
+    ) -> Result<SecretOriginSigningKey> {
         self.fetch_specific_revision::<SecretOriginSigningKey>(named_revision)
     }
 
-    pub fn user_public_encryption_key(&self,
-                                      named_revision: &NamedRevision)
-                                      -> Result<UserPublicEncryptionKey> {
+    pub fn user_public_encryption_key(
+        &self,
+        named_revision: &NamedRevision,
+    ) -> Result<UserPublicEncryptionKey> {
         self.fetch_specific_revision::<UserPublicEncryptionKey>(named_revision)
     }
 
-    pub fn service_secret_encryption_key(&self,
-                                         named_revision: &NamedRevision)
-                                         -> Result<ServiceSecretEncryptionKey> {
+    pub fn service_secret_encryption_key(
+        &self,
+        named_revision: &NamedRevision,
+    ) -> Result<ServiceSecretEncryptionKey> {
         self.fetch_specific_revision::<ServiceSecretEncryptionKey>(named_revision)
     }
 
     /// Retrieve the Builder secret encryption key with the specified
     /// revision.
-    pub fn builder_secret_encryption_key(&self,
-                                         named_revision: &NamedRevision)
-                                         -> Result<BuilderSecretEncryptionKey> {
+    pub fn builder_secret_encryption_key(
+        &self,
+        named_revision: &NamedRevision,
+    ) -> Result<BuilderSecretEncryptionKey> {
         self.fetch_specific_revision::<BuilderSecretEncryptionKey>(named_revision)
     }
 
@@ -243,15 +256,18 @@ impl KeyCache {
 
     /// Write a pair of keys to the cache.
     fn write_pair<P, S>(&self, public: &P, secret: &S) -> Result<()>
-        where P: KeyFile,
-              S: KeyFile
+    where
+        P: KeyFile,
+        S: KeyFile,
     {
         if public.named_revision() != secret.named_revision() {
-            return Err(Error::CryptoError(format!("Not saving key pair because \
+            return Err(Error::CryptoError(format!(
+                "Not saving key pair because \
                                                    they are not actually a \
                                                    pair! public: {}, secret: {}",
-                                                  public.named_revision(),
-                                                  secret.named_revision())));
+                public.named_revision(),
+                secret.named_revision()
+            )));
         }
 
         // TODO (CM): It would be interesting to make this an
@@ -273,7 +289,8 @@ impl KeyCache {
     /// between "key not present" and "key present, but invalid", so
     /// we can just collapse them into an Error case.
     fn fetch_latest_revision<K>(&self, name: &str) -> Result<K>
-        where K: KeyFile + TryFrom<PathBuf, Error = Error>
+    where
+        K: KeyFile + TryFrom<PathBuf, Error = Error>,
     {
         match self.get_latest_path_for(name, <K as KeyFile>::extension())? {
             Some(path) => <K as TryFrom<PathBuf>>::try_from(path),
@@ -287,13 +304,17 @@ impl KeyCache {
     /// Generic retrieval function to grab the key of the specified
     /// type `K` identified by `named_revision`
     fn fetch_specific_revision<K>(&self, named_revision: &NamedRevision) -> Result<K>
-        where K: KeyFile + TryFrom<PathBuf, Error = Error>
+    where
+        K: KeyFile + TryFrom<PathBuf, Error = Error>,
     {
         let path_in_cache = self.0.join(<K as KeyFile>::filename(named_revision));
         if path_in_cache.exists() {
             <K as TryFrom<PathBuf>>::try_from(path_in_cache)
         } else {
-            Err(Error::CryptoError(format!("Key not found in cache: {}", path_in_cache.display())))
+            Err(Error::CryptoError(format!(
+                "Key not found in cache: {}",
+                path_in_cache.display()
+            )))
         }
     }
 
@@ -304,7 +325,8 @@ impl KeyCache {
     /// written to).
     // TODO (CM): Only making this public temporarily
     pub fn path_in_cache<K>(&self, key: &K) -> PathBuf
-        where K: KeyFile
+    where
+        K: KeyFile,
     {
         self.0.join(key.own_filename())
     }
@@ -312,10 +334,11 @@ impl KeyCache {
     /// Search the key cache for all files that are revisions of the
     /// given key. Returns the full paths to those files within the
     /// cache.
-    fn get_all_paths_for(&self,
-                         name: &str,
-                         key_extension: &str)
-                         -> Result<impl Iterator<Item = PathBuf> + use<>> {
+    fn get_all_paths_for(
+        &self,
+        name: &str,
+        key_extension: &str,
+    ) -> Result<impl Iterator<Item = PathBuf> + use<>> {
         // Ideally, we'd want that `*` to be `\d{14}` to match the
         // structure of our revisions... perhaps that can be an
         // additional filter later on with an actual regex?
@@ -323,9 +346,10 @@ impl KeyCache {
         let pattern = pattern.to_string_lossy();
 
         // TODO (CM): this is a bogus error
-        Ok(glob::glob(&pattern).map_err(|_e| Error::CryptoError("Couldn't glob!".to_string()))?
-                               .filter_map(std::result::Result::ok)
-                               .filter(|p| p.metadata().map(|m| m.is_file()).unwrap_or(false)))
+        Ok(glob::glob(&pattern)
+            .map_err(|_e| Error::CryptoError("Couldn't glob!".to_string()))?
+            .filter_map(std::result::Result::ok)
+            .filter(|p| p.metadata().map(|m| m.is_file()).unwrap_or(false)))
     }
 
     /// Given a key name and extension, find the path that corresponds
@@ -339,14 +363,14 @@ impl KeyCache {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::{keys::{Key,
-                               KeyFile,
-                               OriginSecretEncryptionKey,
-                               generate_origin_encryption_key_pair,
-                               generate_service_encryption_key_pair,
-                               generate_signing_key_pair,
-                               generate_user_encryption_key_pair},
-                        test_support::*};
+    use crate::crypto::{
+        keys::{
+            Key, KeyFile, OriginSecretEncryptionKey, generate_origin_encryption_key_pair,
+            generate_service_encryption_key_pair, generate_signing_key_pair,
+            generate_user_encryption_key_pair,
+        },
+        test_support::*,
+    };
     static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
     static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";
 
@@ -355,10 +379,11 @@ mod tests {
     /// cache. This makes testing a bit more straightforward, and less
     /// verbose.
     fn ring_key_paths(cache: &KeyCache, name: &str) -> Vec<PathBuf> {
-        cache.get_all_paths_for(name, RingKey::extension())
-             .unwrap()
-             .map(|pb| Path::new(pb.file_name().unwrap()).to_path_buf())
-             .collect()
+        cache
+            .get_all_paths_for(name, RingKey::extension())
+            .unwrap()
+            .map(|pb| Path::new(pb.file_name().unwrap()).to_path_buf())
+            .collect()
     }
 
     #[test]
@@ -425,8 +450,11 @@ mod tests {
         let (cache, dir) = new_cache();
         let old_content = fixture_as_string("keys/ring-key-valid-20160504220722.sym.key");
 
-        std::fs::write(dir.path().join("ring-key-valid-20160504220722.sym.key"),
-                       &old_content).unwrap();
+        std::fs::write(
+            dir.path().join("ring-key-valid-20160504220722.sym.key"),
+            &old_content,
+        )
+        .unwrap();
 
         #[rustfmt::skip]
         let new_content = "SYM-SEC-1\nring-key-valid-20160504220722\n\nkA+c03Ly5qEoOZIjJ5zCD2vHI05pAW59PfCOb8thmZw=";
@@ -443,15 +471,21 @@ mod tests {
     macro_rules! assert_cache_round_trip {
         ($t:ty, $key:expr, $cache:expr) => {
             $cache.write_key::<$t>(&$key).unwrap();
-            let fetched_latest: $t = $cache.fetch_latest_revision($key.named_revision().name())
-                                           .unwrap();
-            assert_eq!(fetched_latest, $key,
-                       "Expected to retrieve the latest key by name");
+            let fetched_latest: $t = $cache
+                .fetch_latest_revision($key.named_revision().name())
+                .unwrap();
+            assert_eq!(
+                fetched_latest, $key,
+                "Expected to retrieve the latest key by name"
+            );
 
-            let fetched_specific: $t = $cache.fetch_specific_revision($key.named_revision())
-                                             .unwrap();
-            assert_eq!(fetched_specific, $key,
-                       "Expected to retrieve the key by specific revision");
+            let fetched_specific: $t = $cache
+                .fetch_specific_revision($key.named_revision())
+                .unwrap();
+            assert_eq!(
+                fetched_specific, $key,
+                "Expected to retrieve the key by specific revision"
+            );
         };
     }
 
@@ -463,8 +497,9 @@ mod tests {
         for _ in 0..=2 {
             cache.new_user_encryption_pair("my-user").unwrap();
             cache.new_origin_encryption_pair(&origin).unwrap();
-            cache.new_service_encryption_pair("my-org", "foo.default")
-                 .unwrap();
+            cache
+                .new_service_encryption_pair("my-org", "foo.default")
+                .unwrap();
 
             // If we're going to be using the same origin name for the
             // encryption key and the signing key, we have to wait a
@@ -554,9 +589,11 @@ mod tests {
         fn symlinks_are_ok() {
             let (cache, _dir) = new_cache();
             let real_dir = Builder::new().prefix("symlinks_are_ok").tempdir().unwrap();
-            assert_ne!(cache.as_ref(),
-                       real_dir.path(),
-                       "Cache directory and 'real' directory should be different");
+            assert_ne!(
+                cache.as_ref(),
+                real_dir.path(),
+                "Cache directory and 'real' directory should be different"
+            );
 
             let key = RingKey::new("symlinks_are_ok");
 
@@ -566,8 +603,10 @@ mod tests {
 
             // Create a symlink to the key in the actual KeyCache directory
             let path_in_cache_dir = cache.as_ref().join(key.own_filename());
-            symlink_file(&path_in_real_dir, &path_in_cache_dir).expect("Could not generate \
-                                                                        symlink");
+            symlink_file(&path_in_real_dir, &path_in_cache_dir).expect(
+                "Could not generate \
+                                                                        symlink",
+            );
 
             // For sanity, assert that our paths are how we expect.
             assert_ne!(path_in_real_dir, path_in_cache_dir);
@@ -583,8 +622,9 @@ mod tests {
             assert!(link_metadata.file_type().is_symlink());
 
             // When retrieving the key, we can follow symlinks!
-            let retrieved_key = cache.latest_ring_key_revision(key.named_revision().name())
-                                     .unwrap();
+            let retrieved_key = cache
+                .latest_ring_key_revision(key.named_revision().name())
+                .unwrap();
             assert_eq!(retrieved_key, key);
         }
 
@@ -592,16 +632,18 @@ mod tests {
         // abstracts that for the purposes of our tests here.
         #[cfg(target_os = "windows")]
         fn symlink_file<P, Q>(src: P, dest: Q) -> ::std::io::Result<()>
-            where P: AsRef<Path>,
-                  Q: AsRef<Path>
+        where
+            P: AsRef<Path>,
+            Q: AsRef<Path>,
         {
             ::std::os::windows::fs::symlink_file(src.as_ref(), dest.as_ref())
         }
 
         #[cfg(not(target_os = "windows"))]
         fn symlink_file<P, Q>(src: P, dest: Q) -> ::std::io::Result<()>
-            where P: AsRef<Path>,
-                  Q: AsRef<Path>
+        where
+            P: AsRef<Path>,
+            Q: AsRef<Path>,
         {
             ::std::os::unix::fs::symlink(src.as_ref(), dest.as_ref())
         }

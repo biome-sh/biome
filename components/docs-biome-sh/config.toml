@@ -1,0 +1,79 @@
+[params.biome]
+gh_path = "https://github.com/biome-sh/biome/tree/main/components/docs-biome-sh/content/"
+
+####
+# Biome Menu
+####
+
+[[menu.biome]]
+title = "Biome"
+identifier = "biome"
+
+  [[menu.biome]]
+  title = "Install Biome"
+  identifier = "biome/install"
+  parent = "biome"
+  weight = 15
+
+  [[menu.biome]]
+  title = "Builder"
+  identifier = "biome/builder"
+  parent = "biome"
+  weight = 20
+
+  [[menu.biome]]
+  title = "Origins"
+  identifier = "biome/origins"
+  parent = "biome"
+  weight = 30
+
+  [[menu.biome]]
+  title = "Packages"
+  identifier = "biome/packages"
+  parent = "biome"
+  weight = 40
+
+  [[menu.biome]]
+  title = "Plans"
+  identifier = "biome/plans"
+  parent = "biome"
+  weight = 50
+
+  [[menu.biome]]
+  title = "Services"
+  identifier = "biome/services"
+  parent = "biome"
+  weight = 60
+
+  [[menu.biome]]
+  title = "Supervisors"
+  identifier = "biome/supervisors"
+  parent = "biome"
+  weight = 70
+
+  [[menu.biome]]
+  title = "Reference"
+  identifier = "biome/reference"
+  parent = "biome"
+  weight = 90
+
+    [[menu.biome]]
+    title = "API"
+    identifier = "biome/reference/api"
+    parent = "biome/reference"
+
+  [[menu.biome]]
+  title = "Containers"
+  identifier = "biome/containers"
+  parent = "biome"
+  weight = 200
+
+  [[menu.biome]]
+  title = "Diagrams"
+  identifier = "biome/diagrams"
+  parent = "biome"
+  weight = 500
+
+####
+# End Biome Menu
+####

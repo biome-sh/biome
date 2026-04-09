@@ -2,7 +2,7 @@
 name = "test-probe"
 version = "0.1.0"
 edition = "2024"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 workspace = "../../"
 
 [dependencies]

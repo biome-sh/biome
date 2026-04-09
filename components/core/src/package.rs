@@ -6,33 +6,31 @@ pub mod metadata;
 pub mod plan;
 pub mod target;
 
-pub use self::{archive::{FromArchive,
-                         PackageArchive,
-                         PackageArchiveInfo},
-               ident::{FullyQualifiedPackageIdent,
-                       Identifiable,
-                       PackageIdent},
-               install::PackageInstall,
-               list::all_packages,
-               plan::Plan,
-               target::PackageTarget};
+pub use self::{
+    archive::{FromArchive, PackageArchive, PackageArchiveInfo},
+    ident::{FullyQualifiedPackageIdent, Identifiable, PackageIdent},
+    install::PackageInstall,
+    list::all_packages,
+    plan::Plan,
+    target::PackageTarget,
+};
 
 #[cfg(test)]
 pub mod test_support {
-    use super::{metadata::MetaFile,
-                *};
+    use super::{metadata::MetaFile, *};
     use crate::fs;
-    use std::{fs::{File,
-                   create_dir_all},
-              io::Write,
-              path::{Path,
-                     PathBuf},
-              str::FromStr};
+    use std::{
+        fs::{File, create_dir_all},
+        io::Write,
+        path::{Path, PathBuf},
+        str::FromStr,
+    };
 
     pub fn fixture_path(name: &str) -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
-                                                 .join("fixtures")
-                                                 .join(name)
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join(name)
     }
 
     /// Creates a minimal installed package under an fs_root and return a corresponding loaded
@@ -57,15 +55,21 @@ pub mod test_support {
         let pkg_install_path = fs::pkg_install_path(&pkg_ident, Some(fs_root));
 
         create_dir_all(&pkg_install_path).unwrap();
-        write_file(&pkg_install_path.join(MetaFile::Ident.to_string()),
-                   &pkg_ident.to_string());
-        write_file(&pkg_install_path.join(MetaFile::Target.to_string()),
-                   &PackageTarget::active_target());
+        write_file(
+            &pkg_install_path.join(MetaFile::Ident.to_string()),
+            &pkg_ident.to_string(),
+        );
+        write_file(
+            &pkg_install_path.join(MetaFile::Target.to_string()),
+            &PackageTarget::active_target(),
+        );
 
         PackageInstall::load(&pkg_ident, Some(fs_root)).unwrap_or_else(|_| {
-                                                           panic!("PackageInstall should load for \
+            panic!(
+                "PackageInstall should load for \
                                                                    {}",
-                                                                  &pkg_ident)
-                                                       })
+                &pkg_ident
+            )
+        })
     }
 }

@@ -1,9 +1,9 @@
 [package]
-name = "habitat_common"
+name = "biome_common"
 version = "0.0.0"
 edition = "2024"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
-build = "../build-habitat.rs"
+authors = ["The Biome Maintainers <humans@biome.sh>"]
+build = "../build-biome.rs"
 workspace = "../../"
 
 [dependencies]
@@ -17,8 +17,8 @@ bitflags = "*"
 clap_v4 = { package = "clap", version = "4", features = ["derive"] }
 dirs = "*"
 glob = "*"
-habitat_api_client = { path = "../builder-api-client" }
-habitat_core = { path = "../core" }
+biome_api_client = { path = "../builder-api-client" }
+biome_core = { path = "../core" }
 handlebars = { version = "*", default-features = false }
 lazy_static = "*"
 libc = "*"

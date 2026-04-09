@@ -3,20 +3,15 @@
 // going to move over to the Supervisor has been moved, we can take a look at
 // perhaps refactoring some of this a bit.
 
-use crate::{manager::ShutdownConfig,
-            sys::ShutdownMethod};
-use habitat_core::os::process::{Pid,
-                                Signal,
-                                is_alive,
-                                signal};
-use libc::{self,
-           pid_t};
-use log::{debug,
-          trace};
-use std::{ops::Neg,
-          thread,
-          time::{Duration,
-                 Instant}};
+use crate::{manager::ShutdownConfig, sys::ShutdownMethod};
+use biome_core::os::process::{Pid, Signal, is_alive, signal};
+use libc::{self, pid_t};
+use log::{debug, trace};
+use std::{
+    ops::Neg,
+    thread,
+    time::{Duration, Instant},
+};
 
 /// Kill a service process.
 pub fn kill(pid: Pid, shutdown_config: &ShutdownConfig) -> ShutdownMethod {
@@ -36,13 +31,17 @@ struct Process {
 }
 
 impl Process {
-    fn new(pid: Pid) -> Self { Process { pid } }
+    fn new(pid: Pid) -> Self {
+        Process { pid }
+    }
 
     /// Attempt to gracefully terminate a proccess and then forcefully
     /// kill it after 8 seconds if it has not terminated.
     fn kill(&self, shutdown_config: &ShutdownConfig) -> ShutdownMethod {
-        let ShutdownConfig { signal: shutdown_signal,
-                             timeout, } = *shutdown_config;
+        let ShutdownConfig {
+            signal: shutdown_signal,
+            timeout,
+        } = *shutdown_config;
         let shutdown_signal = shutdown_signal.into();
 
         let mut pid_to_kill = self.pid;
@@ -53,8 +52,10 @@ impl Process {
 
         let pgid = unsafe { libc::getpgid(self.pid) };
         if self.pid == pgid {
-            debug!("pid to kill {} is the process group root. Sending signal to process group.",
-                   self.pid);
+            debug!(
+                "pid to kill {} is the process group root. Sending signal to process group.",
+                self.pid
+            );
             // sending a signal to the negative pid sends it to the
             // entire process group instead just the single pid
             pid_to_kill = self.pid.neg();
@@ -63,17 +64,21 @@ impl Process {
         // JW TODO: Determine if the error represents a case where the
         // process was already exited before we return out and assume
         // so.
-        trace!("Sending {:?} signal to process {}",
-               shutdown_signal, pid_to_kill);
+        trace!(
+            "Sending {:?} signal to process {}",
+            shutdown_signal, pid_to_kill
+        );
         #[allow(clippy::question_mark)]
         if signal(pid_to_kill, shutdown_signal).is_err() {
             return ShutdownMethod::AlreadyExited;
         }
 
         let timeout: Duration = timeout.into();
-        trace!("Waiting up to {} seconds before sending KILL to process {}",
-               timeout.as_secs(),
-               pid_to_kill);
+        trace!(
+            "Waiting up to {} seconds before sending KILL to process {}",
+            timeout.as_secs(),
+            pid_to_kill
+        );
         let start_time = Instant::now();
         loop {
             if !is_alive(pid_to_kill) {

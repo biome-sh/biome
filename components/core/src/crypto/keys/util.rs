@@ -54,38 +54,45 @@ macro_rules! from_str_impl_for_key {
             type Err = Error;
 
             fn from_str(content: &str) -> std::result::Result<Self, Self::Err> {
-
                 let mut lines = content.lines();
 
-                lines.next()
+                lines
+                    .next()
                     .ok_or_else(|| Error::CryptoError("Missing key version".to_string()))
                     .map(|line| {
                         if line == <Self as crate::crypto::keys::KeyFile>::version() {
                             Ok(())
                         } else {
-                            Err(Error::CryptoError(format!("Unsupported key version: {}", line)))
+                            Err(Error::CryptoError(format!(
+                                "Unsupported key version: {}",
+                                line
+                            )))
                         }
                     })??;
 
-                let named_revision: NamedRevision =
-                    lines.next()
+                let named_revision: NamedRevision = lines
+                    .next()
                     .ok_or_else(|| Error::CryptoError("Missing name+revision".to_string()))
                     .map(str::parse)??;
 
-                let key: <Self as crate::crypto::keys::Key>::Crypto =
-                    lines.nth(1) // skip a blank line!
+                let key: <Self as crate::crypto::keys::Key>::Crypto = lines
+                    .nth(1) // skip a blank line!
                     .ok_or_else(|| Error::CryptoError("Missing key material".to_string()))
                     .map(str::trim)
                     .map(crate::base64::decode)?
                     .map_err(|_| Error::CryptoError("Invalid base64 key material".to_string()))
                     .map(|b| <Self as crate::crypto::keys::Key>::Crypto::from_bytes(&b))?
                     .map_err(|_| {
-                        Error::CryptoError(format!("Could not parse bytes as key for {}",
-                                                   named_revision))
+                        Error::CryptoError(format!(
+                            "Could not parse bytes as key for {}",
+                            named_revision
+                        ))
                     })?;
 
-
-                Ok(Self {named_revision, key})
+                Ok(Self {
+                    named_revision,
+                    key,
+                })
             }
         }
     };
@@ -125,10 +132,12 @@ macro_rules! debug_impl_for_key {
     ($t:ty) => {
         impl std::fmt::Debug for $t {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f,
-                       "{} {}",
-                       stringify!($t),
-                       crate::crypto::keys::Key::named_revision(self))
+                write!(
+                    f,
+                    "{} {}",
+                    stringify!($t),
+                    crate::crypto::keys::Key::named_revision(self)
+                )
             }
         }
     };
@@ -142,28 +151,22 @@ macro_rules! try_from_bytes_for_key {
         impl std::convert::TryFrom<&[u8]> for $t {
             type Error = Error;
 
-            fn try_from(bytes: &[u8]) -> Result<$t> { std::str::from_utf8(bytes)?.parse() }
+            fn try_from(bytes: &[u8]) -> Result<$t> {
+                std::str::from_utf8(bytes)?.parse()
+            }
         }
     };
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::crypto::keys::{Key,
-                              NamedRevision,
-                              OriginPublicEncryptionKey,
-                              OriginSecretEncryptionKey,
-                              PublicOriginSigningKey,
-                              RingKey,
-                              SecretOriginSigningKey,
-                              ServicePublicEncryptionKey,
-                              ServiceSecretEncryptionKey,
-                              UserPublicEncryptionKey,
-                              UserSecretEncryptionKey,
-                              generate_origin_encryption_key_pair,
-                              generate_service_encryption_key_pair,
-                              generate_signing_key_pair,
-                              generate_user_encryption_key_pair};
+    use crate::crypto::keys::{
+        Key, NamedRevision, OriginPublicEncryptionKey, OriginSecretEncryptionKey,
+        PublicOriginSigningKey, RingKey, SecretOriginSigningKey, ServicePublicEncryptionKey,
+        ServiceSecretEncryptionKey, UserPublicEncryptionKey, UserSecretEncryptionKey,
+        generate_origin_encryption_key_pair, generate_service_encryption_key_pair,
+        generate_signing_key_pair, generate_user_encryption_key_pair,
+    };
 
     /// Validate the FromStr implementations
     mod from_str {
@@ -177,9 +180,11 @@ mod tests {
             ($t:ty, $key:expr) => {
                 let key_string = $key.to_key_string();
                 let parsed_key: $t = key_string.parse().unwrap();
-                assert_eq!($key, parsed_key,
-                           "Expected to generate the same key from its string representation, \
-                            but didn't!");
+                assert_eq!(
+                    $key, parsed_key,
+                    "Expected to generate the same key from its string representation, \
+                            but didn't!"
+                );
             };
         }
 
@@ -232,46 +237,66 @@ mod tests {
                     fn $name() {
                         let content = fixture_as_string($fixture_path);
                         let parsed = content.parse::<$key>();
-                        assert!(parsed.is_ok(),
-                                "Could not parse '{}' as a {}: {:?}",
-                                $fixture_path,
-                                stringify!($key),
-                                parsed);
+                        assert!(
+                            parsed.is_ok(),
+                            "Could not parse '{}' as a {}: {:?}",
+                            $fixture_path,
+                            stringify!($key),
+                            parsed
+                        );
                     }
                 };
             }
 
-            parse!(ring_key,
-                   RingKey,
-                   "keys/ring-key-valid-20160504220722.sym.key");
+            parse!(
+                ring_key,
+                RingKey,
+                "keys/ring-key-valid-20160504220722.sym.key"
+            );
 
-            parse!(public_origin_signing_key,
-                   PublicOriginSigningKey,
-                   "keys/origin-key-valid-20160509190508.pub");
-            parse!(secret_origin_signing_key,
-                   SecretOriginSigningKey,
-                   "keys/origin-key-valid-20160509190508.sig.key");
+            parse!(
+                public_origin_signing_key,
+                PublicOriginSigningKey,
+                "keys/origin-key-valid-20160509190508.pub"
+            );
+            parse!(
+                secret_origin_signing_key,
+                SecretOriginSigningKey,
+                "keys/origin-key-valid-20160509190508.sig.key"
+            );
 
-            parse!(service_public_encryption_key,
-                   ServicePublicEncryptionKey,
-                   "keys/service-key-valid.default@acme-20160509181736.pub");
-            parse!(service_secret_encryption_key,
-                   ServiceSecretEncryptionKey,
-                   "keys/service-key-valid.default@acme-20160509181736.box.key");
+            parse!(
+                service_public_encryption_key,
+                ServicePublicEncryptionKey,
+                "keys/service-key-valid.default@acme-20160509181736.pub"
+            );
+            parse!(
+                service_secret_encryption_key,
+                ServiceSecretEncryptionKey,
+                "keys/service-key-valid.default@acme-20160509181736.box.key"
+            );
 
-            parse!(user_public_encryption_key,
-                   UserPublicEncryptionKey,
-                   "keys/ruby-rhod-20200813204159.pub");
-            parse!(user_secret_encryption_key,
-                   UserSecretEncryptionKey,
-                   "keys/ruby-rhod-20200813204159.box.key");
+            parse!(
+                user_public_encryption_key,
+                UserPublicEncryptionKey,
+                "keys/ruby-rhod-20200813204159.pub"
+            );
+            parse!(
+                user_secret_encryption_key,
+                UserSecretEncryptionKey,
+                "keys/ruby-rhod-20200813204159.box.key"
+            );
 
-            parse!(origin_public_encryption_key,
-                   OriginPublicEncryptionKey,
-                   "keys/fhloston-paradise-20200813211603.pub");
-            parse!(origin_secret_encryption_key,
-                   OriginSecretEncryptionKey,
-                   "keys/fhloston-paradise-20200813211603.box.key");
+            parse!(
+                origin_public_encryption_key,
+                OriginPublicEncryptionKey,
+                "keys/fhloston-paradise-20200813211603.pub"
+            );
+            parse!(
+                origin_secret_encryption_key,
+                OriginSecretEncryptionKey,
+                "keys/fhloston-paradise-20200813211603.box.key"
+            );
 
             /// While each of the three kinds of encryption keys
             /// (origin, service, and user) all have their own
@@ -351,19 +376,29 @@ mod tests {
         #[test]
         fn ring_key() {
             let key = RingKey::new("beyonce");
-            assert_eq!(format!("RingKey beyonce-{}", key.named_revision().revision()),
-                       format!("{:?}", key));
+            assert_eq!(
+                format!("RingKey beyonce-{}", key.named_revision().revision()),
+                format!("{:?}", key)
+            );
         }
 
         #[test]
         fn user_keys() {
             let (public, secret) = generate_user_encryption_key_pair("my-user").unwrap();
-            assert_eq!(format!("UserPublicEncryptionKey my-user-{}",
-                               public.named_revision().revision()),
-                       format!("{:?}", public));
-            assert_eq!(format!("UserSecretEncryptionKey my-user-{}",
-                               secret.named_revision().revision()),
-                       format!("{:?}", secret));
+            assert_eq!(
+                format!(
+                    "UserPublicEncryptionKey my-user-{}",
+                    public.named_revision().revision()
+                ),
+                format!("{:?}", public)
+            );
+            assert_eq!(
+                format!(
+                    "UserSecretEncryptionKey my-user-{}",
+                    secret.named_revision().revision()
+                ),
+                format!("{:?}", secret)
+            );
         }
 
         #[test]
@@ -371,12 +406,20 @@ mod tests {
             let origin = "my-origin".parse().unwrap();
             let (public, secret) = generate_origin_encryption_key_pair(&origin).unwrap();
 
-            assert_eq!(format!("OriginPublicEncryptionKey my-origin-{}",
-                               public.named_revision().revision()),
-                       format!("{:?}", public));
-            assert_eq!(format!("OriginSecretEncryptionKey my-origin-{}",
-                               secret.named_revision().revision()),
-                       format!("{:?}", secret));
+            assert_eq!(
+                format!(
+                    "OriginPublicEncryptionKey my-origin-{}",
+                    public.named_revision().revision()
+                ),
+                format!("{:?}", public)
+            );
+            assert_eq!(
+                format!(
+                    "OriginSecretEncryptionKey my-origin-{}",
+                    secret.named_revision().revision()
+                ),
+                format!("{:?}", secret)
+            );
         }
 
         #[test]
@@ -384,24 +427,40 @@ mod tests {
             let (public, secret) =
                 generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
 
-            assert_eq!(format!("ServicePublicEncryptionKey foo.default@my-org-{}",
-                               public.named_revision().revision()),
-                       format!("{:?}", public));
-            assert_eq!(format!("ServiceSecretEncryptionKey foo.default@my-org-{}",
-                               secret.named_revision().revision()),
-                       format!("{:?}", secret));
+            assert_eq!(
+                format!(
+                    "ServicePublicEncryptionKey foo.default@my-org-{}",
+                    public.named_revision().revision()
+                ),
+                format!("{:?}", public)
+            );
+            assert_eq!(
+                format!(
+                    "ServiceSecretEncryptionKey foo.default@my-org-{}",
+                    secret.named_revision().revision()
+                ),
+                format!("{:?}", secret)
+            );
         }
 
         #[test]
         fn signing_keys() {
             let origin = "my-origin".parse().unwrap();
             let (public, secret) = generate_signing_key_pair(&origin).unwrap();
-            assert_eq!(format!("PublicOriginSigningKey my-origin-{}",
-                               public.named_revision().revision()),
-                       format!("{:?}", public));
-            assert_eq!(format!("SecretOriginSigningKey my-origin-{}",
-                               secret.named_revision().revision()),
-                       format!("{:?}", secret));
+            assert_eq!(
+                format!(
+                    "PublicOriginSigningKey my-origin-{}",
+                    public.named_revision().revision()
+                ),
+                format!("{:?}", public)
+            );
+            assert_eq!(
+                format!(
+                    "SecretOriginSigningKey my-origin-{}",
+                    secret.named_revision().revision()
+                ),
+                format!("{:?}", secret)
+            );
         }
     }
 
@@ -414,39 +473,62 @@ mod tests {
         #[test]
         fn filename() {
             let source = "foo-20160504220722".parse::<NamedRevision>().unwrap();
-            let service_source = "redis.default@chef-20160504220722".parse::<NamedRevision>()
-                                                                    .unwrap();
+            let service_source = "redis.default@biome-20160504220722"
+                .parse::<NamedRevision>()
+                .unwrap();
 
-            assert_eq!(RingKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.sym.key"));
+            assert_eq!(
+                RingKey::filename(&source),
+                PathBuf::from("foo-20160504220722.sym.key")
+            );
 
-            assert_eq!(PublicOriginSigningKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(SecretOriginSigningKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.sig.key"));
+            assert_eq!(
+                PublicOriginSigningKey::filename(&source),
+                PathBuf::from("foo-20160504220722.pub")
+            );
+            assert_eq!(
+                SecretOriginSigningKey::filename(&source),
+                PathBuf::from("foo-20160504220722.sig.key")
+            );
 
-            assert_eq!(UserPublicEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(UserSecretEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.box.key"));
+            assert_eq!(
+                UserPublicEncryptionKey::filename(&source),
+                PathBuf::from("foo-20160504220722.pub")
+            );
+            assert_eq!(
+                UserSecretEncryptionKey::filename(&source),
+                PathBuf::from("foo-20160504220722.box.key")
+            );
 
-            assert_eq!(OriginPublicEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(OriginSecretEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.box.key"));
+            assert_eq!(
+                OriginPublicEncryptionKey::filename(&source),
+                PathBuf::from("foo-20160504220722.pub")
+            );
+            assert_eq!(
+                OriginSecretEncryptionKey::filename(&source),
+                PathBuf::from("foo-20160504220722.box.key")
+            );
 
-            assert_eq!(ServicePublicEncryptionKey::filename(&service_source),
-                       PathBuf::from("redis.default@chef-20160504220722.pub"));
-            assert_eq!(ServiceSecretEncryptionKey::filename(&service_source),
-                       PathBuf::from("redis.default@chef-20160504220722.box.key"));
+            assert_eq!(
+                ServicePublicEncryptionKey::filename(&service_source),
+                PathBuf::from("redis.default@biome-20160504220722.pub")
+            );
+            assert_eq!(
+                ServiceSecretEncryptionKey::filename(&service_source),
+                PathBuf::from("redis.default@biome-20160504220722.box.key")
+            );
 
             // NOTE: Nothing yet explicitly prevents a named revision
             // that does not really belong to a service key from being
             // pathed as though it were.
-            assert_eq!(ServicePublicEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.pub"));
-            assert_eq!(ServiceSecretEncryptionKey::filename(&source),
-                       PathBuf::from("foo-20160504220722.box.key"));
+            assert_eq!(
+                ServicePublicEncryptionKey::filename(&source),
+                PathBuf::from("foo-20160504220722.pub")
+            );
+            assert_eq!(
+                ServiceSecretEncryptionKey::filename(&source),
+                PathBuf::from("foo-20160504220722.box.key")
+            );
         }
 
         mod own_filename {
@@ -455,47 +537,65 @@ mod tests {
             #[test]
             fn ring_key() {
                 let key = RingKey::new("beyonce");
-                assert_eq!(PathBuf::from(&format!("{}.sym.key", key.named_revision())),
-                           key.own_filename());
+                assert_eq!(
+                    PathBuf::from(&format!("{}.sym.key", key.named_revision())),
+                    key.own_filename()
+                );
             }
 
             #[test]
             fn user_keys() {
                 let (public, secret) = generate_user_encryption_key_pair("my-user").unwrap();
-                assert_eq!(PathBuf::from(&format!("{}.pub", public.named_revision())),
-                           public.own_filename());
-                assert_eq!(PathBuf::from(&format!("{}.box.key", secret.named_revision())),
-                           secret.own_filename());
+                assert_eq!(
+                    PathBuf::from(&format!("{}.pub", public.named_revision())),
+                    public.own_filename()
+                );
+                assert_eq!(
+                    PathBuf::from(&format!("{}.box.key", secret.named_revision())),
+                    secret.own_filename()
+                );
             }
 
             #[test]
             fn origin_keys() {
                 let origin = "my-origin".parse().unwrap();
                 let (public, secret) = generate_origin_encryption_key_pair(&origin).unwrap();
-                assert_eq!(PathBuf::from(&format!("{}.pub", public.named_revision())),
-                           public.own_filename());
-                assert_eq!(PathBuf::from(&format!("{}.box.key", secret.named_revision())),
-                           secret.own_filename());
+                assert_eq!(
+                    PathBuf::from(&format!("{}.pub", public.named_revision())),
+                    public.own_filename()
+                );
+                assert_eq!(
+                    PathBuf::from(&format!("{}.box.key", secret.named_revision())),
+                    secret.own_filename()
+                );
             }
 
             #[test]
             fn service_keys() {
                 let (public, secret) =
                     generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
-                assert_eq!(PathBuf::from(&format!("{}.pub", public.named_revision())),
-                           public.own_filename());
-                assert_eq!(PathBuf::from(&format!("{}.box.key", secret.named_revision())),
-                           secret.own_filename());
+                assert_eq!(
+                    PathBuf::from(&format!("{}.pub", public.named_revision())),
+                    public.own_filename()
+                );
+                assert_eq!(
+                    PathBuf::from(&format!("{}.box.key", secret.named_revision())),
+                    secret.own_filename()
+                );
             }
 
             #[test]
             fn signing_keys() {
                 let origin = "my-origin".parse().unwrap();
                 let (public, secret) = generate_signing_key_pair(&origin).unwrap();
-                assert_eq!(PathBuf::from(&format!("{}.pub", public.named_revision())),
-                           public.own_filename());
-                assert_eq!(PathBuf::from(&format!("{}.sig.key", secret.named_revision())),
-                           secret.own_filename());
+                assert_eq!(
+                    PathBuf::from(&format!("{}.pub", public.named_revision())),
+                    public.own_filename()
+                );
+                assert_eq!(
+                    PathBuf::from(&format!("{}.sig.key", secret.named_revision())),
+                    secret.own_filename()
+                );
             }
         }
 
@@ -507,12 +607,14 @@ mod tests {
                     #[test]
                     fn $name() {
                         let actual = <$key>::extension();
-                        assert_eq!(actual,
-                                   $extension,
-                                   "Expected {} to have extension '{}', but it was '{}'",
-                                   stringify!($key),
-                                   $extension,
-                                   actual);
+                        assert_eq!(
+                            actual,
+                            $extension,
+                            "Expected {} to have extension '{}', but it was '{}'",
+                            stringify!($key),
+                            $extension,
+                            actual
+                        );
                     }
                 };
             }
@@ -522,24 +624,34 @@ mod tests {
             extension!(public_origin_signing_key, PublicOriginSigningKey, "pub");
             extension!(secret_origin_signing_key, SecretOriginSigningKey, "sig.key");
 
-            extension!(origin_public_encryption_key,
-                       OriginPublicEncryptionKey,
-                       "pub");
-            extension!(origin_secret_encryption_key,
-                       OriginSecretEncryptionKey,
-                       "box.key");
+            extension!(
+                origin_public_encryption_key,
+                OriginPublicEncryptionKey,
+                "pub"
+            );
+            extension!(
+                origin_secret_encryption_key,
+                OriginSecretEncryptionKey,
+                "box.key"
+            );
 
-            extension!(service_public_encryption_key,
-                       ServicePublicEncryptionKey,
-                       "pub");
-            extension!(service_secret_encryption_key,
-                       ServiceSecretEncryptionKey,
-                       "box.key");
+            extension!(
+                service_public_encryption_key,
+                ServicePublicEncryptionKey,
+                "pub"
+            );
+            extension!(
+                service_secret_encryption_key,
+                ServiceSecretEncryptionKey,
+                "box.key"
+            );
 
             extension!(user_public_encryption_key, UserPublicEncryptionKey, "pub");
-            extension!(user_secret_encryption_key,
-                       UserSecretEncryptionKey,
-                       "box.key");
+            extension!(
+                user_secret_encryption_key,
+                UserSecretEncryptionKey,
+                "box.key"
+            );
         }
 
         mod permissions {
@@ -550,45 +662,63 @@ mod tests {
                     #[test]
                     fn $name() {
                         let actual = <$key>::permissions();
-                        assert_eq!(actual,
-                                   $permission,
-                                   "Expected {} to have permission '{:?}', but it was '{:?}'",
-                                   stringify!($key),
-                                   $permission,
-                                   actual);
+                        assert_eq!(
+                            actual,
+                            $permission,
+                            "Expected {} to have permission '{:?}', but it was '{:?}'",
+                            stringify!($key),
+                            $permission,
+                            actual
+                        );
                     }
                 };
             }
 
             permissions!(ring_key, RingKey, crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
 
-            permissions!(user_public_encryption_key,
-                         UserPublicEncryptionKey,
-                         crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS);
-            permissions!(user_secret_encryption_key,
-                         UserSecretEncryptionKey,
-                         crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
+            permissions!(
+                user_public_encryption_key,
+                UserPublicEncryptionKey,
+                crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS
+            );
+            permissions!(
+                user_secret_encryption_key,
+                UserSecretEncryptionKey,
+                crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS
+            );
 
-            permissions!(origin_public_encryption_key,
-                         OriginPublicEncryptionKey,
-                         crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS);
-            permissions!(origin_secret_encryption_key,
-                         OriginSecretEncryptionKey,
-                         crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
+            permissions!(
+                origin_public_encryption_key,
+                OriginPublicEncryptionKey,
+                crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS
+            );
+            permissions!(
+                origin_secret_encryption_key,
+                OriginSecretEncryptionKey,
+                crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS
+            );
 
-            permissions!(service_public_encryption_key,
-                         ServicePublicEncryptionKey,
-                         crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS);
-            permissions!(service_secret_encryption_key,
-                         ServiceSecretEncryptionKey,
-                         crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
+            permissions!(
+                service_public_encryption_key,
+                ServicePublicEncryptionKey,
+                crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS
+            );
+            permissions!(
+                service_secret_encryption_key,
+                ServiceSecretEncryptionKey,
+                crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS
+            );
 
-            permissions!(public_origin_signing_key,
-                         PublicOriginSigningKey,
-                         crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS);
-            permissions!(secret_origin_signing_key,
-                         SecretOriginSigningKey,
-                         crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS);
+            permissions!(
+                public_origin_signing_key,
+                PublicOriginSigningKey,
+                crate::fs::DEFAULT_PUBLIC_KEY_PERMISSIONS
+            );
+            permissions!(
+                secret_origin_signing_key,
+                SecretOriginSigningKey,
+                crate::fs::DEFAULT_SECRET_KEY_PERMISSIONS
+            );
         }
 
         mod version {
@@ -599,45 +729,63 @@ mod tests {
                     #[test]
                     fn $name() {
                         let actual = <$key>::version();
-                        assert_eq!(actual,
-                                   $version,
-                                   "Expected {} to have version '{:?}', but it was '{:?}'",
-                                   stringify!($key),
-                                   $version,
-                                   actual);
+                        assert_eq!(
+                            actual,
+                            $version,
+                            "Expected {} to have version '{:?}', but it was '{:?}'",
+                            stringify!($key),
+                            $version,
+                            actual
+                        );
                     }
                 };
             }
 
             version!(ring_key, RingKey, "SYM-SEC-1");
 
-            version!(public_origin_signing_key,
-                     PublicOriginSigningKey,
-                     "SIG-PUB-1");
-            version!(secret_origin_signing_key,
-                     SecretOriginSigningKey,
-                     "SIG-SEC-1");
+            version!(
+                public_origin_signing_key,
+                PublicOriginSigningKey,
+                "SIG-PUB-1"
+            );
+            version!(
+                secret_origin_signing_key,
+                SecretOriginSigningKey,
+                "SIG-SEC-1"
+            );
 
-            version!(origin_public_encryption_key,
-                     OriginPublicEncryptionKey,
-                     "BOX-PUB-1");
-            version!(origin_secret_encryption_key,
-                     OriginSecretEncryptionKey,
-                     "BOX-SEC-1");
+            version!(
+                origin_public_encryption_key,
+                OriginPublicEncryptionKey,
+                "BOX-PUB-1"
+            );
+            version!(
+                origin_secret_encryption_key,
+                OriginSecretEncryptionKey,
+                "BOX-SEC-1"
+            );
 
-            version!(service_public_encryption_key,
-                     ServicePublicEncryptionKey,
-                     "BOX-PUB-1");
-            version!(service_secret_encryption_key,
-                     ServiceSecretEncryptionKey,
-                     "BOX-SEC-1");
+            version!(
+                service_public_encryption_key,
+                ServicePublicEncryptionKey,
+                "BOX-PUB-1"
+            );
+            version!(
+                service_secret_encryption_key,
+                ServiceSecretEncryptionKey,
+                "BOX-SEC-1"
+            );
 
-            version!(user_public_encryption_key,
-                     UserPublicEncryptionKey,
-                     "BOX-PUB-1");
-            version!(user_secret_encryption_key,
-                     UserSecretEncryptionKey,
-                     "BOX-SEC-1");
+            version!(
+                user_public_encryption_key,
+                UserPublicEncryptionKey,
+                "BOX-PUB-1"
+            );
+            version!(
+                user_secret_encryption_key,
+                UserSecretEncryptionKey,
+                "BOX-SEC-1"
+            );
         }
     }
 }

@@ -1,23 +1,25 @@
-use crate::error::{Error,
-                   Result};
-use std::io::{Error as IoError,
-              Write};
+use crate::error::{Error, Result};
+use std::io::{Error as IoError, Write};
 
 use serde::Serialize;
 use serde_json::Value as Json;
 use tabwriter::TabWriter;
 
 // Returns a library object that implements elastic tabstops
-pub fn tabw() -> TabWriter<Vec<u8>> { TabWriter::new(Vec::new()) }
+pub fn tabw() -> TabWriter<Vec<u8>> {
+    TabWriter::new(Vec::new())
+}
 
 // Format strings with elastic tab stops
 pub fn tabify(mut tw: TabWriter<Vec<u8>>, s: &str) -> Result<String> {
     write!(&mut tw, "{}", s)?;
     tw.flush()?;
     let inner = tw.into_inner().map_err(|e| {
-                                    IoError::new(e.error().kind(),
-                                                 "Unable to flush tabwriter buffer to inner.")
-                                })?;
+        IoError::new(
+            e.error().kind(),
+            "Unable to flush tabwriter buffer to inner.",
+        )
+    })?;
     String::from_utf8(inner).map_err(Error::StringFromUtf8Error)
 }
 

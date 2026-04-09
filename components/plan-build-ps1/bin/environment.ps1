@@ -105,7 +105,7 @@ function Invoke-SetupEnvironmentWrapper {
 # Given that a variable is an aggregate (i.e., PATH-style) variable,
 # return the separator character used to delimit items in the value.
 function __env_aggregate_separator($VarName) {
-    $hint_var = Get-Variable "HAB_ENV_$VarName_TYPE" -ErrorAction SilentlyContinue
+    $hint_var = Get-Variable "BIO_ENV_$VarName_TYPE" -ErrorAction SilentlyContinue
 
     if($hint_var) {
         # Look for user-specified hints first
@@ -134,7 +134,7 @@ function __populate_environment_from_deps {
 
 
     foreach($dep in $dep_array) {
-        $path_to_dep = Get-HabPackagePath $dep.Split("/")[1]
+        $path_to_dep = Get-BioPackagePath $dep.Split("/")[1]
         $dep_ident = (Get-Content "$path_to_dep/IDENT").Trim()
         __populate_environment_from_metafile -Environment $environment -path_to_dep $path_to_dep -dep_ident $dep_ident
     }
@@ -224,7 +224,7 @@ function __push_env($Environment, $VarName, $VarValue, $separator, $ident, $IsPa
     # push_to_path also dedupes the result, this allows us to take
     # $value inputs that are themselves paths, which may have
     # duplicate or blank entries (as is the case with some existing
-    # Habitat metadata files) and this will effectively "clean" them
+    # Biome metadata files) and this will effectively "clean" them
     # for us!
     if($env[$Environment][$VarName]) {
         $current_value=$env[$Environment][$VarName].Value
@@ -268,7 +268,7 @@ function dedupe_path($path, $separator = ";"){
 }
 
 function __env_var_type($VarName) {
-    $hint_var = Get-Variable "HAB_ENV_${VarName}_TYPE" -ErrorAction SilentlyContinue
+    $hint_var = Get-Variable "BIO_ENV_${VarName}_TYPE" -ErrorAction SilentlyContinue
 
     if($hint_var) {
         # Look for user-specified hints first
@@ -278,7 +278,7 @@ function __env_var_type($VarName) {
         'aggregate'
     } else {
         # We know nothing about it; treat it as a primitive
-        Write-Warning "Treating `$$varName as a primitive type. If you would like to change this, add `"HAB_ENV_${VarName}_TYPE='aggregate'`" to your plan."
+        Write-Warning "Treating `$$varName as a primitive type. If you would like to change this, add `"BIO_ENV_${VarName}_TYPE='aggregate'`" to your plan."
         'primitive'
     }
 }
@@ -405,7 +405,7 @@ function Get-RuntimePath() {
             # Backwards Compatibility: If `PATH` can't be found, then attempt to fall
             # back to looking in an existing `RUNTIME_ENVIRONMENT` metadata file for
             # a `PATH` entry. This is necessary for packages created using a release
-            # of Habitat between 0.53.0 (released 2018-02-05) and up to including
+            # of Biome between 0.53.0 (released 2018-02-05) and up to including
             # 0.55.0 (released 2018-03-20).
             $strippedPrefix = Get-UnrootedPath $dep_prefix
 
@@ -437,7 +437,7 @@ function Write-EnvironmentFiles {
         "$runtime_path" | Out-File "$pkg_prefix\RUNTIME_PATH" -Encoding ascii
 
         # Backwards Compatibility: Set the `PATH` key for the runtime environment
-        # if a computed runtime path is necessary which will be used by Habitat
+        # if a computed runtime path is necessary which will be used by Biome
         # releases between 0.53.0 (released 2018-02-05) and up to including
         # 0.55.0 (released 2018-03-20). All future releases will ignore the
         # `PATH` entry in favor of using the `RUNTIME_PATH` metadata file.

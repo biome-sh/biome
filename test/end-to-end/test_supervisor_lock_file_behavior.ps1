@@ -1,15 +1,15 @@
 Add-Type -TypeDefinition (Get-Content "$PSScriptroot/../../.expeditor/scripts/end_to_end/SupervisorRunner.cs" | Out-String)
 
 # Download the dependencies first to prevent timing issues, long timeouts, etc.
-hab pkg install chef/hab-sup --channel="${env:HAB_BLDR_CHANNEL}"
-hab pkg install chef/hab-launcher --channel="${env:HAB_BLDR_CHANNEL}"
+bio pkg install biome/bio-sup --channel="${env:BIO_BLDR_CHANNEL}"
+bio pkg install biome/bio-launcher --channel="${env:BIO_BLDR_CHANNEL}"
 
-# Write the given content to `/hab/sup/default/LOCK`
+# Write the given content to `/bio/sup/default/LOCK`
 function Write-Lockfile($content) {
     # Ensure the directory path is present first
-    New-Item -ItemType Directory -Path "/hab/sup/default" -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Path "/bio/sup/default" -ErrorAction SilentlyContinue
     # Write the contents to the lock file path
-    $content | Out-File "/hab/sup/default/LOCK"
+    $content | Out-File "/bio/sup/default/LOCK"
 }
 
 # Find a PID that doesn't correspond to an actual process; if things go wrong,

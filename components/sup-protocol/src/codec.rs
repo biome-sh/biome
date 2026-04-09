@@ -40,24 +40,20 @@
 //! Contains the actual payload of the message encoded using Google
 //! [Protobuf 2](https://developers.google.com/protocol-buffers/docs/reference/proto2-spec).
 
-use crate::{message::MessageStatic,
-            net::{NetErr,
-                  NetResult}};
-use bytes::{Buf,
-            BufMut,
-            Bytes,
-            BytesMut};
-use habitat_core::tls::rustls_wrapper::TcpOrTlsStream;
+use crate::{
+    message::MessageStatic,
+    net::{NetErr, NetResult},
+};
+use biome_core::tls::rustls_wrapper::TcpOrTlsStream;
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 use log::trace;
-use prost::{self,
-            Message};
-use std::{fmt,
-          io::{self,
-               Cursor},
-          str};
-use tokio_util::codec::{Decoder,
-                        Encoder,
-                        Framed};
+use prost::{self, Message};
+use std::{
+    fmt,
+    io::{self, Cursor},
+    str,
+};
+use tokio_util::codec::{Decoder, Encoder, Framed};
 
 const BODY_LEN_MASK: u32 = 0xF_FFFF;
 const HEADER_LEN: usize = 4;
@@ -86,7 +82,9 @@ pub struct SrvTxn(TxnId);
 
 impl SrvTxn {
     /// The contained transaction ID.
-    pub fn id(self) -> TxnId { self.0 & TXN_ID_MASK }
+    pub fn id(self) -> TxnId {
+        self.0 & TXN_ID_MASK
+    }
 
     /// Update the transaction ID to the next valid value.
     pub fn increment(&mut self) {
@@ -97,31 +95,43 @@ impl SrvTxn {
     }
 
     /// Check if this transaction represents the last message in a transaction.
-    pub fn is_complete(self) -> bool { ((self.0 >> COMPLETE_OFFSET) & COMPLETE_MASK) == 1 }
+    pub fn is_complete(self) -> bool {
+        ((self.0 >> COMPLETE_OFFSET) & COMPLETE_MASK) == 1
+    }
 
     /// Check if this transaction represents a reply to a request.
-    pub fn is_response(self) -> bool { ((self.0 >> RESPONSE_OFFSET) & RESPONSE_MASK) == 1 }
+    pub fn is_response(self) -> bool {
+        ((self.0 >> RESPONSE_OFFSET) & RESPONSE_MASK) == 1
+    }
 
     /// Set the completion bit indicating that the message this transaction is associated with is
     /// the last reply to a transactional request.
-    pub fn set_complete(&mut self) { self.0 |= 1 << COMPLETE_OFFSET; }
+    pub fn set_complete(&mut self) {
+        self.0 |= 1 << COMPLETE_OFFSET;
+    }
 
     /// Set the response bit indicating that the message this transaction is associated with is
     /// a response to transactional request.
-    pub fn set_response(&mut self) { self.0 |= 1 << RESPONSE_OFFSET; }
+    pub fn set_response(&mut self) {
+        self.0 |= 1 << RESPONSE_OFFSET;
+    }
 }
 
 impl From<TxnId> for SrvTxn {
-    fn from(value: TxnId) -> Self { SrvTxn(value) }
+    fn from(value: TxnId) -> Self {
+        SrvTxn(value)
+    }
 }
 
 impl fmt::Debug for SrvTxn {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "SrvTxn[id: {}, is_complete: {}, is_response: {}]",
-               self.id(),
-               self.is_complete(),
-               self.is_response(),)
+        write!(
+            f,
+            "SrvTxn[id: {}, is_complete: {}, is_response: {}]",
+            self.id(),
+            self.is_complete(),
+            self.is_response(),
+        )
     }
 }
 
@@ -132,17 +142,23 @@ pub struct SrvHeader(u32);
 
 impl SrvHeader {
     pub fn new(body_len: u32, message_id_len: u32, is_txn: bool) -> Self {
-        assert!(message_id_len <= MESSAGE_ID_MASK,
-                "cannot construct message with message-id length larger than MESSAGE_ID_MASK");
-        assert!(body_len <= BODY_LEN_MASK,
-                "cannot construct message with body length larger than BODY_LEN_MASK");
+        assert!(
+            message_id_len <= MESSAGE_ID_MASK,
+            "cannot construct message with message-id length larger than MESSAGE_ID_MASK"
+        );
+        assert!(
+            body_len <= BODY_LEN_MASK,
+            "cannot construct message with body length larger than BODY_LEN_MASK"
+        );
         let txn_value = if is_txn { 1 } else { 0 };
         let value = (txn_value << TXN_OFFSET) | (message_id_len << MESSAGE_ID_OFFSET) | body_len;
         SrvHeader(value)
     }
 
     #[inline]
-    pub fn body_len(self) -> usize { (self.0 & BODY_LEN_MASK) as usize }
+    pub fn body_len(self) -> usize {
+        (self.0 & BODY_LEN_MASK) as usize
+    }
 
     #[inline]
     pub fn message_id_len(self) -> usize {
@@ -160,20 +176,26 @@ impl SrvHeader {
 
     /// Set the presence of the transaction frame of this message.
     #[inline]
-    pub fn set_is_transaction(&mut self) { self.0 |= 1 << TXN_OFFSET; }
+    pub fn set_is_transaction(&mut self) {
+        self.0 |= 1 << TXN_OFFSET;
+    }
 }
 
 impl From<u32> for SrvHeader {
-    fn from(value: u32) -> Self { SrvHeader(value) }
+    fn from(value: u32) -> Self {
+        SrvHeader(value)
+    }
 }
 
 impl fmt::Debug for SrvHeader {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "SrvHeader[body_len: {}, message_id_len: {}, is_txn: {}]",
-               self.body_len(),
-               self.message_id_len(),
-               self.is_transaction())
+        write!(
+            f,
+            "SrvHeader[body_len: {}, message_id_len: {}, is_txn: {}]",
+            self.body_len(),
+            self.message_id_len(),
+            self.is_transaction()
+        )
     }
 }
 
@@ -182,18 +204,22 @@ impl fmt::Debug for SrvHeader {
 #[must_use]
 #[derive(Clone)]
 pub struct SrvMessage {
-    header:      SrvHeader,
+    header: SrvHeader,
     transaction: Option<SrvTxn>,
-    message_id:  String,
-    body:        Bytes,
+    message_id: String,
+    body: Bytes,
 }
 
 impl SrvMessage {
     /// Returns a reference to the encoded bytes of the protocol message.
-    fn body(&self) -> &[u8] { &self.body }
+    fn body(&self) -> &[u8] {
+        &self.body
+    }
 
     /// Returns the header frame of the protocol message.
-    fn header(&self) -> SrvHeader { self.header }
+    fn header(&self) -> SrvHeader {
+        self.header
+    }
 
     /// Returns true if the message is non-transactional or if the message is transactional and
     /// if this message is the last in a message stream. Returns false if this is not the last
@@ -206,10 +232,14 @@ impl SrvMessage {
     }
 
     /// Returns true if the message is transactional.
-    pub fn is_transaction(&self) -> bool { self.transaction.is_some() }
+    pub fn is_transaction(&self) -> bool {
+        self.transaction.is_some()
+    }
 
     /// Returns a reference to the message ID of the encoded protobuf for this protocol message.
-    pub fn message_id(&self) -> &str { &self.message_id }
+    pub fn message_id(&self) -> &str {
+        &self.message_id
+    }
 
     /// Attempts to parse the message as the given type `T`. You can use `message_id()` as a hint
     /// to which type to use as type `T`.
@@ -217,16 +247,17 @@ impl SrvMessage {
     /// # Example
     ///
     /// ```
-    /// # use habitat_sup_protocol::message::MessageStatic;
-    /// # use habitat_sup_protocol::codec::SrvMessage;
-    /// # use habitat_sup_protocol::net;
+    /// # use biome_sup_protocol::message::MessageStatic;
+    /// # use biome_sup_protocol::codec::SrvMessage;
+    /// # use biome_sup_protocol::net;
     /// # let m = SrvMessage::from(net::NetErr::default());
     /// if m.message_id() == net::NetErr::MESSAGE_ID {
     ///     let msg = m.parse::<net::NetErr>().unwrap();
     /// }
     /// ```
     pub fn parse<T>(&self) -> Result<T, prost::DecodeError>
-        where T: Message + MessageStatic + Default
+    where
+        T: Message + MessageStatic + Default,
     {
         T::decode(self.body())
     }
@@ -253,7 +284,9 @@ impl SrvMessage {
     }
 
     /// Returns the transaction.
-    pub fn transaction(&self) -> Option<SrvTxn> { self.transaction }
+    pub fn transaction(&self) -> Option<SrvTxn> {
+        self.transaction
+    }
 
     /// Set a transaction to the given message.
     pub fn set_transaction(&mut self, txn: SrvTxn) {
@@ -275,23 +308,29 @@ impl SrvMessage {
 
 impl fmt::Debug for SrvMessage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "{:?}, {:?}, {:?}",
-               self.header, self.transaction, self.message_id)
+        write!(
+            f,
+            "{:?}, {:?}, {:?}",
+            self.header, self.transaction, self.message_id
+        )
     }
 }
 
-impl<T> From<T> for SrvMessage where T: Message + MessageStatic
+impl<T> From<T> for SrvMessage
+where
+    T: Message + MessageStatic,
 {
     fn from(msg: T) -> Self {
         let mut buf = BytesMut::with_capacity(msg.encoded_len());
         msg.encode(&mut buf).unwrap();
         let body = buf.freeze();
         let message_id = T::MESSAGE_ID.to_string();
-        SrvMessage { header: SrvHeader::new(body.len() as u32, message_id.len() as u32, false),
-                     transaction: None,
-                     message_id,
-                     body }
+        SrvMessage {
+            header: SrvHeader::new(body.len() as u32, message_id.len() as u32, false),
+            transaction: None,
+            message_id,
+            body,
+        }
     }
 }
 
@@ -303,7 +342,11 @@ pub struct SrvCodec {
 
 impl SrvCodec {
     /// Creates a new `SrvCodec` for shipping around `SrvMessage`s.
-    pub fn new() -> SrvCodec { SrvCodec { recv_buf: vec![0; BODY_LEN_MASK as usize], } }
+    pub fn new() -> SrvCodec {
+        SrvCodec {
+            recv_buf: vec![0; BODY_LEN_MASK as usize],
+        }
+    }
 }
 
 impl Decoder for SrvCodec {
@@ -334,20 +377,22 @@ impl Decoder for SrvCodec {
             return Ok(None);
         }
         buf.copy_to_slice(&mut self.recv_buf[0..header.message_id_len()]);
-        let message_id = str::from_utf8(&self.recv_buf[0..header.message_id_len()]).map_err(|e| {
-                             trace!("  -> Invalid message data: {}", e);
-                             io::Error::new(io::ErrorKind::InvalidData, e)
-                         })?
-                         .to_string();
+        let message_id = str::from_utf8(&self.recv_buf[0..header.message_id_len()])
+            .map_err(|e| {
+                trace!("  -> Invalid message data: {}", e);
+                io::Error::new(io::ErrorKind::InvalidData, e)
+            })?
+            .to_string();
         buf.copy_to_slice(&mut self.recv_buf[0..header.body_len()]);
         let position = buf.position() as usize;
         let bytes = buf.into_inner();
         bytes.advance(position);
-        Ok(Some(SrvMessage { header,
-                             transaction: txn,
-                             message_id,
-                             body:
-                                 Bytes::copy_from_slice(&self.recv_buf[0..header.body_len()]) }))
+        Ok(Some(SrvMessage {
+            header,
+            transaction: txn,
+            message_id,
+            body: Bytes::copy_from_slice(&self.recv_buf[0..header.body_len()]),
+        }))
     }
 }
 
@@ -419,17 +464,23 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn test_body_len_overflow() { SrvHeader::new(BODY_LEN_MASK + 1, 0, true); }
+    fn test_body_len_overflow() {
+        SrvHeader::new(BODY_LEN_MASK + 1, 0, true);
+    }
 
     #[test]
     #[should_panic]
-    fn test_message_id_len_overflow() { SrvHeader::new(0, MESSAGE_ID_MASK + 1, true); }
+    fn test_message_id_len_overflow() {
+        SrvHeader::new(0, MESSAGE_ID_MASK + 1, true);
+    }
 
     #[test]
     fn test_codec() {
         let mut codec = SrvCodec::new();
-        let inner = net::NetErr { code: net::ErrCode::NotFound as i32,
-                                  msg:  "this".to_string(), };
+        let inner = net::NetErr {
+            code: net::ErrCode::NotFound as i32,
+            msg: "this".to_string(),
+        };
         let msg = SrvMessage::from(inner);
         let mut buf = BytesMut::new();
         codec.encode(msg.clone(), &mut buf).unwrap();

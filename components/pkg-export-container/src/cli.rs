@@ -1,40 +1,41 @@
-use crate::{RegistryType,
-            VERSION,
-            engine};
-use clap::{Arg,
-           ArgAction,
-           Command,
-           builder::Str,
-           value_parser};
-use habitat_common::{PROGRAM_NAME,
-                     cli::clap_validators::{HabPackageInstallSourceValueParser,
-                                            UrlValueParser},
-                     consts::{DEFAULT_HAB_LAUNCHER_PKG_IDENT,
-                              DEFAULT_HAB_PKG_IDENT,
-                              DEFAULT_HAB_SUP_PKG_IDENT}};
-use habitat_core::url::default_bldr_url;
+use crate::{RegistryType, VERSION, engine};
+use biome_common::{
+    PROGRAM_NAME,
+    cli::clap_validators::{BioPackageInstallSourceValueParser, UrlValueParser},
+    consts::{DEFAULT_BIO_LAUNCHER_PKG_IDENT, DEFAULT_BIO_PKG_IDENT, DEFAULT_BIO_SUP_PKG_IDENT},
+};
+use biome_core::url::default_bldr_url;
+use clap::{Arg, ArgAction, Command, builder::Str, value_parser};
 
 /// Create the Clap CLI for the container exporter
 pub(crate) fn cli() -> Command {
     let name: &str = &PROGRAM_NAME;
-    let about = "Creates a container image from a set of Habitat packages (and optionally pushes \
+    let about = "Creates a container image from a set of Biome packages (and optionally pushes \
                  to a remote repository)";
 
-    let cmd = Command::new(name).max_term_width(120)
-                                .about(about)
-                                .version(VERSION)
-                                .author("\nAuthors: The Habitat Maintainers <humans@habitat.sh>")
-                                .help_template("{name} {version} {author-section} {about-section} \
-                                                \n{usage-heading} {usage}\n\n{all-args}")
-                                .arg(Arg::new("IMAGE_NAME").long("image-name")
-                                                           .short('i')
-                                                           .value_name("IMAGE_NAME")
-                                                           .help("Image name template: supports \
+    let cmd = Command::new(name)
+        .max_term_width(120)
+        .about(about)
+        .version(VERSION)
+        .author("\nAuthors: The Biome Maintainers <humans@biome.sh>")
+        .help_template(
+            "{name} {version} {author-section} {about-section} \
+                                                \n{usage-heading} {usage}\n\n{all-args}",
+        )
+        .arg(
+            Arg::new("IMAGE_NAME")
+                .long("image-name")
+                .short('i')
+                .value_name("IMAGE_NAME")
+                .help(
+                    "Image name template: supports \
                                                                   {{pkg_origin}}, {{pkg_name}}, \
                                                                   {{pkg_version}}, \
                                                                   {{pkg_release}}, {{channel}} \
                                                                   variables. [default template: \
-                                                                  {{pkg_origin}}/{{pkg_name}}]"));
+                                                                  {{pkg_origin}}/{{pkg_name}}]",
+                ),
+        );
 
     let cmd = add_base_packages_args(cmd);
     let cmd = add_builder_args(cmd);
@@ -54,212 +55,271 @@ pub(crate) fn cli() -> Command {
 
 fn add_base_packages_args(cmd: Command) -> Command {
     cmd.arg(
-        Arg::new("HAB_PKG")
-            .long("hab-pkg")
-            .value_name("HAB_PKG")
-            .default_value(DEFAULT_HAB_PKG_IDENT)
-            .value_parser(HabPackageInstallSourceValueParser)
+        Arg::new("BIO_PKG")
+            .long("bio-pkg")
+            .value_name("BIO_PKG")
+            .default_value(DEFAULT_BIO_PKG_IDENT)
+            .value_parser(BioPackageInstallSourceValueParser)
             .help(
-                "Habitat CLI package identifier (ex: chef/hab) or filepath to a Habitat \
-                         artifact (ex: /home/chef-hab-2.0.100-20250416101002-x86_64-linux.hart) \
+                "Biome CLI package identifier (ex: biome/bio) or filepath to a Biome \
+                         artifact (ex: /home/biome-bio-2.0.100-20250416101002-x86_64-linux.hart) \
                          to install",
             ),
     )
     .arg(
-        Arg::new("HAB_LAUNCHER_PKG")
+        Arg::new("BIO_LAUNCHER_PKG")
             .long("launcher-pkg")
-            .value_name("HAB_LAUNCHER_PKG")
-            .default_value(DEFAULT_HAB_LAUNCHER_PKG_IDENT)
-            .value_parser(HabPackageInstallSourceValueParser)
+            .value_name("BIO_LAUNCHER_PKG")
+            .default_value(DEFAULT_BIO_LAUNCHER_PKG_IDENT)
+            .value_parser(BioPackageInstallSourceValueParser)
             .help(
-                "Launcher package identifier (ex: chef/hab-launcher) or filepath to a \
-                         Habitat artifact (ex: \
-                         /home/chef-hab-launcher-19633-20250610094807-x86_64-linux.hart) to \
+                "Launcher package identifier (ex: biome/bio-launcher) or filepath to a \
+                         Biome artifact (ex: \
+                         /home/biome-bio-launcher-19633-20250610094807-x86_64-linux.hart) to \
                          install",
             ),
     )
     .arg(
-        Arg::new("HAB_SUP_PKG")
+        Arg::new("BIO_SUP_PKG")
             .long("sup-pkg")
-            .value_name("HAB_SUP_PKG")
-            .default_value(DEFAULT_HAB_SUP_PKG_IDENT)
-            .value_parser(HabPackageInstallSourceValueParser)
+            .value_name("BIO_SUP_PKG")
+            .default_value(DEFAULT_BIO_SUP_PKG_IDENT)
+            .value_parser(BioPackageInstallSourceValueParser)
             .help(
-                "Supervisor package identifier (ex: chef/hab-sup) or filepath to a \
-                 Habitat artifact (ex: \
-                 /home/chef-hab-sup-2.0.134-20250610093735-x86_64-linux.hart) to install",
+                "Supervisor package identifier (ex: biome/bio-sup) or filepath to a \
+                 Biome artifact (ex: \
+                 /home/biome-bio-sup-2.0.134-20250610093735-x86_64-linux.hart) to install",
             ),
     )
 }
 
 fn add_builder_args(cmd: Command) -> Command {
-    cmd.arg(Arg::new("BLDR_URL").long("url")
-                                .short('u')
-                                .value_name("BLDR_URL")
-                                .default_value(Into::<Str>::into(default_bldr_url()))
-                                .value_parser(UrlValueParser)
-                                .help("Install packages from Builder at the specified URL"))
-       .arg(Arg::new("CHANNEL").long("channel")
-                               .short('c')
-                               .value_name("CHANNEL")
-                               .default_value("stable")
-                               .help("Install packages from the specified release channel"))
-       .arg(Arg::new("BASE_PKGS_BLDR_URL").long("base-pkgs-url")
-                                          .value_name("BASE_PKGS_BLDR_URL")
-                                          .default_value(Into::<Str>::into(default_bldr_url()))
-                                          .value_parser(UrlValueParser)
-                                          .help("Install base packages from Builder at the \
-                                                 specified URL"))
-       .arg(Arg::new("BASE_PKGS_CHANNEL").long("base-pkgs-channel")
-                                         .value_name("BASE_PKGS_CHANNEL")
-                                         .default_value("stable")
-                                         .help("Install base packages from the specified release"))
-       .arg(Arg::new("BLDR_AUTH_TOKEN").long("auth")
-                                       .short('z')
-                                       .value_name("BLDR_AUTH_TOKEN")
-                                       .env("HAB_AUTH_TOKEN")
-                                       .hide_env_values(true)
-                                       .help("Provide a Builder auth token for private pkg export"))
+    cmd.arg(
+        Arg::new("BLDR_URL")
+            .long("url")
+            .short('u')
+            .value_name("BLDR_URL")
+            .default_value(Into::<Str>::into(default_bldr_url()))
+            .value_parser(UrlValueParser)
+            .help("Install packages from Builder at the specified URL"),
+    )
+    .arg(
+        Arg::new("CHANNEL")
+            .long("channel")
+            .short('c')
+            .value_name("CHANNEL")
+            .default_value("stable")
+            .help("Install packages from the specified release channel"),
+    )
+    .arg(
+        Arg::new("BASE_PKGS_BLDR_URL")
+            .long("base-pkgs-url")
+            .value_name("BASE_PKGS_BLDR_URL")
+            .default_value(Into::<Str>::into(default_bldr_url()))
+            .value_parser(UrlValueParser)
+            .help(
+                "Install base packages from Builder at the \
+                                                 specified URL",
+            ),
+    )
+    .arg(
+        Arg::new("BASE_PKGS_CHANNEL")
+            .long("base-pkgs-channel")
+            .value_name("BASE_PKGS_CHANNEL")
+            .default_value("stable")
+            .help("Install base packages from the specified release"),
+    )
+    .arg(
+        Arg::new("BLDR_AUTH_TOKEN")
+            .long("auth")
+            .short('z')
+            .value_name("BLDR_AUTH_TOKEN")
+            .env("BIO_AUTH_TOKEN")
+            .hide_env_values(true)
+            .help("Provide a Builder auth token for private pkg export"),
+    )
 }
 
 fn add_tagging_args(cmd: Command) -> Command {
-    cmd.arg(Arg::new("TAG_VERSION_RELEASE").long("tag-version-release")
-                                           .conflicts_with("NO_TAG_VERSION_RELEASE")
-                                           .action(ArgAction::SetTrue)
-                                           .help("Tag image with \
-                                                  :\"{{pkg_version}}-{{pkg_release}}\""))
-       .arg(Arg::new("NO_TAG_VERSION_RELEASE").long("no-tag-version-release")
-                                              .conflicts_with("TAG_VERSION_RELEASE")
-                                              .action(ArgAction::SetTrue)
-                                              .help("Do not tag image with \
-                                                     :\"{{pkg_version}}-{{pkg_release}}\""))
-       .arg(Arg::new("TAG_VERSION").long("tag-version")
-                                   .conflicts_with("NO_TAG_VERSION")
-                                   .action(ArgAction::SetTrue)
-                                   .help("Tag image with :\"{{pkg_version}}\""))
-       .arg(Arg::new("NO_TAG_VERSION").long("no-tag-version")
-                                      .conflicts_with("TAG_VERSION")
-                                      .action(ArgAction::SetTrue)
-                                      .help("Do not tag image with :\"{{pkg_version}}\""))
-       .arg(Arg::new("TAG_LATEST").long("tag-latest")
-                                  .conflicts_with("NO_TAG_LATEST")
-                                  .action(ArgAction::SetTrue)
-                                  .help("Tag image with :\"latest\""))
-       .arg(Arg::new("NO_TAG_LATEST").long("no-tag-latest")
-                                     .conflicts_with("TAG_LATEST")
-                                     .action(ArgAction::SetTrue)
-                                     .help("Do not tag image with :\"latest\""))
-       .arg(Arg::new("TAG_CUSTOM").long("tag-custom")
-                                  .value_name("TAG_CUSTOM")
-                                  .help("Tag image with additional custom tag (supports: \
+    cmd.arg(
+        Arg::new("TAG_VERSION_RELEASE")
+            .long("tag-version-release")
+            .conflicts_with("NO_TAG_VERSION_RELEASE")
+            .action(ArgAction::SetTrue)
+            .help(
+                "Tag image with \
+                                                  :\"{{pkg_version}}-{{pkg_release}}\"",
+            ),
+    )
+    .arg(
+        Arg::new("NO_TAG_VERSION_RELEASE")
+            .long("no-tag-version-release")
+            .conflicts_with("TAG_VERSION_RELEASE")
+            .action(ArgAction::SetTrue)
+            .help(
+                "Do not tag image with \
+                                                     :\"{{pkg_version}}-{{pkg_release}}\"",
+            ),
+    )
+    .arg(
+        Arg::new("TAG_VERSION")
+            .long("tag-version")
+            .conflicts_with("NO_TAG_VERSION")
+            .action(ArgAction::SetTrue)
+            .help("Tag image with :\"{{pkg_version}}\""),
+    )
+    .arg(
+        Arg::new("NO_TAG_VERSION")
+            .long("no-tag-version")
+            .conflicts_with("TAG_VERSION")
+            .action(ArgAction::SetTrue)
+            .help("Do not tag image with :\"{{pkg_version}}\""),
+    )
+    .arg(
+        Arg::new("TAG_LATEST")
+            .long("tag-latest")
+            .conflicts_with("NO_TAG_LATEST")
+            .action(ArgAction::SetTrue)
+            .help("Tag image with :\"latest\""),
+    )
+    .arg(
+        Arg::new("NO_TAG_LATEST")
+            .long("no-tag-latest")
+            .conflicts_with("TAG_LATEST")
+            .action(ArgAction::SetTrue)
+            .help("Do not tag image with :\"latest\""),
+    )
+    .arg(
+        Arg::new("TAG_CUSTOM")
+            .long("tag-custom")
+            .value_name("TAG_CUSTOM")
+            .help(
+                "Tag image with additional custom tag (supports: \
                                          {{pkg_origin}}, {{pkg_name}}, {{pkg_version}}, \
-                                         {{pkg_release}}, {{channel}})"))
+                                         {{pkg_release}}, {{channel}})",
+            ),
+    )
 }
 
 fn add_publishing_args(cmd: Command) -> Command {
-    cmd.arg(Arg::new("PUSH_IMAGE")
-                    .long("push-image")
-                    .conflicts_with("NO_PUSH_IMAGE")
-                    .requires_all(["REGISTRY_USERNAME", "REGISTRY_PASSWORD"])
-                    .action(ArgAction::SetTrue)
-                    .help("Push image to remote registry (default: no)"),
-            )
-            .arg(
-                Arg::new("NO_PUSH_IMAGE")
-                    .long("no-push-image")
-                    .conflicts_with("PUSH_IMAGE")
-                    .action(ArgAction::SetTrue)
-                    .help("Do not push image to remote registry (default: yes)"),
-            )
-            .arg(
-                Arg::new("REGISTRY_USERNAME")
-                    .long("username")
-                    .short('U')
-                    .value_name("REGISTRY_USERNAME")
-                    .requires("REGISTRY_PASSWORD")
-                    .help(
-                        "Remote registry username, required for pushing image to remote registry",
-                    ),
-            )
-            .arg(
-                Arg::new("REGISTRY_PASSWORD")
-                    .long("password")
-                    .short('P')
-                    .value_name("REGISTRY_PASSWORD")
-                    .requires("REGISTRY_USERNAME")
-                    .help(
-                        "Remote registry password, required for pushing image to remote registry",
-                    ),
-            )
-            .arg(
-                Arg::new("REGISTRY_TYPE")
-                    .value_parser(value_parser!(RegistryType))
-                    .long("registry-type")
-                    .short('R')
-                    .value_name("REGISTRY_TYPE")
-                    .default_value("docker")
-                    .help("Remote registry type (default: docker)"),
-            )
-            .arg(
-                Arg::new("REGISTRY_URL")
-                    // This is not strictly a requirement but will keep someone from
-                    // making a mistake when inputing an ECR URL
-                    .required_if_eq("REGISTRY_TYPE", "amazon")
-                    .required_if_eq("REGISTRY_TYPE", "azure")
-                    .long("registry-url")
-                    .short('G')
-                    .value_name("REGISTRY_URL")
-                    .help("Remote registry url"),
-            )
-            // Cleanup
-            .arg(
-                Arg::new("RM_IMAGE")
-                    .long("rm-image")
-                    .action(ArgAction::SetTrue)
-                    .help("Remove local image from engine after build and/or push (default: no)"),
-            )
+    cmd.arg(
+        Arg::new("PUSH_IMAGE")
+            .long("push-image")
+            .conflicts_with("NO_PUSH_IMAGE")
+            .requires_all(["REGISTRY_USERNAME", "REGISTRY_PASSWORD"])
+            .action(ArgAction::SetTrue)
+            .help("Push image to remote registry (default: no)"),
+    )
+    .arg(
+        Arg::new("NO_PUSH_IMAGE")
+            .long("no-push-image")
+            .conflicts_with("PUSH_IMAGE")
+            .action(ArgAction::SetTrue)
+            .help("Do not push image to remote registry (default: yes)"),
+    )
+    .arg(
+        Arg::new("REGISTRY_USERNAME")
+            .long("username")
+            .short('U')
+            .value_name("REGISTRY_USERNAME")
+            .requires("REGISTRY_PASSWORD")
+            .help("Remote registry username, required for pushing image to remote registry"),
+    )
+    .arg(
+        Arg::new("REGISTRY_PASSWORD")
+            .long("password")
+            .short('P')
+            .value_name("REGISTRY_PASSWORD")
+            .requires("REGISTRY_USERNAME")
+            .help("Remote registry password, required for pushing image to remote registry"),
+    )
+    .arg(
+        Arg::new("REGISTRY_TYPE")
+            .value_parser(value_parser!(RegistryType))
+            .long("registry-type")
+            .short('R')
+            .value_name("REGISTRY_TYPE")
+            .default_value("docker")
+            .help("Remote registry type (default: docker)"),
+    )
+    .arg(
+        Arg::new("REGISTRY_URL")
+            // This is not strictly a requirement but will keep someone from
+            // making a mistake when inputing an ECR URL
+            .required_if_eq("REGISTRY_TYPE", "amazon")
+            .required_if_eq("REGISTRY_TYPE", "azure")
+            .long("registry-url")
+            .short('G')
+            .value_name("REGISTRY_URL")
+            .help("Remote registry url"),
+    )
+    // Cleanup
+    .arg(
+        Arg::new("RM_IMAGE")
+            .long("rm-image")
+            .action(ArgAction::SetTrue)
+            .help("Remove local image from engine after build and/or push (default: no)"),
+    )
 }
 
 fn add_pkg_ident_arg(cmd: Command) -> Command {
-    let help = "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a \
-                Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)";
+    let help = "One or more Biome package identifiers (ex: acme/redis) and/or filepaths to a \
+                Biome Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)";
 
-    cmd.arg(Arg::new("PKG_IDENT_OR_ARTIFACT").value_name("PKG_IDENT_OR_ARTIFACT")
-                                             .required(true)
-                                             .num_args(1..)
-                                             .help(help))
+    cmd.arg(
+        Arg::new("PKG_IDENT_OR_ARTIFACT")
+            .value_name("PKG_IDENT_OR_ARTIFACT")
+            .required(true)
+            .num_args(1..)
+            .help(help),
+    )
 }
 
 fn add_memory_arg(cmd: Command) -> Command {
-    cmd.arg(Arg::new("MEMORY_LIMIT").value_name("MEMORY_LIMIT")
-                                    .long("memory")
-                                    .short('m')
-                                    .help("Memory limit passed to docker build's --memory arg \
-                                           (ex: 2gb)"))
+    cmd.arg(
+        Arg::new("MEMORY_LIMIT")
+            .value_name("MEMORY_LIMIT")
+            .long("memory")
+            .short('m')
+            .help(
+                "Memory limit passed to docker build's --memory arg \
+                                           (ex: 2gb)",
+            ),
+    )
 }
 
 fn add_base_image_arg(cmd: Command) -> Command {
-    cmd.arg(Arg::new("BASE_IMAGE").value_name("BASE_IMAGE")
-                                  .long("base-image")
-                                  .help("Base image of the final exported image --base-image \
-                                         mcr.microsoft.com/windows/servercore:ltsc2019"))
+    cmd.arg(
+        Arg::new("BASE_IMAGE")
+            .value_name("BASE_IMAGE")
+            .long("base-image")
+            .help(
+                "Base image of the final exported image --base-image \
+                                         mcr.microsoft.com/windows/servercore:ltsc2019",
+            ),
+    )
 }
 
 fn add_layer_arg(cmd: Command) -> Command {
-    cmd.arg(Arg::new("MULTI_LAYER").value_name("MULTI_LAYER")
-                                   .long("multi-layer")
-                                   .required(false)
-                                   .action(ArgAction::SetTrue)
-                                   .help("If specified, creates an image where each Habitat \
+    cmd.arg(
+        Arg::new("MULTI_LAYER")
+            .value_name("MULTI_LAYER")
+            .long("multi-layer")
+            .required(false)
+            .action(ArgAction::SetTrue)
+            .help(
+                "If specified, creates an image where each Biome \
                                           package is added in its own layer, in dependency order \
                                           (that is, low-level dependencies are added first, with \
                                           user packages added last). This will allow for \
                                           reusable layers, reducing storage and network \
                                           transmission costs. If the resulting image cannot be \
                                           built because there are too many layers, re-build \
-                                          without specifying this option to add all Habitat \
+                                          without specifying this option to add all Biome \
                                           packages in a single layer (which is the default \
-                                          behavior)."))
+                                          behavior).",
+            ),
+    )
 }
 
 fn add_engine_arg(cmd: Command) -> Command {
@@ -274,8 +334,9 @@ mod tests {
     #[test]
     fn image_name_cli_arg_no_default_value() {
         let cli = super::cli();
-        let m = cli.clone()
-                   .get_matches_from(["hab-pkg-export-container", "core/redis"]);
+        let m = cli
+            .clone()
+            .get_matches_from(["bio-pkg-export-container", "core/redis"]);
         assert!(m.get_one::<String>("IMAGE_NAME").is_none());
     }
 

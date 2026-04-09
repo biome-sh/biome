@@ -1,23 +1,23 @@
-# Habitat package: test-probe
+# Biome package: test-probe
 
 ## Description
 
 A small [actix-web](https://github.com/actix/actix-web)-powered API
 service used to introspect the operation of the
-[Habitat](https://habitat.sh) Supervisor.
+[Biome](https://biome.sh) Supervisor.
 
 ## Usage
 
-Deploy to your Habitat Supervisor:
+Deploy to your Biome Supervisor:
 
 ```
-hab svc load habitat-testing/test-probe
+bio svc load biome-testing/test-probe
 ```
 Introspect the service's view of things by querying what would be its
-[template data](https://www.habitat.sh/docs/reference/#template-data)
+[template data](https://docs.biome.sh/reference/#template-data)
 over its HTTP API. Simply provide the path through the data you would
 like to inspect, and it will be returned to you as JSON. This approach
-allows you to actively verifiy Habitat _behaviors_, as opposed to
+allows you to actively verifiy Biome _behaviors_, as opposed to
 relying on implementation details, such as knowing where a Supervisor
 may write data files out to disk.
 
@@ -41,7 +41,7 @@ $ curl http://localhost:8000/context/svc/me
   "persistent": true,
   "pkg": {
     "name": "test-probe",
-    "origin": "habitat-testing",
+    "origin": "biome-testing",
     "release": "20180416163256",
     "version": "0.1.0"
   },
@@ -74,8 +74,8 @@ $ curl http://localhost:8000/context/svc/me/sys/ip
 cargo build
 ```
 
-Build a standard Habitat package
+Build a standard Biome package
 
 ```
-hab pkg build <REPO>/test-services/test-probe
+bio pkg build <REPO>/test-services/test-probe
 ```

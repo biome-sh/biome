@@ -1,8 +1,8 @@
-. {{pkg.path}}\bin\habitat.ps1
+. {{pkg.path}}\bin\biome.ps1
 
 function Set-LauncherPath {
-    $launcherPath = '{{pkgPathFor "chef/hab-launcher"}}\bin\hab-launch.exe'
-    [xml]$configXml = Get-Content (Join-Path "{{pkg.svc_path}}" HabService.dll.config)
+    $launcherPath = '{{pkgPathFor "biome/bio-launcher"}}\bin\bio-launch.exe'
+    [xml]$configXml = Get-Content (Join-Path "{{pkg.svc_path}}" BioService.dll.config)
     $launcherPathNodeList = $configXml.configuration.appSettings.SelectNodes("add[@key='launcherPath']")
     if($launcherPathNodeList.Count -eq 0) {
         $launcherPathNode = $configXml.CreateElement("add")
@@ -12,25 +12,25 @@ function Set-LauncherPath {
         $launcherPathNode = $launcherPathNodeList[0]
     }
     $launcherPathNode.SetAttribute("value", $launcherPath) | Out-Null
-    $configXml.Save((Join-Path "{{pkg.svc_path}}" HabService.dll.config))
+    $configXml.Save((Join-Path "{{pkg.svc_path}}" BioService.dll.config))
 }
 
 $isRunning = $false
 
-if((Get-Service Habitat -ErrorAction SilentlyContinue) -ne $null) {
-    if((Get-Service Habitat).Status -eq "Running") {
+if((Get-Service Biome -ErrorAction SilentlyContinue) -ne $null) {
+    if((Get-Service Biome).Status -eq "Running") {
         $isRunning = $true
     }
-    UnInstall-HabService
+    UnInstall-BioService
 }
 
-$configPath = Join-Path $env:SystemDrive "hab\svc\windows-service\HabService.dll.config"
+$configPath = Join-Path $env:SystemDrive "bio\svc\windows-service\BioService.dll.config"
 $configPathBU = "${configPath}_backup"
 if(Test-Path $configPath) {
     Copy-Item $configPath $configPathBU
 }
 
-Install-HabService
+Install-BioService
 
 if(Test-Path $configPathBU) {
     Move-Item $configPathBU $configPath -Force
@@ -39,5 +39,5 @@ if(Test-Path $configPathBU) {
 Set-LauncherPath
 
 if($isRunning) {
-    Start-Service Habitat
+    Start-Service Biome
 }

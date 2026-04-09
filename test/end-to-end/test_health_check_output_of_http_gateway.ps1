@@ -1,12 +1,12 @@
 if ($IsWindows) {
-    $test_probe_release="habitat-testing/test-probe/0.1.0/20230620183252"
+    $test_probe_release="biome-testing/test-probe/0.1.0/20230620183252"
 } else {
-    $test_probe_release="habitat-testing/test-probe/0.1.0/20230621013852"
+    $test_probe_release="biome-testing/test-probe/0.1.0/20230621013852"
 }
 
 Describe "HTTP gateway" {
     AfterAll {
-        Unload-SupervisorService -PackageName habitat-testing/test-probe -Timeout 30
+        Unload-SupervisorService -PackageName biome-testing/test-probe -Timeout 30
         Stop-Supervisor
     }
 
@@ -24,7 +24,7 @@ Describe "HTTP gateway" {
 
         It "returns output of the hook when queried" {
             $stdout = (Invoke-WebRequest "http://localhost:9631/services/test-probe/default/health" | ConvertFrom-Json).stdout
-            $stdout | Should -MatchExactly "Running health_check hook: habitat-testing/test-probe"
+            $stdout | Should -MatchExactly "Running health_check hook: biome-testing/test-probe"
         }
 
         It "returns status of the hook when queried" {
@@ -39,7 +39,7 @@ Describe "HTTP gateway" {
     }
 
     Context "with a service that changes status" {
-        Set-Content -Path "/hab/pkgs/$test_probe_release/health_exit" -Value 1
+        Set-Content -Path "/bio/pkgs/$test_probe_release/health_exit" -Value 1
         Start-Sleep 30
 
         It "returns status of the hook when queried" {

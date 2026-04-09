@@ -8,69 +8,56 @@
 //! mpsc channel, [`CtlSender`], to [`CtlReceiver`]. A new mpsc pair is created for each
 //! transactional request where the sending half is given to a [`ctl_gateway.CtlRequest`].
 
-use super::{CtlRequest,
-            REQ_TIMEOUT};
-use crate::manager::{ManagerState,
-                     action::ActionSender,
-                     commands};
-use futures::{channel::mpsc,
-              executor,
-              prelude::*,
-              ready,
-              task::{Context,
-                     Poll}};
-use habitat_core::{crypto,
-                   tls::rustls_wrapper::TcpOrTlsStream};
-use habitat_sup_protocol::{self as protocol,
-                           codec::{SrvCodec,
-                                   SrvMessage,
-                                   SrvStream,
-                                   SrvTxn},
-                           net::{self,
-                                 ErrCode,
-                                 NetErr,
-                                 NetResult}};
+use super::{CtlRequest, REQ_TIMEOUT};
+use crate::manager::{ManagerState, action::ActionSender, commands};
+use biome_core::{crypto, tls::rustls_wrapper::TcpOrTlsStream};
+use biome_sup_protocol::{
+    self as protocol,
+    codec::{SrvCodec, SrvMessage, SrvStream, SrvTxn},
+    net::{self, ErrCode, NetErr, NetResult},
+};
+use futures::{
+    channel::mpsc,
+    executor,
+    prelude::*,
+    ready,
+    task::{Context, Poll},
+};
 use lazy_static::lazy_static;
-use log::{debug,
-          error,
-          trace,
-          warn};
+use log::{debug, error, trace, warn};
 use pin_project::pin_project;
-use prometheus::{HistogramTimer,
-                 HistogramVec,
-                 IntCounterVec,
-                 register_histogram_vec,
-                 register_int_counter_vec};
+use prometheus::{
+    HistogramTimer, HistogramVec, IntCounterVec, register_histogram_vec, register_int_counter_vec,
+};
 
-use rustls::{self,
-             RootCertStore,
-             ServerConfig as TlsServerConfig,
-             pki_types::{CertificateDer,
-                         PrivateKeyDer,
-                         PrivatePkcs8KeyDer},
-             server::WebPkiClientVerifier};
-use std::{error,
-          fmt,
-          io,
-          net::SocketAddr,
-          pin::Pin,
-          sync::{Arc,
-                 Mutex},
-          time::Duration};
-use tokio::{io::AsyncWrite,
-            net::TcpListener,
-            task,
-            time};
+use rustls::{
+    self, RootCertStore, ServerConfig as TlsServerConfig,
+    pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer},
+    server::WebPkiClientVerifier,
+};
+use std::{
+    error, fmt, io,
+    net::SocketAddr,
+    pin::Pin,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+use tokio::{io::AsyncWrite, net::TcpListener, task, time};
 use tokio_util::codec::Decoder;
 
 lazy_static! {
-    static ref RPC_CALLS: IntCounterVec = register_int_counter_vec!("hab_sup_rpc_call_total",
-                                                                    "Total number of RPC calls",
-                                                                    &["name"]).unwrap();
-    static ref RPC_CALL_DURATION: HistogramVec =
-        register_histogram_vec!("hab_sup_rpc_call_request_duration_seconds",
-                                "The latency for RPC calls",
-                                &["name"]).unwrap();
+    static ref RPC_CALLS: IntCounterVec = register_int_counter_vec!(
+        "bio_sup_rpc_call_total",
+        "Total number of RPC calls",
+        &["name"]
+    )
+    .unwrap();
+    static ref RPC_CALL_DURATION: HistogramVec = register_histogram_vec!(
+        "bio_sup_rpc_call_request_duration_seconds",
+        "The latency for RPC calls",
+        &["name"]
+    )
+    .unwrap();
 }
 
 /// Sending half of an mpsc unbounded channel used for sending replies for a transactional message
@@ -109,19 +96,27 @@ impl fmt::Display for HandlerError {
 }
 
 impl From<NetErr> for HandlerError {
-    fn from(err: NetErr) -> Self { HandlerError::NetErr(err) }
+    fn from(err: NetErr) -> Self {
+        HandlerError::NetErr(err)
+    }
 }
 
 impl From<io::Error> for HandlerError {
-    fn from(err: io::Error) -> Self { HandlerError::Io(err) }
+    fn from(err: io::Error) -> Self {
+        HandlerError::Io(err)
+    }
 }
 
 impl From<prost::DecodeError> for HandlerError {
-    fn from(err: prost::DecodeError) -> Self { HandlerError::Decode(err) }
+    fn from(err: prost::DecodeError) -> Self {
+        HandlerError::Decode(err)
+    }
 }
 
 impl From<mpsc::SendError> for HandlerError {
-    fn from(err: mpsc::SendError) -> Self { HandlerError::SendError(err) }
+    fn from(err: mpsc::SendError) -> Self {
+        HandlerError::SendError(err)
+    }
 }
 
 /// A wrapper around a [`ctl_gateway.CtlRequest`] and a closure for the main thread to execute.
@@ -139,16 +134,19 @@ pub struct CtlCommand {
     // We held off on making the change to reduce the risk of a regression and to lump it in with
     // more general Future refactoring.
     #[allow(clippy::type_complexity)]
-    fun:     Box<dyn Fn(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()> + Send>,
+    fun: Box<dyn Fn(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()> + Send>,
 }
 
 impl CtlCommand {
     /// Create a new CtlCommand from the given CtlSender, transaction, and closure to execute.
     pub fn new<F>(tx: CtlSender, txn: Option<SrvTxn>, fun: F) -> Self
-        where F: Fn(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()> + Send + 'static
+    where
+        F: Fn(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()> + Send + 'static,
     {
-        CtlCommand { fun: Box::new(fun),
-                     req: CtlRequest::new(tx, txn), }
+        CtlCommand {
+            fun: Box::new(fun),
+            req: CtlRequest::new(tx, txn),
+        }
     }
 
     /// Run the contained closure with the given [`manager.ManagerState`].
@@ -165,40 +163,48 @@ struct Client {
 impl Client {
     /// Serve the client from the given framed socket stream.
     pub async fn serve(self, mut socket: SrvStream) -> Result<(), HandlerError> {
-        let mgr_sender = self.state
-                             .lock()
-                             .expect("SrvState mutex poisoned")
-                             .mgr_sender
-                             .clone();
-        let handshake_with_timeout = time::timeout(Duration::from_millis(REQ_TIMEOUT),
-                                                   self.handshake(&mut socket));
-        handshake_with_timeout.await
-                              .map_err(|_| {
-                                  io::Error::new(io::ErrorKind::TimedOut, "client timed out")
-                              })??;
+        let mgr_sender = self
+            .state
+            .lock()
+            .expect("SrvState mutex poisoned")
+            .mgr_sender
+            .clone();
+        let handshake_with_timeout = time::timeout(
+            Duration::from_millis(REQ_TIMEOUT),
+            self.handshake(&mut socket),
+        );
+        handshake_with_timeout
+            .await
+            .map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "client timed out"))??;
         SrvHandler::new(socket, mgr_sender).await
     }
 
     /// Initiate a handshake with the connected client before allowing future requests. A failed
     /// handshake will close the connection.
     async fn handshake(&self, socket: &mut SrvStream) -> Result<(), HandlerError> {
-        let message = socket.next()
-                            .await
-                            .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))??;
+        let message = socket
+            .next()
+            .await
+            .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))??;
         let success = if message.message_id() != "Handshake" {
             debug!("No handshake");
-            return Err(HandlerError::from(io::Error::from(io::ErrorKind::ConnectionAborted)));
+            return Err(HandlerError::from(io::Error::from(
+                io::ErrorKind::ConnectionAborted,
+            )));
         } else if !message.is_transaction() {
-            return Err(HandlerError::from(io::Error::from(io::ErrorKind::ConnectionAborted)));
+            return Err(HandlerError::from(io::Error::from(
+                io::ErrorKind::ConnectionAborted,
+            )));
         } else {
             match message.parse::<protocol::ctl::Handshake>() {
                 Ok(decoded) => {
                     trace!("Received handshake, {:?}", decoded);
-                    let secret_key = self.state
-                                         .lock()
-                                         .expect("SrvState mutex poisoned")
-                                         .secret_key
-                                         .to_string();
+                    let secret_key = self
+                        .state
+                        .lock()
+                        .expect("SrvState mutex poisoned")
+                        .secret_key
+                        .to_string();
                     let decoded_key = decoded.secret_key.unwrap_or_default();
                     crypto::secure_eq(decoded_key, secret_key)
                 }
@@ -213,9 +219,13 @@ impl Client {
         let (mut reply, result) = if success {
             (SrvMessage::from(net::ok()), Ok(()))
         } else {
-            (SrvMessage::from(net::err(ErrCode::Unauthorized, "secret key mismatch")),
-             Err(HandlerError::from(io::Error::new(io::ErrorKind::ConnectionAborted,
-                                                   "handshake failed"))))
+            (
+                SrvMessage::from(net::err(ErrCode::Unauthorized, "secret key mismatch")),
+                Err(HandlerError::from(io::Error::new(
+                    io::ErrorKind::ConnectionAborted,
+                    "handshake failed",
+                ))),
+            )
         };
         reply.reply_for(message.transaction().unwrap(), true);
         socket.send(reply).await?;
@@ -231,53 +241,52 @@ impl Client {
 /// revisited (it feels like there are too many layers of indirection
 /// at play here).
 mod util {
-    use super::{CtlCommand,
-                CtlSender,
-                HandlerError};
-    use crate::{ctl_gateway::CtlRequest,
-                manager::{ManagerState,
-                          action::ActionSender}};
-    use habitat_sup_protocol::{codec::SrvMessage,
-                               message::MessageStatic,
-                               net::NetResult};
+    use super::{CtlCommand, CtlSender, HandlerError};
+    use crate::{
+        ctl_gateway::CtlRequest,
+        manager::{ManagerState, action::ActionSender},
+    };
+    use biome_sup_protocol::{codec::SrvMessage, message::MessageStatic, net::NetResult};
     use prost::Message;
 
     /// Helper function to capture the creation of a CtlCommand for an
     /// action that communicates with the Supervisor via an
     /// `ActionSender`.
-    pub(super) fn to_supervisor_command<T, F>(msg: &SrvMessage,
-                                              ctl_sender: CtlSender,
-                                              callback: F)
-                                              -> std::result::Result<CtlCommand, HandlerError>
-        where T: Message + MessageStatic + Default + Clone + 'static,
-              F: Fn(&ManagerState, &mut CtlRequest, T, &ActionSender) -> NetResult<()>
-                  + Send
-                  + 'static
+    pub(super) fn to_supervisor_command<T, F>(
+        msg: &SrvMessage,
+        ctl_sender: CtlSender,
+        callback: F,
+    ) -> std::result::Result<CtlCommand, HandlerError>
+    where
+        T: Message + MessageStatic + Default + Clone + 'static,
+        F: Fn(&ManagerState, &mut CtlRequest, T, &ActionSender) -> NetResult<()> + Send + 'static,
     {
         let m = msg.parse::<T>().map_err(HandlerError::from)?;
-        Ok(CtlCommand::new(ctl_sender,
-                           msg.transaction(),
-                           move |state, req, action_sender| {
-                               callback(state, req, m.clone(), &action_sender)
-                           }))
+        Ok(CtlCommand::new(
+            ctl_sender,
+            msg.transaction(),
+            move |state, req, action_sender| callback(state, req, m.clone(), &action_sender),
+        ))
     }
 
     /// Helper function to capture the creation of a CtlCommand for an
     /// action that DOES NOT communicate with the Supervisor via an
     /// `ActionSender`.
-    pub(super) fn to_command<T, F>(msg: &SrvMessage,
-                                   ctl_sender: CtlSender,
-                                   callback: F)
-                                   -> std::result::Result<CtlCommand, HandlerError>
-        where T: Message + MessageStatic + Default + Clone + 'static,
-              F: Fn(&ManagerState, &mut CtlRequest, T) -> NetResult<()> + Send + 'static
+    pub(super) fn to_command<T, F>(
+        msg: &SrvMessage,
+        ctl_sender: CtlSender,
+        callback: F,
+    ) -> std::result::Result<CtlCommand, HandlerError>
+    where
+        T: Message + MessageStatic + Default + Clone + 'static,
+        F: Fn(&ManagerState, &mut CtlRequest, T) -> NetResult<()> + Send + 'static,
     {
         let m = msg.parse::<T>().map_err(HandlerError::from)?;
-        Ok(CtlCommand::new(ctl_sender,
-                           msg.transaction(),
-                           move |state, req, _action_sender| {
-                               callback(state, req, m.clone())
-                           }))
+        Ok(CtlCommand::new(
+            ctl_sender,
+            msg.transaction(),
+            move |state, req, _action_sender| callback(state, req, m.clone()),
+        ))
     }
 }
 
@@ -286,32 +295,35 @@ mod util {
 #[pin_project]
 struct SrvHandler {
     #[pin]
-    io:           SrvStream,
-    state:        SrvHandlerState,
-    mgr_sender:   MgrSender,
+    io: SrvStream,
+    state: SrvHandlerState,
+    mgr_sender: MgrSender,
     ctl_receiver: CtlReceiver,
-    ctl_sender:   CtlSender,
-    timer:        Option<HistogramTimer>,
+    ctl_sender: CtlSender,
+    timer: Option<HistogramTimer>,
 }
 
 impl SrvHandler {
     fn new(io: SrvStream, mgr_sender: MgrSender) -> Self {
         let (ctl_sender, ctl_receiver) = mpsc::unbounded();
 
-        SrvHandler { io,
-                     state: SrvHandlerState::Receiving,
-                     mgr_sender,
-                     ctl_receiver,
-                     ctl_sender,
-                     timer: None }
+        SrvHandler {
+            io,
+            state: SrvHandlerState::Receiving,
+            mgr_sender,
+            ctl_receiver,
+            ctl_sender,
+            timer: None,
+        }
     }
 
     /// # Locking (see locking.md)
     /// * `GatewayState::inner` (read)
     /// * `ManagerServices::inner` (read)
-    async fn command_from_message_gsr_msr(msg: &SrvMessage,
-                                          ctl_sender: CtlSender)
-                                          -> std::result::Result<CtlCommand, HandlerError> {
+    async fn command_from_message_gsr_msr(
+        msg: &SrvMessage,
+        ctl_sender: CtlSender,
+    ) -> std::result::Result<CtlCommand, HandlerError> {
         match msg.message_id() {
             "SvcGetDefaultCfg" => util::to_command(msg, ctl_sender, commands::service_cfg_msr),
             "SvcFilePut" => util::to_command(msg, ctl_sender, commands::service_file_put),
@@ -321,22 +333,23 @@ impl SrvHandler {
                 // This arm doesn't use a `util` module helper because
                 // it's currently the only thing that behaves like
                 // this.
-                let m = msg.parse::<protocol::ctl::SvcLoad>()
-                           .map_err(HandlerError::from)?;
-                Ok(CtlCommand::new(ctl_sender,
-                                   msg.transaction(),
-                                   move |state, req, _action_sender| {
-                                       // To avoid significant architecture changes to `CtlCommand,`
-                                       // block on the load service future because futures cannot
-                                       // be awaited in a closure. It is safe to use
-                                       // `block_in_place` here because it is called within a
-                                       // spawned future.
-                                       task::block_in_place(|| {
-                                           executor::block_on(commands::service_load(state,
-                                                                                     req,
-                                                                                     m.clone()))
-                                       })
-                                   }))
+                let m = msg
+                    .parse::<protocol::ctl::SvcLoad>()
+                    .map_err(HandlerError::from)?;
+                Ok(CtlCommand::new(
+                    ctl_sender,
+                    msg.transaction(),
+                    move |state, req, _action_sender| {
+                        // To avoid significant architecture changes to `CtlCommand,`
+                        // block on the load service future because futures cannot
+                        // be awaited in a closure. It is safe to use
+                        // `block_in_place` here because it is called within a
+                        // spawned future.
+                        task::block_in_place(|| {
+                            executor::block_on(commands::service_load(state, req, m.clone()))
+                        })
+                    },
+                ))
             }
             "SvcUpdate" => util::to_supervisor_command(msg, ctl_sender, commands::service_update),
             "SvcUnload" => util::to_supervisor_command(msg, ctl_sender, commands::service_unload),
@@ -347,7 +360,9 @@ impl SrvHandler {
             "SupRestart" => util::to_command(msg, ctl_sender, commands::supervisor_restart),
             _ => {
                 warn!("Unhandled message, {}", msg.message_id());
-                Err(HandlerError::from(io::Error::from(io::ErrorKind::InvalidData)))
+                Err(HandlerError::from(io::Error::from(
+                    io::ErrorKind::InvalidData,
+                )))
             }
         }
     }
@@ -355,8 +370,9 @@ impl SrvHandler {
     fn start_timer(&mut self, label: &str) {
         let label_values = &[label];
         RPC_CALLS.with_label_values(label_values).inc();
-        let timer = RPC_CALL_DURATION.with_label_values(label_values)
-                                     .start_timer();
+        let timer = RPC_CALL_DURATION
+            .with_label_values(label_values)
+            .start_timer();
         self.timer = Some(timer);
     }
 }
@@ -478,11 +494,11 @@ struct SrvState {
 }
 
 pub(crate) struct CtlGatewayServer {
-    pub(crate) listen_addr:         SocketAddr,
-    pub(crate) secret_key:          String,
-    pub(crate) mgr_sender:          MgrSender,
+    pub(crate) listen_addr: SocketAddr,
+    pub(crate) secret_key: String,
+    pub(crate) mgr_sender: MgrSender,
     pub(crate) server_certificates: Option<Vec<CertificateDer<'static>>>,
-    pub(crate) server_key:          Option<PrivatePkcs8KeyDer<'static>>,
+    pub(crate) server_key: Option<PrivatePkcs8KeyDer<'static>>,
     pub(crate) client_certificates: Option<RootCertStore>,
 }
 
@@ -492,23 +508,27 @@ impl CtlGatewayServer {
     /// New connections will be authenticated using `secret_key`. Messages from the main thread
     /// will be sent over the channel `mgr_sender`.
     pub async fn run(self) {
-        let Self { listen_addr,
-                   secret_key,
-                   mgr_sender,
-                   server_certificates,
-                   server_key,
-                   client_certificates, } = self;
+        let Self {
+            listen_addr,
+            secret_key,
+            mgr_sender,
+            server_certificates,
+            server_key,
+            client_certificates,
+        } = self;
 
-        let state = SrvState { secret_key,
-                               mgr_sender };
+        let state = SrvState {
+            secret_key,
+            mgr_sender,
+        };
         let state = Arc::new(Mutex::new(state));
-        let listener =
-            TcpListener::bind(&listen_addr).await
-                                           .expect("Could not bind ctl gateway listen address!");
+        let listener = TcpListener::bind(&listen_addr)
+            .await
+            .expect("Could not bind ctl gateway listen address!");
 
-        let maybe_tls_config = Self::maybe_tls_config(server_certificates,
-                                                      server_key,
-                                                      client_certificates).map(Arc::new);
+        let maybe_tls_config =
+            Self::maybe_tls_config(server_certificates, server_key, client_certificates)
+                .map(Arc::new);
         loop {
             let tcp_stream = listener.accept().await;
             match tcp_stream {
@@ -558,7 +578,9 @@ impl CtlGatewayServer {
                     };
 
                     let srv_codec = SrvCodec::new().framed(tcp_stream);
-                    let client = Client { state: Arc::clone(&state), };
+                    let client = Client {
+                        state: Arc::clone(&state),
+                    };
                     tokio::spawn(async move {
                         let res = client.serve(srv_codec).await;
                         debug!("DISCONNECTED from {:?} with result {:?}", addr, res);
@@ -569,24 +591,28 @@ impl CtlGatewayServer {
         }
     }
 
-    fn maybe_tls_config(server_certificates: Option<Vec<CertificateDer<'static>>>,
-                        server_key: Option<PrivatePkcs8KeyDer<'static>>,
-                        client_certificates: Option<RootCertStore>)
-                        -> Option<TlsServerConfig> {
+    fn maybe_tls_config(
+        server_certificates: Option<Vec<CertificateDer<'static>>>,
+        server_key: Option<PrivatePkcs8KeyDer<'static>>,
+        client_certificates: Option<RootCertStore>,
+    ) -> Option<TlsServerConfig> {
         if let Some(server_key) = server_key {
             let client_auth = if let Some(client_certificates) = client_certificates {
                 debug!("Upgrading ctl-gateway to TLS with client authentication");
-                WebPkiClientVerifier::builder(client_certificates.into()).build()
-                                                                         .unwrap()
+                WebPkiClientVerifier::builder(client_certificates.into())
+                    .build()
+                    .unwrap()
             } else {
                 debug!("Upgrading ctl-gateway to TLS");
                 WebPkiClientVerifier::no_client_auth()
             };
-            let tls_config =
-                TlsServerConfig::builder().with_client_cert_verifier(client_auth)
-                                          .with_single_cert(server_certificates.unwrap_or_default(),
-                                                            PrivateKeyDer::Pkcs8(server_key))
-                                          .expect("Could not set certificate for ctl gateway!");
+            let tls_config = TlsServerConfig::builder()
+                .with_client_cert_verifier(client_auth)
+                .with_single_cert(
+                    server_certificates.unwrap_or_default(),
+                    PrivateKeyDer::Pkcs8(server_key),
+                )
+                .expect("Could not set certificate for ctl gateway!");
 
             Some(tls_config)
         } else {

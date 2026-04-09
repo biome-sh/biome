@@ -1,18 +1,9 @@
-use crate::{package::{self,
-                      Identifiable},
-            tls::{ctl_gateway::Error as CtlGatewayTls,
-                  rustls_wrapper::Error as RustlsReaderError}};
+use crate::{
+    package::{self, Identifiable},
+    tls::{ctl_gateway::Error as CtlGatewayTls, rustls_wrapper::Error as RustlsReaderError},
+};
 use pem;
-use std::{env,
-          error,
-          ffi,
-          fmt,
-          io,
-          num,
-          num::ParseIntError,
-          result,
-          str,
-          string};
+use std::{env, error, ffi, fmt, io, num, num::ParseIntError, result, str, string};
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -79,8 +70,8 @@ pub enum Error {
     /// Occurs when Docker version command returns non-zero exit code
     DockerVersionCommandExitFailure {
         exit_code: i32,
-        stderr:    String,
-        stdout:    String,
+        stderr: String,
+        stdout: String,
     },
     /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),
@@ -187,8 +178,10 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::BadBindingMode(ref value) => format!("Unknown binding mode '{}'", value),
             Error::BadKeyPath(ref e) => {
-                format!("Invalid keypath: {}. Specify an absolute path to a file on disk.",
-                        e)
+                format!(
+                    "Invalid keypath: {}. Specify an absolute path to a file on disk.",
+                    e
+                )
             }
             Error::BadOriginMemberRole(ref value) => {
                 format!("Unknown origin member role '{}'", value)
@@ -197,66 +190,92 @@ impl fmt::Display for Error {
                 format!("The package is not a composite: {}", ident)
             }
             Error::ConfigFileSyntax(ref e) => {
-                format!("Syntax errors while parsing TOML configuration file:\n\n{}",
-                        e)
+                format!(
+                    "Syntax errors while parsing TOML configuration file:\n\n{}",
+                    e
+                )
             }
             Error::ConfigInvalidArraySocketAddr(ref f) => {
-                format!("Invalid array value of network address pair strings config, field={}. \
+                format!(
+                    "Invalid array value of network address pair strings config, field={}. \
                          (example: [\"127.0.0.1:8080\", \"10.0.0.4:22\"])",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidArrayTableString(ref f) => {
-                format!("Invalid array value of tables containing string fields and values in \
+                format!(
+                    "Invalid array value of tables containing string fields and values in \
                          config, field={}",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidArrayTarget(ref f) => {
-                format!("Invalid array value of targets containing string fields and values in \
+                format!(
+                    "Invalid array value of targets containing string fields and values in \
                          config, field={}",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidArrayU16(ref f) => {
-                format!("Invalid array value of u16 entries in config, field={}. (example: [1, 2])",
-                        f)
+                format!(
+                    "Invalid array value of u16 entries in config, field={}. (example: [1, 2])",
+                    f
+                )
             }
             Error::ConfigInvalidArrayU32(ref f) => {
-                format!("Invalid array value of u32 entries in config, field={}. (example: [1, 2])",
-                        f)
+                format!(
+                    "Invalid array value of u32 entries in config, field={}. (example: [1, 2])",
+                    f
+                )
             }
             Error::ConfigInvalidArrayU64(ref f) => {
-                format!("Invalid array value of u64 entries in config, field={}. (example: [1, 2])",
-                        f)
+                format!(
+                    "Invalid array value of u64 entries in config, field={}. (example: [1, 2])",
+                    f
+                )
             }
             Error::ConfigInvalidBool(ref f) => {
-                format!("Invalid boolean value in config, field={}. (example: true)",
-                        f)
+                format!(
+                    "Invalid boolean value in config, field={}. (example: true)",
+                    f
+                )
             }
             Error::ConfigInvalidIdent(ref f) => {
-                format!("Invalid package identifier string value in config, field={}. (example: \
+                format!(
+                    "Invalid package identifier string value in config, field={}. (example: \
                          \"core/redis\")",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidIpAddr(ref f) => {
-                format!("Invalid IP address string value in config, field={}. (example: \
+                format!(
+                    "Invalid IP address string value in config, field={}. (example: \
                          \"127.0.0.0\")",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidSocketAddr(ref f) => {
-                format!("Invalid network address pair string value in config, field={}. (example: \
+                format!(
+                    "Invalid network address pair string value in config, field={}. (example: \
                          \"127.0.0.0:8080\")",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidString(ref f) => {
                 format!("Invalid string value in config, field={}.", f)
             }
             Error::ConfigInvalidTableString(ref f) => {
-                format!("Invalid table value of string fields and values in config, field={}",
-                        f)
+                format!(
+                    "Invalid table value of string fields and values in config, field={}",
+                    f
+                )
             }
             Error::ConfigInvalidTarget(ref f) => {
-                format!("Invalid package target string value in config, field={}. (example: \
+                format!(
+                    "Invalid package target string value in config, field={}. (example: \
                          \"x86_64-linux\")",
-                        f)
+                    f
+                )
             }
             Error::ConfigInvalidU16(ref f) => format!("Invalid u16 value in config, field={}", f),
             Error::ConfigInvalidU32(ref f) => format!("Invalid u32 value in config, field={}", f),
@@ -272,43 +291,59 @@ impl fmt::Display for Error {
             Error::CryptUnprotectDataFailed(ref e) => e.to_string(),
             Error::CtlGatewayTls(ref e) => e.to_string(),
             Error::DockerCommandNotFound(ref c) => {
-                format!("Docker command `{}' was not found on the filesystem or in PATH",
-                        c)
+                format!(
+                    "Docker command `{}' was not found on the filesystem or in PATH",
+                    c
+                )
             }
             Error::DockerVersionCommandFailed(ref e) => {
                 format!("Docker version command failed to execute: {}", e)
             }
-            Error::DockerVersionCommandExitFailure { exit_code,
-                                                     ref stderr,
-                                                     ref stdout, } => {
-                format!("Docker version command exited with code {}. Stderr: {}. Stdout: {}",
-                        exit_code, stderr, stdout)
+            Error::DockerVersionCommandExitFailure {
+                exit_code,
+                ref stderr,
+                ref stdout,
+            } => {
+                format!(
+                    "Docker version command exited with code {}. Stderr: {}. Stdout: {}",
+                    exit_code, stderr, stdout
+                )
             }
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::FullyQualifiedPackageIdentRequired(ref ident) => {
-                format!("Fully-qualified package identifier was expected, but found: {:?}",
-                        ident)
+                format!(
+                    "Fully-qualified package identifier was expected, but found: {:?}",
+                    ident
+                )
             }
             Error::InvalidBinding(ref binding) => {
-                format!("Invalid binding '{}', must be of the form <NAME>:<SERVICE_GROUP> where \
+                format!(
+                    "Invalid binding '{}', must be of the form <NAME>:<SERVICE_GROUP> where \
                          <NAME> is a service name, and <SERVICE_GROUP> is a valid service group",
-                        binding)
+                    binding
+                )
             }
             Error::InvalidOrigin(ref origin) => {
-                format!("Invalid origin: {}. Origins must begin with a lowercase letter or \
+                format!(
+                    "Invalid origin: {}. Origins must begin with a lowercase letter or \
                          number. Allowed characters include lowercase letters, numbers, -, and _. \
                          No more than 255 characters.",
-                        origin)
+                    origin
+                )
             }
             Error::InvalidPackageIdent(ref e) => {
-                format!("Invalid package identifier: {:?}. A valid identifier is in the form \
+                format!(
+                    "Invalid package identifier: {:?}. A valid identifier is in the form \
                          origin/name (example: acme/redis)",
-                        e)
+                    e
+                )
             }
             Error::InvalidPackageTarget(ref e) => {
-                format!("Invalid package target: {}. A valid target is in the form \
+                format!(
+                    "Invalid package target: {}. A valid target is in the form \
                          architecture-platform (example: x86_64-linux)",
-                        e)
+                    e
+                )
             }
             Error::InvalidPackageType(ref e) => format!("Invalid package type: {}.", e),
             Error::InvalidPathString(ref s) => {
@@ -316,17 +351,19 @@ impl fmt::Display for Error {
             }
             Error::InvalidPort(ref e) => format!("Invalid port: {}.", e),
             Error::InvalidServiceGroup(ref e) => {
-                format!("Invalid service group: {}. A valid service group string is in the form \
+                format!(
+                    "Invalid service group: {}. A valid service group string is in the form \
                          service.group (example: redis.production)",
-                        e)
+                    e
+                )
             }
             Error::InvalidUrl(ref url) => format!("Invalid url: {}", url),
             Error::IO(ref err) => format!("{}", err),
             Error::JoinPathsError(ref err) => format!("{}", err),
             Error::LogonTypeNotGranted => {
-                "hab_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' account right to be \
+                "bio_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' account right to be \
                  spawned as a service by the Supervisor"
-                                                        .to_string()
+                    .to_string()
             }
             Error::LogonUserFailed(ref e) => format!("Failure calling LogonUserW: {:?}", e),
             Error::NativeTlsError(ref e) => format!("{}", e),
@@ -360,7 +397,7 @@ impl fmt::Display for Error {
             Error::PrivilegeNotHeld => "Current user must possess the 'SE_INCREASE_QUOTA_NAME' \
                                         and 'SE_ASSIGNPRIMARYTOKEN_NAME' privilege to spawn a new \
                                         process as a different user"
-                                                                    .to_string(),
+                .to_string(),
             Error::RustlsReader(ref e) => format!("{}", e),
             Error::RenderContextSerialization(ref e) => {
                 format!("Unable to serialize rendering context, {}", e)
@@ -388,9 +425,11 @@ impl fmt::Display for Error {
             }
             Error::Utf8Error(ref e) => format!("{}", e),
             Error::WrongActivePackageTarget(ref active, ref wrong) => {
-                format!("Package target '{}' is not supported as this system has a different \
+                format!(
+                    "Package target '{}' is not supported as this system has a different \
                          active package target '{}'",
-                        wrong, active)
+                    wrong, active
+                )
             }
         };
         write!(f, "{}", msg)
@@ -400,50 +439,74 @@ impl fmt::Display for Error {
 impl error::Error for Error {}
 
 impl From<CtlGatewayTls> for Error {
-    fn from(err: CtlGatewayTls) -> Self { Error::CtlGatewayTls(err) }
+    fn from(err: CtlGatewayTls) -> Self {
+        Error::CtlGatewayTls(err)
+    }
 }
 
 impl From<env::JoinPathsError> for Error {
-    fn from(err: env::JoinPathsError) -> Self { Error::JoinPathsError(err) }
+    fn from(err: env::JoinPathsError) -> Self {
+        Error::JoinPathsError(err)
+    }
 }
 
 impl From<string::FromUtf8Error> for Error {
-    fn from(err: string::FromUtf8Error) -> Self { Error::StringFromUtf8Error(err) }
+    fn from(err: string::FromUtf8Error) -> Self {
+        Error::StringFromUtf8Error(err)
+    }
 }
 
 impl From<str::Utf8Error> for Error {
-    fn from(err: str::Utf8Error) -> Self { Error::Utf8Error(err) }
+    fn from(err: str::Utf8Error) -> Self {
+        Error::Utf8Error(err)
+    }
 }
 
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self { Error::IO(err) }
+    fn from(err: io::Error) -> Self {
+        Error::IO(err)
+    }
 }
 
 #[cfg(not(windows))]
 impl From<nix::Error> for Error {
-    fn from(err: nix::Error) -> Self { Error::Nix(err) }
+    fn from(err: nix::Error) -> Self {
+        Error::Nix(err)
+    }
 }
 
 impl From<native_tls::Error> for Error {
-    fn from(err: native_tls::Error) -> Self { Error::NativeTlsError(err) }
+    fn from(err: native_tls::Error) -> Self {
+        Error::NativeTlsError(err)
+    }
 }
 
 impl From<num::ParseIntError> for Error {
-    fn from(err: num::ParseIntError) -> Self { Error::ParseIntError(err) }
+    fn from(err: num::ParseIntError) -> Self {
+        Error::ParseIntError(err)
+    }
 }
 
 impl From<pem::PemError> for Error {
-    fn from(err: pem::PemError) -> Self { Error::ParsePemError(err) }
+    fn from(err: pem::PemError) -> Self {
+        Error::ParsePemError(err)
+    }
 }
 
 impl From<regex::Error> for Error {
-    fn from(err: regex::Error) -> Self { Error::RegexParse(err) }
+    fn from(err: regex::Error) -> Self {
+        Error::RegexParse(err)
+    }
 }
 
 impl From<RustlsReaderError> for Error {
-    fn from(err: RustlsReaderError) -> Self { Error::RustlsReader(err) }
+    fn from(err: RustlsReaderError) -> Self {
+        Error::RustlsReader(err)
+    }
 }
 
 impl From<libsodium_rs::SodiumError> for Error {
-    fn from(err: libsodium_rs::SodiumError) -> Self { Error::SodiumError(err) }
+    fn from(err: libsodium_rs::SodiumError) -> Self {
+        Error::SodiumError(err)
+    }
 }

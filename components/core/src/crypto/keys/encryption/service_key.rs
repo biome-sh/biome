@@ -1,6 +1,6 @@
 //! Service encryption keys are used alongside user encryption keys to
 //! allow for authorized uploading of configuration and files to a
-//! Habitat Supervisor network.
+//! Biome Supervisor network.
 //!
 //! Service secret keys are used on Supervisors to decrypt any
 //! encrypted configuration and file rumors they receive. All relevant
@@ -10,18 +10,17 @@
 //! encrypted rumor. It also allows operators to control who can send
 //! such rumors by controlling which user public keys are present on a
 //! Supervisor.
-use crate::{crypto::keys::{Key,
-                           NamedRevision,
-                           UserPublicEncryptionKey,
-                           encryption::{PUBLIC_BOX_KEY_VERSION,
-                                        PUBLIC_KEY_SUFFIX,
-                                        SECRET_BOX_KEY_SUFFIX,
-                                        SECRET_BOX_KEY_VERSION,
-                                        SignedBox,
-                                        primitives}},
-            error::{Error,
-                    Result},
-            fs::Permissions};
+use crate::{
+    crypto::keys::{
+        Key, NamedRevision, UserPublicEncryptionKey,
+        encryption::{
+            PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX,
+            SECRET_BOX_KEY_VERSION, SignedBox, primitives,
+        },
+    },
+    error::{Error, Result},
+    fs::Permissions,
+};
 
 /// Given the name of an org and a service group, generate a new
 /// encryption key pair.
@@ -30,16 +29,20 @@ use crate::{crypto::keys::{Key,
 /// persist.
 pub fn generate_service_encryption_key_pair(
     org_name: &str,
-    service_group_name: &str)
-    -> Result<(ServicePublicEncryptionKey, ServiceSecretEncryptionKey)> {
+    service_group_name: &str,
+) -> Result<(ServicePublicEncryptionKey, ServiceSecretEncryptionKey)> {
     let key_name = service_key_name(org_name, service_group_name);
     let named_revision = NamedRevision::new(key_name);
     let (pk, sk) = primitives::gen_keypair()?;
 
-    let public = ServicePublicEncryptionKey { named_revision: named_revision.clone(),
-                                              key:            pk, };
-    let secret = ServiceSecretEncryptionKey { named_revision,
-                                              key: sk };
+    let public = ServicePublicEncryptionKey {
+        named_revision: named_revision.clone(),
+        key: pk,
+    };
+    let secret = ServiceSecretEncryptionKey {
+        named_revision,
+        key: sk,
+    };
     Ok((public, secret))
 }
 
@@ -77,17 +80,23 @@ impl ServiceSecretEncryptionKey {
     ///
     /// As the service is the recipient, we attach this functionality
     /// to this struct.
-    pub fn decrypt_user_message(&self,
-                                signed_box: &SignedBox,
-                                sending_user: &UserPublicEncryptionKey)
-                                -> Result<Vec<u8>> {
-        primitives::open(signed_box.ciphertext(),
-                         signed_box.nonce(),
-                         sending_user.key(),
-                         self.key()).map_err(|_| {
-            Error::CryptoError("Secret key, public key, and nonce could not \
+    pub fn decrypt_user_message(
+        &self,
+        signed_box: &SignedBox,
+        sending_user: &UserPublicEncryptionKey,
+    ) -> Result<Vec<u8>> {
+        primitives::open(
+            signed_box.ciphertext(),
+            signed_box.nonce(),
+            sending_user.key(),
+            self.key(),
+        )
+        .map_err(|_| {
+            Error::CryptoError(
+                "Secret key, public key, and nonce could not \
                                                 decrypt ciphertext"
-                                                                   .to_string())
+                    .to_string(),
+            )
         })
     }
 }
@@ -95,9 +104,10 @@ impl ServiceSecretEncryptionKey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::{keys::{SignedBox,
-                               UserSecretEncryptionKey},
-                        test_support::fixture_key};
+    use crate::crypto::{
+        keys::{SignedBox, UserSecretEncryptionKey},
+        test_support::fixture_key,
+    };
 
     #[test]
     fn decryption() {
@@ -129,12 +139,14 @@ mod tests {
 
         let message = "Korben, sweetheart, what was that? IT WAS BAD! It had nothing! No fire, no \
                        energy, no nothin'!"
-                                           .to_string();
-        let signed = user_secret.encrypt_for_service(message.as_bytes(), &service_public)
-                                .unwrap();
+            .to_string();
+        let signed = user_secret
+            .encrypt_for_service(message.as_bytes(), &service_public)
+            .unwrap();
 
-        let decrypted_message = service_secret.decrypt_user_message(&signed, &user_public)
-                                              .unwrap();
+        let decrypted_message = service_secret
+            .decrypt_user_message(&signed, &user_public)
+            .unwrap();
         let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();
 
         assert_eq!(decrypted_message, message);

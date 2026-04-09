@@ -1,8 +1,8 @@
 # About
 
-These files are for testing `hab plan render` command.
+These files are for testing `bio plan render` command.
 
-see `hab plan render --help` for full usage instructions.
+see `bio plan render --help` for full usage instructions.
 
 # Usage
 
@@ -10,7 +10,7 @@ Try:
 
 
 ```
-cargo run -p hab plan render ./test/fixtures/render/consul/config/consul_config.json \
+cargo run -p bio plan render ./test/fixtures/render/consul/config/consul_config.json \
   --default-toml ./test/fixtures/render/consul/default.toml \
   --user-toml ./test/fixtures/render/consul/user.toml \
   --mock-data ./test/fixtures/render/consul/override.json \
@@ -19,7 +19,7 @@ cargo run -p hab plan render ./test/fixtures/render/consul/config/consul_config.
 ```
 
 ```
-cargo run -p hab plan render ./test/fixtures/render/consul/config/consul_config.json \
+cargo run -p bio plan render ./test/fixtures/render/consul/config/consul_config.json \
   --default-toml ./test/fixtures/render/consul/default.toml \
   --render-dir ~/result/config \
   --print
@@ -28,7 +28,7 @@ cargo run -p hab plan render ./test/fixtures/render/consul/config/consul_config.
 or
 
 ```
-cargo run -p hab plan render ./test/fixtures/render/consul/hooks/run \
+cargo run -p bio plan render ./test/fixtures/render/consul/hooks/run \
   --default-toml ./test/fixtures/render/consul/default.toml \
   --user-toml ./test/fixtures/render/consul/user.toml \
   --mock-data ./test/fixtures/render/consul/override.json \

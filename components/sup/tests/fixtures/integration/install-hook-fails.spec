@@ -1,6 +1,6 @@
 ident = "sup-integration-test/install-hook-fails"
 group = "default"
-bldr_url = "http://hab.sup.test"
+bldr_url = "http://bio.sup.test"
 channel = "unstable"
 topology = "standalone"
 update_strategy = "at-once"

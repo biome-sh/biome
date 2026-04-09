@@ -3,9 +3,8 @@ mod common;
 mod encryption;
 mod rumor;
 
+use biome_butterfly::{self, member::Health};
 use common as btest;
-use habitat_butterfly::{self,
-                        member::Health};
 
 #[test]
 fn two_members_meshed_confirm_one_member() {

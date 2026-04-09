@@ -6,18 +6,15 @@
 
 use serde::Serialize;
 
-use crate::{error::{Error,
-                    Result},
-            protocol::{self,
-                       FromProto,
-                       newscast::{self,
-                                  Rumor as ProtoRumor}},
-            rumor::{ConstKeyRumor,
-                    Rumor,
-                    RumorPayload,
-                    RumorType}};
-use std::{cmp::Ordering,
-          fmt};
+use crate::{
+    error::{Error, Result},
+    protocol::{
+        self, FromProto,
+        newscast::{self, Rumor as ProtoRumor},
+    },
+    rumor::{ConstKeyRumor, Rumor, RumorPayload, RumorType},
+};
+use std::{cmp::Ordering, fmt};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Departure {
@@ -31,7 +28,11 @@ impl fmt::Display for Departure {
 }
 
 impl Departure {
-    pub fn new(member_id: &str) -> Self { Departure { member_id: member_id.to_string(), } }
+    pub fn new(member_id: &str) -> Self {
+        Departure {
+            member_id: member_id.to_string(),
+        }
+    }
 }
 
 impl protocol::Message<ProtoRumor> for Departure {
@@ -44,27 +45,44 @@ impl FromProto<ProtoRumor> for Departure {
             RumorPayload::Departure(payload) => payload,
             _ => panic!("from-bytes departure"),
         };
-        Ok(Departure { member_id: payload.member_id
-                                         .ok_or(Error::ProtocolMismatch("member-id"))?, })
+        Ok(Departure {
+            member_id: payload
+                .member_id
+                .ok_or(Error::ProtocolMismatch("member-id"))?,
+        })
     }
 }
 
 impl From<Departure> for newscast::Departure {
-    fn from(value: Departure) -> Self { newscast::Departure { member_id: Some(value.member_id), } }
+    fn from(value: Departure) -> Self {
+        newscast::Departure {
+            member_id: Some(value.member_id),
+        }
+    }
 }
 
 impl Rumor for Departure {
-    fn merge(&mut self, other: Departure) -> bool { *self < other }
+    fn merge(&mut self, other: Departure) -> bool {
+        *self < other
+    }
 
-    fn kind(&self) -> RumorType { RumorType::Departure }
+    fn kind(&self) -> RumorType {
+        RumorType::Departure
+    }
 
-    fn key(&self) -> &str { Self::const_key() }
+    fn key(&self) -> &str {
+        Self::const_key()
+    }
 
-    fn id(&self) -> &str { &self.member_id }
+    fn id(&self) -> &str {
+        &self.member_id
+    }
 }
 
 impl ConstKeyRumor for Departure {
-    fn const_key() -> &'static str { "departure" }
+    fn const_key() -> &'static str {
+        "departure"
+    }
 }
 
 impl PartialOrd for Departure {
@@ -78,7 +96,9 @@ impl PartialOrd for Departure {
 }
 
 impl PartialEq for Departure {
-    fn eq(&self, other: &Departure) -> bool { self.member_id == other.member_id }
+    fn eq(&self, other: &Departure) -> bool {
+        self.member_id == other.member_id
+    }
 }
 
 #[cfg(test)]
@@ -86,13 +106,15 @@ mod tests {
     use std::cmp::Ordering;
 
     use super::Departure;
-    use crate::rumor::{ConstKeyRumor as _,
-                       Rumor,
-                       RumorStore};
+    use crate::rumor::{ConstKeyRumor as _, Rumor, RumorStore};
 
-    fn create_departure(member_id: &str) -> Departure { Departure::new(member_id) }
+    fn create_departure(member_id: &str) -> Departure {
+        Departure::new(member_id)
+    }
 
-    fn create_rumor_store() -> RumorStore<Departure> { RumorStore::default() }
+    fn create_rumor_store() -> RumorStore<Departure> {
+        RumorStore::default()
+    }
 
     #[test]
     fn multiple_departures_are_all_under_the_same_key() {

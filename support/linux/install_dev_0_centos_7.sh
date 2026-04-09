@@ -22,7 +22,7 @@ sudo -E yum install -y \
 
 # pkg-config will be able to find libsodium with the following:
 export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
-# needed for the Habitat binaries to find libsodium at runtime
+# needed for the Biome binaries to find libsodium at runtime
 export LD_LIBRARY_PATH=/usr/local/lib
 
 # Installing libsodium for zmq even though we use libsodium-rs elsewhere to maintain independence

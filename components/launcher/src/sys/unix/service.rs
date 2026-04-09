@@ -1,26 +1,28 @@
-use crate::{error::ServiceRunError,
-            protocol::{self,
-                       ShutdownMethod},
-            service::Service};
+use crate::{
+    error::ServiceRunError,
+    protocol::{self, ShutdownMethod},
+    service::Service,
+};
 use anyhow::Result;
-use habitat_core::os::{self,
-                       process::{Signal,
-                                 exec,
-                                 signal}};
+use biome_core::os::{
+    self,
+    process::{Signal, exec, signal},
+};
 use log::debug;
-use nix::unistd::{Gid,
-                  Uid};
-use std::{io,
-          ops::Neg,
-          process::{Child,
-                    ExitStatus},
-          time::{Duration,
-                 Instant}};
+use nix::unistd::{Gid, Uid};
+use std::{
+    io,
+    ops::Neg,
+    process::{Child, ExitStatus},
+    time::{Duration, Instant},
+};
 
 pub struct Process(Child);
 
 impl Process {
-    pub fn id(&self) -> u32 { self.0.id() }
+    pub fn id(&self) -> u32 {
+        self.0.id()
+    }
 
     /// Attempt to gracefully terminate a process and then forcefully kill it after
     /// 8 seconds if it has not terminated.
@@ -32,8 +34,10 @@ impl Process {
         // to prevent orphaned processes.
         let pgid = unsafe { libc::getpgid(pid_to_kill) };
         if pid_to_kill == pgid {
-            debug!("pid to kill {} is the process group root. Sending signal to process group.",
-                   pid_to_kill);
+            debug!(
+                "pid to kill {} is the process group root. Sending signal to process group.",
+                pid_to_kill
+            );
             // sending a signal to the negative pid sends it to the
             // entire process group instead just the single pid
             pid_to_kill = pid_to_kill.neg();
@@ -64,9 +68,13 @@ impl Process {
         }
     }
 
-    pub fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> { self.0.try_wait() }
+    pub fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
+        self.0.try_wait()
+    }
 
-    pub fn wait(&mut self) -> io::Result<ExitStatus> { self.0.wait() }
+    pub fn wait(&mut self) -> io::Result<ExitStatus> {
+        self.0.wait()
+    }
 }
 
 pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
@@ -76,12 +84,9 @@ pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
     let user_id = if let Some(suid) = msg.svc_user_id {
         suid
     } else if let Some(suser) = &msg.svc_user {
-        os::users::get_uid_by_name(suser).map_err(|err| {
-                                             ServiceRunError::GetUid(suser.to_string(), err)
-                                         })?
-                                         .ok_or_else(|| {
-                                             ServiceRunError::UserNotFound(suser.to_string())
-                                         })?
+        os::users::get_uid_by_name(suser)
+            .map_err(|err| ServiceRunError::GetUid(suser.to_string(), err))?
+            .ok_or_else(|| ServiceRunError::UserNotFound(suser.to_string()))?
     } else {
         return Err(ServiceRunError::UserNotFound(String::from("")));
     };
@@ -90,12 +95,9 @@ pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
     let group_id = if let Some(sgid) = msg.svc_group_id {
         sgid
     } else if let Some(sgroup) = &msg.svc_group {
-        os::users::get_gid_by_name(sgroup).map_err(|err| {
-                                              ServiceRunError::GetGid(sgroup.to_string(), err)
-                                          })?
-                                          .ok_or_else(|| {
-                                              ServiceRunError::GroupNotFound(sgroup.to_string())
-                                          })?
+        os::users::get_gid_by_name(sgroup)
+            .map_err(|err| ServiceRunError::GetGid(sgroup.to_string(), err))?
+            .ok_or_else(|| ServiceRunError::GroupNotFound(sgroup.to_string()))?
     } else {
         return Err(ServiceRunError::GroupNotFound(String::from("")));
     };

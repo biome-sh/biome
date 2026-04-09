@@ -1,23 +1,20 @@
 //! Provides facilities for notifying when any spec files have changed
 //! on disk. This is how we know when to start, stop, or restart
-//! services in response to the various `hab svc` commands.
+//! services in response to the various `bio svc` commands.
 
-use crate::{error::{Error,
-                    Result},
-            manager::{spec_dir::SpecDir,
-                      sup_watcher::SupWatcher}};
-use log::{error,
-          trace};
-use notify::{Config,
-             Event,
-             RecursiveMode,
-             Watcher};
-use std::{sync::mpsc::{self,
-                       Receiver},
-          thread::Builder,
-          time::Duration};
+use crate::{
+    error::{Error, Result},
+    manager::{spec_dir::SpecDir, sup_watcher::SupWatcher},
+};
+use log::{error, trace};
+use notify::{Config, Event, RecursiveMode, Watcher};
+use std::{
+    sync::mpsc::{self, Receiver},
+    thread::Builder,
+    time::Duration,
+};
 
-habitat_core::env_config_duration!(
+biome_core::env_config_duration!(
     /// How long should we wait to consolidate filesystem events?
     ///
     /// This should strike a balance between responsiveness and
@@ -25,7 +22,7 @@ habitat_core::env_config_duration!(
     ///
     /// See https://docs.rs/notify/4.0.6/notify/trait.Watcher.html#tymethod.new
     SpecWatcherDelay,
-    HAB_SPEC_WATCHER_DELAY_MS => from_millis,
+    BIO_SPEC_WATCHER_DELAY_MS => from_millis,
     // There's nothing particularly magical about 2s, particularly
     // since we're monitoring at such a coarse level ("something
     // happened in this directory").
@@ -46,7 +43,7 @@ pub struct SpecWatcher {
     // purposes (`Drop` kills the threads that the watcher spawns to do
     // its work).
     _watcher: SupWatcher,
-    channel:  Receiver<notify::Result<Event>>,
+    channel: Receiver<notify::Result<Event>>,
 }
 
 impl SpecWatcher {
@@ -73,13 +70,14 @@ impl SpecWatcher {
         // reference is the true API we want.
         let dir = spec_dir.clone();
 
-        Builder::new().name(String::from("spec-watcher"))
-                      .spawn(move || Self::new(&dir))?
-                      .join()
-                      .map_err(|_| {
-                          error!("SpecWatcher spawning thread panicked!");
-                          Error::SpecWatcherNotCreated
-                      })?
+        Builder::new()
+            .name(String::from("spec-watcher"))
+            .spawn(move || Self::new(&dir))?
+            .join()
+            .map_err(|_| {
+                error!("SpecWatcher spawning thread panicked!");
+                Error::SpecWatcherNotCreated
+            })?
     }
 
     /// Isolates the pure creation logic of a `SpecWatcher`, separate
@@ -93,8 +91,10 @@ impl SpecWatcher {
         let config = Config::default().with_poll_interval(delay.0);
         let mut watcher = SupWatcher::new(tx, config)?;
         watcher.watch(spec_dir.as_ref(), RecursiveMode::NonRecursive)?;
-        Ok(SpecWatcher { _watcher: watcher,
-                         channel:  rx, })
+        Ok(SpecWatcher {
+            _watcher: watcher,
+            channel: rx,
+        })
     }
 
     /// Returns `true` if _any_ filesystem events were detected in the
@@ -122,7 +122,7 @@ impl SpecWatcher {
     /// to receive only those that affect `*.spec` files, so we may
     /// respond to modifications to temporary files, or indeed any
     /// file, within the specs directory (e.g., running `touch
-    /// /hab/sup/default/specs/blahblah` would count as an event). It
+    /// /bio/sup/default/specs/blahblah` would count as an event). It
     /// is possible to perform this filtering, of course, but it's not
     /// clear that the extra code would be worth it.
     pub fn has_events(&self) -> bool {
@@ -139,19 +139,21 @@ impl SpecWatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use habitat_core::locked_env_var;
+    use biome_core::locked_env_var;
     use log::error;
-    use std::{fs::File,
-              io::{Error as IoError,
-                   Write},
-              result::Result as StdResult,
-              thread};
+    use std::{
+        fs::File,
+        io::{Error as IoError, Write},
+        result::Result as StdResult,
+        thread,
+    };
     use tempfile::TempDir;
 
-    locked_env_var!(HAB_SPEC_WATCHER_DELAY_MS, lock_delay_var);
+    locked_env_var!(BIO_SPEC_WATCHER_DELAY_MS, lock_delay_var);
 
     fn file_with_content<C>(dir: &TempDir, filename: &str, contents: C) -> StdResult<(), IoError>
-        where C: Into<String>
+    where
+        C: Into<String>,
     {
         let path = dir.path().join(filename);
         let mut buffer = File::create(path)?;
@@ -173,8 +175,10 @@ mod tests {
 
         let dir = TempDir::new().expect("Could not create directory");
         let spec_dir = SpecDir::new(dir.path()).expect("Couldn't make SpecDir");
-        assert!(SpecWatcher::run(&spec_dir).is_ok(),
-                "Couldn't create a SpecWatcher!");
+        assert!(
+            SpecWatcher::run(&spec_dir).is_ok(),
+            "Couldn't create a SpecWatcher!"
+        );
     }
 
     #[test]
@@ -198,7 +202,7 @@ mod tests {
     /// file in the directory, whether it's a `*.spec` file or not.
     ///
     /// This would, for instance, pick up the temp files that
-    /// operations like `hab svc stop` lay down before renaming them
+    /// operations like `bio svc stop` lay down before renaming them
     /// to their final `*.spec` form.
     #[test]
     fn can_get_events_for_non_spec_files() {
@@ -223,8 +227,10 @@ mod tests {
         delay.set("1");
 
         // Just verifying that our delay variable works correctly
-        assert_eq!(SpecWatcherDelay::configured_value().0,
-                   Duration::from_millis(1));
+        assert_eq!(
+            SpecWatcherDelay::configured_value().0,
+            Duration::from_millis(1)
+        );
 
         let dir = TempDir::new().expect("Could not create directory");
         let spec_dir = SpecDir::new(dir.path()).expect("Couldn't make SpecDir");

@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <TargetName>HabService</TargetName>
-    <AssemblyName>HabService</AssemblyName>
+    <TargetName>BioService</TargetName>
+    <AssemblyName>BioService</AssemblyName>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <SelfContained>true</SelfContained>
     <UseAppHost>true</UseAppHost>
@@ -28,7 +28,7 @@
     <None Include="install.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="habitat.ps1">
+    <None Include="biome.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

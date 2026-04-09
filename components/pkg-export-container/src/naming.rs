@@ -1,10 +1,10 @@
 use crate::RegistryType;
-use anyhow::{Result,
-             anyhow};
+use anyhow::{Result, anyhow};
+use biome_core::{
+    ChannelIdent,
+    package::{FullyQualifiedPackageIdent, Identifiable},
+};
 use clap::ArgMatches;
-use habitat_core::{ChannelIdent,
-                   package::{FullyQualifiedPackageIdent,
-                             Identifiable}};
 use handlebars::Handlebars;
 use serde::Serialize;
 use serde_json::json;
@@ -17,8 +17,10 @@ const VERSION_TAG_TEMPLATE: &str = "{{pkg_version}}";
 /// on user input, and can thus be safely unwrapped.
 macro_rules! safe {
     ($render_result:expr) => {
-        $render_result.expect("We are in control of all inputs to this rendering, and thus the \
-                               result should always be safe to unwrap")
+        $render_result.expect(
+            "We are in control of all inputs to this rendering, and thus the \
+                               result should always be safe to unwrap",
+        )
     };
 }
 
@@ -28,17 +30,17 @@ macro_rules! safe {
 #[derive(Debug, Default)]
 pub(crate) struct Naming {
     /// An optional custom image name which would override a computed default value.
-    custom_image_name_template:  Option<String>,
+    custom_image_name_template: Option<String>,
     /// Whether or not to tag the image with a latest value.
-    include_latest_tag:          bool,
+    include_latest_tag: bool,
     /// Whether or not to tag the image with a value containing a version from a Package
     /// Identifier.
-    include_version_tag:         bool,
+    include_version_tag: bool,
     /// Whether or not to tag the image with a value containing a version and release from a
     /// Package Identifier.
     include_version_release_tag: bool,
     /// An optional custom tag value for the image.
-    custom_tag_template:         Option<String>,
+    custom_tag_template: Option<String>,
 
     // TODO (CM): I don't think either of these really belongs to this
     // Naming type
@@ -47,7 +49,7 @@ pub(crate) struct Naming {
     // single new type.
     /// A URL to a custom Docker registry to publish to. This will be used as part of every tag
     /// before pushing.
-    pub(crate) registry_url:  Option<String>, // TODO (CM): Option<Url>
+    pub(crate) registry_url: Option<String>, // TODO (CM): Option<Url>
     /// The type of registry we're publishing to. Ex: Amazon, Docker, Google, Azure.
     pub(crate) registry_type: RegistryType,
 }
@@ -59,18 +61,23 @@ impl From<&ArgMatches> for Naming {
         // TODO (CM): If registry_type is Docker, we must set this to
         // dockerhub. Otherwise, it MUST be present, because of how
         // clap is set up.
-        let registry_url = matches.get_one::<String>("REGISTRY_URL")
-                                  .map(ToString::to_string);
+        let registry_url = matches
+            .get_one::<String>("REGISTRY_URL")
+            .map(ToString::to_string);
 
-        Naming { custom_image_name_template: matches.get_one::<String>("IMAGE_NAME")
-                                                    .map(ToString::to_string),
-                 include_latest_tag: !matches.get_flag("TAG_LATEST"),
-                 include_version_tag: !matches.get_flag("TAG_VERSION"),
-                 include_version_release_tag: !matches.get_flag("TAG_VERSION_RELEASE"),
-                 custom_tag_template: matches.get_one::<String>("TAG_CUSTOM")
-                                             .map(ToString::to_string),
-                 registry_url,
-                 registry_type }
+        Naming {
+            custom_image_name_template: matches
+                .get_one::<String>("IMAGE_NAME")
+                .map(ToString::to_string),
+            include_latest_tag: !matches.get_flag("TAG_LATEST"),
+            include_version_tag: !matches.get_flag("TAG_VERSION"),
+            include_version_release_tag: !matches.get_flag("TAG_VERSION_RELEASE"),
+            custom_tag_template: matches
+                .get_one::<String>("TAG_CUSTOM")
+                .map(ToString::to_string),
+            registry_url,
+            registry_type,
+        }
     }
 }
 
@@ -100,9 +107,9 @@ impl From<&ArgMatches> for Naming {
 /// we'll err on the side of explicitness.
 pub(crate) struct ImageIdentifiers {
     /// The bare name of an image, like "core/redis"
-    pub(crate) name:                 String,
+    pub(crate) name: String,
     /// A possibly empty `Vec` of bare tags, like "latest"
-    pub(crate) tags:                 Vec<String>,
+    pub(crate) tags: Vec<String>,
     /// A `Vec` containing the bare name concatenated with each bare
     /// tag (or just the bare name, if no tags), like
     /// "core/redis:latest".
@@ -119,31 +126,38 @@ impl Naming {
     /// Return the image name, along with a (possibly empty) vector of
     /// additional bare tags, and a vector containing "name:tag"
     /// identifiers (or just "name" if there are no tags).
-    pub(crate) fn image_identifiers(&self,
-                                    ident: &FullyQualifiedPackageIdent,
-                                    channel: &ChannelIdent)
-                                    -> Result<ImageIdentifiers> {
+    pub(crate) fn image_identifiers(
+        &self,
+        ident: &FullyQualifiedPackageIdent,
+        channel: &ChannelIdent,
+    ) -> Result<ImageIdentifiers> {
         let context = Self::rendering_context(ident, channel);
 
         let name = self.image_name(&context)?;
-        let tags = vec![self.latest_tag(),
-                        self.version_tag(&context),
-                        self.version_release_tag(&context),
-                        self.custom_tag(&context)?].into_iter()
-                                                   .flatten()
-                                                   .collect::<Vec<String>>();
+        let tags = vec![
+            self.latest_tag(),
+            self.version_tag(&context),
+            self.version_release_tag(&context),
+            self.custom_tag(&context)?,
+        ]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<String>>();
 
         let expanded_identifiers = Self::expanded_identifiers(&name, &tags);
 
-        Ok(ImageIdentifiers { name,
-                              tags,
-                              expanded_identifiers })
+        Ok(ImageIdentifiers {
+            name,
+            tags,
+            expanded_identifiers,
+        })
     }
 
     ////////////////////////////////////////////////////////////////////////
 
     fn image_name<S>(&self, context: &S) -> Result<String>
-        where S: Serialize
+    where
+        S: Serialize,
     {
         let image_name = if let Some(ref template) = self.custom_image_name_template {
             Self::render(template, &context)?
@@ -163,7 +177,8 @@ impl Naming {
     }
 
     fn version_release_tag<S>(&self, context: &S) -> Option<String>
-        where S: Serialize
+    where
+        S: Serialize,
     {
         if self.include_version_release_tag {
             Some(safe!(Self::render(VERSION_RELEASE_TAG_TEMPLATE, &context)))
@@ -173,7 +188,8 @@ impl Naming {
     }
 
     fn version_tag<S>(&self, context: &S) -> Option<String>
-        where S: Serialize
+    where
+        S: Serialize,
     {
         if self.include_version_tag {
             Some(safe!(Self::render(VERSION_TAG_TEMPLATE, &context)))
@@ -193,7 +209,8 @@ impl Naming {
     }
 
     fn custom_tag<S>(&self, context: &S) -> Result<Option<String>>
-        where S: Serialize
+    where
+        S: Serialize,
     {
         if let Some(ref custom_tag_template) = self.custom_tag_template {
             Ok(Some(Self::render(custom_tag_template, &context)?))
@@ -216,16 +233,19 @@ impl Naming {
     // We might want to pass more context to this render call (so
     // users can know which template was the offender)
     fn render<S>(template: &str, context: &S) -> Result<String>
-        where S: Serialize
+    where
+        S: Serialize,
     {
-        Handlebars::new().render_template(template, context)
-                         .map_err(|err| anyhow!("{}", err))
-                         .map(|s| s.to_lowercase())
+        Handlebars::new()
+            .render_template(template, context)
+            .map_err(|err| anyhow!("{}", err))
+            .map(|s| s.to_lowercase())
     }
 
-    fn rendering_context(ident: &FullyQualifiedPackageIdent,
-                         channel: &ChannelIdent)
-                         -> impl Serialize + use<> {
+    fn rendering_context(
+        ident: &FullyQualifiedPackageIdent,
+        channel: &ChannelIdent,
+    ) -> impl Serialize + use<> {
         json!({
             "pkg_origin": ident.origin(),
             "pkg_name": ident.name(),
@@ -272,7 +292,9 @@ impl Naming {
 mod tests {
     use super::*;
 
-    fn ident() -> FullyQualifiedPackageIdent { "core/foo/1.2.3/20200430153200".parse().unwrap() }
+    fn ident() -> FullyQualifiedPackageIdent {
+        "core/foo/1.2.3/20200430153200".parse().unwrap()
+    }
 
     fn context() -> impl Serialize {
         let ident = ident();
@@ -295,15 +317,19 @@ mod tests {
 
     #[test]
     fn latest_tag() {
-        let naming = Naming { include_latest_tag: true,
-                              ..Default::default() };
+        let naming = Naming {
+            include_latest_tag: true,
+            ..Default::default()
+        };
         assert_eq!(naming.latest_tag().unwrap(), "latest");
     }
 
     #[test]
     fn version_tag() {
-        let naming = Naming { include_version_tag: true,
-                              ..Default::default() };
+        let naming = Naming {
+            include_version_tag: true,
+            ..Default::default()
+        };
 
         let context = context();
         assert_eq!(naming.version_tag(&context).unwrap(), "1.2.3");
@@ -311,18 +337,24 @@ mod tests {
 
     #[test]
     fn version_release_tag() {
-        let naming = Naming { include_version_release_tag: true,
-                              ..Default::default() };
+        let naming = Naming {
+            include_version_release_tag: true,
+            ..Default::default()
+        };
 
         let context = context();
-        assert_eq!(naming.version_release_tag(&context).unwrap(),
-                   "1.2.3-20200430153200");
+        assert_eq!(
+            naming.version_release_tag(&context).unwrap(),
+            "1.2.3-20200430153200"
+        );
     }
 
     #[test]
     fn image_name_with_registry_url() {
-        let naming = Naming { registry_url: Some(String::from("registry.mycompany.com:8080/v1")),
-                              ..Default::default() };
+        let naming = Naming {
+            registry_url: Some(String::from("registry.mycompany.com:8080/v1")),
+            ..Default::default()
+        };
 
         let context = context();
 
@@ -340,21 +372,30 @@ mod tests {
         // pass. A "None", on the other hand, is something you expect
         // to throw an error.
         let inputs = vec![
-
             // Valid inputs
             ("monkeys", Some("monkeys")),
             ("{{pkg_name}}", Some("foo")),
             ("{{pkg_origin}}-{{pkg_name}}", Some("core-foo")),
-            ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}", Some("core-foo-1.2.3")),
-            ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}",
-             Some("core-foo-1.2.3-20200430153200")),
-            ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}-{{channel}}",
-             Some("core-foo-1.2.3-20200430153200-base")),
-            ("super-{{pkg_origin}}-wacky-{{pkg_name}}-funtime-{{pkg_version}}-container-{{pkg_release}}-party-{{channel}}-ohemgee",
-             Some("super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-base-ohemgee")),
-
+            (
+                "{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}",
+                Some("core-foo-1.2.3"),
+            ),
+            (
+                "{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}",
+                Some("core-foo-1.2.3-20200430153200"),
+            ),
+            (
+                "{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}-{{channel}}",
+                Some("core-foo-1.2.3-20200430153200-base"),
+            ),
+            (
+                "super-{{pkg_origin}}-wacky-{{pkg_name}}-funtime-{{pkg_version}}-container-{{pkg_release}}-party-{{channel}}-ohemgee",
+                Some(
+                    "super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-base-ohemgee",
+                ),
+            ),
             // Invalid inputs
-            ("{{" , None),
+            ("{{", None),
             // ("{{not_a_valid_variable}}-{{pkg_name}}", None),
             // ("", None),
             // more examples of things that violate the tagging spec
@@ -371,16 +412,20 @@ mod tests {
                 // expected success
                 assert!(actual_name.is_ok());
                 let actual_name = actual_name.unwrap();
-                assert_eq!(actual_name, expected_name,
-                           "Expected template '{}' to generate image name '{}', but it generated \
+                assert_eq!(
+                    actual_name, expected_name,
+                    "Expected template '{}' to generate image name '{}', but it generated \
                             '{}'",
-                           template, expected_name, actual_name);
+                    template, expected_name, actual_name
+                );
             } else {
                 // expected failure
                 if let Ok(unexpected_success) = actual_name {
-                    panic!("Expected template '{}' to fail to generate an image name, but it \
+                    panic!(
+                        "Expected template '{}' to fail to generate an image name, but it \
                             generated '{}'",
-                           template, unexpected_success);
+                        template, unexpected_success
+                    );
                 }
             }
         }
@@ -398,21 +443,30 @@ mod tests {
         // pass. A "None", on the other hand, is something you expect
         // to throw an error.
         let inputs = vec![
-
             // Valid inputs
             ("monkeys", Some("monkeys")),
             ("{{pkg_name}}", Some("foo")),
             ("{{pkg_origin}}-{{pkg_name}}", Some("core-foo")),
-            ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}", Some("core-foo-1.2.3")),
-            ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}",
-             Some("core-foo-1.2.3-20200430153200")),
-            ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}-{{channel}}",
-             Some("core-foo-1.2.3-20200430153200-base")),
-            ("super-{{pkg_origin}}-wacky-{{pkg_name}}-funtime-{{pkg_version}}-container-{{pkg_release}}-party-{{channel}}-ohemgee",
-             Some("super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-base-ohemgee")),
-
+            (
+                "{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}",
+                Some("core-foo-1.2.3"),
+            ),
+            (
+                "{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}",
+                Some("core-foo-1.2.3-20200430153200"),
+            ),
+            (
+                "{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}-{{channel}}",
+                Some("core-foo-1.2.3-20200430153200-base"),
+            ),
+            (
+                "super-{{pkg_origin}}-wacky-{{pkg_name}}-funtime-{{pkg_version}}-container-{{pkg_release}}-party-{{channel}}-ohemgee",
+                Some(
+                    "super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-base-ohemgee",
+                ),
+            ),
             // Invalid inputs
-            ("{{" , None),
+            ("{{", None),
             // ("{{not_a_valid_variable}}-{{pkg_name}}", None),
             // ("", None),
             // more examples of things that violate the tagging spec
@@ -429,16 +483,20 @@ mod tests {
                 // expected success
                 assert!(actual_tag.is_ok());
                 let actual_tag = actual_tag.unwrap().unwrap(); // Result<Option<String>>
-                assert_eq!(actual_tag, expected_tag,
-                           "Expected template '{}' to generate tag '{}', but it generated '{}'",
-                           template, expected_tag, actual_tag);
+                assert_eq!(
+                    actual_tag, expected_tag,
+                    "Expected template '{}' to generate tag '{}', but it generated '{}'",
+                    template, expected_tag, actual_tag
+                );
             } else {
                 // expected failure
                 if let Ok(unexpected_success) = actual_tag {
-                    panic!("Expected template '{}' to fail to generate a tag, but it generated \
+                    panic!(
+                        "Expected template '{}' to fail to generate a tag, but it generated \
                             '{}'",
-                           template,
-                           unexpected_success.unwrap());
+                        template,
+                        unexpected_success.unwrap()
+                    );
                 }
             }
         }
@@ -450,10 +508,11 @@ mod tests {
         let ident = ident();
         let channel = ChannelIdent::default();
 
-        let ImageIdentifiers { name,
-                               tags,
-                               expanded_identifiers, } =
-            naming.image_identifiers(&ident, &channel).unwrap();
+        let ImageIdentifiers {
+            name,
+            tags,
+            expanded_identifiers,
+        } = naming.image_identifiers(&ident, &channel).unwrap();
 
         assert_eq!(name, "core/foo");
         assert!(tags.is_empty());
@@ -462,31 +521,38 @@ mod tests {
 
     #[test]
     fn all_the_image_identifiers() {
-        let naming = Naming { custom_image_name_template:
-                                  Some(String::from("my-nifty/{{pkg_name}}")),
-                              include_latest_tag:          true,
-                              include_version_tag:         true,
-                              include_version_release_tag: true,
-                              custom_tag_template:         Some(String::from("new-hotness")),
-                              registry_url:
-                                  Some(String::from("registry.mycompany.com:8080/v1")),
-                              registry_type:               RegistryType::Docker, };
+        let naming = Naming {
+            custom_image_name_template: Some(String::from("my-nifty/{{pkg_name}}")),
+            include_latest_tag: true,
+            include_version_tag: true,
+            include_version_release_tag: true,
+            custom_tag_template: Some(String::from("new-hotness")),
+            registry_url: Some(String::from("registry.mycompany.com:8080/v1")),
+            registry_type: RegistryType::Docker,
+        };
 
         let ident = ident();
         let channel = ChannelIdent::default();
 
-        let ImageIdentifiers { name,
-                               tags,
-                               expanded_identifiers, } =
-            naming.image_identifiers(&ident, &channel).unwrap();
+        let ImageIdentifiers {
+            name,
+            tags,
+            expanded_identifiers,
+        } = naming.image_identifiers(&ident, &channel).unwrap();
 
         assert_eq!(name, "registry.mycompany.com:8080/v1/my-nifty/foo");
-        assert_eq!(tags,
-                   ["latest", "1.2.3", "1.2.3-20200430153200", "new-hotness"]);
-        assert_eq!(expanded_identifiers,
-                   ["registry.mycompany.com:8080/v1/my-nifty/foo:latest",
-                    "registry.mycompany.com:8080/v1/my-nifty/foo:1.2.3",
-                    "registry.mycompany.com:8080/v1/my-nifty/foo:1.2.3-20200430153200",
-                    "registry.mycompany.com:8080/v1/my-nifty/foo:new-hotness"]);
+        assert_eq!(
+            tags,
+            ["latest", "1.2.3", "1.2.3-20200430153200", "new-hotness"]
+        );
+        assert_eq!(
+            expanded_identifiers,
+            [
+                "registry.mycompany.com:8080/v1/my-nifty/foo:latest",
+                "registry.mycompany.com:8080/v1/my-nifty/foo:1.2.3",
+                "registry.mycompany.com:8080/v1/my-nifty/foo:1.2.3-20200430153200",
+                "registry.mycompany.com:8080/v1/my-nifty/foo:new-hotness"
+            ]
+        );
     }
 }

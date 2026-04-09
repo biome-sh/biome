@@ -2,14 +2,15 @@
 include!("../libbuild.rs");
 
 use handlebars::Handlebars;
-use std::{env,
-          fs::{self,
-               File},
-          io::Write,
-          path::Path};
+use std::{
+    env,
+    fs::{self, File},
+    io::Write,
+    path::Path,
+};
 
 fn main() {
-    habitat::common();
+    biome::common();
     generate_apidocs();
     generate_event_protobufs();
 }
@@ -23,8 +24,10 @@ fn generate_apidocs() {
             let template =
                 Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("doc/template.hbs");
 
-            let html = render_with_handlebars(&src_yaml, &template).expect("Failed to render API \
-                                                                            docs from YAML");
+            let html = render_with_handlebars(&src_yaml, &template).expect(
+                "Failed to render API \
+                                                                            docs from YAML",
+            );
 
             fs::write(&dst, html).expect("Failed to write api.html");
         }
@@ -35,9 +38,10 @@ fn generate_apidocs() {
     };
 }
 
-fn render_with_handlebars(yaml_path: &Path,
-                          template_path: &Path)
-                          -> Result<String, Box<dyn std::error::Error>> {
+fn render_with_handlebars(
+    yaml_path: &Path,
+    template_path: &Path,
+) -> Result<String, Box<dyn std::error::Error>> {
     let yaml = fs::read_to_string(yaml_path)?;
     let value: serde_yaml::Value = serde_yaml::from_str(&yaml)?;
     let json = serde_json::to_string_pretty(&value)?;
@@ -56,6 +60,7 @@ fn render_with_handlebars(yaml_path: &Path,
 
 fn generate_event_protobufs() {
     let mut config = prost_build::Config::new();
-    config.compile_protos(&["protocols/event.proto"], &["protocols/"])
-          .expect("Couldn't compile protobufs!")
+    config
+        .compile_protos(&["protocols/event.proto"], &["protocols/"])
+        .expect("Couldn't compile protobufs!")
 }

@@ -1,20 +1,18 @@
-use super::{PackageIdent,
-            PackageTarget,
-            metadata::{MetaFile,
-                       read_metafile}};
-use crate::error::{Error,
-                   Result};
+use super::{
+    PackageIdent, PackageTarget,
+    metadata::{MetaFile, read_metafile},
+};
+use crate::error::{Error, Result};
 use log::debug;
-use std::{ffi::OsStr,
-          fs,
-          io,
-          path::{Path,
-                 PathBuf},
-          str::FromStr};
-use tempfile::{Builder,
-               TempDir};
+use std::{
+    ffi::OsStr,
+    fs, io,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
+use tempfile::{Builder, TempDir};
 
-pub const INSTALL_TMP_PREFIX: &str = ".hab-pkg-install";
+pub const INSTALL_TMP_PREFIX: &str = ".bio-pkg-install";
 
 /// Return a directory which can be used as a temp dir during package install/
 /// uninstall
@@ -23,10 +21,10 @@ pub const INSTALL_TMP_PREFIX: &str = ".hab-pkg-install";
 /// but with TempDir style randomization
 pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
     let base = path.parent().ok_or_else(|| {
-                                 Error::PackageUnpackFailed(
+        Error::PackageUnpackFailed(
             "Could not determine parent directory for temporary package directory".to_owned(),
         )
-                             })?;
+    })?;
     fs::create_dir_all(base)?;
     #[cfg(unix)]
     crate::util::posix_perm::ensure_path_permissions(base, 0o755)?;
@@ -42,17 +40,20 @@ pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
     // path prepending operation and tar-rs does not.
     let cannon_base = base.canonicalize()?;
 
-    let temp_install_prefix =
-        path.file_name()
-            .and_then(OsStr::to_str)
-            .map(|dirname| format!("{}-{}", INSTALL_TMP_PREFIX, dirname))
-            .ok_or_else(|| {
-                Error::PackageUnpackFailed("Could not generate prefix for temporary package \
+    let temp_install_prefix = path
+        .file_name()
+        .and_then(OsStr::to_str)
+        .map(|dirname| format!("{}-{}", INSTALL_TMP_PREFIX, dirname))
+        .ok_or_else(|| {
+            Error::PackageUnpackFailed(
+                "Could not generate prefix for temporary package \
                                             directory"
-                                                      .to_owned())
-            })?;
-    Ok(Builder::new().prefix(&temp_install_prefix)
-                     .tempdir_in(cannon_base)?)
+                    .to_owned(),
+            )
+        })?;
+    Ok(Builder::new()
+        .prefix(&temp_install_prefix)
+        .tempdir_in(cannon_base)?)
 }
 
 /// Returns a list of package structs built from the contents of the given directory.
@@ -93,9 +94,10 @@ pub fn package_list_for_origin(base_pkg_path: &Path, origin: &str) -> Result<Vec
 /// structure is:
 ///
 ///    /base/ORIGIN/NAME/VERSION/RELEASE/
-pub fn package_list_for_ident(base_pkg_path: &Path,
-                              ident: &PackageIdent)
-                              -> Result<Vec<PackageIdent>> {
+pub fn package_list_for_ident(
+    base_pkg_path: &Path,
+    ident: &PackageIdent,
+) -> Result<Vec<PackageIdent>> {
     let mut package_list: Vec<PackageIdent> = vec![];
     let mut package_path = PathBuf::from(base_pkg_path);
     package_path.push(&ident.origin);
@@ -114,11 +116,13 @@ pub fn package_list_for_ident(base_pkg_path: &Path,
             if !is_existing_dir(&package_path)? {
                 return Ok(package_list);
             }
-            walk_releases(&ident.origin,
-                          &ident.name,
-                          version,
-                          &package_path,
-                          &mut package_list)?
+            walk_releases(
+                &ident.origin,
+                &ident.name,
+                version,
+                &package_path,
+                &mut package_list,
+            )?
         }
         // origin/name/version/release
         (Some(version), Some(release)) => {
@@ -129,12 +133,13 @@ pub fn package_list_for_ident(base_pkg_path: &Path,
             }
 
             let active_target = PackageTarget::active_target();
-            if let Some(new_ident) = package_ident_from_dir(&ident.origin,
-                                                            &ident.name,
-                                                            version,
-                                                            active_target,
-                                                            &package_path)
-            {
+            if let Some(new_ident) = package_ident_from_dir(
+                &ident.origin,
+                &ident.name,
+                version,
+                active_target,
+                &package_path,
+            ) {
                 package_list.push(new_ident)
             }
         }
@@ -174,11 +179,12 @@ fn walk_names(origin: &str, dir: &Path, packages: &mut Vec<PackageIdent>) -> Res
 
 /// Helper function for walk_names. Walks the directory at the given
 /// Path and recurses into them to find release directories.
-fn walk_versions(origin: &str,
-                 name: &str,
-                 dir: &Path,
-                 packages: &mut Vec<PackageIdent>)
-                 -> Result<()> {
+fn walk_versions(
+    origin: &str,
+    name: &str,
+    dir: &Path,
+    packages: &mut Vec<PackageIdent>,
+) -> Result<()> {
     for entry in fs::read_dir(dir)? {
         let version_dir = entry?;
         let version_path = version_dir.path();
@@ -195,19 +201,20 @@ fn walk_versions(origin: &str,
 /// valid package directory. Any resulting packages are pushed onto
 /// the given packages vector, assuming the given origin, name, and
 /// version.
-fn walk_releases(origin: &str,
-                 name: &str,
-                 version: &str,
-                 dir: &Path,
-                 packages: &mut Vec<PackageIdent>)
-                 -> Result<()> {
+fn walk_releases(
+    origin: &str,
+    name: &str,
+    version: &str,
+    dir: &Path,
+    packages: &mut Vec<PackageIdent>,
+) -> Result<()> {
     let active_target = PackageTarget::active_target();
     for entry in fs::read_dir(dir)? {
         let release_dir = entry?;
         let release_path = release_dir.path();
         if fs::metadata(&release_path)?.is_dir()
-           && let Some(ident) =
-               package_ident_from_dir(origin, name, version, active_target, &release_path)
+            && let Some(ident) =
+                package_ident_from_dir(origin, name, version, active_target, &release_path)
         {
             packages.push(ident)
         }
@@ -223,28 +230,33 @@ fn walk_releases(origin: &str,
 ///    - An error occurs reading the package metadata
 ///    - An error occurs reading the package target
 ///    - The package target doesn't match the given active target
-fn package_ident_from_dir(origin: &str,
-                          name: &str,
-                          version: &str,
-                          active_target: PackageTarget,
-                          dir: &Path)
-                          -> Option<PackageIdent> {
+fn package_ident_from_dir(
+    origin: &str,
+    name: &str,
+    version: &str,
+    active_target: PackageTarget,
+    dir: &Path,
+) -> Option<PackageIdent> {
     let release = dir.file_name().and_then(OsStr::to_str)?;
 
     if release.starts_with(INSTALL_TMP_PREFIX) {
-        debug!("PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate \
+        debug!(
+            "PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate \
                 because it matches installation temporary directory prefix: {}",
-               dir.display());
+            dir.display()
+        );
         return None;
     }
 
     let metafile_content = read_metafile(dir, MetaFile::Target);
     // If there is an error reading the target metafile, then skip the candidate
     if let Err(e) = metafile_content {
-        debug!("PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate due \
+        debug!(
+            "PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate due \
                 to error reading TARGET metafile, found={}, reason={:?}",
-               dir.display(),
-               e,);
+            dir.display(),
+            e,
+        );
         return None;
     }
 
@@ -254,10 +266,12 @@ fn package_ident_from_dir(origin: &str,
     // If there is an error parsing the target as a valid PackageTarget, then skip the
     // candidate
     if let Err(e) = install_target {
-        debug!("PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate due \
+        debug!(
+            "PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate due \
                 to error parsing TARGET metafile as a valid PackageTarget, found={}, reason={:?}",
-               dir.display(),
-               e,);
+            dir.display(),
+            e,
+        );
         return None;
     }
     // Any errors have been cleared, so unwrap is safe
@@ -266,16 +280,20 @@ fn package_ident_from_dir(origin: &str,
     // Ensure that the installed package's target matches the active `PackageTarget`,
     // otherwise skip the candidate
     if active_target == install_target {
-        Some(PackageIdent::new(origin.to_string(),
-                               name.to_string(),
-                               Some(version.to_string()),
-                               Some(release.to_owned())))
+        Some(PackageIdent::new(
+            origin.to_string(),
+            name.to_string(),
+            Some(version.to_string()),
+            Some(release.to_owned()),
+        ))
     } else {
-        debug!("PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate, \
+        debug!(
+            "PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate, \
                 found={}, installed_target={}, active_target={}",
-               dir.display(),
-               install_target,
-               active_target,);
+            dir.display(),
+            install_target,
+            active_target,
+        );
         None
     }
 }
@@ -339,9 +357,11 @@ mod tests {
     fn can_read_multiple_packages() {
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let package_root = fs::pkg_root_path(Some(fs_root.path()));
-        let expected = vec![testing_package_install("core/redis/1.0.0", fs_root.path()),
-                            testing_package_install("test/foobar", fs_root.path()),
-                            testing_package_install("core/redis/1.1.0", fs_root.path()),];
+        let expected = vec![
+            testing_package_install("core/redis/1.0.0", fs_root.path()),
+            testing_package_install("test/foobar", fs_root.path()),
+            testing_package_install("core/redis/1.1.0", fs_root.path()),
+        ];
 
         let packages = all_packages(&package_root).unwrap();
 
@@ -357,8 +377,10 @@ mod tests {
         let temp_dir = temp_package_directory(p.path()).unwrap();
         let temp_path = temp_dir.path();
 
-        assert_eq!(&p.path().parent().unwrap().canonicalize().unwrap(),
-                   &temp_path.parent().unwrap());
+        assert_eq!(
+            &p.path().parent().unwrap().canonicalize().unwrap(),
+            &temp_path.parent().unwrap()
+        );
     }
 
     #[test]
@@ -384,8 +406,10 @@ mod tests {
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let package_root = fs::pkg_root_path(Some(fs_root.path()));
         let test_origin = vec![testing_package_install("test/foobar", fs_root.path())];
-        let core_origin = vec![testing_package_install("core/redis/1.0.0", fs_root.path()),
-                               testing_package_install("core/redis/1.1.0", fs_root.path()),];
+        let core_origin = vec![
+            testing_package_install("core/redis/1.0.0", fs_root.path()),
+            testing_package_install("core/redis/1.1.0", fs_root.path()),
+        ];
 
         let packages = package_list_for_origin(&package_root, &String::from("core")).unwrap();
 

@@ -1,55 +1,43 @@
 mod handlers;
 
-use crate::{SUP_CMD,
-            SUP_PACKAGE_IDENT,
-            core::{self,
-                   fs::{FS_ROOT_PATH,
-                        launcher_root_path},
-                   os::{process,
-                        signals},
-                   package::{PackageIdent,
-                             PackageInstall}},
-            protocol::{self,
-                       ERR_NO_RETRY_EXCODE,
-                       OK_NO_RETRY_EXCODE},
-            server::handlers::Handler,
-            service::Service};
-use anyhow::{Context,
-             Result,
-             anyhow};
-use habitat_common::{liveliness_checker::{self,
-                                          ThreadUnregistered},
-                     outputln};
+use crate::{
+    SUP_CMD, SUP_PACKAGE_IDENT,
+    core::{
+        self,
+        fs::{FS_ROOT_PATH, launcher_root_path},
+        os::{process, signals},
+        package::{PackageIdent, PackageInstall},
+    },
+    protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE},
+    server::handlers::Handler,
+    service::Service,
+};
+use anyhow::{Context, Result, anyhow};
+use biome_common::{
+    liveliness_checker::{self, ThreadUnregistered},
+    outputln,
+};
 #[cfg(unix)]
-use habitat_core::os::process::{Pid,
-                                Signal};
-use ipc_channel::ipc::{IpcOneShotServer,
-                       IpcReceiver,
-                       IpcSender};
-use log::{debug,
-          error,
-          warn};
+use biome_core::os::process::{Pid, Signal};
+use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
+use log::{debug, error, warn};
 #[cfg(unix)]
-use std::{cmp::Ordering,
-          os::unix::process::ExitStatusExt};
-use std::{collections::HashMap,
-          fs,
-          io::Write,
-          path::PathBuf,
-          process::{Child,
-                    Command,
-                    ExitStatus,
-                    Stdio},
-          str::FromStr,
-          sync::{Arc,
-                 Condvar,
-                 Mutex},
-          thread,
-          time::Duration};
+use std::{cmp::Ordering, os::unix::process::ExitStatusExt};
+use std::{
+    collections::HashMap,
+    fs,
+    io::Write,
+    path::PathBuf,
+    process::{Child, Command, ExitStatus, Stdio},
+    str::FromStr,
+    sync::{Arc, Condvar, Mutex},
+    thread,
+    time::Duration,
+};
 
-const IPC_CONNECT_TIMEOUT_SECS: &str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
+const IPC_CONNECT_TIMEOUT_SECS: &str = "BIO_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
 const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;
-const SUP_CMD_ENVVAR: &str = "HAB_SUP_BINARY";
+const SUP_CMD_ENVVAR: &str = "BIO_SUP_BINARY";
 static LOGKEY: &str = "SV";
 
 type Receiver = IpcReceiver<Vec<u8>>;
@@ -62,44 +50,54 @@ enum TickState {
 
 pub struct Server {
     pid_file_path: PathBuf,
-    services:      ServiceTable,
-    tx:            Sender,
-    rx:            Receiver,
-    supervisor:    Child,
-    args:          Vec<String>,
+    services: ServiceTable,
+    tx: Sender,
+    rx: Receiver,
+    supervisor: Child,
+    args: Vec<String>,
 }
 
 impl Drop for Server {
-    fn drop(&mut self) { fs::remove_file(&self.pid_file_path).ok(); }
+    fn drop(&mut self) {
+        fs::remove_file(&self.pid_file_path).ok();
+    }
 }
 
 impl Server {
     pub fn new(args: Vec<String>) -> Result<Self> {
         let launcher_root = launcher_root_path(Some(&*core::fs::FS_ROOT_PATH));
         fs::create_dir_all(&launcher_root).with_context(|| {
-                                              format!("Failed to create the launcher runtime \
+            format!(
+                "Failed to create the launcher runtime \
                                                        folder '{}'",
-                                                      launcher_root.display())
-                                          })?;
+                launcher_root.display()
+            )
+        })?;
         let pid_file_path = launcher_root.join("PID");
         let mut pid_file = fs::File::create(&pid_file_path).with_context(|| {
-                                                               format!("Failed to create the \
+            format!(
+                "Failed to create the \
                                                                         launcher PID file '{}'",
-                                                                       pid_file_path.display())
-                                                           })?;
+                pid_file_path.display()
+            )
+        })?;
         write!(&mut pid_file, "{}", process::current_pid()).with_context(|| {
-                                                               format!("Failed to write launcher \
+            format!(
+                "Failed to write launcher \
                                                                         pid to PID file '{}'",
-                                                                       pid_file_path.display())
-                                                           })?;
+                pid_file_path.display()
+            )
+        })?;
 
         let ((rx, tx), supervisor) = Self::init(&args).context("Failed to initialize launcher")?;
-        Ok(Server { pid_file_path,
-                    services: ServiceTable::default(),
-                    tx,
-                    rx,
-                    supervisor,
-                    args })
+        Ok(Server {
+            pid_file_path,
+            services: ServiceTable::default(),
+            tx,
+            rx,
+            supervisor,
+            args,
+        })
     }
 
     /// Spawn a Supervisor and setup a bi-directional IPC connection to it.
@@ -108,11 +106,13 @@ impl Server {
     /// Launcher's process LOCK before starting. This is useful when restarting a Supervisor
     /// that terminated gracefully.
     fn init(args: &[String]) -> Result<((Receiver, Sender), Child)> {
-        let (server, pipe) =
-            IpcOneShotServer::new().context("Failed to create incoming IPC channel for launcher")?;
+        let (server, pipe) = IpcOneShotServer::new()
+            .context("Failed to create incoming IPC channel for launcher")?;
         let supervisor = spawn_supervisor(&pipe, args).context("Failed to spawn supervisor")?;
-        let ipc_channel = setup_connection(server).context("Failed to setup launcher IPC \
-                                                            connection with supervisor")?;
+        let ipc_channel = setup_connection(server).context(
+            "Failed to setup launcher IPC \
+                                                            connection with supervisor",
+        )?;
         Ok((ipc_channel, supervisor))
     }
 
@@ -131,9 +131,11 @@ impl Server {
     #[cfg(unix)]
     fn forward_signal(&self, signal: Signal) {
         if let Err(err) = core::os::process::signal(self.supervisor.id() as Pid, signal) {
-            error!("Unable to signal Supervisor, {}, {}",
-                   self.supervisor.id(),
-                   err);
+            error!(
+                "Unable to signal Supervisor, {}, {}",
+                self.supervisor.id(),
+                err
+            );
         }
     }
 
@@ -172,25 +174,27 @@ impl Server {
                 self.services.kill_all();
                 Ok(TickState::Exit(0))
             }
-            Some(exit_code) => {
-                Err(anyhow!("Supervisor process exited with an unexpected \
+            Some(exit_code) => Err(anyhow!(
+                "Supervisor process exited with an unexpected \
                              exit code: {}",
-                            exit_code))
-            }
+                exit_code
+            )),
             None => {
                 #[cfg(unix)]
                 {
                     match status.signal() {
                         Some(signal) => {
-                            outputln!("Supervisor process killed by signal {}; shutting \
+                            outputln!(
+                                "Supervisor process killed by signal {}; shutting \
                                        everything down now",
-                                      signal);
+                                signal
+                            );
                             self.services.kill_all();
                             Ok(TickState::Exit(0))
                         }
-                        None => {
-                            Err(anyhow!("Supervisor process was terminated in some unknown manner"))
-                        }
+                        None => Err(anyhow!(
+                            "Supervisor process was terminated in some unknown manner"
+                        )),
                     }
                 }
                 // This branch is essentially unreachable as the underlying ExitStatus
@@ -204,21 +208,27 @@ impl Server {
         }
     }
 
-    fn reap_services(&mut self) { self.services.reap_services() }
+    fn reap_services(&mut self) {
+        self.services.reap_services()
+    }
 
     fn shutdown(&mut self) {
         debug!("Shutting down launcher");
         match send(&self.tx, &protocol::Shutdown::default()) {
             Ok(_) => {}
             Err(err) => {
-                debug!("Failed to shutdown supervisor process with pid {}: {:?}",
-                       self.supervisor.id(),
-                       err);
+                debug!(
+                    "Failed to shutdown supervisor process with pid {}: {:?}",
+                    self.supervisor.id(),
+                    err
+                );
                 warn!("Forcefully stopping supervisor: {}", self.supervisor.id());
                 if let Err(err) = self.supervisor.kill() {
-                    warn!("Unable to kill supervisor, {}, {}",
-                          self.supervisor.id(),
-                          err);
+                    warn!(
+                        "Unable to kill supervisor, {}, {}",
+                        self.supervisor.id(),
+                        err
+                    );
                 }
             }
         }
@@ -263,7 +273,7 @@ impl Server {
         // collapse in the future.
         //
         // `reap_services` is a cross-platform method to reap (and keep
-        // track of) processes that are Habitat
+        // track of) processes that are Biome
         // services. `reap_zombie_orphans` is basically a Unix-only
         // method to take care of any orphan processes that get
         // re-parented to the Launcher, when it is running as PID 1,
@@ -364,13 +374,21 @@ impl Server {
 pub struct ServiceTable(HashMap<u32, Service>);
 
 impl ServiceTable {
-    pub fn get(&self, pid: u32) -> Option<&Service> { self.0.get(&pid) }
+    pub fn get(&self, pid: u32) -> Option<&Service> {
+        self.0.get(&pid)
+    }
 
-    pub fn get_mut(&mut self, pid: u32) -> Option<&mut Service> { self.0.get_mut(&pid) }
+    pub fn get_mut(&mut self, pid: u32) -> Option<&mut Service> {
+        self.0.get_mut(&pid)
+    }
 
-    pub fn insert(&mut self, service: Service) { self.0.insert(service.id(), service); }
+    pub fn insert(&mut self, service: Service) {
+        self.0.insert(service.id(), service);
+    }
 
-    pub fn remove(&mut self, pid: u32) -> Option<Service> { self.0.remove(&pid) }
+    pub fn remove(&mut self, pid: u32) -> Option<Service> {
+        self.0.remove(&pid)
+    }
 
     // Obviously this is not the most elegant implementation. However,
     // in practice we don't have a whole lot of processes per
@@ -395,12 +413,12 @@ impl ServiceTable {
     /// needs to re-attach itself.
     pub fn pid_of(&self, service_name: &str) -> Option<u32> {
         self.0.iter().find_map(|(pid, service)| {
-                         if service_name == service.args().id {
-                             Some(*pid)
-                         } else {
-                             None
-                         }
-                     })
+            if service_name == service.args().id {
+                Some(*pid)
+            } else {
+                None
+            }
+        })
     }
 
     fn kill_all(&mut self) {
@@ -417,10 +435,12 @@ impl ServiceTable {
             match service.try_wait() {
                 Ok(None) => (),
                 Ok(Some(code)) => {
-                    outputln!("Child for service '{}' with PID {} exited with code {}",
-                              service.name(),
-                              service.id(),
-                              code);
+                    outputln!(
+                        "Child for service '{}' with PID {} exited with code {}",
+                        service.name(),
+                        service.id(),
+                        code
+                    );
                     dead.push(service.id());
                 }
                 Err(err) => {
@@ -466,20 +486,25 @@ pub fn run(args: Vec<String>) -> Result<i32> {
 }
 
 pub fn send<T>(tx: &Sender, msg: &T) -> Result<()>
-    where T: protocol::LauncherMessage
+where
+    T: protocol::LauncherMessage,
 {
     let msg = protocol::NetTxn::build(msg).map_err(|err| {
-                                              anyhow!("Failed to serialize launcher protocol \
+        anyhow!(
+            "Failed to serialize launcher protocol \
                                                        message: {0}",
-                                                      err)
-                                          })?;
+            err
+        )
+    })?;
     let bytes = msg.to_bytes().map_err(|err| {
-                                   anyhow!("Failed to serialize launcher protocol message \
+        anyhow!(
+            "Failed to serialize launcher protocol message \
                                             payload: {0}",
-                                           err)
-                               })?;
+            err
+        )
+    })?;
     tx.send(bytes)
-      .context("Failed to send IPC message to supervisor")?;
+        .context("Failed to send IPC message to supervisor")?;
     Ok(())
 }
 
@@ -507,8 +532,10 @@ fn dispatch(tx: &Sender, bytes: &[u8], services: &mut ServiceTable) {
             // doesn't really fit that pattern :(
             let msg = format!("Received unknown message from Supervisor, {}", unknown);
             warn!("{}", msg);
-            let reply = protocol::NetErr { code: protocol::ErrCode::UnknownMessage,
-                                           msg };
+            let reply = protocol::NetErr {
+                code: protocol::ErrCode::UnknownMessage,
+                msg,
+            };
             if let Err(err) = send(tx, &reply) {
                 error!("{}: replying, {}", unknown, err);
             }
@@ -531,22 +558,29 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
             *started = true;
             debug!("connect thread started");
         }
-        let (rx, raw) = server.accept()
-                              .context("Failed to accept IPC connection from supervisor")?;
+        let (rx, raw) = server
+            .accept()
+            .context("Failed to accept IPC connection from supervisor")?;
         let txn = protocol::NetTxn::from_bytes(&raw).map_err(|err| {
-                                                        anyhow!("Failed to deserialize launcher \
+            anyhow!(
+                "Failed to deserialize launcher \
                                                                  protocol 'Register' message from \
                                                                  supervisor: {}",
-                                                                err)
-                                                    })?;
+                err
+            )
+        })?;
         let msg = txn.decode::<protocol::Register>().map_err(|err| {
-                                                         anyhow!("Failed to deserialize launcher \
+            anyhow!(
+                "Failed to deserialize launcher \
                                                                   protocol 'Register' message \
                                                                   payload from supervisor: {}",
-                                                                 err)
-                                                     })?;
-        let tx = IpcSender::connect(msg.pipe).context("Failed to establish IPC connection to \
-                                                       the supervisor")?;
+                err
+            )
+        })?;
+        let tx = IpcSender::connect(msg.pipe).context(
+            "Failed to establish IPC connection to \
+                                                       the supervisor",
+        )?;
         send(&tx, &protocol::NetOk::default())?;
         {
             let (_, ref cvar) = *pair2;
@@ -557,23 +591,32 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
     });
 
     let (ref lock, ref cvar) = *pair;
-    let timeout_secs =
-        core::env::var(IPC_CONNECT_TIMEOUT_SECS).unwrap_or_default()
-                                                .parse()
-                                                .unwrap_or(DEFAULT_IPC_CONNECT_TIMEOUT_SECS);
+    let timeout_secs = core::env::var(IPC_CONNECT_TIMEOUT_SECS)
+        .unwrap_or_default()
+        .parse()
+        .unwrap_or(DEFAULT_IPC_CONNECT_TIMEOUT_SECS);
 
     debug!("Waiting on connect thread for {} secs", timeout_secs);
-    let (started, wait_result) = cvar.wait_timeout(lock.lock().expect("IPC connection startup \
-                                                                       lock poisoned"),
-                                                   Duration::from_secs(timeout_secs))
-                                     .expect("IPC connection startup lock poisoned");
+    let (started, wait_result) = cvar
+        .wait_timeout(
+            lock.lock().expect(
+                "IPC connection startup \
+                                                                       lock poisoned",
+            ),
+            Duration::from_secs(timeout_secs),
+        )
+        .expect("IPC connection startup lock poisoned");
 
     if *started && !wait_result.timed_out() {
         handle.join().unwrap()
     } else {
-        debug!("Timeout exceeded waiting for IPC connection (started: {})",
-               *started);
-        Err(anyhow!("Timeout exceeded waiting for IPC connection from supervisor"))
+        debug!(
+            "Timeout exceeded waiting for IPC connection (started: {})",
+            *started
+        );
+        Err(anyhow!(
+            "Timeout exceeded waiting for IPC connection from supervisor"
+        ))
     }
 }
 
@@ -587,25 +630,30 @@ fn spawn_supervisor(pipe: &str, args: &[String]) -> Result<Child> {
 
     let mut command = Command::new(&binary);
 
-    debug!("Starting Supervisor {:?} with args {:?}, {}={}",
-           binary,
-           args,
-           protocol::LAUNCHER_PIPE_ENV,
-           pipe);
-    let child = command.stdout(Stdio::inherit())
-                       .stderr(Stdio::inherit())
-                       .env(protocol::LAUNCHER_PIPE_ENV, pipe)
-                       .env(protocol::LAUNCHER_PID_ENV,
-                            process::current_pid().to_string())
-                       .args(args)
-                       .spawn()
-                       .context("Failed to spawn supervisor")?;
+    debug!(
+        "Starting Supervisor {:?} with args {:?}, {}={}",
+        binary,
+        args,
+        protocol::LAUNCHER_PIPE_ENV,
+        pipe
+    );
+    let child = command
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .env(protocol::LAUNCHER_PIPE_ENV, pipe)
+        .env(
+            protocol::LAUNCHER_PID_ENV,
+            process::current_pid().to_string(),
+        )
+        .args(args)
+        .spawn()
+        .context("Failed to spawn supervisor")?;
     Ok(child)
 }
 
 /// Determines the most viable Supervisor binary to run and returns a `PathBuf` to it.
 ///
-/// Setting a filepath value to the `HAB_SUP_BINARY` env variable will force that binary to be used
+/// Setting a filepath value to the `BIO_SUP_BINARY` env variable will force that binary to be used
 /// instead.
 fn supervisor_cmd() -> Result<PathBuf> {
     if let Ok(command) = core::env::var(SUP_CMD_ENVVAR) {
@@ -614,16 +662,17 @@ fn supervisor_cmd() -> Result<PathBuf> {
     let ident = PackageIdent::from_str(SUP_PACKAGE_IDENT).unwrap();
     let fs_root_path = FS_ROOT_PATH.as_path();
     match PackageInstall::load_at_least(&ident, Some(fs_root_path)) {
-        Ok(install) => {
-            match core::fs::find_command_in_pkg(SUP_CMD, &install, fs_root_path) {
-                Ok(Some(cmd)) => Ok(cmd),
-                _ => {
-                    Err(anyhow!("Failed to locate '{}' binary in supervisor \
+        Ok(install) => match core::fs::find_command_in_pkg(SUP_CMD, &install, fs_root_path) {
+            Ok(Some(cmd)) => Ok(cmd),
+            _ => Err(anyhow!(
+                "Failed to locate '{}' binary in supervisor \
                                  package",
-                                SUP_CMD))
-                }
-            }
-        }
-        Err(_) => Err(anyhow!("Failed to locate supervisor package, {}", SUP_PACKAGE_IDENT)),
+                SUP_CMD
+            )),
+        },
+        Err(_) => Err(anyhow!(
+            "Failed to locate supervisor package, {}",
+            SUP_PACKAGE_IDENT
+        )),
     }
 }

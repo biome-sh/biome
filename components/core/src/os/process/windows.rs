@@ -1,20 +1,18 @@
-use crate::error::{Error,
-                   Result};
+use crate::error::{Error, Result};
 use log::debug;
-use std::{ffi::OsString,
-          io,
-          path::PathBuf,
-          process::{self,
-                    Command}};
-use winapi::{shared::minwindef::{DWORD,
-                                 FALSE,
-                                 LPDWORD},
-             um::{handleapi,
-                  processthreadsapi,
-                  winnt::{HANDLE,
-                          PROCESS_QUERY_LIMITED_INFORMATION,
-                          PROCESS_TERMINATE,
-                          SYNCHRONIZE}}};
+use std::{
+    ffi::OsString,
+    io,
+    path::PathBuf,
+    process::{self, Command},
+};
+use winapi::{
+    shared::minwindef::{DWORD, FALSE, LPDWORD},
+    um::{
+        handleapi, processthreadsapi,
+        winnt::{HANDLE, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_TERMINATE, SYNCHRONIZE},
+    },
+};
 
 const STILL_ACTIVE: u32 = 259;
 
@@ -25,15 +23,17 @@ pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
 }
 
 /// Get process identifier of calling process.
-pub fn current_pid() -> u32 { unsafe { processthreadsapi::GetCurrentProcessId() } }
+pub fn current_pid() -> u32 {
+    unsafe { processthreadsapi::GetCurrentProcessId() }
+}
 
 pub fn handle_from_pid(pid: Pid) -> Option<HANDLE> {
     unsafe {
-        let proc_handle = processthreadsapi::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION
-                                                         | PROCESS_TERMINATE
-                                                         | SYNCHRONIZE,
-                                                         FALSE,
-                                                         pid);
+        let proc_handle = processthreadsapi::OpenProcess(
+            PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_TERMINATE | SYNCHRONIZE,
+            FALSE,
+            pid,
+        );
 
         // we expect this to happen if the process died
         // before OpenProcess completes
@@ -72,9 +72,12 @@ pub fn is_alive(pid: Pid) -> bool {
 
 pub fn terminate(pid: Pid) -> Result<()> {
     if let Some(handle) = handle_from_pid(pid)
-       && unsafe { processthreadsapi::TerminateProcess(handle, 1) } == 0
+        && unsafe { processthreadsapi::TerminateProcess(handle, 1) } == 0
     {
-        return Err(Error::TerminateProcessFailed(pid, io::Error::last_os_error()));
+        return Err(Error::TerminateProcessFailed(
+            pid,
+            io::Error::last_os_error(),
+        ));
     }
     Ok(())
 }
@@ -87,9 +90,11 @@ pub fn terminate(pid: Pid) -> Result<()> {
 ///
 /// * If the child process cannot be created
 fn become_child_command(command: PathBuf, args: &[OsString]) -> Result<()> {
-    debug!("Calling child process: ({:?}) {:?}",
-           command.display(),
-           &args);
+    debug!(
+        "Calling child process: ({:?}) {:?}",
+        command.display(),
+        &args
+    );
     let status = Command::new(command).args(args).status()?;
     // Let's honor the exit codes from the child process we finished running
     process::exit(status.code().unwrap())
@@ -111,4 +116,6 @@ fn exit_status(handle: HANDLE) -> Result<u32> {
     Ok(exit_status)
 }
 
-pub fn can_run_services_as_svc_user() -> bool { true }
+pub fn can_run_services_as_svc_user() -> bool {
+    true
+}

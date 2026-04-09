@@ -1,16 +1,16 @@
 [package]
-name = "habitat_sup"
+name = "biome_sup"
 version = "0.0.0"
 edition = "2024"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 build = "./build.rs"
 workspace = "../../"
 
 [lib]
-name = "habitat_sup"
+name = "biome_sup"
 
 [[bin]]
-name = "hab-sup"
+name = "bio-sup"
 path = "src/main.rs"
 doc = false
 
@@ -27,14 +27,14 @@ cpu-time = "*"
 fs2 = "*"
 futures = "*"
 glob = "*"
-hab = { path = "../hab" }
-habitat_api_client = { path = "../builder-api-client" }
-habitat_butterfly = { path = "../butterfly", default-features = false }
-habitat_common = { path = "../common" }
-habitat_core = { path = "../core" }
-habitat_http_client = { path = "../http-client" }
-habitat-launcher-client = { path = "../launcher-client" }
-habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
+bio = { path = "../bio" }
+biome_api_client = { path = "../builder-api-client" }
+biome_butterfly = { path = "../butterfly", default-features = false }
+biome_common = { path = "../common" }
+biome_core = { path = "../core" }
+biome_http_client = { path = "../http-client" }
+biome-launcher-client = { path = "../launcher-client" }
+biome-sup-protocol = { path = "../sup-protocol", default-features = false }
 lazy_static = "*"
 libc = "*"
 log = "0.4"
@@ -72,12 +72,12 @@ caps = "*"
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
-habitat-launcher-protocol = { path = "../launcher-protocol" }
+biome-launcher-protocol = { path = "../launcher-protocol" }
 mio = { version = "^1.2", features = ["os-ext"] }
 winapi = { version = "^0.3", features = ["namedpipeapi", "tlhelp32"] }
 
 [dev-dependencies]
-habitat_core = { path = "../core" }
+biome_core = { path = "../core" }
 hyper = "*"
 # reqwest 0.13.0 changed the default TLS support from native-tls to rustls
 # this feature configuration is about using the features that were in effect
@@ -104,5 +104,5 @@ serde_yaml = "*"
 apidocs = []
 default = []
 ignore_integration_tests = []
-lock_as_mutex = ["habitat_common/lock_as_mutex"]
-lock_as_rwlock = ["habitat_common/lock_as_rwlock"]
+lock_as_mutex = ["biome_common/lock_as_mutex"]
+lock_as_rwlock = ["biome_common/lock_as_rwlock"]

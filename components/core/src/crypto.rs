@@ -1,4 +1,4 @@
-//! Habitat core encryption and cryptography.
+//! Biome core encryption and cryptography.
 //!
 //! This module uses [libsodium](https://github.com/jedisct1/libsodium) and its Rust counterpart
 //! [libsodium-rs](https://github.com/jedisct1/libsodium-rs) for cryptographic operations.
@@ -15,20 +15,20 @@
 //!     - the word `key` appears as part of a file suffix, where it is then considered as a **secret
 //!       key** file.
 //! - Referring to keys (by example):
-//!     - A key name: `habitat`
+//!     - A key name: `biome`
 //!     - A key rev: `201603312016`
-//!     - A key name with rev: `habitat-201603312016`
-//!     - A key file: `habitat-201603312016.pub`
-//!     - A key path or fully qualified key path: `/foo/bar/habitat-201603312016.pub`
-//! - An **Origin** refers to build-time operations, including signing and verification of a Habitat
+//!     - A key name with rev: `biome-201603312016`
+//!     - A key file: `biome-201603312016.pub`
+//!     - A key path or fully qualified key path: `/foo/bar/biome-201603312016.pub`
+//! - An **Origin** refers to build-time operations, including signing and verification of a Biome
 //!   artifact.
 //! - An **Organization** or **Org** refers to run-time operations such as deploying a package
 //!   signed in a different origin into your own organization. This is abbreviated as "org" in
 //!   user-facing command line parameters and internal variable names.
-//! - To distinguish between **Org** and **Origin**, the following might help: Habitat packages come
+//! - To distinguish between **Org** and **Origin**, the following might help: Biome packages come
 //!   from an **Origin** and run in an **Organization**.
 //! - A **Ring** is the full set of Supervisors that communicate with each other.
-//! - A **Signing key**, also known as a **sig** key, is used to sign and verify Habitat artifacts.
+//! - A **Signing key**, also known as a **sig** key, is used to sign and verify Biome artifacts.
 //!   The file contains a `sig.key` file suffix. Note that sig keys are not compatible with box
 //!   keys.
 //! - A **Box key** is used for encryption and decryption of arbitrary data. The file contains a
@@ -60,8 +60,8 @@
 //! Example origin key file names ("sig" keys):
 //!
 //! ```text
-//! habitat-201603312016.pub
-//! habitat-201603312016.sig.key
+//! biome-201603312016.pub
+//! biome-201603312016.sig.key
 //! your_company-201604021516.pub
 //! your_company-201604021516.sig.key
 //! ```
@@ -90,7 +90,7 @@
 //! Example Service keys:
 //!
 //! ```text
-//! redis.default@habitat-201603312016.pub
+//! redis.default@biome-201603312016.pub
 //! ```
 //!
 //! ## Ring key
@@ -107,9 +107,9 @@
 //!
 //! # File formats
 //!
-//! ## Habitat artifacts
+//! ## Biome artifacts
 //!
-//! A signed Habitat artifact (a file with the extension `.hart`) has 5 plaintext lines followed by
+//! A signed Biome artifact (a file with the extension `.hart`) has 5 plaintext lines followed by
 //! a binary blob of data, which is an unsigned, compressed tarfile. The lines are as follows:
 //!
 //! 1. The artifact format version
@@ -135,7 +135,7 @@
 //!
 //! ```text
 //! HART-1
-//! habitat-20160405144945
+//! biome-20160405144945
 //! BLAKE2b
 //! signed BLAKE2b signature
 //!
@@ -143,19 +143,19 @@
 //! ```
 //!
 //! Due to the simple, line-driven structure of the header it's possible to examine the contents of
-//! a Habitat artifact using standard Unix tooling:
+//! a Biome artifact using standard Unix tooling:
 //!
 //! ```text
 //! $ head -4 /path/to/acme-glibc-2.22-20160310192356-x86_64-linux.hart
 //! HART-1
-//! habitat-20160405144945
+//! biome-20160405144945
 //! BLAKE2b
 //! abc123...
 //! ```
 //!
 //! Note that the `abc123` would be a Base64 string in a real file.
 //!
-//! It's also possible to extract a plain compressed tarball from a signed Habitat artifact using
+//! It's also possible to extract a plain compressed tarball from a signed Biome artifact using
 //! the `tail(1)` Unix command:
 //!
 //! ```text
@@ -165,15 +165,15 @@
 //! The above command starts streaming the file to standard out at line 6, skipping the first 5
 //! plaintext lines.
 //!
-//! If the Habitat artifact needs to be extracted on disk without verifying its integrity or
+//! If the Biome artifact needs to be extracted on disk without verifying its integrity or
 //! authenticity, this can be accomplished with:
 //!
 //! ```text
 //! tail -n +6 /tmp/somefile.hart | xzcat | tar x -C /
 //! ```
 //!
-//! **Caution!** Working with Habitat artifacts in this manner this is not normally recommended and
-//! is **not** a supported workflow for working with Habitat artifacts--they are signed for very
+//! **Caution!** Working with Biome artifacts in this manner this is not normally recommended and
+//! is **not** a supported workflow for working with Biome artifacts--they are signed for very
 //! important reasons.
 //!
 //! ## Encrypted payloads
@@ -211,8 +211,7 @@
 //! <symkey_base64>
 //! ```
 
-use crate::error::{Error,
-                   Result};
+use crate::error::{Error, Result};
 
 /// The suffix on the end of a public sig/box file
 pub const PUBLIC_KEY_SUFFIX: &str = "pub";
@@ -227,7 +226,7 @@ pub const SECRET_SYM_KEY_SUFFIX: &str = "sym.key";
 pub const SIG_HASH_TYPE: &str = "BLAKE2b";
 /// This environment variable allows you to override the fs::CACHE_KEY_PATH
 /// at runtime. This is useful for testing.
-pub const CACHE_KEY_PATH_ENV_VAR: &str = "HAB_CACHE_KEY_PATH";
+pub const CACHE_KEY_PATH_ENV_VAR: &str = "BIO_CACHE_KEY_PATH";
 pub const HART_FORMAT_VERSION: &str = "HART-1";
 pub const BOX_FORMAT_VERSION: &str = "BOX-1";
 pub const ANONYMOUS_BOX_FORMAT_VERSION: &str = "ANONYMOUS-BOX-1";
@@ -246,38 +245,43 @@ pub mod keys;
 
 pub use hash::Blake2bHash;
 
-pub fn init() -> Result<()> { libsodium_rs::ensure_init().map_err(|_| Error::SodiumInitFailed) }
+pub fn init() -> Result<()> {
+    libsodium_rs::ensure_init().map_err(|_| Error::SodiumInitFailed)
+}
 
 /// A comparison function that takes a consistent amount of time to compare
 /// values of a given number of bytes so as to be resistant to timing attacks.
 /// This function should be used whenever comparing a secret value to one
 /// supplied by a user.
 pub fn secure_eq<T, U>(t: T, u: U) -> bool
-    where T: AsRef<[u8]>,
-          U: AsRef<[u8]>
+where
+    T: AsRef<[u8]>,
+    U: AsRef<[u8]>,
 {
     libsodium_rs::utils::memcmp(t.as_ref(), u.as_ref())
 }
 
 #[cfg(test)]
 pub mod test_support {
-    use crate::{crypto::keys::{Key,
-                               KeyCache},
-                error as herror};
+    use crate::{
+        crypto::keys::{Key, KeyCache},
+        error as herror,
+    };
 
-    use std::{fs::File,
-              io::Read,
-              path::PathBuf,
-              thread,
-              time::{Duration,
-                     Instant}};
-    use tempfile::{Builder,
-                   TempDir};
+    use std::{
+        fs::File,
+        io::Read,
+        path::PathBuf,
+        thread,
+        time::{Duration, Instant},
+    };
+    use tempfile::{Builder, TempDir};
 
     pub fn fixture(name: &str) -> PathBuf {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
-                                                            .join("fixtures")
-                                                            .join(name);
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join(name);
         if !path.is_file() {
             panic!("Fixture '{}' not found at: {:?}", name, path);
         }
@@ -292,7 +296,8 @@ pub mod test_support {
     }
 
     pub fn wait_until_ok<F, T>(some_fn: F) -> Option<T>
-        where F: Fn() -> Result<T, herror::Error>
+    where
+        F: Fn() -> Result<T, herror::Error>,
     {
         let wait_duration = Duration::from_secs(30);
         let current_time = Instant::now();
@@ -315,13 +320,16 @@ pub mod test_support {
         (cache, dir)
     }
 
-    pub fn wait_1_sec() { thread::sleep(Duration::from_secs(1)); }
+    pub fn wait_1_sec() {
+        thread::sleep(Duration::from_secs(1));
+    }
 
     /// Helper function to return a specific kind of key read from a
     /// file in our fixtures directory.
     pub fn fixture_key<K, E>(path_in_fixtures: &str) -> K
-        where K: Key + std::str::FromStr<Err = E>,
-              E: std::fmt::Debug
+    where
+        K: Key + std::str::FromStr<Err = E>,
+        E: std::fmt::Debug,
     {
         fixture_as_string(path_in_fixtures).parse::<K>().unwrap()
     }

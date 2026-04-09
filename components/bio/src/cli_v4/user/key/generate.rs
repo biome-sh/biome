@@ -1,0 +1,37 @@
+use crate::{cli_v4::utils::CacheKeyPath, error::Result as BioResult};
+use biome_common::ui::UI;
+use clap::Parser;
+use clap_v4 as clap;
+
+use biome_core::crypto::keys::KeyCache;
+use std::path::PathBuf;
+
+use crate::command::user::key::generate::start;
+
+#[derive(Debug, Clone, Parser)]
+#[command(
+    arg_required_else_help = true,
+    help_template = "{name} {version} {author-section} \
+                           {about-section}\n{usage-heading}\n{usage}\n\n{all-args}\n",
+    about = "Generates a Biome user key"
+)]
+pub(crate) struct UserKeyGenerateOptions {
+    /// Name of the user key
+    #[arg(value_name = "USER")]
+    user: String,
+
+    #[command(flatten)]
+    cache_key_path: CacheKeyPath,
+}
+
+impl UserKeyGenerateOptions {
+    pub(crate) async fn do_generate(&self, ui: &mut UI) -> BioResult<()> {
+        let key_path: PathBuf = (&self.cache_key_path).into();
+
+        let key_cache = KeyCache::new(key_path);
+        key_cache.setup()?;
+
+        start(ui, &self.user, &key_cache)?;
+        Ok(())
+    }
+}

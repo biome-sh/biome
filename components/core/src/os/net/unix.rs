@@ -1,5 +1,4 @@
-use std::{ffi::CStr,
-          io};
+use std::{ffi::CStr, io};
 
 pub fn hostname() -> io::Result<String> {
     let len = 255;

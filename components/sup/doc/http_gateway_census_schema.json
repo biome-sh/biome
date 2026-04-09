@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "description": "Schema for all the data the Habitat supervisor makes available at the /census HTTP API endpoint",
+  "description": "Schema for all the data the Biome supervisor makes available at the /census HTTP API endpoint",
   "properties": {
     "census_groups": {
       "additionalProperties": {

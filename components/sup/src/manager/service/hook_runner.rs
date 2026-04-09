@@ -8,49 +8,54 @@
 //! `std::process::Command`, we could consider it. In the meantime,
 //! this seems to do the trick.
 
-use super::{Pkg,
-            hook_timer};
-use crate::error::{Error,
-                   Result};
-use habitat_common::templating::hooks::Hook;
-use habitat_core::service::ServiceGroup;
-use log::{debug,
-          error};
-use std::{clone::Clone,
-          sync::Arc,
-          time::{Duration,
-                 Instant}};
+use super::{Pkg, hook_timer};
+use crate::error::{Error, Result};
+use biome_common::templating::hooks::Hook;
+use biome_core::service::ServiceGroup;
+use log::{debug, error};
+use std::{
+    clone::Clone,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 use tokio::task;
 
 pub struct HookRunner<H: Hook + Sync> {
-    hook:          Arc<H>,
+    hook: Arc<H>,
     service_group: ServiceGroup,
-    pkg:           Pkg,
-    passwd:        Option<String>,
+    pkg: Pkg,
+    passwd: Option<String>,
 }
 
 // We cannot use `#[derive(Clone)]` here because it unnecessarily requires `H` to be
 // `Clone`. See https://github.com/rust-lang/rust/issues/44151.
 impl<H: Hook + Sync> Clone for HookRunner<H> {
     fn clone(&self) -> Self {
-        Self { hook:          self.hook.clone(),
-               service_group: self.service_group.clone(),
-               pkg:           self.pkg.clone(),
-               passwd:        self.passwd.clone(), }
+        Self {
+            hook: self.hook.clone(),
+            service_group: self.service_group.clone(),
+            pkg: self.pkg.clone(),
+            passwd: self.passwd.clone(),
+        }
     }
 }
 
-impl<H> HookRunner<H> where H: Hook + Sync + 'static
+impl<H> HookRunner<H>
+where
+    H: Hook + Sync + 'static,
 {
-    pub fn new(hook: Arc<H>,
-               service_group: ServiceGroup,
-               pkg: Pkg,
-               passwd: Option<String>)
-               -> HookRunner<H> {
-        HookRunner { hook,
-                     service_group,
-                     pkg,
-                     passwd }
+    pub fn new(
+        hook: Arc<H>,
+        service_group: ServiceGroup,
+        pkg: Pkg,
+        passwd: Option<String>,
+    ) -> HookRunner<H> {
+        HookRunner {
+            hook,
+            service_group,
+            pkg,
+            passwd,
+        }
     }
 
     pub async fn retryable_future(self) {
@@ -77,11 +82,13 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
             // we're not able to use the same timer for both :(
             let _timer = hook_timer(H::FILE_NAME);
             let start = Instant::now();
-            let result = self.hook
-                             .run(&self.service_group, &self.pkg, self.passwd.as_ref());
+            let result = self
+                .hook
+                .run(&self.service_group, &self.pkg, self.passwd.as_ref());
             let run_time = start.elapsed();
             let exit_value = result.map_err(|e| Error::from(e).with_duration(run_time))?;
             Ok((exit_value, run_time))
-        }).await?
+        })
+        .await?
     }
 }

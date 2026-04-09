@@ -1,12 +1,12 @@
 use super::service::spec::ServiceSpec;
-use crate::error::{Error,
-                   Result};
-use habitat_common::outputln;
+use crate::error::{Error, Result};
+use biome_common::outputln;
 use log::debug;
-use std::{ffi::OsStr,
-          iter::IntoIterator,
-          path::{Path,
-                 PathBuf}};
+use std::{
+    ffi::OsStr,
+    iter::IntoIterator,
+    path::{Path, PathBuf},
+};
 
 static LOGKEY: &str = "SD";
 const SPEC_FILE_EXT: &str = "spec";
@@ -16,12 +16,15 @@ const SPEC_FILE_GLOB: &str = "*.spec";
 pub struct SpecDir(PathBuf);
 
 impl AsRef<Path> for SpecDir {
-    fn as_ref(&self) -> &Path { self.0.as_ref() }
+    fn as_ref(&self) -> &Path {
+        self.0.as_ref()
+    }
 }
 
 impl SpecDir {
     pub fn new<P>(path: P) -> Result<SpecDir>
-        where P: AsRef<Path>
+    where
+        P: AsRef<Path>,
     {
         let path: PathBuf = path.as_ref().into();
         if path.is_dir() {
@@ -44,9 +47,11 @@ impl SpecDir {
             match ServiceSpec::from_file(&spec_file).map(|spec| spec.to_file(&spec_file)) {
                 Ok(_) => debug!("migrated {:?}", spec_file),
                 Err(err) => {
-                    outputln!("Unable to migrate service spec, {}, {}",
-                              spec_file.display(),
-                              err);
+                    outputln!(
+                        "Unable to migrate service spec, {}, {}",
+                        spec_file.display(),
+                        err
+                    );
                 }
             }
         }
@@ -60,34 +65,40 @@ impl SpecDir {
             let spec = match ServiceSpec::from_file(&spec_file) {
                 Ok(s) => s,
                 Err(e) => {
-                    outputln!("Error when loading service spec file '{}' ({}). This file will be \
+                    outputln!(
+                        "Error when loading service spec file '{}' ({}). This file will be \
                                skipped.",
-                              spec_file.display(),
-                              e);
+                        spec_file.display(),
+                        e
+                    );
                     continue;
                 }
             };
 
             specs.push(match spec_file.file_stem().and_then(OsStr::to_str) {
-                           Some(stem) if stem == spec.ident.name => spec,
-                           Some(_) => {
-                               outputln!("Error when loading service spec file '{}' (File name \
+                Some(stem) if stem == spec.ident.name => spec,
+                Some(_) => {
+                    outputln!(
+                        "Error when loading service spec file '{}' (File name \
                                           does not match ident name '{}' from ident = \"{}\", it \
                                           should be called '{}.{}'). This file will be skipped.",
-                                         spec_file.display(),
-                                         &spec.ident.name,
-                                         &spec.ident,
-                                         &spec.ident.name,
-                                         SPEC_FILE_EXT);
-                               continue;
-                           }
-                           None => {
-                               outputln!("Error when loading service spec file '{}' (File stem \
+                        spec_file.display(),
+                        &spec.ident.name,
+                        &spec.ident,
+                        &spec.ident.name,
+                        SPEC_FILE_EXT
+                    );
+                    continue;
+                }
+                None => {
+                    outputln!(
+                        "Error when loading service spec file '{}' (File stem \
                                           could not be determined). This file will be skipped.",
-                                         spec_file.display());
-                               continue;
-                           }
-                       });
+                        spec_file.display()
+                    );
+                    continue;
+                }
+            });
         }
 
         specs

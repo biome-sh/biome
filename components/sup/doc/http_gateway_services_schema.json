@@ -71,7 +71,7 @@
           "type": "boolean"
         },
         "version": {
-          "description": "Version of the Habitat Supervisor, e.g., `0.54.0/20180221023448`",
+          "description": "Version of the Biome Supervisor, e.g., `0.54.0/20180221023448`",
           "type": "string"
         }
       },
@@ -111,9 +111,9 @@
       "type": "object"
     }
   },
-  "description": "Schema for all the data the Habitat supervisor makes available at the /services HTTP API endpoint",
+  "description": "Schema for all the data the Biome supervisor makes available at the /services HTTP API endpoint",
   "items": {
-    "description": "The services that the Habitat supervisor has loaded",
+    "description": "The services that the Biome supervisor has loaded",
     "properties": {
       "all_pkg_binds": {
         "description": "All of the package bind information",
@@ -161,7 +161,7 @@
         "type": "array"
       },
       "bldr_url": {
-        "description": "The URL for the Habitat Builder service",
+        "description": "The URL for the Biome Builder service",
         "type": "string"
       },
       "cfg": {
@@ -361,7 +361,7 @@
         "type": "object"
       },
       "pkg": {
-        "description": "The habitat package that this service was spawned from",
+        "description": "The biome package that this service was spawned from",
         "properties": {
           "dependencies": {
             "description": "This package's dependencies",

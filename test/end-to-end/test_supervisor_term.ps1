@@ -2,13 +2,13 @@ $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) "testpkgstophook.out"
 $supLog = New-SupervisorLogFile("test_supervisor_term")
 $launcherProc = Start-Supervisor -LogFile $supLog -Timeout 45
 
-Describe "hab sup term" {
+Describe "bio sup term" {
     BeforeAll {
-        hab origin key generate $env:HAB_ORIGIN
+        bio origin key generate $env:BIO_ORIGIN
         Invoke-BuildAndInstall testpkgstophook
-        Load-SupervisorService "$env:HAB_ORIGIN/testpkgstophook"
-        hab sup term
-        $supProc = Get-Process "hab-sup"
+        Load-SupervisorService "$env:BIO_ORIGIN/testpkgstophook"
+        bio sup term
+        $supProc = Get-Process "bio-sup"
         $supProc.WaitForExit(5000)
         $launcherProc.WaitForExit(10000)
     }

@@ -1,4 +1,4 @@
-mod habitat {
+mod biome {
     use std::{env,
               fs::{self,
                    File},
@@ -10,7 +10,7 @@ mod habitat {
     /// elsewhere in the compiling code.
     pub fn common() { write_out_dir_file("VERSION", &version()); }
 
-    /// Reads from $PLAN_VERSION in a `hab pkg build` run, but from
+    /// Reads from $PLAN_VERSION in a `bio pkg build` run, but from
     /// the `VERSION` file in a plain `cargo build` run.
     fn version() -> String { env::var("PLAN_VERSION").unwrap_or_else(|_| read_common_version()) }
 

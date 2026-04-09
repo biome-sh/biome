@@ -1,7 +1,5 @@
-use crate::error::{Error,
-                   Result};
-use nix::unistd::{Group,
-                  User};
+use crate::error::{Error, Result};
+use nix::unistd::{Group, User};
 use std::path::PathBuf;
 
 pub fn get_uid_by_name(owner: &str) -> Result<Option<u32>> {
@@ -32,9 +30,13 @@ pub fn get_effective_username() -> Result<Option<String>> {
     Ok(User::from_uid(euid)?.map(|u| u.name))
 }
 
-pub fn get_effective_uid() -> u32 { nix::unistd::geteuid().as_raw() }
+pub fn get_effective_uid() -> u32 {
+    nix::unistd::geteuid().as_raw()
+}
 
-pub fn get_effective_gid() -> u32 { nix::unistd::getegid().as_raw() }
+pub fn get_effective_gid() -> u32 {
+    nix::unistd::getegid().as_raw()
+}
 
 pub fn get_effective_groupname() -> Result<Option<String>> {
     let egid = nix::unistd::getegid();
@@ -51,27 +53,35 @@ pub fn get_home_for_user(username: &str) -> Result<Option<PathBuf>> {
 ///     c) fail otherwise
 pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
     if get_uid_by_name(user)?.is_none() {
-        return Err(Error::PermissionFailed(format!("Package requires user \
+        return Err(Error::PermissionFailed(format!(
+            "Package requires user \
                                                     {} to exist, but it \
                                                     doesn't",
-                                                   user)));
+            user
+        )));
     }
     if get_gid_by_name(group)?.is_none() {
-        return Err(Error::PermissionFailed(format!("Package requires group \
+        return Err(Error::PermissionFailed(format!(
+            "Package requires group \
                                                     {} to exist, but it \
                                                     doesn't",
-                                                   group)));
+            group
+        )));
     }
 
     let current_user = get_current_username()?;
     let current_group = get_current_groupname()?;
 
     if current_user.is_none() {
-        return Err(Error::PermissionFailed("Can't determine current user".to_string()));
+        return Err(Error::PermissionFailed(
+            "Can't determine current user".to_string(),
+        ));
     }
 
     if current_group.is_none() {
-        return Err(Error::PermissionFailed("Can't determine current group".to_string()));
+        return Err(Error::PermissionFailed(
+            "Can't determine current group".to_string(),
+        ));
     }
 
     let current_user = current_user.unwrap();

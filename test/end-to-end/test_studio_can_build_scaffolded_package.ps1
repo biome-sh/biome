@@ -1,7 +1,7 @@
-hab origin key generate $env:HAB_ORIGIN
+bio origin key generate $env:BIO_ORIGIN
 
 Function Invoke-PlanBuild($package) {
-    hab pkg build test/fixtures/$package -R | Out-Null
+    bio pkg build test/fixtures/$package -R | Out-Null
     if ($IsLinux) {
         # This changes the format of last_build from `var=value` to `$var='value'`
         # so that powershell can parse and source the script
@@ -16,19 +16,19 @@ Describe "package using scaffolding" {
     $minimal = Invoke-PlanBuild minimal-package
     $depPkg = Invoke-PlanBuild dep-pkg-1
     if ($IsLinux) {
-        hab studio run "rm -rf /hab/pkgs/$($depPkg.Ident)/hooks"
+        bio studio run "rm -rf /bio/pkgs/$($depPkg.Ident)/hooks"
     }
     $scaffolding = Invoke-PlanBuild scaffolding
     $consumer = Invoke-PlanBuild use_scaffolding
     It "inherits scaffolding dependencies" {
-        hab pkg install "results/$($minimal.Artifact)"
-        hab pkg install "results/$($depPkg.Artifact)"
-        Remove-Item "/hab/pkgs/$($depPkg.Ident)/hooks" -Recurse -Force
-        hab pkg install "results/$($scaffolding.Artifact)"
-        hab pkg install "results/$($consumer.Artifact)"
+        bio pkg install "results/$($minimal.Artifact)"
+        bio pkg install "results/$($depPkg.Artifact)"
+        Remove-Item "/bio/pkgs/$($depPkg.Ident)/hooks" -Recurse -Force
+        bio pkg install "results/$($scaffolding.Artifact)"
+        bio pkg install "results/$($consumer.Artifact)"
         # scaffolding has minimal_package as runtime and dep-pkg-1 as build time deps
 
-        "/hab/pkgs/$($consumer.Ident)/DEPS" | Should -FileContentMatch "$env:HAB_ORIGIN/minimal_package"
-        "/hab/pkgs/$($consumer.Ident)/BUILD_DEPS" | Should -FileContentMatch "$env:HAB_ORIGIN/dep-pkg-1"
+        "/bio/pkgs/$($consumer.Ident)/DEPS" | Should -FileContentMatch "$env:BIO_ORIGIN/minimal_package"
+        "/bio/pkgs/$($consumer.Ident)/BUILD_DEPS" | Should -FileContentMatch "$env:BIO_ORIGIN/dep-pkg-1"
     }
 }

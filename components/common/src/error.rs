@@ -1,20 +1,15 @@
-use crate::{api_client,
-            hcore::{self,
-                    package::{FullyQualifiedPackageIdent,
-                              PackageIdent}}};
+use crate::{
+    api_client,
+    hcore::{
+        self,
+        package::{FullyQualifiedPackageIdent, PackageIdent},
+    },
+};
 #[cfg(windows)]
-use habitat_core::os::process::windows_child::ExitStatus;
+use biome_core::os::process::windows_child::ExitStatus;
 #[cfg(not(windows))]
 use std::process::ExitStatus;
-use std::{env,
-          error,
-          fmt,
-          io,
-          net,
-          path::PathBuf,
-          result,
-          str,
-          string};
+use std::{env, error, fmt, io, net, path::PathBuf, result, str, string};
 
 pub const DEFAULT_ERROR_EXIT_CODE: i32 = 1;
 
@@ -27,9 +22,13 @@ pub enum CommandExecutionError {
 }
 
 impl CommandExecutionError {
-    pub fn run_error(e: Error) -> Self { Self::RunError(Box::new(e)) }
+    pub fn run_error(e: Error) -> Self {
+        Self::RunError(Box::new(e))
+    }
 
-    pub fn exit_status(e: ExitStatus) -> Self { Self::ExitStatus(e) }
+    pub fn exit_status(e: ExitStatus) -> Self {
+        Self::ExitStatus(e)
+    }
 
     pub fn exit_code(&self) -> i32 {
         if let Self::ExitStatus(exit_status) = self {
@@ -71,11 +70,11 @@ pub enum Error {
     /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),
     GossipFileRelativePath(String),
-    HabitatCore(hcore::Error),
+    BiomeCore(hcore::Error),
     HookFailed {
         package_ident: FullyQualifiedPackageIdent,
-        hook:          &'static str,
-        error:         Box<CommandExecutionError>,
+        hook: &'static str,
+        error: Box<CommandExecutionError>,
     },
     InvalidEventStreamToken(String),
     /// Occurs when making lower level IO calls.
@@ -120,22 +119,28 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn hook_run_error(package_ident: FullyQualifiedPackageIdent,
-                          hook: &'static str,
-                          error: Error)
-                          -> Self {
-        Self::HookFailed { package_ident,
-                           hook,
-                           error: Box::new(CommandExecutionError::run_error(error)) }
+    pub fn hook_run_error(
+        package_ident: FullyQualifiedPackageIdent,
+        hook: &'static str,
+        error: Error,
+    ) -> Self {
+        Self::HookFailed {
+            package_ident,
+            hook,
+            error: Box::new(CommandExecutionError::run_error(error)),
+        }
     }
 
-    pub fn hook_exit_status(package_ident: FullyQualifiedPackageIdent,
-                            hook: &'static str,
-                            exit_status: ExitStatus)
-                            -> Self {
-        Self::HookFailed { package_ident,
-                           hook,
-                           error: Box::new(CommandExecutionError::exit_status(exit_status)) }
+    pub fn hook_exit_status(
+        package_ident: FullyQualifiedPackageIdent,
+        hook: &'static str,
+        exit_status: ExitStatus,
+    ) -> Self {
+        Self::HookFailed {
+            package_ident,
+            hook,
+            error: Box::new(CommandExecutionError::exit_status(exit_status)),
+        }
     }
 }
 
@@ -144,8 +149,10 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::APIClient(ref err) => format!("{}", err),
             Error::ArtifactIdentMismatch((ref a, ref ai, ref i)) => {
-                format!("Artifact ident {} for `{}' does not match expected ident {}",
-                        ai, a, i)
+                format!(
+                    "Artifact ident {} for `{}' does not match expected ident {}",
+                    ai, a, i
+                )
             }
             Error::BadEnvConfig(ref varname) => {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
@@ -161,16 +168,20 @@ impl fmt::Display for Error {
             Error::FileNameError => "Failed to extract a filename".to_string(),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::GossipFileRelativePath(ref s) => {
-                format!("Path for gossip file cannot have relative components (eg: ..): {}",
-                        s)
+                format!(
+                    "Path for gossip file cannot have relative components (eg: ..): {}",
+                    s
+                )
             }
-            Error::HabitatCore(ref e) => format!("{}", e),
+            Error::BiomeCore(ref e) => format!("{}", e),
             Error::MissingCLIInputError(ref arg) => {
                 format!("Missing required CLI argument!: {}", arg)
             }
-            Error::HookFailed { ref package_ident,
-                                ref hook,
-                                ref error, } => {
+            Error::HookFailed {
+                ref package_ident,
+                ref hook,
+                ref error,
+            } => {
                 format!("{} {} hook failed: {}", package_ident, hook, error)
             }
             Error::InvalidEventStreamToken(ref s) => {
@@ -179,8 +190,10 @@ impl fmt::Display for Error {
             Error::IO(ref err) => format!("{}", err),
             Error::JoinPathsError(ref err) => format!("{}", err),
             Error::NamedPipeTimeoutOnStart(ref group, ref hook, ref err) => {
-                format!("Unable to start powershell named pipe for {} hook of {}: {}",
-                        hook, group, err)
+                format!(
+                    "Unable to start powershell named pipe for {} hook of {}: {}",
+                    hook, group, err
+                )
             }
             Error::NativeTls(ref err) => format!("TLS error '{}'", err),
             Error::NetParseError(ref err) => format!("{}", err),
@@ -188,13 +201,17 @@ impl fmt::Display for Error {
                 format!("Cached artifact not found in offline mode: {}", ident)
             }
             Error::OfflineOriginKeyNotFound(ref name_with_rev) => {
-                format!("Cached origin key not found in offline mode: {}",
-                        name_with_rev)
+                format!(
+                    "Cached origin key not found in offline mode: {}",
+                    name_with_rev
+                )
             }
             Error::OfflinePackageNotFound(ref ident) => {
-                format!("No installed package or cached artifact could be found locally in \
+                format!(
+                    "No installed package or cached artifact could be found locally in \
                          offline mode: {}",
-                        ident)
+                    ident
+                )
             }
             Error::PackageFailedToInstall(ref ident, ref e) => {
                 format!("Failed to install package {} - {}", ident, e)
@@ -211,8 +228,10 @@ impl fmt::Display for Error {
                 "Root or administrator permissions required to complete operation".to_string()
             }
             Error::StatusFileCorrupt(ref path) => {
-                format!("Unable to decode contents of INSTALL_STATUS file, {}",
-                        path.display())
+                format!(
+                    "Unable to decode contents of INSTALL_STATUS file, {}",
+                    path.display()
+                )
             }
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
@@ -239,45 +258,67 @@ impl Error {
 }
 
 impl From<api_client::Error> for Error {
-    fn from(err: api_client::Error) -> Self { Error::APIClient(err) }
+    fn from(err: api_client::Error) -> Self {
+        Error::APIClient(err)
+    }
 }
 
 impl From<handlebars::TemplateError> for Error {
-    fn from(err: handlebars::TemplateError) -> Self { Error::TemplateError(err) }
+    fn from(err: handlebars::TemplateError) -> Self {
+        Error::TemplateError(err)
+    }
 }
 
 impl From<handlebars::RenderError> for Error {
-    fn from(err: handlebars::RenderError) -> Self { Error::TemplateRenderError(err) }
+    fn from(err: handlebars::RenderError) -> Self {
+        Error::TemplateRenderError(err)
+    }
 }
 
 impl From<hcore::Error> for Error {
-    fn from(err: hcore::Error) -> Self { Error::HabitatCore(err) }
+    fn from(err: hcore::Error) -> Self {
+        Error::BiomeCore(err)
+    }
 }
 
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self { Error::IO(err) }
+    fn from(err: io::Error) -> Self {
+        Error::IO(err)
+    }
 }
 
 impl From<env::JoinPathsError> for Error {
-    fn from(err: env::JoinPathsError) -> Self { Error::JoinPathsError(err) }
+    fn from(err: env::JoinPathsError) -> Self {
+        Error::JoinPathsError(err)
+    }
 }
 
 impl From<str::Utf8Error> for Error {
-    fn from(err: str::Utf8Error) -> Self { Error::StrFromUtf8Error(err) }
+    fn from(err: str::Utf8Error) -> Self {
+        Error::StrFromUtf8Error(err)
+    }
 }
 
 impl From<string::FromUtf8Error> for Error {
-    fn from(err: string::FromUtf8Error) -> Self { Error::StringFromUtf8Error(err) }
+    fn from(err: string::FromUtf8Error) -> Self {
+        Error::StringFromUtf8Error(err)
+    }
 }
 
 impl From<toml::ser::Error> for Error {
-    fn from(err: toml::ser::Error) -> Self { Error::TomlSerializeError(err) }
+    fn from(err: toml::ser::Error) -> Self {
+        Error::TomlSerializeError(err)
+    }
 }
 
 impl From<net::AddrParseError> for Error {
-    fn from(err: net::AddrParseError) -> Self { Error::NetParseError(err) }
+    fn from(err: net::AddrParseError) -> Self {
+        Error::NetParseError(err)
+    }
 }
 
 impl From<native_tls::Error> for Error {
-    fn from(error: native_tls::Error) -> Self { Error::NativeTls(error) }
+    fn from(error: native_tls::Error) -> Self {
+        Error::NativeTls(error)
+    }
 }

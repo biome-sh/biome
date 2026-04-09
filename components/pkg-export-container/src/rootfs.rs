@@ -1,7 +1,6 @@
 use crate::util::write_file;
 use anyhow::Result;
-use std::{fs,
-          path::Path};
+use std::{fs, path::Path};
 
 /// The default password file contents.
 const ETC_PASSWD: &str = include_str!("../defaults/etc/passwd");
@@ -20,12 +19,13 @@ const ETC_NSSWITCH_CONF: &str = include_str!("../defaults/etc/nsswitch.conf");
 /// * If permissions for files and/or directories cannot be set
 #[cfg(unix)]
 pub(crate) fn create<T>(root: T) -> Result<()>
-    where T: AsRef<Path>
+where
+    T: AsRef<Path>,
 {
     let root = root.as_ref();
 
     // We'll create links to all the busybox utilities here, as well
-    // as links to `hab` and user package binaries.
+    // as links to `bio` and user package binaries.
     fs::create_dir_all(root.join("bin"))?;
 
     // We'll put all our custom /etc content in the rootfs, as well.
@@ -45,8 +45,7 @@ pub(crate) fn create<T>(root: T) -> Result<()>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{fs::File,
-              io::Read};
+    use std::{fs::File, io::Read};
     use tempfile::TempDir;
 
     fn file_content<T: AsRef<Path>>(file: T) -> String {

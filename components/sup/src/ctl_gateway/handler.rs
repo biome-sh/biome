@@ -1,23 +1,24 @@
-//! Code for actually executing user commands (e.g., `hab svc load`,
-//! `hab svc stop`, etc.)
+//! Code for actually executing user commands (e.g., `bio svc load`,
+//! `bio svc stop`, etc.)
 
-use crate::{ctl_gateway::server::CtlCommand,
-            manager::{ManagerState,
-                      action::ActionSender}};
-use futures::{future::Future,
-              task::{Context,
-                     Poll}};
+use crate::{
+    ctl_gateway::server::CtlCommand,
+    manager::{ManagerState, action::ActionSender},
+};
+use futures::{
+    future::Future,
+    task::{Context, Poll},
+};
 use log::debug;
-use std::{pin::Pin,
-          sync::Arc};
+use std::{pin::Pin, sync::Arc};
 
 pub struct CtlHandler {
     /// The command to execute
-    cmd:           CtlCommand,
+    cmd: CtlCommand,
     /// Reference to the Supervisor's main state. This is passed into
     /// commands that need to access, e.g., what services are running,
     /// etc.
-    state:         Arc<ManagerState>,
+    state: Arc<ManagerState>,
     /// Communication channel back into the main Supervisor loop. This
     /// is passed into any commands as a way to send resulting actions
     /// into the Supervisor.
@@ -26,9 +27,11 @@ pub struct CtlHandler {
 
 impl CtlHandler {
     pub fn new(cmd: CtlCommand, state: Arc<ManagerState>, action_sender: ActionSender) -> Self {
-        CtlHandler { cmd,
-                     state,
-                     action_sender }
+        CtlHandler {
+            cmd,
+            state,
+            action_sender,
+        }
     }
 }
 

@@ -2,9 +2,7 @@
 
 use std::collections::HashSet;
 
-use habitat_common::sync::{Lock,
-                           ReadGuard,
-                           WriteGuard};
+use biome_common::sync::{Lock, ReadGuard, WriteGuard};
 
 use crate::member::Member;
 
@@ -14,9 +12,17 @@ pub struct ProbeList {
 }
 
 impl ProbeList {
-    pub fn new() -> Self { Self { members: Lock::new(HashSet::new()), } }
+    pub fn new() -> Self {
+        Self {
+            members: Lock::new(HashSet::new()),
+        }
+    }
 
-    pub fn members_read(&self) -> ReadGuard<'_, HashSet<Member>> { self.members.read() }
+    pub fn members_read(&self) -> ReadGuard<'_, HashSet<Member>> {
+        self.members.read()
+    }
 
-    pub fn members_write(&self) -> WriteGuard<'_, HashSet<Member>> { self.members.write() }
+    pub fn members_write(&self) -> WriteGuard<'_, HashSet<Member>> {
+        self.members.write()
+    }
 }

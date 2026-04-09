@@ -6,7 +6,7 @@
 param ()
 
 Describe "filesystem with name >1024 characters" {
-    sudo --preserve-env hab pkg install core/e2fsprogs --channel stable
+    sudo --preserve-env bio pkg install core/e2fsprogs --channel stable
     # Maximum directory name length is 255 characters so we need to create
     # a nested set of directories to have a mount point with > 1024 characters.
     $tmpdir = New-TemporaryDirectory
@@ -21,17 +21,17 @@ Describe "filesystem with name >1024 characters" {
     # intended to detect (https://github.com/habitat-sh/habitat/issues/6591)
     # won't be triggered if the studio mount entries are first.
     dd if=/dev/zero of=empty-fs.img bs=10M count=1
-    hab pkg exec core/e2fsprogs mkfs.ext4 empty-fs.img
+    bio pkg exec core/e2fsprogs mkfs.ext4 empty-fs.img
     sudo mkdir -p "$mnt_path"
     sudo mount -o loop "$tmpdir/empty-fs.img" $mnt_path
     mkdir studio
     Set-Location studio
-    hab origin key generate "$HAB_ORIGIN"
+    bio origin key generate "$BIO_ORIGIN"
 
     It "Removes the studio without errors" {
-        hab studio new
+        bio studio new
         mount
-        hab studio rm
+        bio studio rm
         $LASTEXITCODE | Should -Be 0
     }
 }

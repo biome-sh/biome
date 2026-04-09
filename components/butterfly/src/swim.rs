@@ -1,24 +1,18 @@
-pub use crate::protocol::swim::{SwimPayload,
-                                SwimType};
-use crate::{error::{Error,
-                    Result},
-            member::{Health,
-                     Member,
-                     Membership},
-            protocol::{self,
-                       FromProto,
-                       swim as proto}};
+pub use crate::protocol::swim::{SwimPayload, SwimType};
+use crate::{
+    error::{Error, Result},
+    member::{Health, Member, Membership},
+    protocol::{self, FromProto, swim as proto},
+};
 use bytes::BytesMut;
 use prost::Message as ProstMessage;
 use serde::Serialize;
-use std::{convert::TryFrom,
-          fmt,
-          str::FromStr};
+use std::{convert::TryFrom, fmt, str::FromStr};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Ack {
     pub membership: Vec<Membership>,
-    pub from:       Member,
+    pub from: Member,
     pub forward_to: Option<Member>,
 }
 
@@ -37,11 +31,14 @@ impl FromProto<proto::Swim> for Ack {
         for membership in value.membership {
             memberships.push(Membership::from_proto(membership)?);
         }
-        Ok(Ack { membership: memberships,
-                 from: payload.from
-                              .ok_or(Error::ProtocolMismatch("from"))
-                              .and_then(Member::from_proto)?,
-                 forward_to })
+        Ok(Ack {
+            membership: memberships,
+            from: payload
+                .from
+                .ok_or(Error::ProtocolMismatch("from"))
+                .and_then(Member::from_proto)?,
+            forward_to,
+        })
     }
 }
 
@@ -51,28 +48,35 @@ impl protocol::Message<proto::Swim> for Ack {
 
 impl From<Ack> for proto::Ack {
     fn from(value: Ack) -> Self {
-        proto::Ack { from:       Some(value.from.into()),
-                     forward_to: value.forward_to.map(proto::Member::from), }
+        proto::Ack {
+            from: Some(value.from.into()),
+            forward_to: value.forward_to.map(proto::Member::from),
+        }
     }
 }
 
 impl From<Ack> for proto::Swim {
     fn from(value: Ack) -> Self {
-        proto::Swim { r#type:     SwimType::Ack as i32,
-                      membership: value.membership
-                                       .clone()
-                                       .into_iter()
-                                       .map(proto::Membership::from)
-                                       .collect(),
-                      payload:    Some(SwimPayload::Ack(value.into())), }
+        proto::Swim {
+            r#type: SwimType::Ack as i32,
+            membership: value
+                .membership
+                .clone()
+                .into_iter()
+                .map(proto::Membership::from)
+                .collect(),
+            payload: Some(SwimPayload::Ack(value.into())),
+        }
     }
 }
 
 impl From<Ack> for Swim {
     fn from(value: Ack) -> Self {
-        Swim { r#type:     SwimType::Ack,
-               membership: value.membership.clone(),
-               kind:       SwimKind::Ack(value), }
+        Swim {
+            r#type: SwimType::Ack,
+            membership: value.membership.clone(),
+            kind: SwimKind::Ack(value),
+        }
     }
 }
 
@@ -105,7 +109,7 @@ impl fmt::Display for Health {
 #[derive(Debug, Clone, Serialize)]
 pub struct Ping {
     pub membership: Vec<Membership>,
-    pub from:       Member,
+    pub from: Member,
     pub forward_to: Option<Member>,
 }
 
@@ -124,11 +128,14 @@ impl FromProto<proto::Swim> for Ping {
         for membership in value.membership {
             memberships.push(Membership::from_proto(membership)?);
         }
-        Ok(Ping { membership: memberships,
-                  from: payload.from
-                               .ok_or(Error::ProtocolMismatch("from"))
-                               .and_then(Member::from_proto)?,
-                  forward_to })
+        Ok(Ping {
+            membership: memberships,
+            from: payload
+                .from
+                .ok_or(Error::ProtocolMismatch("from"))
+                .and_then(Member::from_proto)?,
+            forward_to,
+        })
     }
 }
 
@@ -138,36 +145,43 @@ impl protocol::Message<proto::Swim> for Ping {
 
 impl From<Ping> for proto::Ping {
     fn from(value: Ping) -> Self {
-        proto::Ping { from:       Some(value.from.into()),
-                      forward_to: value.forward_to.map(proto::Member::from), }
+        proto::Ping {
+            from: Some(value.from.into()),
+            forward_to: value.forward_to.map(proto::Member::from),
+        }
     }
 }
 
 impl From<Ping> for proto::Swim {
     fn from(value: Ping) -> Self {
-        proto::Swim { r#type:     SwimType::Ping as i32,
-                      membership: value.membership
-                                       .clone()
-                                       .into_iter()
-                                       .map(proto::Membership::from)
-                                       .collect(),
-                      payload:    Some(SwimPayload::Ping(value.into())), }
+        proto::Swim {
+            r#type: SwimType::Ping as i32,
+            membership: value
+                .membership
+                .clone()
+                .into_iter()
+                .map(proto::Membership::from)
+                .collect(),
+            payload: Some(SwimPayload::Ping(value.into())),
+        }
     }
 }
 
 impl From<Ping> for Swim {
     fn from(value: Ping) -> Self {
-        Swim { r#type:     SwimType::Ping,
-               membership: value.membership.clone(),
-               kind:       SwimKind::Ping(value), }
+        Swim {
+            r#type: SwimType::Ping,
+            membership: value.membership.clone(),
+            kind: SwimKind::Ping(value),
+        }
     }
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PingReq {
     pub membership: Vec<Membership>,
-    pub from:       Member,
-    pub target:     Member,
+    pub from: Member,
+    pub target: Member,
 }
 
 impl FromProto<proto::Swim> for PingReq {
@@ -180,13 +194,17 @@ impl FromProto<proto::Swim> for PingReq {
         for membership in value.membership {
             memberships.push(Membership::from_proto(membership)?);
         }
-        Ok(PingReq { membership: memberships,
-                     from:       payload.from
-                                        .ok_or(Error::ProtocolMismatch("from"))
-                                        .and_then(Member::from_proto)?,
-                     target:     payload.target
-                                        .ok_or(Error::ProtocolMismatch("from"))
-                                        .and_then(Member::from_proto)?, })
+        Ok(PingReq {
+            membership: memberships,
+            from: payload
+                .from
+                .ok_or(Error::ProtocolMismatch("from"))
+                .and_then(Member::from_proto)?,
+            target: payload
+                .target
+                .ok_or(Error::ProtocolMismatch("from"))
+                .and_then(Member::from_proto)?,
+        })
     }
 }
 
@@ -196,28 +214,35 @@ impl protocol::Message<proto::Swim> for PingReq {
 
 impl From<PingReq> for proto::PingReq {
     fn from(value: PingReq) -> Self {
-        proto::PingReq { from:   Some(value.from.into()),
-                         target: Some(value.target.into()), }
+        proto::PingReq {
+            from: Some(value.from.into()),
+            target: Some(value.target.into()),
+        }
     }
 }
 
 impl From<PingReq> for proto::Swim {
     fn from(value: PingReq) -> Self {
-        proto::Swim { r#type:     SwimType::Pingreq as i32,
-                      membership: value.membership
-                                       .clone()
-                                       .into_iter()
-                                       .map(proto::Membership::from)
-                                       .collect(),
-                      payload:    Some(SwimPayload::Pingreq(value.into())), }
+        proto::Swim {
+            r#type: SwimType::Pingreq as i32,
+            membership: value
+                .membership
+                .clone()
+                .into_iter()
+                .map(proto::Membership::from)
+                .collect(),
+            payload: Some(SwimPayload::Pingreq(value.into())),
+        }
     }
 }
 
 impl From<PingReq> for Swim {
     fn from(value: PingReq) -> Self {
-        Swim { r#type:     SwimType::Pingreq,
-               membership: value.membership.clone(),
-               kind:       SwimKind::PingReq(value), }
+        Swim {
+            r#type: SwimType::Pingreq,
+            membership: value.membership.clone(),
+            kind: SwimKind::PingReq(value),
+        }
     }
 }
 
@@ -232,9 +257,12 @@ impl FromProto<proto::Swim> for ProbePing {
             SwimPayload::Probeping(ping) => ping,
             _ => panic!("try-from probeping"),
         };
-        Ok(ProbePing { from: payload.from
-                                    .ok_or(Error::ProtocolMismatch("from"))
-                                    .and_then(Member::from_proto)?, })
+        Ok(ProbePing {
+            from: payload
+                .from
+                .ok_or(Error::ProtocolMismatch("from"))
+                .and_then(Member::from_proto)?,
+        })
     }
 }
 
@@ -243,22 +271,30 @@ impl protocol::Message<proto::Swim> for ProbePing {
 }
 
 impl From<ProbePing> for proto::ProbePing {
-    fn from(value: ProbePing) -> Self { proto::ProbePing { from: Some(value.from.into()), } }
+    fn from(value: ProbePing) -> Self {
+        proto::ProbePing {
+            from: Some(value.from.into()),
+        }
+    }
 }
 
 impl From<ProbePing> for proto::Swim {
     fn from(value: ProbePing) -> Self {
-        proto::Swim { r#type:     SwimType::Probeping as i32,
-                      membership: vec![],
-                      payload:    Some(SwimPayload::Probeping(value.into())), }
+        proto::Swim {
+            r#type: SwimType::Probeping as i32,
+            membership: vec![],
+            payload: Some(SwimPayload::Probeping(value.into())),
+        }
     }
 }
 
 impl From<ProbePing> for Swim {
     fn from(value: ProbePing) -> Self {
-        Swim { r#type:     SwimType::Probeping,
-               membership: vec![],
-               kind:       SwimKind::ProbePing(value), }
+        Swim {
+            r#type: SwimType::Probeping,
+            membership: vec![],
+            kind: SwimKind::ProbePing(value),
+        }
     }
 }
 #[derive(Debug, Clone, Serialize)]
@@ -300,9 +336,9 @@ impl SwimKind {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Swim {
-    pub r#type:     SwimType,
+    pub r#type: SwimType,
     pub membership: Vec<Membership>,
-    pub kind:       SwimKind,
+    pub kind: SwimKind,
 }
 
 impl Swim {
@@ -319,9 +355,11 @@ impl Swim {
             SwimType::Pingreq => SwimKind::PingReq(PingReq::from_proto(proto)?),
             SwimType::Probeping => SwimKind::ProbePing(ProbePing::from_proto(proto)?),
         };
-        Ok(Swim { r#type,
-                  membership: memberships,
-                  kind })
+        Ok(Swim {
+            r#type,
+            membership: memberships,
+            kind,
+        })
     }
 
     pub fn encode(self) -> Result<Vec<u8>> {
@@ -334,12 +372,15 @@ impl Swim {
 
 impl From<Swim> for proto::Swim {
     fn from(value: Swim) -> Self {
-        proto::Swim { r#type:     value.r#type as i32,
-                      membership: value.membership
-                                       .into_iter()
-                                       .map(proto::Membership::from)
-                                       .collect(),
-                      payload:    Some(value.kind.into()), }
+        proto::Swim {
+            r#type: value.r#type as i32,
+            membership: value
+                .membership
+                .into_iter()
+                .map(proto::Membership::from)
+                .collect(),
+            payload: Some(value.kind.into()),
+        }
     }
 }
 //

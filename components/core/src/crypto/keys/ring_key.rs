@@ -1,16 +1,13 @@
-use crate::{crypto::{SECRET_SYM_KEY_VERSION,
-                     keys::NamedRevision},
-            error::{Error,
-                    Result},
-            fs::Permissions};
+use crate::{
+    crypto::{SECRET_SYM_KEY_VERSION, keys::NamedRevision},
+    error::{Error, Result},
+    fs::Permissions,
+};
 
 /// Private module to re-export the various libsodium-rs concepts we
 /// use, to keep them all consolidated and abstracted.
 mod primitives {
-    pub use libsodium_rs::crypto_secretbox::{Key,
-                                             Nonce,
-                                             open,
-                                             seal};
+    pub use libsodium_rs::crypto_secretbox::{Key, Nonce, open, seal};
 
     pub fn gen_key() -> libsodium_rs::crypto_secretbox::Key {
         libsodium_rs::crypto_secretbox::Key::generate()
@@ -38,8 +35,10 @@ impl RingKey {
     pub fn new(name: &str) -> Self {
         let named_revision = NamedRevision::new(name.to_string());
         let key = primitives::gen_key();
-        RingKey { named_revision,
-                  key }
+        RingKey {
+            named_revision,
+            key,
+        }
     }
 
     /// Encrypts a sequence of bytes.
@@ -49,7 +48,10 @@ impl RingKey {
     /// needed to decrypt the message.
     pub fn encrypt(&self, data: &[u8]) -> (Vec<u8>, Vec<u8>) {
         let nonce = primitives::gen_nonce();
-        (nonce.as_ref().to_vec(), primitives::seal(data, &nonce, &self.key))
+        (
+            nonce.as_ref().to_vec(),
+            primitives::seal(data, &nonce, &self.key),
+        )
     }
 
     /// Decrypts a ciphertext using a given nonce value.
@@ -67,8 +69,7 @@ impl RingKey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::test_support::{fixture_as_string,
-                                      fixture_key};
+    use crate::crypto::test_support::{fixture_as_string, fixture_key};
 
     mod from_str {
         use super::*;
@@ -81,11 +82,15 @@ mod tests {
 
         #[test]
         #[should_panic(expected = "Missing key version")]
-        fn fails_to_parse_empty_string() { "".parse::<RingKey>().unwrap(); }
+        fn fails_to_parse_empty_string() {
+            "".parse::<RingKey>().unwrap();
+        }
 
         #[test]
         #[should_panic(expected = "Missing name+revision")]
-        fn fails_to_parse_only_header() { "SYM-SEC-1\n".parse::<RingKey>().unwrap(); }
+        fn fails_to_parse_only_header() {
+            "SYM-SEC-1\n".parse::<RingKey>().unwrap();
+        }
 
         #[test]
         #[should_panic(expected = "Cannot parse named revision")]
@@ -98,12 +103,15 @@ mod tests {
     fn decryption() {
         let key: RingKey = fixture_key("keys/ring-key-valid-20160504220722.sym.key");
 
-        let nonce = [175u8, 221u8, 237u8, 184u8, 68u8, 112u8, 40u8, 80u8, 11u8, 173u8, 215u8,
-                     154u8, 129u8, 39u8, 146u8, 10u8, 51u8, 143u8, 150u8, 71u8, 146u8, 97u8, 70u8,
-                     76u8];
-        let ciphertext = [161u8, 106u8, 124u8, 7u8, 144u8, 46u8, 9u8, 29u8, 90u8, 176u8, 207u8,
-                          52u8, 61u8, 3u8, 209u8, 41u8, 144u8, 32u8, 72u8, 245u8, 159u8, 143u8,
-                          192u8, 36u8, 5u8, 235u8, 241u8, 98u8, 231u8, 21u8];
+        let nonce = [
+            175u8, 221u8, 237u8, 184u8, 68u8, 112u8, 40u8, 80u8, 11u8, 173u8, 215u8, 154u8, 129u8,
+            39u8, 146u8, 10u8, 51u8, 143u8, 150u8, 71u8, 146u8, 97u8, 70u8, 76u8,
+        ];
+        let ciphertext = [
+            161u8, 106u8, 124u8, 7u8, 144u8, 46u8, 9u8, 29u8, 90u8, 176u8, 207u8, 52u8, 61u8, 3u8,
+            209u8, 41u8, 144u8, 32u8, 72u8, 245u8, 159u8, 143u8, 192u8, 36u8, 5u8, 235u8, 241u8,
+            98u8, 231u8, 21u8,
+        ];
 
         let decrypted_message = key.decrypt(&nonce, &ciphertext).unwrap();
         let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();

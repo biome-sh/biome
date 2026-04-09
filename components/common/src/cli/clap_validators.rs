@@ -8,23 +8,30 @@ pub struct UrlValueParser;
 impl clap_v4::builder::TypedValueParser for UrlValueParser {
     type Value = String;
 
-    fn parse_ref(&self,
-                 cmd: &clap_v4::Command,
-                 arg: Option<&clap_v4::Arg>,
-                 value: &std::ffi::OsStr)
-                 -> Result<Self::Value, clap_v4::Error> {
+    fn parse_ref(
+        &self,
+        cmd: &clap_v4::Command,
+        arg: Option<&clap_v4::Arg>,
+        value: &std::ffi::OsStr,
+    ) -> Result<Self::Value, clap_v4::Error> {
         let result = url::Url::parse(value.to_string_lossy().as_ref());
         if result.is_err() {
             let mut err =
                 clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
             if let Some(arg) = arg {
-                err.insert(clap_v4::error::ContextKind::InvalidArg,
-                           clap_v4::error::ContextValue::String(arg.to_string()));
+                err.insert(
+                    clap_v4::error::ContextKind::InvalidArg,
+                    clap_v4::error::ContextValue::String(arg.to_string()),
+                );
             }
-            err.insert(clap_v4::error::ContextKind::InvalidValue,
-                       clap_v4::error::ContextValue::String(format!("`{}`: {}",
-                                                                    value.to_string_lossy(),
-                                                                    result.err().unwrap(),)));
+            err.insert(
+                clap_v4::error::ContextKind::InvalidValue,
+                clap_v4::error::ContextValue::String(format!(
+                    "`{}`: {}",
+                    value.to_string_lossy(),
+                    result.err().unwrap(),
+                )),
+            );
             Err(err)
         } else {
             Ok(value.to_str().unwrap().to_string())
@@ -37,19 +44,20 @@ impl clap_v4::builder::TypedValueParser for UrlValueParser {
 /// Try parsing the `InstallSource` from the given input, if it's a valid `InstallSource` then the
 /// given package identifier is a valid one.
 #[derive(Clone)]
-pub struct HabPackageInstallSourceValueParser;
+pub struct BioPackageInstallSourceValueParser;
 
 use crate::command::package::install::InstallSource;
 use std::str::FromStr;
 
-impl clap_v4::builder::TypedValueParser for HabPackageInstallSourceValueParser {
+impl clap_v4::builder::TypedValueParser for BioPackageInstallSourceValueParser {
     type Value = String;
 
-    fn parse_ref(&self,
-                 cmd: &clap_v4::Command,
-                 arg: Option<&clap_v4::Arg>,
-                 value: &std::ffi::OsStr)
-                 -> Result<Self::Value, clap_v4::Error> {
+    fn parse_ref(
+        &self,
+        cmd: &clap_v4::Command,
+        arg: Option<&clap_v4::Arg>,
+        value: &std::ffi::OsStr,
+    ) -> Result<Self::Value, clap_v4::Error> {
         let val = value.to_str().unwrap().to_string();
 
         let result = InstallSource::from_str(&val);
@@ -57,13 +65,19 @@ impl clap_v4::builder::TypedValueParser for HabPackageInstallSourceValueParser {
             let mut err =
                 clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
             if let Some(arg) = arg {
-                err.insert(clap_v4::error::ContextKind::InvalidArg,
-                           clap_v4::error::ContextValue::String(arg.to_string()));
+                err.insert(
+                    clap_v4::error::ContextKind::InvalidArg,
+                    clap_v4::error::ContextValue::String(arg.to_string()),
+                );
             }
-            err.insert(clap_v4::error::ContextKind::InvalidValue,
-                       clap_v4::error::ContextValue::String(format!("`{}`: {}",
-                                                                    value.to_string_lossy(),
-                                                                    result.err().unwrap(),)));
+            err.insert(
+                clap_v4::error::ContextKind::InvalidValue,
+                clap_v4::error::ContextValue::String(format!(
+                    "`{}`: {}",
+                    value.to_string_lossy(),
+                    result.err().unwrap(),
+                )),
+            );
             Err(err)
         } else {
             Ok(value.to_str().unwrap().to_string())
@@ -80,16 +94,18 @@ use std::path::PathBuf;
 impl clap_v4::builder::TypedValueParser for FileExistsValueParser {
     type Value = PathBuf;
 
-    fn parse_ref(&self,
-                 cmd: &clap_v4::Command,
-                 arg: Option<&clap_v4::Arg>,
-                 value: &std::ffi::OsStr)
-                 -> Result<Self::Value, clap_v4::Error> {
-        parse_ref_internal(cmd, arg, value, false, false, "is not a valid file").map(Into::<PathBuf>::into)
+    fn parse_ref(
+        &self,
+        cmd: &clap_v4::Command,
+        arg: Option<&clap_v4::Arg>,
+        value: &std::ffi::OsStr,
+    ) -> Result<Self::Value, clap_v4::Error> {
+        parse_ref_internal(cmd, arg, value, false, false, "is not a valid file")
+            .map(Into::<PathBuf>::into)
     }
 }
 
-// This validator will be used by `hab config`
+// This validator will be used by `bio config`
 /// Struct implementing validator that validates the valie is a valid 'file' or 'stdin'
 #[derive(Clone)]
 pub struct FileExistsOrStdinValueParser;
@@ -97,11 +113,12 @@ pub struct FileExistsOrStdinValueParser;
 impl clap_v4::builder::TypedValueParser for FileExistsOrStdinValueParser {
     type Value = String;
 
-    fn parse_ref(&self,
-                 cmd: &clap_v4::Command,
-                 arg: Option<&clap_v4::Arg>,
-                 value: &std::ffi::OsStr)
-                 -> Result<Self::Value, clap_v4::Error> {
+    fn parse_ref(
+        &self,
+        cmd: &clap_v4::Command,
+        arg: Option<&clap_v4::Arg>,
+        value: &std::ffi::OsStr,
+    ) -> Result<Self::Value, clap_v4::Error> {
         parse_ref_internal(cmd, arg, value, false, true, "is not a valid file or stdin")
     }
 }
@@ -115,14 +132,14 @@ pub struct DirExistsValueParser;
 impl clap_v4::builder::TypedValueParser for DirExistsValueParser {
     type Value = std::path::PathBuf;
 
-    fn parse_ref(&self,
-                 cmd: &clap_v4::Command,
-                 arg: Option<&clap_v4::Arg>,
-                 value: &std::ffi::OsStr)
-                 -> Result<Self::Value, clap_v4::Error> {
-        parse_ref_internal(cmd, arg, value, true, false, "is not a valid directory").map(|x| {
-                                                                                        x.into()
-                                                                                    })
+    fn parse_ref(
+        &self,
+        cmd: &clap_v4::Command,
+        arg: Option<&clap_v4::Arg>,
+        value: &std::ffi::OsStr,
+    ) -> Result<Self::Value, clap_v4::Error> {
+        parse_ref_internal(cmd, arg, value, true, false, "is not a valid directory")
+            .map(|x| x.into())
     }
 }
 
@@ -153,26 +170,33 @@ fn check_valid_file_dir_stdin(path: &std::path::Path, check_dir: bool, check_std
     is_valid
 }
 
-fn parse_ref_internal(cmd: &clap_v4::Command,
-                      arg: Option<&clap_v4::Arg>,
-                      value: &std::ffi::OsStr,
-                      check_dir: bool,
-                      check_stdin: bool,
-                      err_str: &str)
-                      -> Result<String, clap_v4::Error> {
+fn parse_ref_internal(
+    cmd: &clap_v4::Command,
+    arg: Option<&clap_v4::Arg>,
+    value: &std::ffi::OsStr,
+    check_dir: bool,
+    check_stdin: bool,
+    err_str: &str,
+) -> Result<String, clap_v4::Error> {
     let val = value.to_str().unwrap().to_string();
 
     let result = std::path::Path::new(&val);
     if !check_valid_file_dir_stdin(result, check_dir, check_stdin) {
         let mut err = clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
         if let Some(arg) = arg {
-            err.insert(clap_v4::error::ContextKind::InvalidArg,
-                       clap_v4::error::ContextValue::String(arg.to_string()));
+            err.insert(
+                clap_v4::error::ContextKind::InvalidArg,
+                clap_v4::error::ContextValue::String(arg.to_string()),
+            );
         }
-        err.insert(clap_v4::error::ContextKind::InvalidValue,
-                   clap_v4::error::ContextValue::String(format!("`{}`: {}",
-                                                                value.to_string_lossy(),
-                                                                err_str,)));
+        err.insert(
+            clap_v4::error::ContextKind::InvalidValue,
+            clap_v4::error::ContextValue::String(format!(
+                "`{}`: {}",
+                value.to_string_lossy(),
+                err_str,
+            )),
+        );
         Err(err)
     } else {
         Ok(value.to_str().unwrap().to_string())
@@ -187,17 +211,17 @@ fn parse_ref_internal(cmd: &clap_v4::Command,
 #[derive(Clone)]
 pub struct TomlOrPkgIdentFileValueParser;
 
-use crate::cli::{file_into_idents,
-                 is_toml_file};
+use crate::cli::{file_into_idents, is_toml_file};
 
 impl clap_v4::builder::TypedValueParser for TomlOrPkgIdentFileValueParser {
     type Value = String;
 
-    fn parse_ref(&self,
-                 cmd: &clap_v4::Command,
-                 arg: Option<&clap_v4::Arg>,
-                 value: &std::ffi::OsStr)
-                 -> Result<Self::Value, clap_v4::Error> {
+    fn parse_ref(
+        &self,
+        cmd: &clap_v4::Command,
+        arg: Option<&clap_v4::Arg>,
+        value: &std::ffi::OsStr,
+    ) -> Result<Self::Value, clap_v4::Error> {
         let val = value.to_str().unwrap().to_string();
 
         if is_toml_file(&val) {
@@ -209,13 +233,19 @@ impl clap_v4::builder::TypedValueParser for TomlOrPkgIdentFileValueParser {
             let mut err =
                 clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
             if let Some(arg) = arg {
-                err.insert(clap_v4::error::ContextKind::InvalidArg,
-                           clap_v4::error::ContextValue::String(arg.to_string()));
+                err.insert(
+                    clap_v4::error::ContextKind::InvalidArg,
+                    clap_v4::error::ContextValue::String(arg.to_string()),
+                );
             }
-            err.insert(clap_v4::error::ContextKind::InvalidValue,
-                       clap_v4::error::ContextValue::String(format!("`{}`: {}",
-                                                                    value.to_string_lossy(),
-                                                                    result.err().unwrap(),)));
+            err.insert(
+                clap_v4::error::ContextKind::InvalidValue,
+                clap_v4::error::ContextValue::String(format!(
+                    "`{}`: {}",
+                    value.to_string_lossy(),
+                    result.err().unwrap(),
+                )),
+            );
             Err(err)
         } else {
             Ok(val)
@@ -228,32 +258,40 @@ impl clap_v4::builder::TypedValueParser for TomlOrPkgIdentFileValueParser {
 /// This validator returns success if the given input is a valid simple Package Identifier or a
 /// fully qualified PackageIdentifier
 ///
-/// Use `value_parser = HabPkgIdentValueParser::simple()` for simple Package Identifier.
-/// Use `value_parser = HabPkgIdentValueParser::full()` for fully qualified Package Identifier.
+/// Use `value_parser = BioPkgIdentValueParser::simple()` for simple Package Identifier.
+/// Use `value_parser = BioPkgIdentValueParser::full()` for fully qualified Package Identifier.
 #[derive(Clone)]
-pub struct HabPkgIdentValueParser {
+pub struct BioPkgIdentValueParser {
     fully_qualified: bool,
 }
 
-impl HabPkgIdentValueParser {
+impl BioPkgIdentValueParser {
     /// For Simple Package Identifier of the form 'origin/name'
-    pub fn simple() -> Self { Self { fully_qualified: false, } }
+    pub fn simple() -> Self {
+        Self {
+            fully_qualified: false,
+        }
+    }
 
     /// For Full Package Identifier of the form 'origin/name/version/release'
-    pub fn full() -> Self { Self { fully_qualified: true, } }
+    pub fn full() -> Self {
+        Self {
+            fully_qualified: true,
+        }
+    }
 }
 
-use habitat_core::package::ident::{FullyQualifiedPackageIdent,
-                                   PackageIdent};
+use biome_core::package::ident::{FullyQualifiedPackageIdent, PackageIdent};
 
-impl clap_v4::builder::TypedValueParser for HabPkgIdentValueParser {
+impl clap_v4::builder::TypedValueParser for BioPkgIdentValueParser {
     type Value = PackageIdent;
 
-    fn parse_ref(&self,
-                 cmd: &clap_v4::Command,
-                 arg: Option<&clap_v4::Arg>,
-                 value: &std::ffi::OsStr)
-                 -> Result<Self::Value, clap_v4::Error> {
+    fn parse_ref(
+        &self,
+        cmd: &clap_v4::Command,
+        arg: Option<&clap_v4::Arg>,
+        value: &std::ffi::OsStr,
+    ) -> Result<Self::Value, clap_v4::Error> {
         let val = value.to_str().unwrap().to_string();
 
         let result = if self.fully_qualified {
@@ -266,13 +304,19 @@ impl clap_v4::builder::TypedValueParser for HabPkgIdentValueParser {
             let mut err =
                 clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
             if let Some(arg) = arg {
-                err.insert(clap_v4::error::ContextKind::InvalidArg,
-                           clap_v4::error::ContextValue::String(arg.to_string()));
+                err.insert(
+                    clap_v4::error::ContextKind::InvalidArg,
+                    clap_v4::error::ContextValue::String(arg.to_string()),
+                );
             }
-            err.insert(clap_v4::error::ContextKind::InvalidValue,
-                       clap_v4::error::ContextValue::String(format!("`{}`: {}",
-                                                                    value.to_string_lossy(),
-                                                                    result.unwrap(),)));
+            err.insert(
+                clap_v4::error::ContextKind::InvalidValue,
+                clap_v4::error::ContextValue::String(format!(
+                    "`{}`: {}",
+                    value.to_string_lossy(),
+                    result.unwrap(),
+                )),
+            );
             Err(err)
         } else {
             Ok(val.into())

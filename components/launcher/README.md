@@ -1,9 +1,9 @@
 # Launcher
 
-Habitat's Launcher is a sidecar process for the Supervisor which provides a mechanism for launching processes on behalf of the Supervisor. It is the entry point for running the Supervisor and is the Supervisor for the Supervisor. It is designed to run as process 1; it's extremely minimal by design and contains as few dependencies and as little unsafe Rust code as possible. It's responsibilities are to:
+Biome's Launcher is a sidecar process for the Supervisor which provides a mechanism for launching processes on behalf of the Supervisor. It is the entry point for running the Supervisor and is the Supervisor for the Supervisor. It is designed to run as process 1; it's extremely minimal by design and contains as few dependencies and as little unsafe Rust code as possible. It's responsibilities are to:
 
-* Launch the Habitat Supervisor
-* Restart the Habitat Supervisor on shutdown (Supervisor for the Supervisor)
+* Launch the Biome Supervisor
+* Restart the Biome Supervisor on shutdown (Supervisor for the Supervisor)
 * Start, Stop, and Restart processes on behalf of the Supervisor
 
 Launcher is specifically designed to enable the Supervisor to self update without shutting down or re-parenting the services that the Supervisor is supervising. It is versioned separately from the Supervisor and should be updated very infrequently since an update of the Launcher could require a system restart if it is running as process 1.
@@ -16,7 +16,7 @@ When the Supervisor needs to spawn a long lived process it sends a `Spawn` messa
 
 ## Dev Instructions
 
-Since the launcher is updated infrequently relative to the rest of the habitat ecosystem, it has a separate build and release process. To build locally run
+Since the launcher is updated infrequently relative to the rest of the biome ecosystem, it has a separate build and release process. To build locally run
 ```
 cargo build
 ```
@@ -24,13 +24,13 @@ from this directory. To make a build for release, run the `build` command from w
 
 ### Testing
 
-Since the Supervisor requires the Launcher to start and it always attempts to start the latest version of the Supervisor packaged and installed on the host you may find it difficult to start your dev version of the Supervisor. You can force the Supervisor to start a specific version of the Supervisor by setting the `HAB_SUP_BINARY` environment variable to the file path of the desired Supervisor binary to start.
+Since the Supervisor requires the Launcher to start and it always attempts to start the latest version of the Supervisor packaged and installed on the host you may find it difficult to start your dev version of the Supervisor. You can force the Supervisor to start a specific version of the Supervisor by setting the `BIO_SUP_BINARY` environment variable to the file path of the desired Supervisor binary to start.
 
 ### Building Windows Release
 
-The launcher may optionaly start a Windows process under an alternate identity declared via `svc_user`. Windows requires a password for this identity. We encrypt the identity when loading services and decrypt the password when the launcher spawns the new process. We ["complexify" this encryption with a secret key](https://docs.microsoft.com/en-us/windows/desktop/api/dpapi/nf-dpapi-cryptprotectdata). This key is stored in 1password and must be set in the `HAB_CRYPTO_KEY` environment variable when building `hab` or `launcher`. The `hab` build gets this from a secret appveyor key but the key must be manually set whenever the launcher is built manually.
+The launcher may optionaly start a Windows process under an alternate identity declared via `svc_user`. Windows requires a password for this identity. We encrypt the identity when loading services and decrypt the password when the launcher spawns the new process. We ["complexify" this encryption with a secret key](https://docs.microsoft.com/en-us/windows/desktop/api/dpapi/nf-dpapi-cryptprotectdata). This key is stored in 1password and must be set in the `BIO_CRYPTO_KEY` environment variable when building `bio` or `launcher`. The `bio` build gets this from a secret appveyor key but the key must be manually set whenever the launcher is built manually.
 
-We have an appveyor build that will build and promote Windows launchers when code changes are merged into the `launcher` component. In order for a new launcher to get included in the Habitat Windows service and also built into the dockerized Windows Studio, one needs to invoke a new Appveyor build of the [windows-service](https://github.com/habitat-sh/windows-service) repo. This builds, uploads and promotes the `windows-service` Habitat package. The best way to do this is by using its rest API. First you will need a bearer token to authenticate with. You can get this by signing into the Appveyor site and then going to your [api-keys](https://ci.appveyor.com/api-keys) page. Choose "chef" from the accounts drop down menu and then copy your bearer token. With that, the following Powershell script will invoke the build:
+We have an appveyor build that will build and promote Windows launchers when code changes are merged into the `launcher` component. In order for a new launcher to get included in the Biome Windows service and also built into the dockerized Windows Studio, one needs to invoke a new Appveyor build of the [windows-service](https://github.com/biome-sh/windows-service) repo. This builds, uploads and promotes the `windows-service` Biome package. The best way to do this is by using its rest API. First you will need a bearer token to authenticate with. You can get this by signing into the Appveyor site and then going to your [api-keys](https://ci.appveyor.com/api-keys) page. Choose "biome" from the accounts drop down menu and then copy your bearer token. With that, the following Powershell script will invoke the build:
 
 ```
 $token = 'MY_BEARER_TOKEN'
@@ -40,7 +40,7 @@ $headers = @{
 }
 $body = @"
 {
-    "accountName": "chef",
+    "accountName": "biome",
     "projectSlug": "windows-service",
     "branch": "master"
 }
@@ -52,11 +52,11 @@ In bash:
 
 ```
 token=MY_BEARER_TOKEN
-curl -H "Content-type: application/json" -H "Authorization: Bearer ${token}"  https://ci.appveyor.com/api/builds -X POST --data "{'accountName': 'chef','projectSlug': 'windows-service','branch': 'master'}"
+curl -H "Content-type: application/json" -H "Authorization: Bearer ${token}"  https://ci.appveyor.com/api/builds -X POST --data "{'accountName': 'biome','projectSlug': 'windows-service','branch': 'master'}"
 ```
 
 You must invoke this build before starting a Windows release build.
 
 ### Releasing
 
-To release a new version of the launcher, upload the new `.hart` file and then [promote it to stable in builder](https://bldr.habitat.sh/#/pkgs/chef/hab-launcher). If a new release contains important features or bug fixes, it will have to be communicated to the community and installed manually. Because of the nature of the launcher, this will require downtime in production environments, but it should be an exceedingly rare occurrence.
+To release a new version of the launcher, upload the new `.hart` file and then [promote it to stable in builder](https://bldr.biome.sh/#/pkgs/biome/bio-launcher). If a new release contains important features or bug fixes, it will have to be communicated to the community and installed manually. Because of the nature of the launcher, this will require downtime in production environments, but it should be an exceedingly rare occurrence.

@@ -1,6 +1,6 @@
 $pkg_name="broken_after_failure_plan"
-$pkg_origin="habitat-testing"
-$pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+$pkg_origin="biome-testing"
+$pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 $pkg_version="0.0.0"
 
 function Invoke-Build {

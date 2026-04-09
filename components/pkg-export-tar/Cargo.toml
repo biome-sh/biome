@@ -1,15 +1,15 @@
 [package]
-name = "habitat_pkg_export_tar"
+name = "biome_pkg_export_tar"
 version = "0.0.0"
 edition = "2024"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 workspace = "../../"
 
 [lib]
-name = "habitat_pkg_export_tar"
+name = "biome_pkg_export_tar"
 
 [[bin]]
-name = "hab-pkg-export-tar"
+name = "bio-pkg-export-tar"
 path = "src/main.rs"
 doc = false
 
@@ -19,8 +19,8 @@ anyhow = { version = "*", features = ["backtrace"] }
 clap = { version = "4", features = ["derive", "wrap_help", "cargo", "env"] }
 env_logger = { version = "*" }
 flate2 = { version = "*" }
-habitat_common = { path = "../common" }
-habitat_core = { path = "../core" }
+biome_common = { path = "../common" }
+biome_core = { path = "../core" }
 log = { version = "0.4" }
 mktemp = { version = "*" }
 tar = { version = "*" }

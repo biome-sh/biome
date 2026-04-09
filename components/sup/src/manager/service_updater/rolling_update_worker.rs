@@ -1,21 +1,14 @@
-use super::{IncarnatedPackageIdent,
-            package_update_worker::PackageUpdateWorker};
-use crate::{census::{CensusGroup,
-                     CensusRing},
-            manager::service::{Service,
-                               Topology}};
-use habitat_common::owning_refs::RwLockReadGuardRef;
-use habitat_core::service::ServiceGroup;
-use log::{debug,
-          error,
-          trace,
-          warn};
+use super::{IncarnatedPackageIdent, package_update_worker::PackageUpdateWorker};
+use crate::{
+    census::{CensusGroup, CensusRing},
+    manager::service::{Service, Topology},
+};
+use biome_common::owning_refs::RwLockReadGuardRef;
+use biome_core::service::ServiceGroup;
+use log::{debug, error, trace, warn};
 use parking_lot::RwLock;
-use std::{self,
-          sync::Arc,
-          time::Duration};
-use tokio::{self,
-            time};
+use std::{self, sync::Arc, time::Duration};
+use tokio::{self, time};
 
 // The census ring does not have an async API. We make it look async by making API calls in a
 // loop with this delay after each call.
@@ -55,24 +48,27 @@ enum FollowerUpdateTurnEvent {
 /// The basic behavior of the update is to elect an update leader. The leader waits for an update.
 /// When an update is detected, the leader is updated and each follower takes a turn to update.
 pub struct RollingUpdateWorker {
-    service_group:         ServiceGroup,
-    topology:              Topology,
+    service_group: ServiceGroup,
+    topology: Topology,
     package_update_worker: PackageUpdateWorker,
-    census_ring:           Arc<RwLock<CensusRing>>,
-    butterfly:             habitat_butterfly::Server,
+    census_ring: Arc<RwLock<CensusRing>>,
+    butterfly: biome_butterfly::Server,
 }
 
 impl RollingUpdateWorker {
-    pub fn new(service: &Service,
-               census_ring: Arc<RwLock<CensusRing>>,
-               butterfly: habitat_butterfly::Server,
-               period: Duration)
-               -> Self {
-        Self { service_group: service.service_group.clone(),
-               topology: service.topology(),
-               package_update_worker: PackageUpdateWorker::new(service, period),
-               census_ring,
-               butterfly }
+    pub fn new(
+        service: &Service,
+        census_ring: Arc<RwLock<CensusRing>>,
+        butterfly: biome_butterfly::Server,
+        period: Duration,
+    ) -> Self {
+        Self {
+            service_group: service.service_group.clone(),
+            topology: service.topology(),
+            package_update_worker: PackageUpdateWorker::new(service, period),
+            census_ring,
+            butterfly,
+        }
     }
 
     pub async fn run(self) -> IncarnatedPackageIdent {
@@ -121,45 +117,57 @@ impl RollingUpdateWorker {
     async fn update_election_suitability(&self, topology: Topology) -> u64 {
         match topology {
             Topology::Standalone => {
-                debug!("'{}' rolling update detected standalone topology; using default \
+                debug!(
+                    "'{}' rolling update detected standalone topology; using default \
                         suitability",
-                       self.service_group);
+                    self.service_group
+                );
                 0
             }
             Topology::Leader => {
-                debug!("'{}' rolling update determining proper suitability for leader topology",
-                       self.service_group);
+                debug!(
+                    "'{}' rolling update determining proper suitability for leader topology",
+                    self.service_group
+                );
                 loop {
                     {
                         let census_group = self.census_group().await;
                         match (census_group.me(), census_group.leader()) {
                             (Some(me), Some(leader)) => {
                                 if me.member_id == leader.member_id {
-                                    debug!("This is the '{}' leader; using the minimum rolling \
+                                    debug!(
+                                        "This is the '{}' leader; using the minimum rolling \
                                             update election suitability",
-                                           self.service_group);
+                                        self.service_group
+                                    );
                                     break u64::MIN;
                                 } else {
-                                    debug!("This is a '{}' follower; using the maximum rolling \
+                                    debug!(
+                                        "This is a '{}' follower; using the maximum rolling \
                                             update election suitability",
-                                           self.service_group);
+                                        self.service_group
+                                    );
                                     break u64::MAX;
                                 };
                             }
                             (Some(_), None) => {
-                                debug!("No group leader; the rolling update cannot proceed until \
+                                debug!(
+                                    "No group leader; the rolling update cannot proceed until \
                                         the '{}' group election finishes",
-                                       self.service_group);
+                                    self.service_group
+                                );
                             }
                             (None, _) => {
                                 // It looks like a Supervisor finds out "who it is" by being told by
                                 // the rest of the network. While this does have the advantage of
                                 // unifying code paths, it could result in some counter-intuitive
                                 // situations (like census_group.me() returning None!)
-                                error!("Supervisor does not know its own identity; rolling \
-                                        update of {} cannot proceed! Please notify the Habitat \
+                                error!(
+                                    "Supervisor does not know its own identity; rolling \
+                                        update of {} cannot proceed! Please notify the Biome \
                                         core team!",
-                                       self.service_group);
+                                    self.service_group
+                                );
                                 debug_assert!(false);
                             }
                         }
@@ -185,13 +193,17 @@ impl RollingUpdateWorker {
                         }
                     }
                     (Some(_), None) => {
-                        debug!("Rolling update leader election for '{}' is not yet finished",
-                               self.service_group);
+                        debug!(
+                            "Rolling update leader election for '{}' is not yet finished",
+                            self.service_group
+                        );
                     }
                     (None, _) => {
-                        error!("Supervisor does not know its own identity; rolling update of {} \
-                                cannot proceed! Please notify the Habitat core team!",
-                               self.service_group);
+                        error!(
+                            "Supervisor does not know its own identity; rolling update of {} \
+                                cannot proceed! Please notify the Biome core team!",
+                            self.service_group
+                        );
                         debug_assert!(false);
                     }
                 }
@@ -211,51 +223,63 @@ impl RollingUpdateWorker {
                         // If the current leader is no longer alive, it is possible that this
                         // follower is now a leader.
                         if leader.member_id == me.member_id {
-                            debug!("'{}' rolling update follower was promoted to the leader",
-                                   self.service_group);
+                            debug!(
+                                "'{}' rolling update follower was promoted to the leader",
+                                self.service_group
+                            );
                             break FollowerUpdateStartEvent::PromotedToLeader;
                         }
 
                         if leader.pkg_incarnation != census_group.pkg_incarnation {
-                            debug!("leader with member id {} has incarnation {} that is not \
+                            debug!(
+                                "leader with member id {} has incarnation {} that is not \
                                     caught up with the census group incarnation {}, waiting for \
                                     update to start",
-                                   leader.member_id,
-                                   leader.pkg_incarnation,
-                                   census_group.pkg_incarnation);
+                                leader.member_id,
+                                leader.pkg_incarnation,
+                                census_group.pkg_incarnation
+                            );
                         }
 
                         if leader.pkg_incarnation > me.pkg_incarnation {
                             // The leader has a new package starting a rolling update
-                            debug!("'{}' started a rolling update: leader='{}/{}/{}' \
+                            debug!(
+                                "'{}' started a rolling update: leader='{}/{}/{}' \
                                     follower='{}/{}/{}'",
-                                   self.service_group,
-                                   leader.member_id,
-                                   leader.pkg_incarnation,
-                                   leader.pkg,
-                                   me.member_id,
-                                   me.pkg_incarnation,
-                                   me.pkg);
-                            break FollowerUpdateStartEvent::UpdateTo(IncarnatedPackageIdent::new(leader.pkg.clone(),
-                                                                     Some(leader.pkg_incarnation)));
+                                self.service_group,
+                                leader.member_id,
+                                leader.pkg_incarnation,
+                                leader.pkg,
+                                me.member_id,
+                                me.pkg_incarnation,
+                                me.pkg
+                            );
+                            break FollowerUpdateStartEvent::UpdateTo(IncarnatedPackageIdent::new(
+                                leader.pkg.clone(),
+                                Some(leader.pkg_incarnation),
+                            ));
                         } else {
                             // The leader still has the same package as this follower so an update
                             // has not started
-                            trace!("'{}' is not in a rolling update: leader='{}/{}/{}' \
+                            trace!(
+                                "'{}' is not in a rolling update: leader='{}/{}/{}' \
                                     follower='{}/{}/{}'",
-                                   self.service_group,
-                                   leader.member_id,
-                                   leader.pkg_incarnation,
-                                   leader.pkg,
-                                   me.member_id,
-                                   me.pkg_incarnation,
-                                   me.pkg);
+                                self.service_group,
+                                leader.member_id,
+                                leader.pkg_incarnation,
+                                leader.pkg,
+                                me.member_id,
+                                me.pkg_incarnation,
+                                me.pkg
+                            );
                         }
                     }
                     _ => {
-                        error!("The census group for '{}' is in a bad state. It could not \
+                        error!(
+                            "The census group for '{}' is in a bad state. It could not \
                                 determine the update leader, previous peer, or its own identity.",
-                               self.service_group);
+                            self.service_group
+                        );
                         debug_assert!(false);
                     }
                 }
@@ -274,68 +298,81 @@ impl RollingUpdateWorker {
         loop {
             {
                 let census_group = self.census_group().await;
-                match (census_group.update_leader(),
-                       census_group.previous_peer(),
-                       census_group.me())
-                {
+                match (
+                    census_group.update_leader(),
+                    census_group.previous_peer(),
+                    census_group.me(),
+                ) {
                     (Some(leader), Some(peer), Some(me)) => {
                         // If the current leader is no longer alive, it is possible that this
                         // follower is now a leader.
                         if leader.member_id == me.member_id {
-                            debug!("'{}' rolling update follower was promoted to the leader mid \
+                            debug!(
+                                "'{}' rolling update follower was promoted to the leader mid \
                                     update. Immediately updating to '{}'.",
-                                   self.service_group, update_to.ident);
+                                self.service_group, update_to.ident
+                            );
                             break FollowerUpdateTurnEvent::PromotedToLeaderMidUpdate(update_to);
                         }
 
                         if leader.pkg_incarnation != census_group.pkg_incarnation {
-                            debug!("leader with member id {} has incarnation {} that is not \
+                            debug!(
+                                "leader with member id {} has incarnation {} that is not \
                                     caught up with the census group incarnation {}",
-                                   leader.member_id,
-                                   leader.pkg_incarnation,
-                                   census_group.pkg_incarnation);
+                                leader.member_id,
+                                leader.pkg_incarnation,
+                                census_group.pkg_incarnation
+                            );
                         } else if peer.pkg_incarnation == leader.pkg_incarnation {
                             // It is now this followers turn. The previous peer is done updating.
                             // The first time this condition is true the previous peer is the
                             // rolling update leader making this condition trivially true. This
                             // will trigger all the followers to start their updates one after
                             // another.
-                            debug!("'{}' is in a rolling update and it is this followers turn to \
+                            debug!(
+                                "'{}' is in a rolling update and it is this followers turn to \
                                     update: leader='{}/{}/{}' peer='{}/{}/{}' follower='{}/{}/{}'",
-                                   self.service_group,
-                                   leader.member_id,
-                                   leader.pkg_incarnation,
-                                   leader.pkg,
-                                   peer.member_id,
-                                   peer.pkg_incarnation,
-                                   peer.pkg,
-                                   me.member_id,
-                                   me.pkg_incarnation,
-                                   me.pkg);
-                            break FollowerUpdateTurnEvent::UpdateTo(IncarnatedPackageIdent::new(leader.pkg.clone(),
-                            Some(leader.pkg_incarnation)));
+                                self.service_group,
+                                leader.member_id,
+                                leader.pkg_incarnation,
+                                leader.pkg,
+                                peer.member_id,
+                                peer.pkg_incarnation,
+                                peer.pkg,
+                                me.member_id,
+                                me.pkg_incarnation,
+                                me.pkg
+                            );
+                            break FollowerUpdateTurnEvent::UpdateTo(IncarnatedPackageIdent::new(
+                                leader.pkg.clone(),
+                                Some(leader.pkg_incarnation),
+                            ));
                         } else {
                             // It is not this followers turn to update. The previous peer has not
                             // updated yet.
-                            debug!("'{}' is in a rolling update but it is not this followers \
+                            debug!(
+                                "'{}' is in a rolling update but it is not this followers \
                                     turn to update: leader='{}/{}/{}' peer='{}/{}/{}' \
                                     follower='{}/{}/{}'",
-                                   self.service_group,
-                                   leader.member_id,
-                                   leader.pkg_incarnation,
-                                   leader.pkg,
-                                   peer.member_id,
-                                   peer.pkg_incarnation,
-                                   peer.pkg,
-                                   me.member_id,
-                                   me.pkg_incarnation,
-                                   me.pkg);
+                                self.service_group,
+                                leader.member_id,
+                                leader.pkg_incarnation,
+                                leader.pkg,
+                                peer.member_id,
+                                peer.pkg_incarnation,
+                                peer.pkg,
+                                me.member_id,
+                                me.pkg_incarnation,
+                                me.pkg
+                            );
                         }
                     }
                     _ => {
-                        error!("The census group for '{}' is in a bad state. It could not \
+                        error!(
+                            "The census group for '{}' is in a bad state. It could not \
                                 determine the update leader, previous peer, or its own identity.",
-                               self.service_group);
+                            self.service_group
+                        );
                         debug_assert!(false);
                     }
                 }
@@ -351,14 +388,15 @@ impl RollingUpdateWorker {
             {
                 let census_ring = RwLockReadGuardRef::new(self.census_ring.read().into());
                 let maybe_census_group = census_ring.try_map(|census_ring| {
-                                             census_ring.census_group_for(&self.service_group)
-                                                        .ok_or(())
-                                         });
+                    census_ring.census_group_for(&self.service_group).ok_or(())
+                });
                 if let Ok(census_group) = maybe_census_group {
                     break census_group;
                 } else {
-                    warn!("'{}' rolling update could not find census group",
-                          self.service_group);
+                    warn!(
+                        "'{}' rolling update could not find census group",
+                        self.service_group
+                    );
                 }
             }
             time::sleep(DELAY).await;

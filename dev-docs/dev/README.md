@@ -1,8 +1,8 @@
-# Habitat Development Documentation
+# Biome Development Documentation
 
 This directory contains links to development documentation for both new and
 seasoned contributors. They explain how to build, test, and contribute to
-Habitat, as well as describe conventions and philosophy for design and
+Biome, as well as describe conventions and philosophy for design and
 implementation details.
 
 ## How-To Guides

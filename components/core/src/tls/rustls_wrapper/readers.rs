@@ -1,16 +1,15 @@
 //! Utility functions to standardize reading certificates, private keys, and root certificate stores
 //! using `rustls`
 
-use rustls::{RootCertStore,
-             pki_types::{CertificateDer,
-                         PrivatePkcs8KeyDer,
-                         pem::PemObject}};
-use std::{fs::File,
-          io::{self,
-               BufReader,
-               Read},
-          path::{Path,
-                 PathBuf}};
+use rustls::{
+    RootCertStore,
+    pki_types::{CertificateDer, PrivatePkcs8KeyDer, pem::PemObject},
+};
+use std::{
+    fs::File,
+    io::{self, BufReader, Read},
+    path::{Path, PathBuf},
+};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -65,17 +64,17 @@ fn buf_from_file(path: impl AsRef<Path>) -> Result<BufReader<File>, Error> {
 ///
 /// Returns [`Error::FailedToReadFile`] if the file cannot be read, or
 /// [`Error::FailedToReadCerts`] if the certificates cannot be parsed.
-pub fn certificates_from_file(path: impl AsRef<Path>)
-                              -> Result<Vec<CertificateDer<'static>>, Error> {
+pub fn certificates_from_file(
+    path: impl AsRef<Path>,
+) -> Result<Vec<CertificateDer<'static>>, Error> {
     let mut buf = buf_from_file(path.as_ref())?;
     let mut pem_data = Vec::new();
     buf.read_to_end(&mut pem_data)
-       .map_err(|e| Error::FailedToReadFile(path.as_ref().into(), e))?;
+        .map_err(|e| Error::FailedToReadFile(path.as_ref().into(), e))?;
 
-    CertificateDer::pem_slice_iter(&pem_data).collect::<Result<Vec<_>, _>>()
-                                             .map_err(|_| {
-                                                 Error::FailedToReadCerts(path.as_ref().into())
-                                             })
+    CertificateDer::pem_slice_iter(&pem_data)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_| Error::FailedToReadCerts(path.as_ref().into()))
 }
 
 /// Reads PKCS8 private keys in PEM format from a file.
@@ -110,18 +109,17 @@ pub fn certificates_from_file(path: impl AsRef<Path>)
 ///
 /// Only PKCS8 format is supported. Keys in other formats (e.g., PKCS1, SEC1)
 /// must be converted to PKCS8 first.
-fn private_keys_from_file(path: impl AsRef<Path>)
-                          -> Result<Vec<PrivatePkcs8KeyDer<'static>>, Error> {
+fn private_keys_from_file(
+    path: impl AsRef<Path>,
+) -> Result<Vec<PrivatePkcs8KeyDer<'static>>, Error> {
     let mut buf = buf_from_file(path.as_ref())?;
     let mut pem_data = Vec::new();
     buf.read_to_end(&mut pem_data)
-       .map_err(|e| Error::FailedToReadFile(path.as_ref().into(), e))?;
+        .map_err(|e| Error::FailedToReadFile(path.as_ref().into(), e))?;
 
-    PrivatePkcs8KeyDer::pem_slice_iter(&pem_data).collect::<Result<Vec<_>, _>>()
-                                                 .map_err(|_| {
-                                                     Error::FailedToReadPrivateKeys(path.as_ref()
-                                                                                        .into())
-                                                 })
+    PrivatePkcs8KeyDer::pem_slice_iter(&pem_data)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_| Error::FailedToReadPrivateKeys(path.as_ref().into()))
 }
 
 /// Reads a single PKCS8 private key from a PEM file.
@@ -146,8 +144,9 @@ fn private_keys_from_file(path: impl AsRef<Path>)
 /// [`Error::FailedToReadFile`] if the file cannot be read, or
 /// [`Error::FailedToReadPrivateKeys`] if the keys cannot be parsed.
 pub fn private_key_from_file(path: impl AsRef<Path>) -> Result<PrivatePkcs8KeyDer<'static>, Error> {
-    private_keys_from_file(path.as_ref())?.pop()
-                                          .ok_or_else(|| Error::NoPrivateKey(path.as_ref().into()))
+    private_keys_from_file(path.as_ref())?
+        .pop()
+        .ok_or_else(|| Error::NoPrivateKey(path.as_ref().into()))
 }
 
 /// Reads X.509 certificates from a PEM file and creates a root certificate store.
@@ -177,7 +176,10 @@ pub fn root_certificate_store_from_file(path: impl AsRef<Path>) -> Result<RootCe
     let certs = certificates_from_file(path.as_ref())?;
     let (_, failed) = root_certificate_store.add_parsable_certificates(certs);
     if failed > 0 {
-        Err(Error::FailedToReadCertificatesFromRootCertificateStore(failed, path.as_ref().into()))
+        Err(Error::FailedToReadCertificatesFromRootCertificateStore(
+            failed,
+            path.as_ref().into(),
+        ))
     } else {
         Ok(root_certificate_store)
     }
@@ -186,8 +188,7 @@ pub fn root_certificate_store_from_file(path: impl AsRef<Path>) -> Result<RootCe
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rcgen::{CertificateParams,
-                KeyPair};
+    use rcgen::{CertificateParams, KeyPair};
     use std::io::Write;
     use tempfile::NamedTempFile;
 
@@ -327,7 +328,10 @@ rqXRfboQnoZsG4q5WTP468SQvvG5
         let result = private_key_from_file(file.path());
         assert!(result.is_err());
         // Malformed PEM should result in FailedToReadPrivateKeys
-        assert!(matches!(result.unwrap_err(), Error::FailedToReadPrivateKeys(_)));
+        assert!(matches!(
+            result.unwrap_err(),
+            Error::FailedToReadPrivateKeys(_)
+        ));
     }
 
     #[test]

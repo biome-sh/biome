@@ -1,89 +1,81 @@
 #![allow(clippy::result_large_err)]
-use habitat_common::{error::{Error,
-                             Result},
-                     liveliness_checker,
-                     outputln,
-                     templating::package::Pkg};
-use habitat_core::{env as henv,
-                   util::{self,
-                          BufReadLossy}};
-use log::{debug,
-          error};
-use mio::{Events,
-          Interest,
-          Poll,
-          Token,
-          windows::NamedPipe};
-use std::{self,
-          env,
-          ffi::OsStr,
-          fs::{File,
-               OpenOptions},
-          io::{self,
-               BufReader,
-               Read,
-               prelude::*},
-          iter::once,
-          os::windows::{ffi::OsStrExt,
-                        fs::*,
-                        io::*},
-          path::{Path,
-                 PathBuf},
-          process,
-          thread,
-          time::{Duration,
-                 Instant}};
+use biome_common::{
+    error::{Error, Result},
+    liveliness_checker, outputln,
+    templating::package::Pkg,
+};
+use biome_core::{
+    env as henv,
+    util::{self, BufReadLossy},
+};
+use log::{debug, error};
+use mio::{Events, Interest, Poll, Token, windows::NamedPipe};
+use std::{
+    self, env,
+    ffi::OsStr,
+    fs::{File, OpenOptions},
+    io::{self, BufReader, Read, prelude::*},
+    iter::once,
+    os::windows::{ffi::OsStrExt, fs::*, io::*},
+    path::{Path, PathBuf},
+    process, thread,
+    time::{Duration, Instant},
+};
 use uuid::Uuid;
-use winapi::um::{handleapi,
-                 namedpipeapi,
-                 processthreadsapi,
-                 winbase};
+use winapi::um::{handleapi, namedpipeapi, processthreadsapi, winbase};
 
 static LOGKEY: &str = "HK";
-const PIPE_SERVICE_ENVVAR: &str = "HAB_HOOK_PIPE_SCRIPT";
+const PIPE_SERVICE_ENVVAR: &str = "BIO_HOOK_PIPE_SCRIPT";
 const SIGNAL_EXEC_HOOK: [u8; 1] = [1];
 const SIGNAL_QUIT: [u8; 1] = [0];
 
-habitat_core::env_config_duration!(PipeStartTimeout,
-                                    HAB_START_PIPE_TIMEOUT_SECS => from_secs,
+biome_core::env_config_duration!(PipeStartTimeout,
+                                    BIO_START_PIPE_TIMEOUT_SECS => from_secs,
                                     Duration::from_secs(5));
 
 #[derive(Debug)]
 pub struct PipeHookClient {
-    hook_name:       String,
-    hook_path:       PathBuf,
-    pipe_name:       String,
+    hook_name: String,
+    hook_path: PathBuf,
+    pipe_name: String,
     stdout_log_file: PathBuf,
     stderr_log_file: PathBuf,
 }
 
 impl PipeHookClient {
-    pub fn new(hook_name: String,
-               hook_path: PathBuf,
-               stdout_log_file: PathBuf,
-               stderr_log_file: PathBuf)
-               -> Self {
+    pub fn new(
+        hook_name: String,
+        hook_path: PathBuf,
+        stdout_log_file: PathBuf,
+        stderr_log_file: PathBuf,
+    ) -> Self {
         let pipe_name = format!("{}-hook-{}", hook_name, Uuid::new_v4());
-        Self { hook_name,
-               hook_path,
-               pipe_name,
-               stdout_log_file,
-               stderr_log_file }
+        Self {
+            hook_name,
+            hook_path,
+            pipe_name,
+            stdout_log_file,
+            stderr_log_file,
+        }
     }
 
-    pub fn exec_hook<T>(&self,
-                        service_group: &str,
-                        pkg: &Pkg,
-                        svc_encrypted_password: Option<T>)
-                        -> Result<u32>
-        where T: ToString
+    pub fn exec_hook<T>(
+        &self,
+        service_group: &str,
+        pkg: &Pkg,
+        svc_encrypted_password: Option<T>,
+    ) -> Result<u32>
+    where
+        T: ToString,
     {
         // Always check to see if the powershell named pipe server is running.
         // This should only be false the first time this function is called
         // or if someone explicitly terminates the powershell process
         if let Err(err) = self.pipe_wait() {
-            debug!("Initiating Powershell named pipe server for {} {} hook. last err: {}",
-                   service_group, self.hook_name, err);
+            debug!(
+                "Initiating Powershell named pipe server for {} {} hook. last err: {}",
+                service_group, self.hook_name, err
+            );
             self.start_server(service_group, pkg, svc_encrypted_password)?;
         }
 
@@ -93,8 +85,10 @@ impl PipeHookClient {
         File::create(&self.stderr_log_file)?;
 
         let (mut pipe, mut poll) = self.connect()?;
-        debug!("connected to {} {} hook pipe",
-               service_group, self.hook_name);
+        debug!(
+            "connected to {} {} hook pipe",
+            service_group, self.hook_name
+        );
 
         // The powershell server takes a single byte as input which will be either
         // 0 to shut down (see drop below) or 1 to run the hook
@@ -117,15 +111,11 @@ impl PipeHookClient {
         let loop_value = loop {
             let checked_thread = liveliness_checker::mark_thread_alive();
             let result = poll.poll(&mut events, None).map(|_| {
-                                                         events.iter().any(|e| {
-                                                                          (e.is_readable()
-                                                                  && readiness
-                                                                     == Interest::READABLE)
-                                                                 || (e.is_writable()
-                                                                     && readiness
-                                                                        == Interest::WRITABLE)
-                                                                      })
-                                                     });
+                events.iter().any(|e| {
+                    (e.is_readable() && readiness == Interest::READABLE)
+                        || (e.is_writable() && readiness == Interest::WRITABLE)
+                })
+            });
             if let Ok(false) = result {
                 continue;
             } else {
@@ -135,7 +125,9 @@ impl PipeHookClient {
         loop_value.into_result()
     }
 
-    fn abs_pipe_name(&self) -> String { format!(r#"\\.\pipe\{}"#, self.pipe_name) }
+    fn abs_pipe_name(&self) -> String {
+        format!(r#"\\.\pipe\{}"#, self.pipe_name)
+    }
 
     fn connect(&self) -> Result<(NamedPipe, Poll)> {
         let mut opts = OpenOptions::new();
@@ -151,34 +143,41 @@ impl PipeHookClient {
         Ok((pipe, poll))
     }
 
-    fn start_server<T>(&self,
-                       service_group: &str,
-                       pkg: &Pkg,
-                       svc_encrypted_password: Option<T>)
-                       -> Result<()>
-        where T: ToString
+    fn start_server<T>(
+        &self,
+        service_group: &str,
+        pkg: &Pkg,
+        svc_encrypted_password: Option<T>,
+    ) -> Result<()>
+    where
+        T: ToString,
     {
         let script_path = match henv::var(PIPE_SERVICE_ENVVAR) {
             Ok(script) => PathBuf::from(script),
-            Err(_) => {
-                env::current_exe()?.parent()
-                                   .expect("unable to find sup binary parent dir")
-                                   .join("named_pipe_service.ps1")
-            }
+            Err(_) => env::current_exe()?
+                .parent()
+                .expect("unable to find sup binary parent dir")
+                .join("named_pipe_service.ps1"),
         };
-        let ps_cmd = format!("& '{}' -HookPath '{}' -PipeName {} -ParentPID {}",
-                             script_path.to_string_lossy(),
-                             self.hook_path.to_string_lossy(),
-                             self.pipe_name,
-                             process::id());
+        let ps_cmd = format!(
+            "& '{}' -HookPath '{}' -PipeName {} -ParentPID {}",
+            script_path.to_string_lossy(),
+            self.hook_path.to_string_lossy(),
+            self.pipe_name,
+            process::id()
+        );
 
         // Start instance of powershell to host named pipe server for this client
-        let child = util::spawn_pwsh(&ps_cmd,
-                                     &pkg.env.to_hash_map(),
-                                     &pkg.svc_user,
-                                     svc_encrypted_password)?;
-        debug!("spawned powershell server for {} {} hook on pipe: {}",
-               service_group, self.hook_name, self.pipe_name);
+        let child = util::spawn_pwsh(
+            &ps_cmd,
+            &pkg.env.to_hash_map(),
+            &pkg.svc_user,
+            svc_encrypted_password,
+        )?;
+        debug!(
+            "spawned powershell server for {} {} hook on pipe: {}",
+            service_group, self.hook_name, self.pipe_name
+        );
 
         let out = child.stdout;
         let err = child.stderr;
@@ -192,16 +191,22 @@ impl PipeHookClient {
         // duration as the service itself and will thus service each hook run. So we will
         // stream its stdout/err in separate threads
         if let Some(o) = out {
-            thread::Builder::new().name(format!("{}-{}-pipe-server-out",
-                                                service_group, self.hook_name))
-                                  .spawn(move || stream_output(o, &out_path, &preamble_out_str))
-                                  .ok();
+            thread::Builder::new()
+                .name(format!(
+                    "{}-{}-pipe-server-out",
+                    service_group, self.hook_name
+                ))
+                .spawn(move || stream_output(o, &out_path, &preamble_out_str))
+                .ok();
         }
         if let Some(e) = err {
-            thread::Builder::new().name(format!("{}-{}-pipe-server-err",
-                                                service_group, self.hook_name))
-                                  .spawn(move || stream_output(e, &err_path, &preamble_err_str))
-                                  .ok();
+            thread::Builder::new()
+                .name(format!(
+                    "{}-{}-pipe-server-err",
+                    service_group, self.hook_name
+                ))
+                .spawn(move || stream_output(e, &err_path, &preamble_err_str))
+                .ok();
         }
 
         // We want to wait until we know the named pipe is up and running before returning OK
@@ -214,11 +219,13 @@ impl PipeHookClient {
                 Err(err) => {
                     if start.elapsed() >= timeout {
                         self.win32_result(unsafe {
-                                processthreadsapi::TerminateProcess(handle.raw(), 1)
-                            })?;
-                        return Err(Error::NamedPipeTimeoutOnStart(service_group.to_string(),
-                                                                  self.hook_name.to_string(),
-                                                                  err));
+                            processthreadsapi::TerminateProcess(handle.raw(), 1)
+                        })?;
+                        return Err(Error::NamedPipeTimeoutOnStart(
+                            service_group.to_string(),
+                            self.hook_name.to_string(),
+                            err,
+                        ));
                     }
                 }
             }
@@ -229,9 +236,10 @@ impl PipeHookClient {
     // Simple call to win32 API to see if named pipe exists.
     // Note that we cannot use Path::exists for named pipes
     fn pipe_wait(&self) -> io::Result<()> {
-        let pipe_path: Vec<u16> = OsStr::new(&self.abs_pipe_name()).encode_wide()
-                                                                   .chain(once(0))
-                                                                   .collect();
+        let pipe_path: Vec<u16> = OsStr::new(&self.abs_pipe_name())
+            .encode_wide()
+            .chain(once(0))
+            .collect();
         // Note that WaitNamedPipeW will error immediately if the pipe has not yet
         // been created. The timeout is honored if the pipe exists and then the
         // waits for it to be ready for clients
@@ -263,20 +271,25 @@ impl PipeHookClient {
 impl Drop for PipeHookClient {
     fn drop(&mut self) {
         if let Err(err) = self.quit() {
-            error!("Unable to tell {} pipe server to quit. {}",
-                   self.pipe_name, err);
+            error!(
+                "Unable to tell {} pipe server to quit. {}",
+                self.pipe_name, err
+            );
         }
     }
 }
 
 fn stream_output<T>(out: T, log_file: &Path, preamble_str: &str)
-    where T: Read
+where
+    T: Read,
 {
     File::create(log_file).unwrap_or_else(|_| {
-                              panic!("{}: couldn't create log output file {}",
-                                     preamble_str,
-                                     &log_file.to_string_lossy())
-                          });
+        panic!(
+            "{}: couldn't create log output file {}",
+            preamble_str,
+            &log_file.to_string_lossy()
+        )
+    });
 
     for line in BufReader::new(out).lines_lossy().flatten() {
         outputln!(preamble preamble_str, &line);
@@ -303,34 +316,41 @@ fn stream_output<T>(out: T, log_file: &Path, preamble_str: &str)
 #[cfg(test)]
 mod tests {
     use super::*;
-    use habitat_common::templating::{package::Pkg,
-                                     test_helpers::{create_with_content,
-                                                    file_content}};
-    use habitat_core::{locked_env_var,
-                       os::process,
-                       package::{PackageIdent,
-                                 PackageInstall},
-                       service::ServiceGroup};
+    use biome_common::templating::{
+        package::Pkg,
+        test_helpers::{create_with_content, file_content},
+    };
+    use biome_core::{
+        locked_env_var,
+        os::process,
+        package::{PackageIdent, PackageInstall},
+        service::ServiceGroup,
+    };
     use tempfile::TempDir;
     use winapi::um::synchapi;
 
-    locked_env_var!(HAB_HOOK_PIPE_SCRIPT, pipe_service_path);
+    locked_env_var!(BIO_HOOK_PIPE_SCRIPT, pipe_service_path);
 
     fn named_pipe_service_ps1() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("static")
-                                                 .join("named_pipe_service.ps1")
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("static")
+            .join("named_pipe_service.ps1")
     }
 
     async fn pkg() -> Pkg {
         let service_group = ServiceGroup::new("test_service", "test_group", None).unwrap();
-        let pg_id = PackageIdent::new("testing",
-                                      service_group.service(),
-                                      Some("1.0.0"),
-                                      Some("20170712000000"));
-        let pkg_install = PackageInstall::new_from_parts(pg_id.clone(),
-                                                         PathBuf::from("/tmp"),
-                                                         PathBuf::from("/tmp"),
-                                                         PathBuf::from("/tmp"));
+        let pg_id = PackageIdent::new(
+            "testing",
+            service_group.service(),
+            Some("1.0.0"),
+            Some("20170712000000"),
+        );
+        let pkg_install = PackageInstall::new_from_parts(
+            pg_id.clone(),
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+            PathBuf::from("/tmp"),
+        );
         Pkg::from_install(&pkg_install).await.unwrap()
     }
 
@@ -342,13 +362,16 @@ mod tests {
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "exit 5000");
 
-        let client = PipeHookClient::new("test".to_string(),
-                                         path,
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            path,
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
-        let exit = client.exec_hook("tg1", &pkg().await, None::<String>)
-                         .unwrap();
+        let exit = client
+            .exec_hook("tg1", &pkg().await, None::<String>)
+            .unwrap();
 
         assert_eq!(5000, exit);
     }
@@ -361,13 +384,16 @@ mod tests {
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "write-host 'no exit here'");
 
-        let client = PipeHookClient::new("test".to_string(),
-                                         path,
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            path,
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
-        let exit = client.exec_hook("tg2", &pkg().await, None::<String>)
-                         .unwrap();
+        let exit = client
+            .exec_hook("tg2", &pkg().await, None::<String>)
+            .unwrap();
 
         assert_eq!(0, exit);
     }
@@ -380,13 +406,16 @@ mod tests {
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "Write-Host 'you are my sunshine'");
 
-        let client = PipeHookClient::new("test".to_string(),
-                                         path,
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            path,
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
-        client.exec_hook("tg3", &pkg().await, None::<String>)
-              .unwrap();
+        client
+            .exec_hook("tg3", &pkg().await, None::<String>)
+            .unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -402,13 +431,16 @@ mod tests {
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "Write-Error 'you are not my sunshine'");
 
-        let client = PipeHookClient::new("test".to_string(),
-                                         path,
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            path,
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
-        client.exec_hook("tg4", &pkg().await, None::<String>)
-              .unwrap();
+        client
+            .exec_hook("tg4", &pkg().await, None::<String>)
+            .unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -424,15 +456,19 @@ mod tests {
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "exit $PID");
 
-        let client = PipeHookClient::new("test".to_string(),
-                                         path,
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            path,
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
-        let pid1 = client.exec_hook("tg5", &pkg().await, None::<String>)
-                         .unwrap();
-        let pid2 = client.exec_hook("tg5", &pkg().await, None::<String>)
-                         .unwrap();
+        let pid1 = client
+            .exec_hook("tg5", &pkg().await, None::<String>)
+            .unwrap();
+        let pid2 = client
+            .exec_hook("tg5", &pkg().await, None::<String>)
+            .unwrap();
 
         assert_eq!(pid1, pid2);
     }
@@ -441,14 +477,18 @@ mod tests {
     async fn pipe_hook_client_start_server_terminates_failed_server() {
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("fake-server.ps1");
-        create_with_content(&path,
-                            "write-host $PID;while($true){Start-Sleep -Seconds 5}");
+        create_with_content(
+            &path,
+            "write-host $PID;while($true){Start-Sleep -Seconds 5}",
+        );
         let var = pipe_service_path();
         var.set(&path);
-        let client = PipeHookClient::new("test".to_string(),
-                                         tmpdir.path().join("health-check"),
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            tmpdir.path().join("health-check"),
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
         let result = client.exec_hook("tg6", &pkg().await, None::<String>);
 
@@ -457,9 +497,12 @@ mod tests {
         let pid_str = file_content(tmpdir.path().join("out.log"));
 
         assert!(result.is_err());
-        assert!(!process::is_alive(pid_str.trim()
-                                          .parse::<process::Pid>()
-                                          .expect("could no parse pid")));
+        assert!(!process::is_alive(
+            pid_str
+                .trim()
+                .parse::<process::Pid>()
+                .expect("could no parse pid")
+        ));
     }
 
     #[tokio::test]
@@ -469,10 +512,12 @@ mod tests {
         create_with_content(&path, "write-error 'I am not a real pipe server'");
         let var = pipe_service_path();
         var.set(&path);
-        let client = PipeHookClient::new("test".to_string(),
-                                         tmpdir.path().join("health-check"),
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            tmpdir.path().join("health-check"),
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
         let result = client.exec_hook("tg7", &pkg().await, None::<String>);
 
@@ -480,8 +525,10 @@ mod tests {
         thread::sleep(Duration::from_millis(10));
 
         assert!(result.is_err());
-        assert!(file_content(tmpdir.path().join("err.log")).contains("I am not a real pipe \
-                                                                      server"));
+        assert!(file_content(tmpdir.path().join("err.log")).contains(
+            "I am not a real pipe \
+                                                                      server"
+        ));
     }
 
     #[tokio::test]
@@ -491,10 +538,12 @@ mod tests {
         create_with_content(&path, "write-host 'I am not a real pipe server'");
         let var = pipe_service_path();
         var.set(&path);
-        let client = PipeHookClient::new("test".to_string(),
-                                         tmpdir.path().join("health-check"),
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            tmpdir.path().join("health-check"),
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
         let result = client.exec_hook("tg8", &pkg().await, None::<String>);
 
@@ -502,8 +551,10 @@ mod tests {
         thread::sleep(Duration::from_millis(10));
 
         assert!(result.is_err());
-        assert_eq!("I am not a real pipe server\n",
-                   file_content(tmpdir.path().join("out.log")));
+        assert_eq!(
+            "I am not a real pipe server\n",
+            file_content(tmpdir.path().join("out.log"))
+        );
     }
 
     #[tokio::test]
@@ -514,21 +565,25 @@ mod tests {
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "exit $PID");
 
-        let client = PipeHookClient::new("test".to_string(),
-                                         path,
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            path,
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
-        let pid1 = client.exec_hook("tg9", &pkg().await, None::<String>)
-                         .unwrap();
+        let pid1 = client
+            .exec_hook("tg9", &pkg().await, None::<String>)
+            .unwrap();
 
         let handle = process::handle_from_pid(pid1).expect("unable to get handle to pipe server");
         unsafe {
             processthreadsapi::TerminateProcess(handle, 1);
         }
 
-        let pid2 = client.exec_hook("tg9", &pkg().await, None::<String>)
-                         .unwrap();
+        let pid2 = client
+            .exec_hook("tg9", &pkg().await, None::<String>)
+            .unwrap();
 
         assert_ne!(pid1, pid2);
     }
@@ -539,18 +594,24 @@ mod tests {
         var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
-        create_with_content(&path,
-                            "if($env:test_var) { exit 10 } else { $env:test_var=1;exit 0 }");
+        create_with_content(
+            &path,
+            "if($env:test_var) { exit 10 } else { $env:test_var=1;exit 0 }",
+        );
 
-        let client = PipeHookClient::new("test".to_string(),
-                                         path,
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            path,
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
-        let exit1 = client.exec_hook("tg10", &pkg().await, None::<String>)
-                          .unwrap();
-        let exit2 = client.exec_hook("tg10", &pkg().await, None::<String>)
-                          .unwrap();
+        let exit1 = client
+            .exec_hook("tg10", &pkg().await, None::<String>)
+            .unwrap();
+        let exit2 = client
+            .exec_hook("tg10", &pkg().await, None::<String>)
+            .unwrap();
 
         assert_eq!(0, exit1);
         assert_eq!(0, exit2);
@@ -565,13 +626,16 @@ mod tests {
         create_with_content(&path, "exit $PID");
 
         let pid = {
-            let client = PipeHookClient::new("test".to_string(),
-                                             tmpdir.path().join("health-check"),
-                                             tmpdir.path().join("out.log"),
-                                             tmpdir.path().join("err.log"));
+            let client = PipeHookClient::new(
+                "test".to_string(),
+                tmpdir.path().join("health-check"),
+                tmpdir.path().join("out.log"),
+                tmpdir.path().join("err.log"),
+            );
 
-            client.exec_hook("tg11", &pkg().await, None::<String>)
-                  .unwrap()
+            client
+                .exec_hook("tg11", &pkg().await, None::<String>)
+                .unwrap()
         };
         let handle = process::handle_from_pid(pid).expect("unable to get handle to pipe server");
         unsafe {
@@ -589,13 +653,16 @@ mod tests {
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "throw 'an exception'");
 
-        let client = PipeHookClient::new("test".to_string(),
-                                         path,
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            path,
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
-        let exit = client.exec_hook("tg12", &pkg().await, None::<String>)
-                         .unwrap();
+        let exit = client
+            .exec_hook("tg12", &pkg().await, None::<String>)
+            .unwrap();
 
         assert_eq!(3, exit);
     }
@@ -608,21 +675,27 @@ mod tests {
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "write-host 'you should only see me once in the log'");
 
-        let client = PipeHookClient::new("test".to_string(),
-                                         path,
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            path,
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
-        client.exec_hook("tg13", &pkg().await, None::<String>)
-              .unwrap();
-        client.exec_hook("tg13", &pkg().await, None::<String>)
-              .unwrap();
+        client
+            .exec_hook("tg13", &pkg().await, None::<String>)
+            .unwrap();
+        client
+            .exec_hook("tg13", &pkg().await, None::<String>)
+            .unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
 
-        assert_eq!("you should only see me once in the log\n",
-                   file_content(tmpdir.path().join("out.log")));
+        assert_eq!(
+            "you should only see me once in the log\n",
+            file_content(tmpdir.path().join("out.log"))
+        );
     }
 
     #[tokio::test]
@@ -633,22 +706,28 @@ mod tests {
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "write-error 'I am the only error'");
 
-        let client = PipeHookClient::new("test".to_string(),
-                                         path,
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            path,
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
-        client.exec_hook("tg14", &pkg().await, None::<String>)
-              .unwrap();
-        client.exec_hook("tg14", &pkg().await, None::<String>)
-              .unwrap();
+        client
+            .exec_hook("tg14", &pkg().await, None::<String>)
+            .unwrap();
+        client
+            .exec_hook("tg14", &pkg().await, None::<String>)
+            .unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
 
         let content = file_content(tmpdir.path().join("err.log"));
-        assert_eq!(content.find("I am the only error"),
-                   content.rfind("I am the only error"));
+        assert_eq!(
+            content.find("I am the only error"),
+            content.rfind("I am the only error")
+        );
     }
 
     #[tokio::test]
@@ -659,13 +738,16 @@ mod tests {
         let path = tmpdir.path().join("health-check");
         create_with_content(&path, "exit $ParentPID");
 
-        let client = PipeHookClient::new("test".to_string(),
-                                         path,
-                                         tmpdir.path().join("out.log"),
-                                         tmpdir.path().join("err.log"));
+        let client = PipeHookClient::new(
+            "test".to_string(),
+            path,
+            tmpdir.path().join("out.log"),
+            tmpdir.path().join("err.log"),
+        );
 
-        let exit = client.exec_hook("tg15", &pkg().await, None::<String>)
-                         .unwrap();
+        let exit = client
+            .exec_hook("tg15", &pkg().await, None::<String>)
+            .unwrap();
 
         assert_eq!(std::process::id(), exit);
     }

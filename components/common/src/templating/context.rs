@@ -33,18 +33,13 @@
 //! their focused and single-use purpose; they shouldn't be used for
 //! anything else, and so, they _can't_ be used for anything else.
 
-use super::{config::Cfg,
-            package::{Env,
-                      Pkg}};
-use crate::hcore::package::{FullyQualifiedPackageIdent,
-                            Identifiable,
-                            PackageIdent};
-use serde::{Serialize,
-            Serializer,
-            ser::SerializeMap};
-use std::{borrow::Cow,
-          collections::BTreeMap,
-          result};
+use super::{
+    config::Cfg,
+    package::{Env, Pkg},
+};
+use crate::hcore::package::{FullyQualifiedPackageIdent, Identifiable, PackageIdent};
+use serde::{Serialize, Serializer, ser::SerializeMap};
+use std::{borrow::Cow, collections::BTreeMap, result};
 
 /// The context of a rendering call, exposing information on the
 /// currently-running Supervisor and service, its service group, and
@@ -56,7 +51,7 @@ use std::{borrow::Cow,
 /// change this with care.
 ///
 /// User-facing documentation is available at
-/// https://www.habitat.sh/docs/reference/#template-data; update that
+/// https://docs.biome.sh/reference/#template-data; update that
 /// as required.
 #[derive(Clone, Debug, Serialize)]
 pub struct RenderContext<'a> {
@@ -75,8 +70,10 @@ impl<'a> RenderContext<'a> {
     /// nature of `Cfg`s behavior, we should be safe relying on that
     /// implementation for the foreseeable future.
     pub fn new(pkg: &'a Pkg, cfg: &'a Cfg) -> RenderContext<'a> {
-        RenderContext { pkg: Package::from_pkg(pkg),
-                        cfg: Cow::Borrowed(cfg), }
+        RenderContext {
+            pkg: Package::from_pkg(pkg),
+            cfg: Cow::Borrowed(cfg),
+        }
     }
 }
 
@@ -89,52 +86,55 @@ impl<'a> RenderContext<'a> {
 /// Currently exposed to users under the `pkg` key.
 #[derive(Clone, Debug)]
 struct Package<'a> {
-    ident:                   Cow<'a, FullyQualifiedPackageIdent>,
-    deps:                    Cow<'a, [PackageIdent]>,
-    env:                     Cow<'a, Env>,
+    ident: Cow<'a, FullyQualifiedPackageIdent>,
+    deps: Cow<'a, [PackageIdent]>,
+    env: Cow<'a, Env>,
     // TODO (CM): Ideally, this would be Vec<u16>, since they're ports.
-    exposes:                 Cow<'a, [String]>,
-    exports:                 Cow<'a, BTreeMap<String, String>>,
+    exposes: Cow<'a, [String]>,
+    exports: Cow<'a, BTreeMap<String, String>>,
     // TODO (CM): Maybe Path instead of Cow<'a PathBuf>?
-    path:                    Cow<'a, std::path::Path>,
-    svc_path:                Cow<'a, std::path::Path>,
-    svc_config_path:         Cow<'a, std::path::Path>,
+    path: Cow<'a, std::path::Path>,
+    svc_path: Cow<'a, std::path::Path>,
+    svc_config_path: Cow<'a, std::path::Path>,
     svc_config_install_path: Cow<'a, std::path::Path>,
-    svc_data_path:           Cow<'a, std::path::Path>,
-    svc_files_path:          Cow<'a, std::path::Path>,
-    svc_static_path:         Cow<'a, std::path::Path>,
-    svc_var_path:            Cow<'a, std::path::Path>,
-    svc_pid_file:            Cow<'a, std::path::Path>,
-    svc_run:                 Cow<'a, std::path::Path>,
-    svc_user:                Cow<'a, str>,
-    svc_group:               Cow<'a, str>,
+    svc_data_path: Cow<'a, std::path::Path>,
+    svc_files_path: Cow<'a, std::path::Path>,
+    svc_static_path: Cow<'a, std::path::Path>,
+    svc_var_path: Cow<'a, std::path::Path>,
+    svc_pid_file: Cow<'a, std::path::Path>,
+    svc_run: Cow<'a, std::path::Path>,
+    svc_user: Cow<'a, str>,
+    svc_group: Cow<'a, str>,
 }
 
 impl<'a> Package<'a> {
     fn from_pkg(pkg: &'a Pkg) -> Self {
-        Package { ident:                   Cow::Borrowed(&pkg.ident),
-                  deps:                    Cow::Borrowed(&pkg.deps),
-                  env:                     Cow::Borrowed(&pkg.env),
-                  exposes:                 Cow::Borrowed(&pkg.exposes),
-                  exports:                 Cow::Borrowed(&pkg.exports),
-                  path:                    Cow::Borrowed(&pkg.path),
-                  svc_path:                Cow::Borrowed(&pkg.svc_path),
-                  svc_config_path:         Cow::Borrowed(&pkg.svc_config_path),
-                  svc_config_install_path: Cow::Borrowed(&pkg.svc_config_install_path),
-                  svc_data_path:           Cow::Borrowed(&pkg.svc_data_path),
-                  svc_files_path:          Cow::Borrowed(&pkg.svc_files_path),
-                  svc_static_path:         Cow::Borrowed(&pkg.svc_static_path),
-                  svc_var_path:            Cow::Borrowed(&pkg.svc_var_path),
-                  svc_pid_file:            Cow::Borrowed(&pkg.svc_pid_file),
-                  svc_run:                 Cow::Borrowed(&pkg.svc_run),
-                  svc_user:                Cow::Borrowed(&pkg.svc_user),
-                  svc_group:               Cow::Borrowed(&pkg.svc_group), }
+        Package {
+            ident: Cow::Borrowed(&pkg.ident),
+            deps: Cow::Borrowed(&pkg.deps),
+            env: Cow::Borrowed(&pkg.env),
+            exposes: Cow::Borrowed(&pkg.exposes),
+            exports: Cow::Borrowed(&pkg.exports),
+            path: Cow::Borrowed(&pkg.path),
+            svc_path: Cow::Borrowed(&pkg.svc_path),
+            svc_config_path: Cow::Borrowed(&pkg.svc_config_path),
+            svc_config_install_path: Cow::Borrowed(&pkg.svc_config_install_path),
+            svc_data_path: Cow::Borrowed(&pkg.svc_data_path),
+            svc_files_path: Cow::Borrowed(&pkg.svc_files_path),
+            svc_static_path: Cow::Borrowed(&pkg.svc_static_path),
+            svc_var_path: Cow::Borrowed(&pkg.svc_var_path),
+            svc_pid_file: Cow::Borrowed(&pkg.svc_pid_file),
+            svc_run: Cow::Borrowed(&pkg.svc_run),
+            svc_user: Cow::Borrowed(&pkg.svc_user),
+            svc_group: Cow::Borrowed(&pkg.svc_group),
+        }
     }
 }
 
 impl Serialize for Package<'_> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         // Explicitly focusing on JSON serialization, which does not
         // need a length hint (thus the `None`)
@@ -185,18 +185,20 @@ impl Serialize for Package<'_> {
 mod tests {
     use super::*;
 
-    use std::{fs,
-              io::{Read,
-                   Write},
-              path::PathBuf};
+    use std::{
+        fs,
+        io::{Read, Write},
+        path::PathBuf,
+    };
 
     use crate::hcore::package::PackageIdent;
     use tempfile::TempDir;
 
-    use crate::templating::{TemplateRenderer,
-                            config::{Cfg,
-                                     PackageConfigPaths},
-                            test_helpers::*};
+    use crate::templating::{
+        TemplateRenderer,
+        config::{Cfg, PackageConfigPaths},
+        test_helpers::*,
+    };
 
     ////////////////////////////////////////////////////////////////////////
 
@@ -210,7 +212,9 @@ mod tests {
 
     impl TestPkg {
         fn new(tmp: &TempDir) -> Self {
-            let pkg = Self { base_path: tmp.path().to_owned(), };
+            let pkg = Self {
+                base_path: tmp.path().to_owned(),
+            };
 
             fs::create_dir_all(pkg.user_config_dir()).expect("create user config dir");
             fs::create_dir_all(pkg.default_config_dir()).expect("create default config dir");
@@ -219,11 +223,17 @@ mod tests {
     }
 
     impl PackageConfigPaths for TestPkg {
-        fn name(&self) -> String { String::from("testing") }
+        fn name(&self) -> String {
+            String::from("testing")
+        }
 
-        fn default_config_dir(&self) -> PathBuf { self.base_path.join("root") }
+        fn default_config_dir(&self) -> PathBuf {
+            self.base_path.join("root")
+        }
 
-        fn user_config_dir(&self) -> PathBuf { self.base_path.join("user") }
+        fn user_config_dir(&self) -> PathBuf {
+            self.base_path.join("user")
+        }
     }
 
     fn new_test_pkg() -> (TempDir, TestPkg) {
@@ -232,8 +242,9 @@ mod tests {
 
         let default_toml = pkg.default_config_dir().join("default.toml");
         let mut buffer = fs::File::create(default_toml).expect("couldn't write file");
-        buffer.write_all(
-                         br#"
+        buffer
+            .write_all(
+                br#"
 foo = "bar"
 baz = "boo"
 
@@ -241,8 +252,8 @@ baz = "boo"
 one = 1
 two = 2
 "#,
-        )
-              .expect("Couldn't write default.toml");
+            )
+            .expect("Couldn't write default.toml");
         (tmp, pkg)
     }
 
@@ -255,9 +266,11 @@ two = 2
     fn default_render_context<'a>() -> RenderContext<'a> {
         let ident = FullyQualifiedPackageIdent::new("core", "test_pkg", "1.0.0", "20180321150416");
 
-        let deps = vec![PackageIdent::new("test", "pkg1", Some("1.0.0"), Some("20180321150416")),
-                        PackageIdent::new("test", "pkg2", Some("2.0.0"), Some("20180321150416")),
-                        PackageIdent::new("test", "pkg3", Some("3.0.0"), Some("20180321150416")),];
+        let deps = vec![
+            PackageIdent::new("test", "pkg1", Some("1.0.0"), Some("20180321150416")),
+            PackageIdent::new("test", "pkg2", Some("2.0.0"), Some("20180321150416")),
+            PackageIdent::new("test", "pkg3", Some("3.0.0"), Some("20180321150416")),
+        ];
 
         let mut env_hash = BTreeMap::new();
         env_hash.insert("PATH".into(), "/foo:/bar:/baz".into());
@@ -267,33 +280,35 @@ two = 2
         export_hash.insert("blah".into(), "stuff.thing".into());
         export_hash.insert("port".into(), "test_port".into());
 
-        let pkg = Package { ident:                   Cow::Owned(ident),
-                            deps:                    Cow::Owned(deps),
-                            env:                     Cow::Owned(env_hash.into()),
-                            exposes:                 Cow::Owned(vec!["1234".into(),
-                                                                     "8000".into(),
-                                                                     "2112".into()]),
-                            exports:                 Cow::Owned(export_hash),
-                            path:                    Cow::Owned("my_path".into()),
-                            svc_path:                Cow::Owned("svc_path".into()),
-                            svc_config_path:         Cow::Owned("config_path".into()),
-                            svc_config_install_path: Cow::Owned("config_install_path".into()),
-                            svc_data_path:           Cow::Owned("data_path".into()),
-                            svc_files_path:          Cow::Owned("files_path".into()),
-                            svc_static_path:         Cow::Owned("static_path".into()),
-                            svc_var_path:            Cow::Owned("var_path".into()),
-                            svc_pid_file:            Cow::Owned("pid_file".into()),
-                            svc_run:                 Cow::Owned("svc_run".into()),
-                            svc_user:                Cow::Owned("hab".into()),
-                            svc_group:               Cow::Owned("hab".into()), };
+        let pkg = Package {
+            ident: Cow::Owned(ident),
+            deps: Cow::Owned(deps),
+            env: Cow::Owned(env_hash.into()),
+            exposes: Cow::Owned(vec!["1234".into(), "8000".into(), "2112".into()]),
+            exports: Cow::Owned(export_hash),
+            path: Cow::Owned("my_path".into()),
+            svc_path: Cow::Owned("svc_path".into()),
+            svc_config_path: Cow::Owned("config_path".into()),
+            svc_config_install_path: Cow::Owned("config_install_path".into()),
+            svc_data_path: Cow::Owned("data_path".into()),
+            svc_files_path: Cow::Owned("files_path".into()),
+            svc_static_path: Cow::Owned("static_path".into()),
+            svc_var_path: Cow::Owned("var_path".into()),
+            svc_pid_file: Cow::Owned("pid_file".into()),
+            svc_run: Cow::Owned("svc_run".into()),
+            svc_user: Cow::Owned("bio".into()),
+            svc_group: Cow::Owned("bio".into()),
+        };
 
         // Not using _tmp_dir, but need it to prevent it from being
         // dropped before we make the Cfg
         let (_tmp_dir, test_pkg) = new_test_pkg();
         let cfg = Cfg::new(&test_pkg, None).expect("create config");
 
-        RenderContext { pkg,
-                        cfg: Cow::Owned(cfg) }
+        RenderContext {
+            pkg,
+            cfg: Cow::Owned(cfg),
+        }
     }
 
     /// Render the given template string using the given context,
@@ -302,10 +317,12 @@ two = 2
     /// expect.
     fn render(template_content: &str, ctx: &RenderContext) -> String {
         let mut renderer = TemplateRenderer::new();
-        renderer.register_template_string("testing", template_content)
-                .expect("Could not register template content");
-        renderer.render("testing", ctx)
-                .expect("Could not render template")
+        renderer
+            .register_template_string("testing", template_content)
+            .expect("Could not register template content");
+        renderer
+            .render("testing", ctx)
+            .expect("Could not render template")
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -315,24 +332,29 @@ two = 2
     /// serialization logic from the internal data structures.
     #[test]
     fn sample_context_is_valid() {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
-                                                            .join("fixtures")
-                                                            .join("sample_render_context.json");
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("sample_render_context.json");
 
         let mut f = fs::File::open(path).expect("could not open sample_render_context.json");
         let mut json = String::new();
         f.read_to_string(&mut json)
-         .expect("could not read sample_render_context.json");
+            .expect("could not read sample_render_context.json");
 
         assert_valid(&json, "render_context_schema.json");
     }
 
     #[test]
     fn trivial_failure() {
-        let state = validate_string(r#"{"svc":{},"pkg":{},"cfg":{},"svc":{},"bind":{}}"#,
-                                    "render_context_schema.json");
-        assert!(!state.is_valid(),
-                "Expected schema validation to fail, but it succeeded!");
+        let state = validate_string(
+            r#"{"svc":{},"pkg":{},"cfg":{},"svc":{},"bind":{}}"#,
+            "render_context_schema.json",
+        );
+        assert!(
+            !state.is_valid(),
+            "Expected schema validation to fail, but it succeeded!"
+        );
     }
 
     #[test]

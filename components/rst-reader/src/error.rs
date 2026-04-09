@@ -1,10 +1,8 @@
-use std::{error,
-          fmt,
-          result};
+use std::{error, fmt, result};
 
 #[derive(Debug)]
 pub(crate) enum Error {
-    Butterfly(habitat_butterfly::error::Error),
+    Butterfly(biome_butterfly::error::Error),
 }
 
 pub(crate) type Result<T> = result::Result<T, Error>;
@@ -20,6 +18,8 @@ impl fmt::Display for Error {
 
 impl error::Error for Error {}
 
-impl From<habitat_butterfly::error::Error> for Error {
-    fn from(err: habitat_butterfly::error::Error) -> Error { Error::Butterfly(err) }
+impl From<biome_butterfly::error::Error> for Error {
+    fn from(err: biome_butterfly::error::Error) -> Error {
+        Error::Butterfly(err)
+    }
 }

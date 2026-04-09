@@ -1,7 +1,7 @@
-hab origin key generate $env:HAB_ORIGIN
+bio origin key generate $env:BIO_ORIGIN
 
 Describe "package defining pkg_version function" {
-    hab pkg build test/fixtures/pkg_version
+    bio pkg build test/fixtures/pkg_version
     It "builds without error" {
         $LASTEXITCODE | Should -Be 0
     }

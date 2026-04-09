@@ -11,7 +11,7 @@ fi
 
 echo "Promoting from: $1"
 echo "Promoting to  : $2"
-echo "Environment   : $HAB_BLDR_URL"
+echo "Environment   : $BIO_BLDR_URL"
 echo "Are you sure?"
 
 select yn in "Yes" "No"; do
@@ -23,5 +23,5 @@ done
 
 list=$(cat "$1")
 for ident in $list; do
-  hab pkg promote "$ident" "$2"
+  bio pkg promote "$ident" "$2"
 done

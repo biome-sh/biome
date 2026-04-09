@@ -1,49 +1,45 @@
-use super::{JsonTruthy,
-            block_helpers::{create_block,
-                            set_block_param,
-                            update_block_context}};
+use super::{
+    JsonTruthy,
+    block_helpers::{create_block, set_block_param, update_block_context},
+};
 
-use handlebars::{Context,
-                 Handlebars,
-                 Helper,
-                 HelperDef,
-                 HelperResult,
-                 Output,
-                 RenderContext,
-                 RenderErrorReason,
-                 Renderable,
-                 to_json};
+use handlebars::{
+    Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason,
+    Renderable, to_json,
+};
 use serde_json::Value as Json;
 
 #[derive(Clone, Copy)]
 pub struct EachAliveHelper;
 
 impl HelperDef for EachAliveHelper {
-    fn call<'reg: 'rc, 'rc>(&self,
-                            h: &Helper<'rc>,
-                            r: &'reg Handlebars<'reg>,
-                            ctx: &'rc Context,
-                            rc: &mut RenderContext<'reg, 'rc>,
-                            out: &mut dyn Output)
-                            -> HelperResult {
-        let value = h.param(0)
-                     .ok_or_else(|| RenderErrorReason::ParamNotFoundForIndex("eachAlive", 0))?;
+    fn call<'reg: 'rc, 'rc>(
+        &self,
+        h: &Helper<'rc>,
+        r: &'reg Handlebars<'reg>,
+        ctx: &'rc Context,
+        rc: &mut RenderContext<'reg, 'rc>,
+        out: &mut dyn Output,
+    ) -> HelperResult {
+        let value = h
+            .param(0)
+            .ok_or_else(|| RenderErrorReason::ParamNotFoundForIndex("eachAlive", 0))?;
 
         if let Some(template) = h.template() {
             match (value.value().is_truthy(), value.value()) {
                 (true, Json::Array(list)) => {
                     let first_alive_idx = list.iter().position(|m| {
-                                                         m.as_object().is_some() && {
+                        m.as_object().is_some() && {
                             let m = m.as_object().unwrap();
                             m.contains_key("alive") && m["alive"].as_bool().unwrap()
                         }
-                                                     });
+                    });
                     let last_alive_idx = list.iter().rposition(|m| {
-                                                        m.as_object().is_some() && {
+                        m.as_object().is_some() && {
                             let m = m.as_object().unwrap();
                             m.contains_key("alive") && m["alive"].as_bool().unwrap()
                         }
-                                                    });
+                    });
                     let array_path = value.context_path();
 
                     let block_context = create_block(value);
@@ -52,8 +48,8 @@ impl HelperDef for EachAliveHelper {
                     let mut alive_idx = 0;
                     for (i, member) in list.iter().enumerate() {
                         if let Some(m) = member.as_object()
-                           && m.contains_key("alive")
-                           && m["alive"].as_bool().unwrap()
+                            && m.contains_key("alive")
+                            && m["alive"].as_bool().unwrap()
                         {
                             alive_idx += 1;
                             if let Some(ref mut block) = rc.block_mut() {
@@ -65,11 +61,13 @@ impl HelperDef for EachAliveHelper {
                                 block.set_local_var("last", to_json(is_last));
                                 block.set_local_var("index", to_json(index.clone()));
 
-                                update_block_context(block,
-                                                     array_path,
-                                                     i.to_string(),
-                                                     is_first,
-                                                     member);
+                                update_block_context(
+                                    block,
+                                    array_path,
+                                    i.to_string(),
+                                    is_first,
+                                    member,
+                                );
                                 set_block_param(block, h, array_path, &index, member)?;
                             }
 

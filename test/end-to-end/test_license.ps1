@@ -1,38 +1,38 @@
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$HOME/.hab/accepted-licenses"
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "/hab/accepted-licenses"
-$env:HAB_LICENSE = $null
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$HOME/.bio/accepted-licenses"
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "/bio/accepted-licenses"
+$env:BIO_LICENSE = $null
 
 Describe "license" {
     It "version check without license works" {
-        hab --version
+        bio --version
         $LastExitCode | Should -Be 0
 
-        hab -V
+        bio -V
         $LastExitCode | Should -Be 0
 
-        hab sup --version
+        bio sup --version
         $LastExitCode | Should -Be 0
 
-        hab sup -V
+        bio sup -V
         $LastExitCode | Should -Be 0
     }
 
     It "help without license works" {
-        hab --help
+        bio --help
         $LastExitCode | Should -Be 0
 
-        hab -h
+        bio -h
         $LastExitCode | Should -Be 0
 
-        hab svc load --help
+        bio svc load --help
         $LastExitCode | Should -Be 0
 
-        hab sup -h
+        bio sup -h
         $LastExitCode | Should -Be 0
     }
 
     It "non-version and non-help commands timeout on license check" {
-        $process = Start-Process "hab" -ArgumentList "svc status" -PassThru
+        $process = Start-Process "bio" -ArgumentList "svc status" -PassThru
         {
             Wait-ProcessExit $process -Timeout 1 -ErrorAction Stop
         } | Should -Throw "Timed out"
@@ -41,44 +41,44 @@ Describe "license" {
     }
 
     It "non-version and non-help commands do no work when denying license" {
-        $Env:HAB_LICENSE = "deny"
+        $Env:BIO_LICENSE = "deny"
 
-        hab svc load
+        bio svc load
         $LastExitCode | Should -Be 1
 
-        hab sup run
+        bio sup run
         $LastExitCode | Should -Be 1
 
-        hab pkg list --all
+        bio pkg list --all
         $LastExitCode | Should -Be 1
     }
 
-    It "HAB_LICENSE=accept-no-persist works" {
-        $Env:HAB_LICENSE = "accept-no-persist"
+    It "BIO_LICENSE=accept-no-persist works" {
+        $Env:BIO_LICENSE = "accept-no-persist"
 
-        hab pkg list --all
+        bio pkg list --all
         $LastExitCode | Should -Be 0
     }
 
     It "all commands work with license" {
-        $Env:HAB_LICENSE = $null
-        hab license accept
+        $Env:BIO_LICENSE = $null
+        bio license accept
 
-        hab --version
+        bio --version
         $LastExitCode | Should -Be 0
 
-        hab svc load --help
+        bio svc load --help
         $LastExitCode | Should -Be 0
 
-        hab pkg list --all
+        bio pkg list --all
         $LastExitCode | Should -Be 0
     }
 
-    It "HAB_LICENSE=deny causes commands to fail even if license was previously accpeted" {
-        $Env:HAB_LICENSE = "deny"
-        hab license accept
+    It "BIO_LICENSE=deny causes commands to fail even if license was previously accpeted" {
+        $Env:BIO_LICENSE = "deny"
+        bio license accept
 
-        hab pkg list --all
+        bio pkg list --all
         $LastExitCode | Should -Be 1
     }
 }

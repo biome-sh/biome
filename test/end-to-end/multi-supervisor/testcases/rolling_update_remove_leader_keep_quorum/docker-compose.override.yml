@@ -2,16 +2,16 @@ version: '3.8'
 services:
   tester:
     image: ${TESTCASE}_image
-    domainname: habitat.dev
+    domainname: biome.dev
     environment:
-      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
-      HAB_LICENSE: accept-no-persist
-      HAB_NONINTERACTIVE: '1'
+      BIO_AUTH_TOKEN: ${BIO_AUTH_TOKEN}
+      BIO_LICENSE: accept-no-persist
+      BIO_NONINTERACTIVE: '1'
       TESTCASE: ${TESTCASE}
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     volumes:
       - source: ./CTL_SECRET
-        target: /hab/sup/default/CTL_SECRET
+        target: /bio/sup/default/CTL_SECRET
         type: bind
       - source: /var/run/docker.sock
         target: /var/run/docker.sock
@@ -29,37 +29,37 @@ services:
 
   alpha:
     environment:
-      HAB_UPDATE_STRATEGY_PERIOD_MS: 3000
-      HAB_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK: 1
+      BIO_UPDATE_STRATEGY_PERIOD_MS: 3000
+      BIO_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK: 1
 
   beta:
     environment:
-      HAB_UPDATE_STRATEGY_PERIOD_MS: 3000
-      HAB_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK: 1
+      BIO_UPDATE_STRATEGY_PERIOD_MS: 3000
+      BIO_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK: 1
 
   gamma:
     image: ${SUPERVISOR_IMAGE}
-    domainname: habitat.dev
+    domainname: biome.dev
     environment:
-      HAB_AUTH_TOKEN: ${HAB_AUTH_TOKEN}
-      HAB_LICENSE: accept-no-persist
-      HAB_NONINTERACTIVE: '1'
+      BIO_AUTH_TOKEN: ${BIO_AUTH_TOKEN}
+      BIO_LICENSE: accept-no-persist
+      BIO_NONINTERACTIVE: '1'
       TESTCASE: ${TESTCASE}
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
-      HAB_UPDATE_STRATEGY_PERIOD_MS: 3000
-      HAB_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK: 1
+      BIO_UPDATE_STRATEGY_PERIOD_MS: 3000
+      BIO_UPDATE_STRATEGY_PERIOD_BYPASS_CHECK: 1
     volumes:
       - source: ./CTL_SECRET
-        target: /hab/sup/default/CTL_SECRET
+        target: /bio/sup/default/CTL_SECRET
         type: bind
     command:
       - run
       - --listen-ctl=0.0.0.0:9632
-      - --peer=bastion.habitat.dev
+      - --peer=bastion.biome.dev
     hostname: gamma
     networks:
       default:
         aliases:
-        - gamma.habitat.dev
+        - gamma.biome.dev
     depends_on:
       - bastion

@@ -1,27 +1,20 @@
-use crate::{build::BuildSpec,
-            cli::cli,
-            container::{BuildContext,
-                        ContainerImage},
-            engine::Engine,
-            error::Error,
-            naming::Naming};
+use crate::{
+    build::BuildSpec,
+    cli::cli,
+    container::{BuildContext, ContainerImage},
+    engine::Engine,
+    error::Error,
+    naming::Naming,
+};
 
 use anyhow::Result;
 use aws_config::BehaviorVersion;
-use aws_credential_types::{Credentials as AwsCredentials,
-                           provider::SharedCredentialsProvider};
+use aws_credential_types::{Credentials as AwsCredentials, provider::SharedCredentialsProvider};
 use aws_sdk_ecr as ecr;
-use habitat_common::ui::{Status,
-                         UI,
-                         UIWriter};
+use biome_common::ui::{Status, UI, UIWriter};
 use log::debug;
 use serde_json::json;
-use std::{convert::TryFrom,
-          env,
-          fmt,
-          path::Path,
-          result,
-          str::FromStr};
+use std::{convert::TryFrom, env, fmt, path::Path, result, str::FromStr};
 
 #[cfg(not(windows))]
 use crate::engine::fail_if_buildah_and_multilayer;
@@ -44,10 +37,10 @@ mod util;
 /// The version of this library and program when built.
 const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
-/// The Habitat Package Identifier string for a Busybox package.
+/// The Biome Package Identifier string for a Busybox package.
 const BUSYBOX_IDENT: &str = "core/busybox-static";
 
-/// The Habitat Package Identifier string for SSL certificate authorities (CA) certificates package.
+/// The Biome Package Identifier string for SSL certificate authorities (CA) certificates package.
 const CACERTS_IDENT: &str = "core/cacerts";
 
 const DEFAULT_AWS_REGION: &str = "us-west-2";
@@ -62,10 +55,10 @@ const DEFAULT_BASE_IMAGE: &str = "mcr.microsoft.com/windows/servercore";
 const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
 
 #[cfg(unix)]
-const DEFAULT_HAB_UID: u32 = 84;
+const DEFAULT_BIO_UID: u32 = 84;
 
 #[cfg(unix)]
-const DEFAULT_HAB_GID: u32 = 84;
+const DEFAULT_BIO_GID: u32 = 84;
 
 #[derive(Clone, Copy, Debug, Default, clap::ValueEnum)]
 pub(crate) enum RegistryType {
@@ -108,19 +101,21 @@ pub(crate) struct Credentials {
 }
 
 impl Credentials {
-    pub(crate) async fn new(registry_type: RegistryType,
-                            username: &str,
-                            password: &str)
-                            -> Result<Self> {
+    pub(crate) async fn new(
+        registry_type: RegistryType,
+        username: &str,
+        password: &str,
+    ) -> Result<Self> {
         match registry_type {
             RegistryType::Amazon => {
                 // The username and password should be valid IAM credentials
-                let provider =
-                    SharedCredentialsProvider::new(AwsCredentials::new(username.to_string(),
-                                                                       password.to_string(),
-                                                                       None,
-                                                                       None,
-                                                                       "static"));
+                let provider = SharedCredentialsProvider::new(AwsCredentials::new(
+                    username.to_string(),
+                    password.to_string(),
+                    None,
+                    None,
+                    "static",
+                ));
                 // TODO TED: Make the region configurable
                 let loader = aws_config::defaults(BehaviorVersion::latest())
                     .region(ecr::config::Region::new(DEFAULT_AWS_REGION.to_string()))
@@ -128,26 +123,27 @@ impl Credentials {
                 let cfg = loader.load().await;
                 let client = ecr::Client::new(&cfg);
 
-                let token = client.get_authorization_token()
-                                  .send()
-                                  .await
-                                  .map_err(|e| Error::TokenFetchFailed(Box::new(e)))
-                                  .and_then(|resp| {
-                                      resp.authorization_data
-                                          .ok_or(Error::NoECRTokensReturned)
-                                          .and_then(|auth_data| {
-                                              auth_data[0].clone()
-                                                          .authorization_token
-                                                          .ok_or(Error::NoECRTokensReturned)
-                                          })
-                                  })?;
+                let token = client
+                    .get_authorization_token()
+                    .send()
+                    .await
+                    .map_err(|e| Error::TokenFetchFailed(Box::new(e)))
+                    .and_then(|resp| {
+                        resp.authorization_data
+                            .ok_or(Error::NoECRTokensReturned)
+                            .and_then(|auth_data| {
+                                auth_data[0]
+                                    .clone()
+                                    .authorization_token
+                                    .ok_or(Error::NoECRTokensReturned)
+                            })
+                    })?;
 
                 Ok(Credentials { token })
             }
-            RegistryType::Docker | RegistryType::Azure => {
-                Ok(Credentials { token: habitat_core::base64::encode(format!("{}:{}",
-                                                                             username, password)), })
-            }
+            RegistryType::Docker | RegistryType::Azure => Ok(Credentials {
+                token: biome_core::base64::encode(format!("{}:{}", username, password)),
+            }),
         }
     }
 }
@@ -163,9 +159,10 @@ impl Credentials {
 /// * Pushing the image to remote registry fails.
 /// * Parsing of credentials fails.
 /// * The image (tags) cannot be removed.
-async fn export_for_cli_matches(ui: &mut UI,
-                                matches: &clap::ArgMatches)
-                                -> Result<Option<ContainerImage>> {
+async fn export_for_cli_matches(
+    ui: &mut UI,
+    matches: &clap::ArgMatches,
+) -> Result<Option<ContainerImage>> {
     os::ensure_proper_docker_platform()?;
 
     #[cfg(not(windows))]
@@ -176,31 +173,42 @@ async fn export_for_cli_matches(ui: &mut UI,
     let engine: Box<dyn Engine> = TryFrom::try_from(matches)?;
     let memory = matches.get_one::<String>("MEMORY_LIMIT");
 
-    ui.begin(format!("Building a container image with: {}",
-                     spec.idents_or_archives.join(", ")))?;
+    ui.begin(format!(
+        "Building a container image with: {}",
+        spec.idents_or_archives.join(", ")
+    ))?;
 
     let build_context = BuildContext::from_build_root(spec.create(ui).await?, ui)?;
     let container_image =
         build_context.export(ui, &naming, memory.map(String::as_str), engine.as_ref())?;
 
     build_context.destroy(ui)?;
-    ui.end(format!("Container image '{}' created with tags: {}",
-                   container_image.name(),
-                   container_image.tags().join(", ")))?;
+    ui.end(format!(
+        "Container image '{}' created with tags: {}",
+        container_image.name(),
+        container_image.tags().join(", ")
+    ))?;
 
     container_image.create_report(ui, env::current_dir()?.join("results"))?;
 
     if matches.get_flag("PUSH_IMAGE") {
-        let credentials = Credentials::new(naming.registry_type,
-                                           matches.get_one::<String>("REGISTRY_USERNAME")
-                                                  .expect("Username not specified"),
-                                           matches.get_one::<String>("REGISTRY_PASSWORD")
-                                                  .expect("Password not specified")).await?;
-        push_image(ui,
-                   engine.as_ref(),
-                   &container_image,
-                   &credentials,
-                   naming.registry_url.as_deref())?;
+        let credentials = Credentials::new(
+            naming.registry_type,
+            matches
+                .get_one::<String>("REGISTRY_USERNAME")
+                .expect("Username not specified"),
+            matches
+                .get_one::<String>("REGISTRY_PASSWORD")
+                .expect("Password not specified"),
+        )
+        .await?;
+        push_image(
+            ui,
+            engine.as_ref(),
+            &container_image,
+            &credentials,
+            naming.registry_url.as_deref(),
+        )?;
     }
     if matches.get_flag("RM_IMAGE") {
         remove_image(ui, engine.as_ref(), &container_image)?;
@@ -211,28 +219,35 @@ async fn export_for_cli_matches(ui: &mut UI,
 }
 
 fn remove_image(ui: &mut UI, engine: &dyn Engine, image: &ContainerImage) -> Result<()> {
-    ui.begin(format!("Cleaning up local Docker image '{}' with all tags",
-                     image.name()))?;
+    ui.begin(format!(
+        "Cleaning up local Docker image '{}' with all tags",
+        image.name()
+    ))?;
 
     for identifier in image.expanded_identifiers() {
         ui.status(Status::Deleting, format!("local image '{}'", identifier))?;
         engine.remove_image(identifier)?;
     }
 
-    ui.end(format!("Local Docker image '{}' with tags: {} cleaned up",
-                   image.name(),
-                   image.tags().join(", "),))?;
+    ui.end(format!(
+        "Local Docker image '{}' with tags: {} cleaned up",
+        image.name(),
+        image.tags().join(", "),
+    ))?;
     Ok(())
 }
 
-fn push_image(ui: &mut UI,
-              engine: &dyn Engine,
-              image: &ContainerImage,
-              credentials: &Credentials,
-              registry_url: Option<&str>)
-              -> Result<()> {
-    ui.begin(format!("Pushing Docker image '{}' with all tags to remote registry",
-                     image.name()))?;
+fn push_image(
+    ui: &mut UI,
+    engine: &dyn Engine,
+    image: &ContainerImage,
+    credentials: &Credentials,
+    registry_url: Option<&str>,
+) -> Result<()> {
+    ui.begin(format!(
+        "Pushing Docker image '{}' with all tags to remote registry",
+        image.name()
+    ))?;
 
     // TODO (CM): UGH
     // This is just until we can sort out a better place for the
@@ -242,22 +257,27 @@ fn push_image(ui: &mut UI,
     create_docker_config_file(credentials, registry_url, workdir)?;
 
     for image_tag in image.expanded_identifiers() {
-        ui.status(Status::Uploading,
-                  format!("image '{}' to remote registry", image_tag))?;
+        ui.status(
+            Status::Uploading,
+            format!("image '{}' to remote registry", image_tag),
+        )?;
         engine.push_image(image_tag, workdir)?;
         ui.status(Status::Uploaded, format!("image '{}'", image_tag))?;
     }
 
-    ui.end(format!("Docker image '{}' published with tags: {}",
-                   image.name(),
-                   image.tags().join(", "),))?;
+    ui.end(format!(
+        "Docker image '{}' published with tags: {}",
+        image.name(),
+        image.tags().join(", "),
+    ))?;
     Ok(())
 }
 
-fn create_docker_config_file(credentials: &Credentials,
-                             registry_url: Option<&str>,
-                             workdir: &Path)
-                             -> Result<()> {
+fn create_docker_config_file(
+    credentials: &Credentials,
+    registry_url: Option<&str>,
+    workdir: &Path,
+) -> Result<()> {
     std::fs::create_dir_all(workdir)?; // why wouldn't this already exist?
     let config = workdir.join("config.json");
 

@@ -1,9 +1,10 @@
 use log::warn;
-use std::{self,
-          env::VarError,
-          ffi::{OsStr,
-                OsString},
-          str::FromStr};
+use std::{
+    self,
+    env::VarError,
+    ffi::{OsStr, OsString},
+    str::FromStr,
+};
 
 /// Fetches the environment variable `key` from the current process, but only it is not empty.
 ///
@@ -13,13 +14,13 @@ use std::{self,
 /// # Examples
 ///
 /// ```
-/// use habitat_core;
+/// use biome_core;
 /// use std;
 ///
 /// let key = "_I_AM_A_TEAPOT_COMMA_RIGHT_PEOPLE_QUESTION_MARK_";
 /// unsafe {
 ///     std::env::set_var(key, "");
-///     match habitat_core::env::var(key) {
+///     match biome_core::env::var(key) {
 ///         Ok(val) => panic!("The environment variable {} is set but empty!", key),
 ///         Err(e) => {
 ///             println!("The environment variable {} is set, but empty. Not useful!",
@@ -49,14 +50,14 @@ pub fn var<K: AsRef<OsStr>>(key: K) -> std::result::Result<String, VarError> {
 /// # Examples
 ///
 /// ```
-/// use habitat_core;
+/// use biome_core;
 /// use std;
 ///
 /// let key = "_I_AM_A_TEAPOT_COMMA_RIGHT_PEOPLE_QUESTION_MARK_";
 /// unsafe {
 ///     std::env::set_var(key, "");
 /// }
-/// match habitat_core::env::var_os(key) {
+/// match biome_core::env::var_os(key) {
 ///     Some(val) => panic!("The environment variable {} is set but empty!", key),
 ///     None => {
 ///         println!("The environment variable {} is set, but empty. Not useful!",
@@ -80,7 +81,7 @@ pub fn var_os<K: AsRef<OsStr>>(key: K) -> std::option::Option<OsString> {
 /// pass it to a function `bar` which accepts `$wrapped_type`:
 ///
 /// ```
-/// # habitat_core::env_config_int!(Foo, i32, HAB_FOO, 42);
+/// # biome_core::env_config_int!(Foo, i32, BIO_FOO, 42);
 /// # fn bar(_: i32) {}
 /// bar(Foo::configured_value().into());
 /// ```
@@ -144,8 +145,8 @@ macro_rules! env_config {
 /// Example usage:
 /// ```
 /// use std::time::Duration;
-/// habitat_core::env_config_duration!(PersistLoopPeriod,
-///                                    HAB_PERSIST_LOOP_PERIOD_SECS => from_secs,
+/// biome_core::env_config_duration!(PersistLoopPeriod,
+///                                    BIO_PERSIST_LOOP_PERIOD_SECS => from_secs,
 ///                                    Duration::from_secs(30));
 /// ```
 #[macro_export]
@@ -169,12 +170,12 @@ macro_rules! env_config_duration {
 ///
 /// Example usage:
 /// ```
-/// habitat_core::env_config_int!(RecvTimeoutMillis, i32, HAB_PULL_RECV_TIMEOUT_MS, 5_000);
+/// biome_core::env_config_int!(RecvTimeoutMillis, i32, BIO_PULL_RECV_TIMEOUT_MS, 5_000);
 ///
-/// habitat_core::env_config_int!(#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+/// biome_core::env_config_int!(#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
 ///                               TokioThreadCount,
 ///                               usize,
-///                               HAB_TOKIO_THREAD_COUNT,
+///                               BIO_TOKIO_THREAD_COUNT,
 ///                               num_cpus::get().max(1));
 /// ```
 #[macro_export]
@@ -213,9 +214,9 @@ macro_rules! env_config_int {
 ///    const STABLE: &'static str = "stable";
 /// }
 ///
-/// habitat_core::env_config_string!(#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+/// biome_core::env_config_string!(#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 ///                                  pub ChannelIdent,
-///                                  HAB_BLDR_CHANNEL,
+///                                  BIO_BLDR_CHANNEL,
 ///                                  ChannelIdent::STABLE);
 /// ```
 #[macro_export]
@@ -263,18 +264,18 @@ macro_rules! default_as_str {
 /// Example usage:
 /// ```
 /// use std::net::Ipv4Addr;
-/// habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+/// biome_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 ///                                      pub ListenCtlAddr,
-///                                      HAB_LISTEN_CTL,
+///                                      BIO_LISTEN_CTL,
 ///                                      Ipv4Addr::LOCALHOST, Self::DEFAULT_PORT);
 ///
 /// impl ListenCtlAddr {
 ///    pub const DEFAULT_PORT: u16 = 9632;
 /// }
 ///
-/// habitat_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+/// biome_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 ///                                      pub HttpListenAddr,
-///                                      HAB_LISTEN_HTTP,
+///                                      BIO_LISTEN_HTTP,
 ///                                      0, 0, 0, 0, 9631);
 /// ```
 #[macro_export]
@@ -348,18 +349,16 @@ pub trait Config: Default + FromStr {
     fn configured_value() -> Self {
         match var(Self::ENVVAR) {
             Err(VarError::NotPresent) => Self::default(),
-            Ok(val) => {
-                match val.parse() {
-                    Ok(parsed) => {
-                        Self::log_parsable(&val);
-                        parsed
-                    }
-                    Err(_) => {
-                        Self::log_unparsable(&val);
-                        Self::default()
-                    }
+            Ok(val) => match val.parse() {
+                Ok(parsed) => {
+                    Self::log_parsable(&val);
+                    parsed
                 }
-            }
+                Err(_) => {
+                    Self::log_unparsable(&val);
+                    Self::default()
+                }
+            },
             Err(VarError::NotUnicode(nu)) => {
                 Self::log_unparsable(nu.to_string_lossy());
                 Self::default()
@@ -372,9 +371,11 @@ pub trait Config: Default + FromStr {
     ///
     /// By default, we log a message at the `warn` level.
     fn log_parsable(env_value: &str) {
-        warn!("Found '{}' in environment; using value '{}'",
-              Self::ENVVAR,
-              env_value);
+        warn!(
+            "Found '{}' in environment; using value '{}'",
+            Self::ENVVAR,
+            env_value
+        );
     }
 
     /// Overridable function for logging when an environment variable
@@ -382,10 +383,13 @@ pub trait Config: Default + FromStr {
     ///
     /// By default, we log a message at the `warn` level.
     fn log_unparsable<S>(env_value: S)
-        where S: AsRef<str>
+    where
+        S: AsRef<str>,
     {
-        warn!("Found '{}' in environment, but value '{}' was unparsable; using default instead",
-              Self::ENVVAR,
-              env_value.as_ref());
+        warn!(
+            "Found '{}' in environment, but value '{}' was unparsable; using default instead",
+            Self::ENVVAR,
+            env_value.as_ref()
+        );
     }
 }

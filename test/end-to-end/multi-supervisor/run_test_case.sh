@@ -35,11 +35,11 @@ fi
 # TODO (CM): Is it an error to NOT define a test-specific override
 # file? I think probably so...
 
-# Export HAB_AUTH_TOKEN for Docker Compose
-export HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}"
+# Export BIO_AUTH_TOKEN for Docker Compose
+export BIO_AUTH_TOKEN="${BIO_AUTH_TOKEN}"
 
 # These are all standard docker-compose environment variables
-export COMPOSE_PROJECT_NAME="habitat_integration_${testcase}"
+export COMPOSE_PROJECT_NAME="biome_integration_${testcase}"
 export COMPOSE_PATH_SEPARATOR=":"
 export COMPOSE_FILE
 COMPOSE_FILE=$(IFS=${COMPOSE_PATH_SEPARATOR}; echo "${compose_files[*]}")

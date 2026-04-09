@@ -9,19 +9,19 @@
 
 set -euo pipefail
 
-export HAB_LICENSE="accept-no-persist"
+export BIO_LICENSE="accept-no-persist"
 
-sudo -E hab pkg install core/busybox-static
-sudo -E hab pkg install chef/hab chef/hab-backline
+sudo -E bio pkg install core/busybox-static
+sudo -E bio pkg install biome/bio biome/bio-backline
 
-cp "$(hab pkg path core/busybox-static)"/bin/busybox libexec/busybox
-cp "$(hab pkg path chef/hab)"/bin/hab libexec/hab
+cp "$(bio pkg path core/busybox-static)"/bin/busybox libexec/busybox
+cp "$(bio pkg path biome/bio)"/bin/bio libexec/bio
 
-HAB_STUDIO_BACKLINE_PKG="$(< "$(hab pkg path chef/hab-backline)"/IDENT)"
+BIO_STUDIO_BACKLINE_PKG="$(< "$(bio pkg path biome/bio-backline)"/IDENT)"
 
-export HAB_STUDIO_BACKLINE_PKG
+export BIO_STUDIO_BACKLINE_PKG
 
-sudo --preserve-env bin/hab-studio-linux.sh new
+sudo --preserve-env bin/bio-studio-linux.sh new
 
-rm libexec/hab
+rm libexec/bio
 rm libexec/busybox

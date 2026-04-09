@@ -1,13 +1,8 @@
-use habitat_common::output::{self,
-                             OutputFormat,
-                             OutputVerbosity};
-use habitat_core::os::signals;
-use habitat_launcher::server;
-use log::{Level,
-          error,
-          log};
-use std::{env,
-          process};
+use biome_common::output::{self, OutputFormat, OutputVerbosity};
+use biome_core::os::signals;
+use biome_launcher::server;
+use log::{Level, error, log};
+use std::{env, process};
 
 fn main() {
     // Set up signal handlers before anything else happens to ensure
@@ -36,11 +31,11 @@ fn main() {
 /// ourselves.
 fn set_global_logging_options(args: &[String]) {
     // Yeah, this is pretty weird, but it comes out of how the
-    // hab-launch, hab, and hab-sup binaries interact.
+    // bio-launch, bio, and bio-sup binaries interact.
     //
-    // These flags are defined with CLAP on `hab`, so they can be
-    // passed through `hab-launch` (and intercepted here), before
-    // being passed on to `hab-sup`, where they are _also_ defined.
+    // These flags are defined with CLAP on `bio`, so they can be
+    // passed through `bio-launch` (and intercepted here), before
+    // being passed on to `bio-sup`, where they are _also_ defined.
     //
     // What a tangled web we weave!
 

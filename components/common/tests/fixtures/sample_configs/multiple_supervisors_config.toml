@@ -2,7 +2,7 @@
 
 [cfg]
 
-[hab]
+[bio]
 version = "0.0.0"
 
 [pkg]
@@ -10,16 +10,16 @@ exposes = []
 ident = "core/testplan/0.1.0/20170208180805"
 name = "testplan"
 origin = "core"
-path = "/hab/pkgs/core/testplan/0.1.0/20170208180805"
+path = "/bio/pkgs/core/testplan/0.1.0/20170208180805"
 release = "20170208180805"
-svc_config_path = "/hab/svc/testplan/config"
-svc_data_path = "/hab/svc/testplan/data"
-svc_files_path = "/hab/svc/testplan/files"
-svc_group = "hab"
-svc_path = "/hab/svc/testplan"
-svc_static_path = "/hab/svc/testplan/static"
-svc_user = "hab"
-svc_var_path = "/hab/svc/testplan/var"
+svc_config_path = "/bio/svc/testplan/config"
+svc_data_path = "/bio/svc/testplan/data"
+svc_files_path = "/bio/svc/testplan/files"
+svc_group = "bio"
+svc_path = "/bio/svc/testplan"
+svc_static_path = "/bio/svc/testplan/static"
+svc_user = "bio"
+svc_var_path = "/bio/svc/testplan/var"
 version = "0.1.0"
 
 [[pkg.deps]]

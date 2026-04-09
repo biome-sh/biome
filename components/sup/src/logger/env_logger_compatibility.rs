@@ -45,23 +45,24 @@
 //!
 //! See https://docs.rs/env_logger/0.6.1/env_logger/ for more details.
 use log::LevelFilter;
-use log4rs::{append::console::ConsoleAppender,
-             config::{Appender,
-                      Config,
-                      Logger,
-                      Root},
-             encode::pattern::PatternEncoder};
-use std::{collections::HashMap,
-          str::FromStr};
+use log4rs::{
+    append::console::ConsoleAppender,
+    config::{Appender, Config, Logger, Root},
+    encode::pattern::PatternEncoder,
+};
+use std::{collections::HashMap, str::FromStr};
 
 pub(super) fn from_env() -> Option<Config> {
     std::env::var("RUST_LOG").ok().map(|env_var| {
-                                      eprintln!("RUST_LOG environment variable found; using it \
-                                                 to configure log4rs");
-                                      env_var.parse::<EnvLogConfig>()
-                                             .expect("RUST_LOG parsing can't fail")
-                                             .into()
-                                  })
+        eprintln!(
+            "RUST_LOG environment variable found; using it \
+                                                 to configure log4rs"
+        );
+        env_var
+            .parse::<EnvLogConfig>()
+            .expect("RUST_LOG parsing can't fail")
+            .into()
+    })
 }
 
 /// Encapsulates the relevant parts of an `env_logger` configuration
@@ -70,7 +71,7 @@ pub(super) fn from_env() -> Option<Config> {
 struct EnvLogConfig {
     /// The base filtering level. Messages of lower severity than
     /// this will not be printed.
-    root_level:     LevelFilter,
+    root_level: LevelFilter,
     /// Optional filtering customizations on a per-module basis.
     module_filters: HashMap<String, LevelFilter>,
 }
@@ -79,8 +80,10 @@ impl Default for EnvLogConfig {
     /// This is the same unsetting `RUST_LOG` (or, alternatively,
     /// `RUST_LOG=error`).
     fn default() -> Self {
-        EnvLogConfig { root_level:     LevelFilter::Error,
-                       module_filters: HashMap::new(), }
+        EnvLogConfig {
+            root_level: LevelFilter::Error,
+            module_filters: HashMap::new(),
+        }
     }
 }
 
@@ -89,15 +92,18 @@ impl Into<Config> for EnvLogConfig {
     /// Actually create a `log4rs` configuration. This is
     /// infallible because we'll always create something valid.
     fn into(self) -> Config {
-        let stdout = ConsoleAppender::builder().encoder(Box::new(PatternEncoder::new(super::DEFAULT_PATTERN)))
-                                               .build();
-        let loggers = self.module_filters
-                          .into_iter()
-                          .map(|(module, filter)| Logger::builder().build(module, filter));
-        Config::builder().appender(Appender::builder().build("stdout", Box::new(stdout)))
-                         .loggers(loggers)
-                         .build(Root::builder().appender("stdout").build(self.root_level))
-                         .expect("Should always generate a valid log4rs configuration")
+        let stdout = ConsoleAppender::builder()
+            .encoder(Box::new(PatternEncoder::new(super::DEFAULT_PATTERN)))
+            .build();
+        let loggers = self
+            .module_filters
+            .into_iter()
+            .map(|(module, filter)| Logger::builder().build(module, filter));
+        Config::builder()
+            .appender(Appender::builder().build("stdout", Box::new(stdout)))
+            .loggers(loggers)
+            .build(Root::builder().appender("stdout").build(self.root_level))
+            .expect("Should always generate a valid log4rs configuration")
     }
 }
 
@@ -123,8 +129,10 @@ impl FromStr for EnvLogConfig {
             eprintln!("Ignoring regex filter; not supported in log4rs");
         }
         if parts.next().is_some() {
-            eprintln!("warning: invalid logging spec '{}', ignoring it (too many '/'s)",
-                      spec);
+            eprintln!(
+                "warning: invalid logging spec '{}', ignoring it (too many '/'s)",
+                spec
+            );
             return Ok(config);
         }
 
@@ -145,16 +153,13 @@ impl FromStr for EnvLogConfig {
                             }
                         }
                         (Some(part0), Some(""), None) => (LevelFilter::max(), Some(part0)),
-                        (Some(part0), Some(part1), None) => {
-                            match part1.parse() {
-                                Ok(num) => (num, Some(part0)),
-                                _ => {
-                                    eprintln!("warning: invalid logging spec '{}', ignoring it",
-                                              part1);
-                                    continue;
-                                }
+                        (Some(part0), Some(part1), None) => match part1.parse() {
+                            Ok(num) => (num, Some(part0)),
+                            _ => {
+                                eprintln!("warning: invalid logging spec '{}', ignoring it", part1);
+                                continue;
                             }
-                        }
+                        },
                         _ => {
                             eprintln!("warning: invalid logging spec '{}', ignoring it", s);
                             continue;
@@ -179,69 +184,115 @@ mod tests {
     /// Helper function for creating an `EnvLogConfig` struct with a
     /// minimum of boilerplate.
     fn config(root_level: LevelFilter, filters: Vec<(&str, LevelFilter)>) -> EnvLogConfig {
-        EnvLogConfig { root_level,
-                       module_filters: filters.into_iter()
-                                              .map(|(m, f)| (m.to_string(), f))
-                                              .collect() }
+        EnvLogConfig {
+            root_level,
+            module_filters: filters
+                .into_iter()
+                .map(|(m, f)| (m.to_string(), f))
+                .collect(),
+        }
     }
 
     #[test]
     fn bare_module_name_gets_converted_to_maximum_filter_level() {
-        assert_eq!("my::cool::module".parse::<EnvLogConfig>().unwrap(),
-                   config(LevelFilter::Error,
-                          vec![("my::cool::module", LevelFilter::Trace)]));
+        assert_eq!(
+            "my::cool::module".parse::<EnvLogConfig>().unwrap(),
+            config(
+                LevelFilter::Error,
+                vec![("my::cool::module", LevelFilter::Trace)]
+            )
+        );
 
-        assert_eq!("my::cool::module,another::nifty::module,snazzy".parse::<EnvLogConfig>()
-                                                                   .unwrap(),
-                   config(LevelFilter::Error,
-                          vec![("my::cool::module", LevelFilter::Trace),
-                               ("another::nifty::module", LevelFilter::Trace),
-                               ("snazzy", LevelFilter::Trace)]));
+        assert_eq!(
+            "my::cool::module,another::nifty::module,snazzy"
+                .parse::<EnvLogConfig>()
+                .unwrap(),
+            config(
+                LevelFilter::Error,
+                vec![
+                    ("my::cool::module", LevelFilter::Trace),
+                    ("another::nifty::module", LevelFilter::Trace),
+                    ("snazzy", LevelFilter::Trace)
+                ]
+            )
+        );
     }
 
     #[test]
     fn can_disable_logging() {
-        assert_eq!("off".parse::<EnvLogConfig>().unwrap(),
-                   config(LevelFilter::Off, vec![]));
+        assert_eq!(
+            "off".parse::<EnvLogConfig>().unwrap(),
+            config(LevelFilter::Off, vec![])
+        );
 
-        assert_eq!("debug,my::chatty::module=off".parse::<EnvLogConfig>()
-                                                 .unwrap(),
-                   config(LevelFilter::Debug,
-                          vec![("my::chatty::module", LevelFilter::Off)]));
+        assert_eq!(
+            "debug,my::chatty::module=off"
+                .parse::<EnvLogConfig>()
+                .unwrap(),
+            config(
+                LevelFilter::Debug,
+                vec![("my::chatty::module", LevelFilter::Off)]
+            )
+        );
     }
 
     #[test]
     fn parse_the_spec() {
-        assert_eq!("debug".parse::<EnvLogConfig>().unwrap(),
-                   config(LevelFilter::Debug, vec![]));
+        assert_eq!(
+            "debug".parse::<EnvLogConfig>().unwrap(),
+            config(LevelFilter::Debug, vec![])
+        );
 
-        assert_eq!("debug,foo::bar::baz=trace".parse::<EnvLogConfig>().unwrap(),
-                   config(LevelFilter::Debug,
-                          vec![("foo::bar::baz", LevelFilter::Trace)]));
+        assert_eq!(
+            "debug,foo::bar::baz=trace".parse::<EnvLogConfig>().unwrap(),
+            config(
+                LevelFilter::Debug,
+                vec![("foo::bar::baz", LevelFilter::Trace)]
+            )
+        );
 
-        assert_eq!("monkeys,foo::bar::baz=trace".parse::<EnvLogConfig>()
-                                                .unwrap(),
-                   config(LevelFilter::Error,
-                          vec![("monkeys", LevelFilter::Trace),
-                               ("foo::bar::baz", LevelFilter::Trace)]));
+        assert_eq!(
+            "monkeys,foo::bar::baz=trace"
+                .parse::<EnvLogConfig>()
+                .unwrap(),
+            config(
+                LevelFilter::Error,
+                vec![
+                    ("monkeys", LevelFilter::Trace),
+                    ("foo::bar::baz", LevelFilter::Trace)
+                ]
+            )
+        );
     }
 
     #[test]
     fn regexes_are_ignored() {
-        assert_eq!("debug/foo".parse::<EnvLogConfig>().unwrap(),
-                   config(LevelFilter::Debug, vec![]));
-        assert_eq!("debug,foo::bar::baz=trace/foo".parse::<EnvLogConfig>()
-                                                  .unwrap(),
-                   config(LevelFilter::Debug,
-                          vec![("foo::bar::baz", LevelFilter::Trace)]));
+        assert_eq!(
+            "debug/foo".parse::<EnvLogConfig>().unwrap(),
+            config(LevelFilter::Debug, vec![])
+        );
+        assert_eq!(
+            "debug,foo::bar::baz=trace/foo"
+                .parse::<EnvLogConfig>()
+                .unwrap(),
+            config(
+                LevelFilter::Debug,
+                vec![("foo::bar::baz", LevelFilter::Trace)]
+            )
+        );
     }
 
     #[test]
     fn bad_stuff_is_ignored() {
-        assert_eq!("debug/foo/foo".parse::<EnvLogConfig>().unwrap(),
-                   EnvLogConfig::default());
-        assert_eq!("debug/foo,foo::bar::baz=trace/foo".parse::<EnvLogConfig>()
-                                                      .unwrap(),
-                   EnvLogConfig::default());
+        assert_eq!(
+            "debug/foo/foo".parse::<EnvLogConfig>().unwrap(),
+            EnvLogConfig::default()
+        );
+        assert_eq!(
+            "debug/foo,foo::bar::baz=trace/foo"
+                .parse::<EnvLogConfig>()
+                .unwrap(),
+            EnvLogConfig::default()
+        );
     }
 }

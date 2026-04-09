@@ -2,30 +2,32 @@
 //! types act as a bridge from the CLI to interior types. These types implement `FromStr` (opposed
 //! to `From<Path>`) which `structopt` uses to parse the user input.
 //!
-//! TODO (DM): Ideally these would be defined in `hab::cli::hab::util::tls.rs` however the ctl
+//! TODO (DM): Ideally these would be defined in `bio::cli::bio::util::tls.rs` however the ctl
 //! gateway client currently needs access to these types so they must be defined in a common crate
-//! and we simply reexport them in `hab::cli::hab::util::tls.rs`.
+//! and we simply reexport them in `bio::cli::bio::util::tls.rs`.
 
-use crate::{error::Error,
-            tls::{ctl_gateway,
-                  rustls_wrapper}};
-use rustls::{RootCertStore,
-             pki_types::{CertificateDer,
-                         PrivatePkcs8KeyDer}};
-use serde::{Deserialize,
-            Serialize};
-use std::{path::PathBuf,
-          str::FromStr};
+use crate::{
+    error::Error,
+    tls::{ctl_gateway, rustls_wrapper},
+};
+use rustls::{
+    RootCertStore,
+    pki_types::{CertificateDer, PrivatePkcs8KeyDer},
+};
+use serde::{Deserialize, Serialize};
+use std::{path::PathBuf, str::FromStr};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "String", into = "String")]
 pub struct CertificateChainCli {
-    path:         PathBuf,
+    path: PathBuf,
     certificates: Vec<CertificateDer<'static>>,
 }
 
 impl CertificateChainCli {
-    pub fn into_inner(self) -> Vec<CertificateDer<'static>> { self.certificates }
+    pub fn into_inner(self) -> Vec<CertificateDer<'static>> {
+        self.certificates
+    }
 }
 
 impl FromStr for CertificateChainCli {
@@ -51,18 +53,22 @@ impl std::fmt::Display for CertificateChainCli {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(try_from = "String", into = "String")]
 pub struct PrivateKeyCli {
-    path:        PathBuf,
+    path: PathBuf,
     private_key: PrivatePkcs8KeyDer<'static>,
 }
 
 impl PrivateKeyCli {
-    pub fn into_inner(self) -> PrivatePkcs8KeyDer<'static> { self.private_key }
+    pub fn into_inner(self) -> PrivatePkcs8KeyDer<'static> {
+        self.private_key
+    }
 }
 
 impl Clone for PrivateKeyCli {
     fn clone(&self) -> Self {
-        Self { path:        self.path.clone(),
-               private_key: self.private_key.clone_key(), }
+        Self {
+            path: self.path.clone(),
+            private_key: self.private_key.clone_key(),
+        }
     }
 }
 
@@ -89,12 +95,14 @@ impl std::fmt::Display for PrivateKeyCli {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "String", into = "String")]
 pub struct RootCertificateStoreCli {
-    path:                   PathBuf,
+    path: PathBuf,
     root_certificate_store: RootCertStore,
 }
 
 impl RootCertificateStoreCli {
-    pub fn into_inner(self) -> RootCertStore { self.root_certificate_store }
+    pub fn into_inner(self) -> RootCertStore {
+        self.root_certificate_store
+    }
 }
 
 impl FromStr for RootCertificateStoreCli {
@@ -107,8 +115,10 @@ impl FromStr for RootCertificateStoreCli {
         } else {
             rustls_wrapper::root_certificate_store_from_file(&path)?
         };
-        Ok(Self { path,
-                  root_certificate_store })
+        Ok(Self {
+            path,
+            root_certificate_store,
+        })
     }
 }
 
@@ -118,6 +128,8 @@ impl std::fmt::Display for RootCertificateStoreCli {
     }
 }
 
-crate::impl_try_from_string_and_into_string!(CertificateChainCli,
-                                             PrivateKeyCli,
-                                             RootCertificateStoreCli);
+crate::impl_try_from_string_and_into_string!(
+    CertificateChainCli,
+    PrivateKeyCli,
+    RootCertificateStoreCli
+);

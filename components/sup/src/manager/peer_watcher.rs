@@ -1,23 +1,21 @@
-use crate::{error::{Error,
-                    Result},
-            manager::file_watcher::{Callbacks,
-                                    FileWatcher}};
+use crate::{
+    error::{Error, Result},
+    manager::file_watcher::{Callbacks, FileWatcher},
+};
 
-use habitat_butterfly::member::Member;
-use habitat_common::{liveliness_checker,
-                     outputln,
-                     types::GossipListenAddr};
-use std::{fs::File,
-          io::{BufRead,
-               BufReader},
-          net::{SocketAddr,
-                ToSocketAddrs},
-          path::{Path,
-                 PathBuf},
-          sync::{Arc,
-                 atomic::{AtomicBool,
-                          Ordering}},
-          thread::Builder as ThreadBuilder};
+use biome_butterfly::member::Member;
+use biome_common::{liveliness_checker, outputln, types::GossipListenAddr};
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+    net::{SocketAddr, ToSocketAddrs},
+    path::{Path, PathBuf},
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
+    thread::Builder as ThreadBuilder,
+};
 
 static LOGKEY: &str = "PW";
 
@@ -26,21 +24,28 @@ pub struct PeerCallbacks {
 }
 
 impl Callbacks for PeerCallbacks {
-    fn file_appeared(&mut self, _: &Path) { self.have_events.store(true, Ordering::Relaxed); }
+    fn file_appeared(&mut self, _: &Path) {
+        self.have_events.store(true, Ordering::Relaxed);
+    }
 
-    fn file_modified(&mut self, _: &Path) { self.have_events.store(true, Ordering::Relaxed) }
+    fn file_modified(&mut self, _: &Path) {
+        self.have_events.store(true, Ordering::Relaxed)
+    }
 
-    fn file_disappeared(&mut self, _: &Path) { self.have_events.store(true, Ordering::Relaxed) }
+    fn file_disappeared(&mut self, _: &Path) {
+        self.have_events.store(true, Ordering::Relaxed)
+    }
 }
 
 pub struct PeerWatcher {
-    path:        PathBuf,
+    path: PathBuf,
     have_events: Arc<AtomicBool>,
 }
 
 impl PeerWatcher {
     pub fn run<P>(path: P) -> Result<Self>
-        where P: Into<PathBuf>
+    where
+        P: Into<PathBuf>,
     {
         let path = path.into();
         let have_events = Self::setup_watcher(path.clone())?;
@@ -52,17 +57,18 @@ impl PeerWatcher {
         let have_events = Arc::new(AtomicBool::new(true));
         let have_events_for_thread = Arc::clone(&have_events);
 
-        ThreadBuilder::new().name(format!("peer-watcher-[{}]", path.display()))
-                            .spawn(move || -> liveliness_checker::ThreadUnregistered {
-                                // debug!("PeerWatcher({}) thread starting", abs_path.display());
-                                loop {
-                                    let checked_thread = liveliness_checker::mark_thread_alive();
-                                    let have_events_for_loop = Arc::clone(&have_events_for_thread);
-                                    if Self::file_watcher_loop_body(&path, have_events_for_loop) {
-                                        break checked_thread.unregister(Ok(()));
-                                    }
-                                }
-                            })?;
+        ThreadBuilder::new()
+            .name(format!("peer-watcher-[{}]", path.display()))
+            .spawn(move || -> liveliness_checker::ThreadUnregistered {
+                // debug!("PeerWatcher({}) thread starting", abs_path.display());
+                loop {
+                    let checked_thread = liveliness_checker::mark_thread_alive();
+                    let have_events_for_loop = Arc::clone(&have_events_for_thread);
+                    if Self::file_watcher_loop_body(&path, have_events_for_loop) {
+                        break checked_thread.unregister(Ok(()));
+                    }
+                }
+            })?;
         Ok(have_events)
     }
 
@@ -70,35 +76,41 @@ impl PeerWatcher {
         let callbacks = PeerCallbacks { have_events };
         let mut file_watcher = match FileWatcher::<PeerCallbacks>::new(path, callbacks, true) {
             Ok(watcher) => watcher,
-            Err(e) => {
-                match e {
-                    Error::NotifyError(err) => {
-                        outputln!("PeerWatcher({}) failed to start watching the directories \
+            Err(e) => match e {
+                Error::NotifyError(err) => {
+                    outputln!(
+                        "PeerWatcher({}) failed to start watching the directories \
                                    ({}), {}",
-                                  path.display(),
-                                  err,
-                                  "will try again");
-                        return false;
-                    }
-                    _ => {
-                        outputln!("PeerWatcher({}) could not create file watcher, ending thread \
-                                   ({})",
-                                  path.display(),
-                                  e);
-                        return true;
-                    }
+                        path.display(),
+                        err,
+                        "will try again"
+                    );
+                    return false;
                 }
-            }
+                _ => {
+                    outputln!(
+                        "PeerWatcher({}) could not create file watcher, ending thread \
+                                   ({})",
+                        path.display(),
+                        e
+                    );
+                    return true;
+                }
+            },
         };
         if let Err(err) = file_watcher.run() {
-            outputln!("PeerWatcher({}) error during watching ({}), restarting",
-                      path.display(),
-                      err);
+            outputln!(
+                "PeerWatcher({}) error during watching ({}), restarting",
+                path.display(),
+                err
+            );
         }
         false
     }
 
-    pub fn has_fs_events(&self) -> bool { self.have_events.load(Ordering::Relaxed) }
+    pub fn has_fs_events(&self) -> bool {
+        self.have_events.load(Ordering::Relaxed)
+    }
 
     pub fn get_members(&self) -> Result<Vec<Member>> {
         if !self.path.is_file() {
@@ -125,10 +137,12 @@ impl PeerWatcher {
                 }
             };
             let addr: SocketAddr = addrs[0];
-            let member = Member { address: format!("{}", addr.ip()),
-                                  swim_port: addr.port(),
-                                  gossip_port: addr.port(),
-                                  ..Default::default() };
+            let member = Member {
+                address: format!("{}", addr.ip()),
+                swim_port: addr.port(),
+                gossip_port: addr.port(),
+                ..Default::default()
+            };
             members.push(member);
         }
 
@@ -140,25 +154,27 @@ impl PeerWatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use habitat_butterfly::member::Member;
-    use habitat_core::locked_env_var;
-    use std::{fs::{File,
-                   OpenOptions},
-              io::Write,
-              path::{Path,
-                     PathBuf}};
+    use biome_butterfly::member::Member;
+    use biome_core::locked_env_var;
+    use std::{
+        fs::{File, OpenOptions},
+        io::Write,
+        path::{Path, PathBuf},
+    };
     use tempfile::TempDir;
 
-    locked_env_var!(HAB_STUDIO_HOST_ARCH, lock_env_var);
+    locked_env_var!(BIO_STUDIO_HOST_ARCH, lock_env_var);
 
-    fn peer_watcher_member_load_test(watch_dir: &Path,
-                                     peer_data: &[String])
-                                     -> Result<Vec<Member>> {
+    fn peer_watcher_member_load_test(
+        watch_dir: &Path,
+        peer_data: &[String],
+    ) -> Result<Vec<Member>> {
         let path = PathBuf::from(watch_dir).join("some_file");
-        let mut file = OpenOptions::new().append(true)
-                                         .create_new(true)
-                                         .open(path.clone())
-                                         .unwrap();
+        let mut file = OpenOptions::new()
+            .append(true)
+            .create_new(true)
+            .open(path.clone())
+            .unwrap();
         let watcher = PeerWatcher::run(path).unwrap();
         for line in peer_data {
             writeln!(file, "{}", line).unwrap();
@@ -223,16 +239,20 @@ mod tests {
         for member in &mut members {
             member.id = String::new();
         }
-        let member1 = Member { id: String::new(),
-                               address: String::from("1.2.3.4"),
-                               swim_port: 5,
-                               gossip_port: 5,
-                               ..Default::default() };
-        let member2 = Member { id: String::new(),
-                               address: String::from("4.3.2.1"),
-                               swim_port: GossipListenAddr::DEFAULT_PORT,
-                               gossip_port: GossipListenAddr::DEFAULT_PORT,
-                               ..Default::default() };
+        let member1 = Member {
+            id: String::new(),
+            address: String::from("1.2.3.4"),
+            swim_port: 5,
+            gossip_port: 5,
+            ..Default::default()
+        };
+        let member2 = Member {
+            id: String::new(),
+            address: String::from("4.3.2.1"),
+            swim_port: GossipListenAddr::DEFAULT_PORT,
+            gossip_port: GossipListenAddr::DEFAULT_PORT,
+            ..Default::default()
+        };
         let expected_members = vec![member1, member2];
         assert_eq!(expected_members, members);
     }
@@ -248,16 +268,20 @@ mod tests {
         for member in &mut members {
             member.id = String::new();
         }
-        let member1 = Member { id: String::new(),
-                               address: String::from("1.2.3.5"),
-                               swim_port: 5,
-                               gossip_port: 5,
-                               ..Default::default() };
-        let member2 = Member { id: String::new(),
-                               address: String::from("5.4.3.2"),
-                               swim_port: GossipListenAddr::DEFAULT_PORT,
-                               gossip_port: GossipListenAddr::DEFAULT_PORT,
-                               ..Default::default() };
+        let member1 = Member {
+            id: String::new(),
+            address: String::from("1.2.3.5"),
+            swim_port: 5,
+            gossip_port: 5,
+            ..Default::default()
+        };
+        let member2 = Member {
+            id: String::new(),
+            address: String::from("5.4.3.2"),
+            swim_port: GossipListenAddr::DEFAULT_PORT,
+            gossip_port: GossipListenAddr::DEFAULT_PORT,
+            ..Default::default()
+        };
         let expected_members = vec![member1, member2];
         assert_eq!(expected_members, members);
     }

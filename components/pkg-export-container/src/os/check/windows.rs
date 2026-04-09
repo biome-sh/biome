@@ -1,6 +1,7 @@
-use habitat_core::{error::{Error,
-                           Result},
-                   util::docker};
+use biome_core::{
+    error::{Error, Result},
+    util::docker,
+};
 use log::debug;
 use std::process::Command;
 
@@ -17,7 +18,8 @@ pub(crate) fn ensure_proper_docker_platform() -> Result<()> {
             if let DockerOS::Unknown(ref s) = other {
                 debug!("Unknown Docker OS: {}", s);
             }
-            Err(Error::UnsupportedDockerHostKernel(format!("Only Windows \
+            Err(Error::UnsupportedDockerHostKernel(format!(
+                "Only Windows \
                                                             container export \
                                                             is supported; \
                                                             please set \
@@ -27,7 +29,8 @@ pub(crate) fn ensure_proper_docker_platform() -> Result<()> {
                                                             The Docker \
                                                             daemon is currently \
                                                             set for: {:?}",
-                                                           other)))
+                other
+            )))
         }
         Err(e) => {
             debug!("Failed to determine Docker OS: {}", e);
@@ -69,13 +72,11 @@ impl DockerOS {
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             let stdout = String::from_utf8_lossy(&output.stdout);
-            return Err(Error::DockerVersionCommandExitFailure { exit_code: output.status
-                                                                                 .code()
-                                                                                 .unwrap_or(-1),
-                                                                stderr:    stderr.trim()
-                                                                                 .to_string(),
-                                                                stdout:    stdout.trim()
-                                                                                 .to_string(), });
+            return Err(Error::DockerVersionCommandExitFailure {
+                exit_code: output.status.code().unwrap_or(-1),
+                stderr: stderr.trim().to_string(),
+                stdout: stdout.trim().to_string(),
+            });
         }
 
         let result = String::from_utf8_lossy(&output.stdout);

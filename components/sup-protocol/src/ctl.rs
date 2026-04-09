@@ -73,20 +73,25 @@ impl message::MessageStatic for ConsoleLine {
 }
 
 impl fmt::Display for ConsoleLine {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.line) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.line)
+    }
 }
 
-impl std::iter::FromIterator<habitat_core::service::ServiceBind> for ServiceBindList {
+impl std::iter::FromIterator<biome_core::service::ServiceBind> for ServiceBindList {
     fn from_iter<T>(iter: T) -> Self
-        where T: IntoIterator<Item = habitat_core::service::ServiceBind>
+    where
+        T: IntoIterator<Item = biome_core::service::ServiceBind>,
     {
-        ServiceBindList { binds: iter.into_iter().map(Into::into).collect(), }
+        ServiceBindList {
+            binds: iter.into_iter().map(Into::into).collect(),
+        }
     }
 }
 
 #[allow(clippy::from_over_into)]
-impl Into<Vec<habitat_core::service::ServiceBind>> for ServiceBindList {
-    fn into(self) -> Vec<habitat_core::service::ServiceBind> {
+impl Into<Vec<biome_core::service::ServiceBind>> for ServiceBindList {
+    fn into(self) -> Vec<biome_core::service::ServiceBind> {
         self.binds.into_iter().map(Into::into).collect()
     }
 }

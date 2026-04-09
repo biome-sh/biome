@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 # Set non-interactive mode to prevent prompts during build
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/bin:/usr/bin:${PATH}"
-ENV HAB_LICENSE=accept
+ENV BIO_LICENSE=accept
 
 # Combine RUN commands to reduce layers and add cleanup
 RUN apt-get update && \
@@ -18,9 +18,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # This useradd mirrors the one used in our on-prem-builder repo
-RUN useradd --system --no-create-home hab
+RUN useradd --system --no-create-home bio
 
-# install stable hab
-RUN curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | bash
-RUN hab pkg install core/hab-sup
-RUN hab pkg install core/hab-launcher
+# install stable bio
+RUN curl https://raw.githubusercontent.com/biome-sh/biome/main/components/bio/install.sh | bash
+RUN bio pkg install core/bio-sup
+RUN bio pkg install core/bio-launcher

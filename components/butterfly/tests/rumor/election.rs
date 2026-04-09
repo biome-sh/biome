@@ -3,11 +3,11 @@ use std::iter::FromIterator;
 use rand::prelude::IndexedRandom;
 
 use crate::btest;
-use habitat_butterfly::{member::Health,
-                        rumor::{ConstIdRumor as _,
-                                Election,
-                                election::ElectionStatus}};
-use habitat_common::FeatureFlag;
+use biome_butterfly::{
+    member::Health,
+    rumor::{ConstIdRumor as _, Election, election::ElectionStatus},
+};
+use biome_common::FeatureFlag;
 
 #[test]
 fn three_members_run_election() {
@@ -50,15 +50,16 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     assert_wait_for_election_status!(net, [0..5], "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_equal_election!(net, [0..5, 0..5], "witcher.prod");
 
-    let leader_id = net[0].election_store
-                          .lock_rsr()
-                          .service_group("witcher.prod")
-                          .map_rumor(Election::const_id(), |e| e.member_id.clone());
+    let leader_id = net[0]
+        .election_store
+        .lock_rsr()
+        .service_group("witcher.prod")
+        .map_rumor(Election::const_id(), |e| e.member_id.clone());
 
     let mut paused = 0;
     for (index, server) in net.iter_mut().enumerate() {
         if let Some(ref leader_id) = leader_id
-           && server.member_id() == leader_id
+            && server.member_id() == leader_id
         {
             paused = index;
         }
@@ -84,13 +85,14 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
         }
     }
 
-    net[if paused == 0 { 1 } else { 0 }].election_store
-                                        .lock_rsr()
-                                        .service_group("witcher.prod")
-                                        .map_rumor(Election::const_id(), |e| {
-                                            assert_eq!(e.term, 1);
-                                            assert_ne!(e.member_id, paused_id);
-                                        });
+    net[if paused == 0 { 1 } else { 0 }]
+        .election_store
+        .lock_rsr()
+        .service_group("witcher.prod")
+        .map_rumor(Election::const_id(), |e| {
+            assert_eq!(e.term, 1);
+            assert_ne!(e.member_id, paused_id);
+        });
 }
 
 #[test]
@@ -113,17 +115,18 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     assert_wait_for_election_status!(net, [0..5], "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_equal_election!(net, [0..5, 0..5], "witcher.prod");
 
-    let leader_id = net[0].election_store
-                          .lock_rsr()
-                          .service_group("witcher.prod")
-                          .map_rumor(Election::const_id(), |e| e.member_id.clone());
+    let leader_id = net[0]
+        .election_store
+        .lock_rsr()
+        .service_group("witcher.prod")
+        .map_rumor(Election::const_id(), |e| e.member_id.clone());
 
     assert_eq!(leader_id, Some(net[0].member_id().to_string()));
 
     let mut leader_index = 0;
     for (index, server) in net.iter_mut().enumerate() {
         if let Some(ref leader_id) = leader_id
-           && server.member_id() == leader_id
+            && server.member_id() == leader_id
         {
             leader_index = index;
         }
@@ -141,19 +144,21 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     assert_wait_for_election_status!(net, 2, "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_election_status!(net, 3, "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_election_status!(net, 4, "witcher.prod", ElectionStatus::Finished);
-    net[0].election_store
-          .lock_rsr()
-          .service_group("witcher.prod")
-          .map_rumor(Election::const_id(), |e| {
-              println!("OLD: {:#?}", e);
-          });
-    let new_leader_id = net[2].election_store
-                              .lock_rsr()
-                              .service_group("witcher.prod")
-                              .map_rumor(Election::const_id(), |e| {
-                                  println!("NEW: {:#?}", e);
-                                  e.member_id.clone()
-                              });
+    net[0]
+        .election_store
+        .lock_rsr()
+        .service_group("witcher.prod")
+        .map_rumor(Election::const_id(), |e| {
+            println!("OLD: {:#?}", e);
+        });
+    let new_leader_id = net[2]
+        .election_store
+        .lock_rsr()
+        .service_group("witcher.prod")
+        .map_rumor(Election::const_id(), |e| {
+            println!("NEW: {:#?}", e);
+            e.member_id.clone()
+        });
     assert!(leader_id.is_some());
     assert!(leader_id != new_leader_id);
     println!("Leader {:?} New {:?}", leader_id, new_leader_id);
@@ -162,18 +167,20 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     assert_wait_for_election_status!(net, 0, "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_election_status!(net, 1, "witcher.prod", ElectionStatus::Finished);
 
-    net[4].election_store
-          .lock_rsr()
-          .service_group("witcher.prod")
-          .map_rumor(Election::const_id(), |e| println!("MAJORITY: {:#?}", e));
+    net[4]
+        .election_store
+        .lock_rsr()
+        .service_group("witcher.prod")
+        .map_rumor(Election::const_id(), |e| println!("MAJORITY: {:#?}", e));
 
-    net[0].election_store
-          .lock_rsr()
-          .service_group("witcher.prod")
-          .map_rumor(Election::const_id(), |e| {
-              println!("MINORITY: {:#?}", e);
-              assert_eq!(new_leader_id.as_ref(), Some(&e.member_id));
-          });
+    net[0]
+        .election_store
+        .lock_rsr()
+        .service_group("witcher.prod")
+        .map_rumor(Election::const_id(), |e| {
+            println!("MINORITY: {:#?}", e);
+            assert_eq!(new_leader_id.as_ref(), Some(&e.member_id));
+        });
 }
 
 #[test]
@@ -195,10 +202,11 @@ fn three_persistent_members_reelect_same_leader_follower_partition() {
     assert_wait_for_election_status!(net, [0..3], "foobar.prod", ElectionStatus::Finished);
     assert_wait_for_equal_election!(net, [0..3, 0..3], "foobar.prod");
 
-    let leader_id = net[0].election_store
-                          .lock_rsr()
-                          .service_group("foobar.prod")
-                          .map_rumor(Election::const_id(), |e| e.member_id.clone());
+    let leader_id = net[0]
+        .election_store
+        .lock_rsr()
+        .service_group("foobar.prod")
+        .map_rumor(Election::const_id(), |e| e.member_id.clone());
 
     assert_eq!(leader_id, Some(net[0].member_id().to_string()));
 
@@ -214,14 +222,17 @@ fn three_persistent_members_reelect_same_leader_follower_partition() {
     assert_wait_for_health_of_mlr!(net, [0..2, 2..3], Health::Alive);
     assert_wait_for_election_status!(net, 2, "foobar.prod", ElectionStatus::Finished);
 
-    let new_leader_id = net[2].election_store
-                              .lock_rsr()
-                              .service_group("foobar.prod")
-                              .map_rumor(Election::const_id(), |e| e.member_id.clone());
+    let new_leader_id = net[2]
+        .election_store
+        .lock_rsr()
+        .service_group("foobar.prod")
+        .map_rumor(Election::const_id(), |e| e.member_id.clone());
 
-    assert_eq!(leader_id, new_leader_id,
-               "OLD: {:?}, NEW: {:?}",
-               leader_id, new_leader_id);
+    assert_eq!(
+        leader_id, new_leader_id,
+        "OLD: {:?}, NEW: {:?}",
+        leader_id, new_leader_id
+    );
 }
 
 #[test]
@@ -241,19 +252,21 @@ fn five_persistent_members_same_leader_multiple_non_quorum_partitions() {
     assert_wait_for_election_status!(net, [0..5], "foobar.prod", ElectionStatus::Finished);
     assert_wait_for_equal_election!(net, [0..3, 0..3], "foobar.prod");
 
-    let leader_id = net[0].election_store
-                          .lock_rsr()
-                          .service_group("foobar.prod")
-                          .map_rumor(Election::const_id(), |e| e.member_id.clone());
+    let leader_id = net[0]
+        .election_store
+        .lock_rsr()
+        .service_group("foobar.prod")
+        .map_rumor(Election::const_id(), |e| e.member_id.clone());
 
     assert_eq!(leader_id, Some(net[0].member_id().to_string()));
 
     // Making sure - running multiple times after a subset of follower (non-quorum) is partitioned
     // and reconnected the leader stays the same.
     let mut rng = rand::rng();
-    let idxes = Vec::from_iter(1_usize..5_usize).sample(&mut rng, 2)
-                                                .copied()
-                                                .collect::<Vec<usize>>();
+    let idxes = Vec::from_iter(1_usize..5_usize)
+        .sample(&mut rng, 2)
+        .copied()
+        .collect::<Vec<usize>>();
     for idx in idxes.iter() {
         println!("idx: {}", idx);
         net.partition_node(*idx);
@@ -271,12 +284,15 @@ fn five_persistent_members_same_leader_multiple_non_quorum_partitions() {
     }
     assert_wait_for_election_status!(net, first, "foobar.prod", ElectionStatus::Finished);
 
-    let new_leader_id = net[first].election_store
-                                  .lock_rsr()
-                                  .service_group("foobar.prod")
-                                  .map_rumor(Election::const_id(), |e| e.member_id.clone());
+    let new_leader_id = net[first]
+        .election_store
+        .lock_rsr()
+        .service_group("foobar.prod")
+        .map_rumor(Election::const_id(), |e| e.member_id.clone());
 
-    assert_eq!(leader_id, new_leader_id,
-               "OLD: {:?}, NEW: {:?}",
-               leader_id, new_leader_id);
+    assert_eq!(
+        leader_id, new_leader_id,
+        "OLD: {:?}, NEW: {:?}",
+        leader_id, new_leader_id
+    );
 }

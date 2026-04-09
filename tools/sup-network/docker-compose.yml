@@ -1,38 +1,38 @@
 x-service: &srv
-  image: hab-sup-network
+  image: bio-sup-network
   build: .
   volumes:
     - type: bind
       source: ./CTL_SECRET
-      target: /hab/sup/default/CTL_SECRET
+      target: /bio/sup/default/CTL_SECRET
       read_only: false
-    - hab_cache:/hab/cache
-    - hab_pkgs:/hab/pkgs
+    - bio_cache:/bio/cache
+    - bio_pkgs:/bio/pkgs
     - type: bind
-      source: /hab/sup/default/config/log.yml
-      target: /hab/sup/default/config/log.yml
+      source: /bio/sup/default/config/log.yml
+      target: /bio/sup/default/config/log.yml
       read_only: false
     # # Mount binaries as executable
     # - type: bind
-    #   source: "${PWD}/../../target/debug/hab"
-    #   target: /bin/hab
+    #   source: "${PWD}/../../target/debug/bio"
+    #   target: /bin/bio
     #   read_only: false
     # - type: bind
-    #   source: "${PWD}/../../target/debug/hab-sup"
-    #   target: /bin/hab-sup
+    #   source: "${PWD}/../../target/debug/bio-sup"
+    #   target: /bin/bio-sup
     #   read_only: false
     # - type: bind
-    #   source: "${PWD}/../../target/debug/hab-launch"
-    #   target: /bin/hab-launch
+    #   source: "${PWD}/../../target/debug/bio-launch"
+    #   target: /bin/bio-launch
     #   read_only: false
   environment:
     RUST_LOG: "info"
     PATH: "/bin:/usr/bin"
-    HAB_NONINTERACTIVE: "1"
-    HAB_LICENSE: "accept"
-    # HAB_SUP_BINARY: "/bin/hab-sup"
-    # HAB_LAUNCH_BINARY: "/bin/hab-launch"
-  entrypoint: /bin/hab
+    BIO_NONINTERACTIVE: "1"
+    BIO_LICENSE: "accept"
+    # BIO_SUP_BINARY: "/bin/bio-sup"
+    # BIO_LAUNCH_BINARY: "/bin/bio-launch"
+  entrypoint: /bin/bio
   deploy:
     resources:
       limits:
@@ -68,10 +68,10 @@ services:
 networks:
   sup:
     driver: bridge
-    name: hab-sup-network
+    name: bio-sup-network
 
 volumes:
-  hab_cache:
-    name: hab-cache
-  hab_pkgs:
-    name: hab-pkgs
+  bio_cache:
+    name: bio-cache
+  bio_pkgs:
+    name: bio-pkgs

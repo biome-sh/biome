@@ -1,60 +1,45 @@
 #![allow(non_snake_case)]
 
-use std::{io,
-          mem,
-          ptr::null_mut};
+use std::{io, mem, ptr::null_mut};
 
 use widestring::WideCString;
-use winapi::{shared::{minwindef::{BOOL,
-                                  BYTE,
-                                  DWORD,
-                                  FALSE,
-                                  HLOCAL,
-                                  LPBOOL,
-                                  LPDWORD,
-                                  LPVOID,
-                                  TRUE,
-                                  WORD},
-                      ntdef::HANDLE,
-                      sddl::ConvertStringSidToSidW,
-                      winerror},
-             um::{handleapi,
-                  processthreadsapi,
-                  securitybaseapi::GetTokenInformation,
-                  winbase,
-                  winnt::{ACCESS_MASK,
-                          ACL,
-                          DACL_SECURITY_INFORMATION,
-                          LPCWSTR,
-                          MAXDWORD,
-                          PACL,
-                          PHANDLE,
-                          PSECURITY_DESCRIPTOR,
-                          PSECURITY_INFORMATION,
-                          PSID,
-                          PTOKEN_USER,
-                          TOKEN_READ,
-                          TokenUser}}};
+use winapi::{
+    shared::{
+        minwindef::{BOOL, BYTE, DWORD, FALSE, HLOCAL, LPBOOL, LPDWORD, LPVOID, TRUE, WORD},
+        ntdef::HANDLE,
+        sddl::ConvertStringSidToSidW,
+        winerror,
+    },
+    um::{
+        handleapi, processthreadsapi,
+        securitybaseapi::GetTokenInformation,
+        winbase,
+        winnt::{
+            ACCESS_MASK, ACL, DACL_SECURITY_INFORMATION, LPCWSTR, MAXDWORD, PACL, PHANDLE,
+            PSECURITY_DESCRIPTOR, PSECURITY_INFORMATION, PSID, PTOKEN_USER, TOKEN_READ, TokenUser,
+        },
+    },
+};
 
 #[repr(C)]
 struct ACL_SIZE_INFORMATION {
-    aceCount:      DWORD,
+    aceCount: DWORD,
     aclBytesInUse: DWORD,
-    aclBytesFree:  DWORD,
+    aclBytesFree: DWORD,
 }
 
 #[repr(C)]
 struct ACE_HEADER {
-    aceType:  BYTE,
+    aceType: BYTE,
     aceFlags: BYTE,
-    aceSize:  WORD,
+    aceSize: WORD,
 }
 type PaceHeader = *mut ACE_HEADER;
 
 #[repr(C)]
 struct ACCESS_ALLOWED_ACE {
-    header:   ACE_HEADER,
-    mask:     ACCESS_MASK,
+    header: ACE_HEADER,
+    mask: ACCESS_MASK,
     sidStart: DWORD,
 }
 
@@ -64,51 +49,59 @@ unsafe extern "system" {
 
 #[link(name = "user32")]
 unsafe extern "system" {
-    fn AddAccessAllowedAceEx(pAcl: PACL,
-                             dwAceRevision: DWORD,
-                             aceFlags: DWORD,
-                             accessMask: DWORD,
-                             pSid: PSID)
-                             -> BOOL;
-    fn AddAce(pAcl: PACL,
-              dwAceRevision: DWORD,
-              dwStartingAceIndex: DWORD,
-              pAceList: LPVOID,
-              nAceListLength: DWORD)
-              -> BOOL;
+    fn AddAccessAllowedAceEx(
+        pAcl: PACL,
+        dwAceRevision: DWORD,
+        aceFlags: DWORD,
+        accessMask: DWORD,
+        pSid: PSID,
+    ) -> BOOL;
+    fn AddAce(
+        pAcl: PACL,
+        dwAceRevision: DWORD,
+        dwStartingAceIndex: DWORD,
+        pAceList: LPVOID,
+        nAceListLength: DWORD,
+    ) -> BOOL;
     fn ConvertSidToStringSidW(Sid: PSID, StringSid: LPCWSTR) -> BOOL;
     fn GetAce(pAcl: PACL, dwAceIndex: DWORD, pAce: *mut LPVOID) -> BOOL;
-    fn GetAclInformation(pAcl: PACL,
-                         pAclInformation: LPVOID,
-                         nAclInformationLength: DWORD,
-                         dwAclInformationClass: DWORD)
-                         -> BOOL;
+    fn GetAclInformation(
+        pAcl: PACL,
+        pAclInformation: LPVOID,
+        nAclInformationLength: DWORD,
+        dwAclInformationClass: DWORD,
+    ) -> BOOL;
     fn OpenProcessToken(processHandle: HANDLE, desiredAccess: DWORD, tokenHandle: PHANDLE) -> BOOL;
     fn GetLengthSid(pSid: PSID) -> DWORD;
-    fn GetSecurityDescriptorDacl(pSecurityDescriptor: PSECURITY_DESCRIPTOR,
-                                 lpbDaclPresent: LPBOOL,
-                                 pDacl: *mut PACL,
-                                 lpbDaclDefaulted: LPBOOL)
-                                 -> BOOL;
-    fn GetUserObjectSecurity(hObj: HANDLE,
-                             pSIRequested: PSECURITY_INFORMATION,
-                             pSD: PSECURITY_INFORMATION,
-                             nLength: DWORD,
-                             lpnLengthNeeded: LPDWORD)
-                             -> BOOL;
+    fn GetSecurityDescriptorDacl(
+        pSecurityDescriptor: PSECURITY_DESCRIPTOR,
+        lpbDaclPresent: LPBOOL,
+        pDacl: *mut PACL,
+        lpbDaclDefaulted: LPBOOL,
+    ) -> BOOL;
+    fn GetUserObjectSecurity(
+        hObj: HANDLE,
+        pSIRequested: PSECURITY_INFORMATION,
+        pSD: PSECURITY_INFORMATION,
+        nLength: DWORD,
+        lpnLengthNeeded: LPDWORD,
+    ) -> BOOL;
     fn InitializeAcl(pAcl: PACL, nAclLength: DWORD, dwAclRevision: DWORD) -> BOOL;
-    fn InitializeSecurityDescriptor(pSecurityDescriptor: PSECURITY_DESCRIPTOR,
-                                    dwRevision: DWORD)
-                                    -> BOOL;
-    fn SetSecurityDescriptorDacl(pSecurityDescriptor: PSECURITY_DESCRIPTOR,
-                                 bDaclPresent: BOOL,
-                                 pDacl: PACL,
-                                 bDaclDefaulted: BOOL)
-                                 -> BOOL;
-    fn SetUserObjectSecurity(hObj: HANDLE,
-                             pSIRequested: PSECURITY_INFORMATION,
-                             pSID: PSECURITY_DESCRIPTOR)
-                             -> BOOL;
+    fn InitializeSecurityDescriptor(
+        pSecurityDescriptor: PSECURITY_DESCRIPTOR,
+        dwRevision: DWORD,
+    ) -> BOOL;
+    fn SetSecurityDescriptorDacl(
+        pSecurityDescriptor: PSECURITY_DESCRIPTOR,
+        bDaclPresent: BOOL,
+        pDacl: PACL,
+        bDaclDefaulted: BOOL,
+    ) -> BOOL;
+    fn SetUserObjectSecurity(
+        hObj: HANDLE,
+        pSIRequested: PSECURITY_INFORMATION,
+        pSID: PSECURITY_DESCRIPTOR,
+    ) -> BOOL;
 }
 
 pub const GENERIC_READ: DWORD = 0x8000_0000;
@@ -174,11 +167,13 @@ impl Sid {
             buffer.set_len(dw_buffer_size as usize);
             let p_token_user = buffer.as_mut_ptr() as PTOKEN_USER;
 
-            cvt(GetTokenInformation(token,
-                                    TokenUser,
-                                    p_token_user as LPVOID,
-                                    dw_buffer_size,
-                                    &mut dw_buffer_size))?;
+            cvt(GetTokenInformation(
+                token,
+                TokenUser,
+                p_token_user as LPVOID,
+                dw_buffer_size,
+                &mut dw_buffer_size,
+            ))?;
 
             handleapi::CloseHandle(token);
             handleapi::CloseHandle(handle);
@@ -227,9 +222,10 @@ impl Sid {
     pub fn to_string(&self) -> io::Result<String> {
         let mut buffer: LPCWSTR = null_mut();
         unsafe {
-            cvt(ConvertSidToStringSidW(self.raw.as_ptr() as PSID,
-                                       (&mut buffer as *mut LPCWSTR)
-                                       as LPCWSTR))?
+            cvt(ConvertSidToStringSidW(
+                self.raw.as_ptr() as PSID,
+                (&mut buffer as *mut LPCWSTR) as LPCWSTR,
+            ))?
         };
 
         let widestr = unsafe { WideCString::from_ptr_str(buffer) };
@@ -240,11 +236,12 @@ impl Sid {
     // This code was adapted from much of the C++ code in
     // https://msdn.microsoft.com/en-us/library/windows/desktop/aa379608(v=vs.85).aspx
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn add_to_user_object(&self,
-                              handle: HANDLE,
-                              ace_flags: DWORD,
-                              access_mask: DWORD)
-                              -> io::Result<()> {
+    pub fn add_to_user_object(
+        &self,
+        handle: HANDLE,
+        ace_flags: DWORD,
+        access_mask: DWORD,
+    ) -> io::Result<()> {
         unsafe {
             let mut needed_len: u32 = 0;
             let mut sd: Vec<u8> = Vec::new();
@@ -253,14 +250,15 @@ impl Sid {
             let mut dacl_exist: BOOL = FALSE;
             let mut pacl: PACL = null_mut();
 
-            if GetUserObjectSecurity(handle,
-                                     #[allow(const_item_mutation)]
-                                     &mut DACL_SECURITY_INFORMATION,
-                                     null_mut(),
-                                     0,
-                                     &mut needed_len)
-               == 0
-               && let Some(error) = io::Error::last_os_error().raw_os_error()
+            if GetUserObjectSecurity(
+                handle,
+                #[allow(const_item_mutation)]
+                &mut DACL_SECURITY_INFORMATION,
+                null_mut(),
+                0,
+                &mut needed_len,
+            ) == 0
+                && let Some(error) = io::Error::last_os_error().raw_os_error()
             {
                 match error as u32 {
                     winerror::ERROR_INSUFFICIENT_BUFFER => {
@@ -273,36 +271,42 @@ impl Sid {
 
             // TODO JB: fix this clippy
             #[allow(clippy::cast_ptr_alignment)]
-            cvt(GetUserObjectSecurity(handle,
-                                      #[allow(const_item_mutation)]
-                                      &mut DACL_SECURITY_INFORMATION,
-                                      sd.as_mut_ptr()
-                                      as PSECURITY_INFORMATION,
-                                      needed_len,
-                                      &mut needed_len))?;
+            cvt(GetUserObjectSecurity(
+                handle,
+                #[allow(const_item_mutation)]
+                &mut DACL_SECURITY_INFORMATION,
+                sd.as_mut_ptr() as PSECURITY_INFORMATION,
+                needed_len,
+                &mut needed_len,
+            ))?;
 
-            cvt(InitializeSecurityDescriptor(sd_new.as_mut_ptr()
-                                             as PSECURITY_DESCRIPTOR,
-                                             1))?; // SECURITY_DESCRIPTOR_REVISION
+            cvt(InitializeSecurityDescriptor(
+                sd_new.as_mut_ptr() as PSECURITY_DESCRIPTOR,
+                1,
+            ))?; // SECURITY_DESCRIPTOR_REVISION
 
             let pd: PSECURITY_DESCRIPTOR = sd.as_mut_ptr() as PSECURITY_DESCRIPTOR;
-            cvt(GetSecurityDescriptorDacl(pd,
-                                          &mut dacl_present,
-                                          &mut pacl,
-                                          &mut dacl_exist))?;
+            cvt(GetSecurityDescriptorDacl(
+                pd,
+                &mut dacl_present,
+                &mut pacl,
+                &mut dacl_exist,
+            ))?;
 
-            let mut size_info = ACL_SIZE_INFORMATION { aceCount:      0,
-                                                       aclBytesInUse: mem::size_of::<ACL>()
-                                                                      as DWORD,
-                                                       aclBytesFree:  0, };
+            let mut size_info = ACL_SIZE_INFORMATION {
+                aceCount: 0,
+                aclBytesInUse: mem::size_of::<ACL>() as DWORD,
+                aclBytesFree: 0,
+            };
             if !pacl.is_null() {
                 let mut acl_size_buf: Vec<u8> =
                     Vec::with_capacity(mem::size_of::<ACL_SIZE_INFORMATION>());
-                cvt(GetAclInformation(pacl,
-                                      acl_size_buf.as_mut_ptr() as LPVOID,
-                                      mem::size_of::<ACL_SIZE_INFORMATION>()
-                                      as DWORD,
-                                      2 /* AclSizeInformation */))?;
+                cvt(GetAclInformation(
+                    pacl,
+                    acl_size_buf.as_mut_ptr() as LPVOID,
+                    mem::size_of::<ACL_SIZE_INFORMATION>() as DWORD,
+                    2, /* AclSizeInformation */
+                ))?;
 
                 // TODO JB: fix this clippy
                 #[allow(clippy::cast_ptr_alignment)]
@@ -314,16 +318,18 @@ impl Sid {
 
             let psid_length = GetLengthSid(self.raw.as_ptr() as PSID);
             let new_acl_size = size_info.aclBytesInUse
-                               + (2 * (mem::size_of::<ACCESS_ALLOWED_ACE>() as DWORD))
-                               + (2 * psid_length)
-                               - (2 * (mem::size_of::<DWORD>() as DWORD));
+                + (2 * (mem::size_of::<ACCESS_ALLOWED_ACE>() as DWORD))
+                + (2 * psid_length)
+                - (2 * (mem::size_of::<DWORD>() as DWORD));
             let mut new_acl_buf: Vec<u8> = Vec::with_capacity(new_acl_size as usize);
 
             // TODO JB: fix this clippy
             #[allow(clippy::cast_ptr_alignment)]
-            cvt(InitializeAcl(new_acl_buf.as_mut_ptr() as PACL,
-                              new_acl_size,
-                              2 /* ACL_REVISION */))?;
+            cvt(InitializeAcl(
+                new_acl_buf.as_mut_ptr() as PACL,
+                new_acl_size,
+                2, /* ACL_REVISION */
+            ))?;
 
             if dacl_present == TRUE {
                 for i in 0..size_info.aceCount {
@@ -333,35 +339,41 @@ impl Sid {
                     // TODO JB: fix this clippy
                     #[allow(clippy::cast_ptr_alignment)]
                     #[allow(clippy::cast_lossless)]
-                    cvt(AddAce(new_acl_buf.as_mut_ptr() as PACL,
-                               2, // ACL_REVISION
-                               MAXDWORD,
-                               temp_acl,
-                               (*(temp_acl as PaceHeader)).aceSize as DWORD))?;
+                    cvt(AddAce(
+                        new_acl_buf.as_mut_ptr() as PACL,
+                        2, // ACL_REVISION
+                        MAXDWORD,
+                        temp_acl,
+                        (*(temp_acl as PaceHeader)).aceSize as DWORD,
+                    ))?;
                 }
             }
 
             // TODO JB: fix this clippy
             #[allow(clippy::cast_ptr_alignment)]
-            cvt(AddAccessAllowedAceEx(new_acl_buf.as_mut_ptr() as PACL,
-                                      2, // ACL_REVISION
-                                      ace_flags,
-                                      access_mask,
-                                      self.raw.as_ptr() as PSID))?;
+            cvt(AddAccessAllowedAceEx(
+                new_acl_buf.as_mut_ptr() as PACL,
+                2, // ACL_REVISION
+                ace_flags,
+                access_mask,
+                self.raw.as_ptr() as PSID,
+            ))?;
 
             // TODO JB: fix this clippy
             #[allow(clippy::cast_ptr_alignment)]
-            cvt(SetSecurityDescriptorDacl(sd_new.as_mut_ptr()
-                                          as PSECURITY_DESCRIPTOR,
-                                          TRUE,
-                                          new_acl_buf.as_mut_ptr() as PACL,
-                                          FALSE))?;
+            cvt(SetSecurityDescriptorDacl(
+                sd_new.as_mut_ptr() as PSECURITY_DESCRIPTOR,
+                TRUE,
+                new_acl_buf.as_mut_ptr() as PACL,
+                FALSE,
+            ))?;
 
-            cvt(SetUserObjectSecurity(handle,
-                                      #[allow(const_item_mutation)]
-                                      &mut DACL_SECURITY_INFORMATION,
-                                      sd_new.as_mut_ptr()
-                                      as PSECURITY_DESCRIPTOR))?;
+            cvt(SetUserObjectSecurity(
+                handle,
+                #[allow(const_item_mutation)]
+                &mut DACL_SECURITY_INFORMATION,
+                sd_new.as_mut_ptr() as PSECURITY_DESCRIPTOR,
+            ))?;
 
             Ok(())
         }
@@ -378,20 +390,27 @@ fn cvt(i: i32) -> io::Result<i32> {
 
 #[cfg(test)]
 mod tests {
-    use super::{super::account::Account,
-                *};
+    use super::{super::account::Account, *};
     use std::env;
 
     #[test]
     fn current_user_sid() {
         let current_sid = Sid::from_current_user();
         assert!(current_sid.is_ok());
-        assert_eq!(env::var("USERNAME").unwrap(),
-                   Account::from_sid(&current_sid.expect("current_sid")
-                                                 .to_string()
-                                                 .expect("sid to_string")).expect("account from \
-                                                                                   sid")
-                                                                          .name);
+        assert_eq!(
+            env::var("USERNAME").unwrap(),
+            Account::from_sid(
+                &current_sid
+                    .expect("current_sid")
+                    .to_string()
+                    .expect("sid to_string")
+            )
+            .expect(
+                "account from \
+                                                                                   sid"
+            )
+            .name
+        );
     }
 
     #[test]
@@ -418,13 +437,17 @@ mod tests {
         // Check the built in administrators account
         let admin_sid = Sid::built_in_administrators().expect("built_in_administrators");
         let admin_acct = Account::from_name("Administrators").expect("Administrators account");
-        assert_eq!(admin_sid.to_string().expect("sid to string"),
-                   admin_acct.sid.to_string().expect("acct sid to string"));
+        assert_eq!(
+            admin_sid.to_string().expect("sid to string"),
+            admin_acct.sid.to_string().expect("acct sid to string")
+        );
 
         // Check the system account
         let system_sid = Sid::local_system().expect("local system sid");
         let system_acct = Account::from_name("SYSTEM").expect("SYSTEM account");
-        assert_eq!(system_sid.to_string().expect("sid to string"),
-                   system_acct.sid.to_string().expect("system sid to string"));
+        assert_eq!(
+            system_sid.to_string().expect("sid to string"),
+            system_acct.sid.to_string().expect("system sid to string")
+        );
     }
 }

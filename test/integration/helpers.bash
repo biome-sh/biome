@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Common helper functions and setup code for Habitat BATS-based
+# Common helper functions and setup code for Biome BATS-based
 # testing.
 #
 # Every BATS test file should include the following line at the top;
@@ -15,14 +15,14 @@ load 'test_helper/bats-support/load'
 load 'test_helper/bats-assert/load'
 load 'test_helper/bats-file/load'
 
-# Point to our local hab binaries!
-if [ -z "${HAB_BIN_DIR}" ]; then
-    echo "Must set HAB_BIN_DIR variable to a location that contains hab, hab-sup, and hab-launch binaries!"
+# Point to our local bio binaries!
+if [ -z "${BIO_BIN_DIR}" ]; then
+    echo "Must set BIO_BIN_DIR variable to a location that contains bio, bio-sup, and bio-launch binaries!"
     exit 1
 fi
-hab="${HAB_BIN_DIR}/hab"
-export HAB_SUP_BINARY="${HAB_BIN_DIR}/hab-sup"
-export HAB_LAUNCH_BINARY="${HAB_BIN_DIR}/hab-launch"
+bio="${BIO_BIN_DIR}/bio"
+export BIO_SUP_BINARY="${BIO_BIN_DIR}/bio-sup"
+export BIO_LAUNCH_BINARY="${BIO_BIN_DIR}/bio-launch"
 
 # Ensure required utilities are present
 find_if_exists() {
@@ -49,9 +49,9 @@ assert_spec_not_exists_for() {
 # installed.
 #
 # This means that:
-# - the package has been cached into /hab/cache/artifacts
-# - the public signing key for the package has been cached in /hab/cache/keys
-# - the package has been unpacked into the appropriate directory in /hab/pkgs/
+# - the package has been cached into /bio/cache/artifacts
+# - the public signing key for the package has been cached in /bio/cache/keys
+# - the package has been unpacked into the appropriate directory in /bio/pkgs/
 #
 # Note that dependencies of the package are NOT checked in this
 # assertion. For that, see `assert_package_and_deps_installed` below.
@@ -71,7 +71,7 @@ assert_package_and_deps_installed() {
     local ident=${1}
     assert_package_installed "${ident}"
 
-    tdeps_file="/hab/pkgs/${ident}/TDEPS"
+    tdeps_file="/bio/pkgs/${ident}/TDEPS"
     if [ -e "${tdeps_file}" ]; then
         while IFS= read -r dep; do
             assert_package_installed "${dep}"
@@ -124,23 +124,23 @@ assert_spec_value() {
 ########################################################################
 
 start_supervisor() {
-    background "${hab}" run
+    background "${bio}" run
     retry 30 1 launcher_is_alive
 }
 
-# Some tests start up a Habitat Supervisor in the background. Call
+# Some tests start up a Biome Supervisor in the background. Call
 # this in a `teardown` function to ensure it is stopped before the
 # next test.
 stop_supervisor() {
     if launcher_is_alive ; then
-        pkill -F /hab/launcher/PID
+        pkill -F /bio/launcher/PID
         retry 30 1 launcher_is_not_alive
     fi
     launcher_is_not_alive
 }
 
-# Ensure a clean slate in `/hab` for each test
-reset_hab_root() {
+# Ensure a clean slate in `/bio` for each test
+reset_bio_root() {
     empty_artifact_cache
     empty_key_cache
     remove_all_services
@@ -150,27 +150,27 @@ reset_hab_root() {
 }
 
 empty_artifact_cache() {
-    rm -Rf /hab/cache/artifacts/*
+    rm -Rf /bio/cache/artifacts/*
 }
 
 empty_key_cache() {
-    rm -Rf /hab/cache/keys/*
+    rm -Rf /bio/cache/keys/*
 }
 
 remove_all_services() {
-    rm -Rf /hab/svc/*
+    rm -Rf /bio/svc/*
 }
 
 remove_installed_packages() {
-    rm -Rf /hab/pkgs/*
+    rm -Rf /bio/pkgs/*
 }
 
 reset_launcher() {
-    rm -Rf /hab/launcher/*
+    rm -Rf /bio/launcher/*
 }
 
 reset_supervisor() {
-    rm -Rf /hab/sup/*
+    rm -Rf /bio/sup/*
 }
 
 # Use this in your setup function to skip all but the indicated test.
@@ -257,7 +257,7 @@ background() {
 # alive.
 pid_of_service() {
     local service_name="${1}"
-    local pidfile="/hab/svc/${service_name}/PID"
+    local pidfile="/bio/svc/${service_name}/PID"
     if [ -e "${pidfile}" ]; then
         cat "${pidfile}"
     else
@@ -277,7 +277,7 @@ service_is_not_alive() {
 }
 
 launcher_is_alive() {
-    local pidfile="/hab/launcher/PID"
+    local pidfile="/bio/launcher/PID"
     if [ -e "${pidfile}" ]; then
         local pid
         pid=$(cat "${pidfile}")
@@ -291,14 +291,14 @@ launcher_is_not_alive() {
     ! launcher_is_alive
 }
 
-# Checks once a second to see if the Habitat-supervised service
+# Checks once a second to see if the Biome-supervised service
 # has is running yet.
 wait_for_service_to_run() {
     local service_name=${1}
     retry 30 1 service_is_alive "${service_name}"
 }
 
-# Checks once a second to see if the Habitat-supervised service
+# Checks once a second to see if the Biome-supervised service
 # has is died yet.
 wait_for_service_to_die() {
     local service_name=${1}
@@ -321,7 +321,7 @@ wait_for_service_to_restart() {
 
 current_running_version_for() {
     service_name=${1}
-    member_id=$(cat /hab/sup/default/MEMBER_ID)
+    member_id=$(cat /bio/sup/default/MEMBER_ID)
 
    ${curl} --silent http://localhost:9631/census | ${jq} -r '.census_groups."redis.default".population."'"${member_id}"'".pkg | (.origin + "/" +.name + "/" + .version + "/" + .release)'
 }
@@ -330,7 +330,7 @@ current_running_version_for() {
 # latest release of that package.
 #
 # Arguments:
-#    ${1}: a Habitat package identifier, i.e.
+#    ${1}: a Biome package identifier, i.e.
 #            - origin/package
 #            - origin/package/version
 #          Fully-qualified identifiers aren't supported in
@@ -362,7 +362,7 @@ latest_from_builder() {
     local package_name
     local version
 
-    url_base="https://bldr.habitat.sh/v1/depot"
+    url_base="https://bldr.biome.sh/v1/depot"
 
     # Generate an appropriate URL based on our input
     case "${#parsed[@]}" in
@@ -415,7 +415,7 @@ cached_artifact_for() {
     # Hard-coding this for now
     local platform="x86_64-linux"
 
-    local file="/hab/cache/artifacts/${origin}-${package_name}-${version}-${release}-${platform}.hart"
+    local file="/bio/cache/artifacts/${origin}-${package_name}-${version}-${release}-${platform}.hart"
 
     echo "${file}"
 }
@@ -426,23 +426,23 @@ cached_signing_key_for() {
     local key_name
     key_name=$(signing_key_name "${hart_file}")
 
-    echo "/hab/cache/keys/${key_name}.pub"
+    echo "/bio/cache/keys/${key_name}.pub"
 }
 
 # Given a fully-qualified identifier, returns the path to where the
 # package would be unpacked on disk.
 installation_directory_for() {
     local ident=${1}
-    echo "/hab/pkgs/${ident}"
+    echo "/bio/pkgs/${ident}"
 }
 
-# Given a fully-qualified identifier, use `hab` to retrieve the hart
+# Given a fully-qualified identifier, use `bio` to retrieve the hart
 # file for it and place it into `$BATS_TMPDIR`, returning the full
 # path to the hart file.
 download_hart_for() {
     ident=${1}
 
-    run "${hab}" pkg install "${ident}"
+    run "${bio}" pkg install "${ident}"
     assert_success
 
     cached_artifact=$(cached_artifact_for "${ident}")
@@ -455,13 +455,13 @@ download_hart_for() {
 # Returns the directory that the named service has should have.
 service_directory_for() {
     local service_name=${1}
-    echo "/hab/svc/${service_name}"
+    echo "/bio/svc/${service_name}"
 }
 
 # Returns the path to the named service's spec file.
 spec_file_for() {
     local service_name=${1}
-    echo "/hab/sup/default/specs/${service_name}.spec"
+    echo "/bio/sup/default/specs/${service_name}.spec"
 }
 
 

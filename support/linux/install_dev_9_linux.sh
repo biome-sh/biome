@@ -35,15 +35,15 @@ rustc --version
 cargo --version
 
 if command -v useradd > /dev/null; then
-  sudo -E useradd --system --no-create-home hab || true
+  sudo -E useradd --system --no-create-home bio || true
 else
-  sudo -E adduser --system hab || true
+  sudo -E adduser --system bio || true
 fi
 if command -v groupadd > /dev/null; then
-  sudo -E groupadd --system hab || true
+  sudo -E groupadd --system bio || true
 else
-  sudo -E addgroup --system hab || true
+  sudo -E addgroup --system bio || true
 fi
 
-sudo ./components/hab/install.sh
-sudo HAB_LICENSE="accept-no-persist" hab pkg install core/busybox-static chef/hab-studio
+sudo ./components/bio/install.sh
+sudo BIO_LICENSE="accept-no-persist" bio pkg install core/busybox-static biome/bio-studio

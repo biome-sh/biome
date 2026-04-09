@@ -90,11 +90,11 @@ _render_metadata_FILES() {
   # shellcheck disable=2154
   find "$pkg_prefix" -type f \
     | sort \
-    | $HAB_BIN pkg hash > "${pkg_name}"_blake2bsums
+    | $BIO_BIN pkg hash > "${pkg_name}"_blake2bsums
 
   build_line "Generating signed metadata FILES"
   # shellcheck disable=2154
-  $HAB_BIN pkg sign --origin "$pkg_origin" "${pkg_name}"_blake2bsums "$pkg_prefix"/FILES
+  $BIO_BIN pkg sign --origin "$pkg_origin" "${pkg_name}"_blake2bsums "$pkg_prefix"/FILES
   popd || exit
 }
 
@@ -222,7 +222,7 @@ _render_metadata_RUNTIME_PATH(){
 
     # **Internal**  Backwards Compatibility: Set the `PATH` key for the runtime
     # environment if a computed runtime path is necessary which will be used by
-    # Habitat releases between 0.50.0 (released 2017-11-30) and up to including
+    # Biome releases between 0.50.0 (released 2017-11-30) and up to including
     # 0.55.0 (released 2018-03-20). All future releases will ignore the `PATH`
     # entry in favor of using the `RUNTIME_PATH` metadata file.
     # shellcheck disable=2034
@@ -341,7 +341,7 @@ _render_dependency_metadata_file() {
   local metadata_file_name=${2}
   declare -n arr=${3}
 
-  local cutn="$(($(echo "$HAB_PKG_PATH" | grep -o '/' | wc -l)+2))"
+  local cutn="$(($(echo "$BIO_PKG_PATH" | grep -o '/' | wc -l)+2))"
   local deps
 
   deps="$(printf '%s\n' "${arr[@]}" \

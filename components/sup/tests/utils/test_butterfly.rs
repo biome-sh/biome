@@ -4,14 +4,14 @@
 //!
 //! No ring key or encryption abilities are currently supported.
 
-use anyhow::{Context,
-             Result};
-use habitat_butterfly::client::Client as ButterflyClient;
-use habitat_core::service::ServiceGroup;
-use std::{net::SocketAddr,
-          str,
-          time::{SystemTime,
-                 UNIX_EPOCH}};
+use anyhow::{Context, Result};
+use biome_butterfly::client::Client as ButterflyClient;
+use biome_core::service::ServiceGroup;
+use std::{
+    net::SocketAddr,
+    str,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 pub struct Client {
     butterfly_client: ButterflyClient,
@@ -19,13 +19,14 @@ pub struct Client {
 
 impl Client {
     pub fn new(port: u16) -> Result<Client> {
-        let gossip_addr =
-            format!("127.0.0.1:{}", port).parse::<SocketAddr>()
-                                         .context("Could not parse Butterfly gossip address!")?;
-        let butterfly_client =
-            ButterflyClient::new(&gossip_addr.to_string(), None).context("Could not create \
+        let gossip_addr = format!("127.0.0.1:{}", port)
+            .parse::<SocketAddr>()
+            .context("Could not parse Butterfly gossip address!")?;
+        let butterfly_client = ButterflyClient::new(&gossip_addr.to_string(), None).context(
+            "Could not create \
                                                                           Butterfly Client for \
-                                                                          test!")?;
+                                                                          test!",
+        )?;
         Ok(Client { butterfly_client })
     }
 
@@ -35,26 +36,27 @@ impl Client {
     ///
     /// A time-based incarnation value is automatically used,
     /// resulting in less clutter in your tests.
-    pub fn apply(&mut self,
-                 package_name: &str,
-                 service_group: &str,
-                 applied_config: &str)
-                 -> Result<()> {
+    pub fn apply(
+        &mut self,
+        package_name: &str,
+        service_group: &str,
+        applied_config: &str,
+    ) -> Result<()> {
         let config = applied_config.to_string();
         let config = config.as_bytes();
 
         // Validate the TOML, to save you from typos in your tests
-        toml::de::from_str::<toml::value::Value>(str::from_utf8(config).unwrap()).with_context(|| {
-                                                              format!("Invalid TOML: {}",
-                                                                      applied_config)
-                                                          })?;
+        toml::de::from_str::<toml::value::Value>(str::from_utf8(config).unwrap())
+            .with_context(|| format!("Invalid TOML: {}", applied_config))?;
 
         let incarnation = Self::new_incarnation()?;
         self.butterfly_client
-            .send_service_config(ServiceGroup::new(package_name, service_group, None).unwrap(),
-                                 incarnation,
-                                 config,
-                                 false)
+            .send_service_config(
+                ServiceGroup::new(package_name, service_group, None).unwrap(),
+                incarnation,
+                config,
+                false,
+            )
             .context("Cannot send the service configuration")?;
         Ok(())
     }

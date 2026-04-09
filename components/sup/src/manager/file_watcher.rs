@@ -1,12 +1,12 @@
 use crate::error::Result;
-use habitat_common::liveliness_checker;
+use biome_common::liveliness_checker;
 
-use std::{fmt::Debug,
-          path::{Path,
-                 PathBuf},
-          thread,
-          time::{Duration,
-                 SystemTime}};
+use std::{
+    fmt::Debug,
+    path::{Path, PathBuf},
+    thread,
+    time::{Duration, SystemTime},
+};
 
 #[allow(unused)]
 pub const WATCHER_DELAY_MS: u64 = 2_000;
@@ -15,11 +15,11 @@ pub const WATCHER_DELAY_MS: u64 = 2_000;
 /// WatchedFile bundles data together concerning the file that is to be watched.
 struct WatchedFile {
     /// The file that is to be watched.
-    path:   PathBuf,
+    path: PathBuf,
     /// Did the file we are watching exist the last time we looked?
     exists: bool,
     /// The modification time captured the last time we needed to check.
-    mtime:  Option<SystemTime>,
+    mtime: Option<SystemTime>,
 }
 
 impl WatchedFile {
@@ -31,12 +31,16 @@ impl WatchedFile {
             None
         };
         let path = path.to_path_buf();
-        Ok(Self { path,
-                  exists,
-                  mtime })
+        Ok(Self {
+            path,
+            exists,
+            mtime,
+        })
     }
 
-    pub fn assess_existence(&self) -> bool { self.path.is_file() }
+    pub fn assess_existence(&self) -> bool {
+        self.path.is_file()
+    }
 
     pub fn read_mtime(&self) -> Option<SystemTime> {
         match std::fs::metadata(&self.path) {
@@ -79,9 +83,9 @@ pub trait Callbacks {
 #[derive(Debug)]
 pub struct FileWatcher<C: Callbacks> {
     /// The Callback implementation to be used by this FileWatcher instance.
-    callbacks:          C,
+    callbacks: C,
     /// Data about the file path we are be watching
-    watched_file:       WatchedFile,
+    watched_file: WatchedFile,
     /// Used to signal if an initial Callbacks::file_appeared should be sent
     /// when creating the watched file.  The file must exist on the file system
     /// and this must be set true.  After the first execution this value will
@@ -95,9 +99,11 @@ impl<C: Callbacks> FileWatcher<C> {
     /// first loop will emit an initial "file_appeared" event.
     pub fn new(path: &Path, callbacks: C, ignore_initial: bool) -> Result<Self> {
         let watched_file = WatchedFile::new(path)?;
-        Ok(Self { callbacks,
-                  watched_file,
-                  send_initial_event: !ignore_initial })
+        Ok(Self {
+            callbacks,
+            watched_file,
+            send_initial_event: !ignore_initial,
+        })
     }
 
     /// The run loop for FileWatcher instances.
@@ -329,8 +335,10 @@ mod tests {
                 }
 
                 assert_eq!(1, fw.callbacks.callback_type_count(Appeared));
-                assert_eq!(1,
-                           fw.callbacks.path_instance_count(&descendent_watched_file));
+                assert_eq!(
+                    1,
+                    fw.callbacks.path_instance_count(&descendent_watched_file)
+                );
 
                 fs::remove(&descendent_watched_file)?;
                 fs::remove(&descendent_dir)?;
@@ -982,10 +990,10 @@ mod tests {
         #[test]
         #[allow(clippy::cognitive_complexity)]
         // This unit test approximates an issue discovered via manual testing on Windows.
-        // * deploy a service in habitat
+        // * deploy a service in biome
         // * see that the user.toml is present and in effect
         // * rename the user.toml file to user.tuml
-        // * see that Habitat begins to use the default configuration
+        // * see that Biome begins to use the default configuration
         // * delete the config directory that user.toml (would) live in
         // * recreate the config directory
         // * recreate the user.toml file
@@ -1073,13 +1081,15 @@ mod tests {
         }
     }
 
-    habitat_core::locked_env_var!(HAB_STUDIO_HOST_ARCH, lock_env_var);
+    biome_core::locked_env_var!(BIO_STUDIO_HOST_ARCH, lock_env_var);
 
     const TEST_SLEEP_MILLIS: u64 = 10;
 
     type Tfw = FileWatcher<TestCallbacks>;
 
-    fn sleep_well() { thread::sleep(Duration::from_millis(TEST_SLEEP_MILLIS)); }
+    fn sleep_well() {
+        thread::sleep(Duration::from_millis(TEST_SLEEP_MILLIS));
+    }
 
     const MAX_TEST_ATTEMPTS: u8 = 4;
 
@@ -1090,9 +1100,7 @@ mod tests {
         Disappeared,
     }
 
-    use CallbackType::{Appeared,
-                       Disappeared,
-                       Modified};
+    use CallbackType::{Appeared, Disappeared, Modified};
     #[derive(Debug, Default)]
     struct TestCallbacks {
         type_occurrences: MultiMap<CallbackType, PathBuf>,
@@ -1100,9 +1108,13 @@ mod tests {
     }
 
     impl Callbacks for TestCallbacks {
-        fn file_appeared(&mut self, real_path: &Path) { self.capture_callback(Appeared, real_path) }
+        fn file_appeared(&mut self, real_path: &Path) {
+            self.capture_callback(Appeared, real_path)
+        }
 
-        fn file_modified(&mut self, real_path: &Path) { self.capture_callback(Modified, real_path) }
+        fn file_modified(&mut self, real_path: &Path) {
+            self.capture_callback(Modified, real_path)
+        }
 
         fn file_disappeared(&mut self, real_path: &Path) {
             self.capture_callback(Disappeared, real_path)
@@ -1134,12 +1146,13 @@ mod tests {
 
     mod fs {
         use super::*;
-        use std::{fs::File,
-                  io,
-                  io::Write,
-                  path::{Component,
-                         Path},
-                  process::Command};
+        use std::{
+            fs::File,
+            io,
+            io::Write,
+            path::{Component, Path},
+            process::Command,
+        };
 
         /// Creates and syncs a file. The containing directory shuold exist before calling.
         pub fn create_file(path: &Path) -> io::Result<File> {
@@ -1150,7 +1163,9 @@ mod tests {
 
         /// Create a directory.  This is assumes "a complete path" from root to final directory.
         /// This function creates intermediate directories.
-        pub fn create_dir(path: &Path) -> io::Result<()> { std::fs::create_dir_all(path) }
+        pub fn create_dir(path: &Path) -> io::Result<()> {
+            std::fs::create_dir_all(path)
+        }
 
         /// if the path passed in
         pub fn remove(path: &Path) -> io::Result<()> {
@@ -1173,7 +1188,9 @@ mod tests {
             Ok(file)
         }
 
-        pub fn make_uniq(s: &str) -> String { format!("{}-{}", s, uuid::Uuid::new_v4()) }
+        pub fn make_uniq(s: &str) -> String {
+            format!("{}-{}", s, uuid::Uuid::new_v4())
+        }
 
         pub fn make_relative_to_tempdir(path: &Path) -> Result<PathBuf> {
             let current_dir = std::env::current_dir()?;
@@ -1200,10 +1217,11 @@ mod tests {
             #[cfg(not(windows))]
             let status = Command::new("mv").arg(from).arg(to).status()?;
             #[cfg(windows)]
-            let status = Command::new("powershell.exe").arg("Move-Item")
-                                                       .arg(from)
-                                                       .arg(to)
-                                                       .status()?;
+            let status = Command::new("powershell.exe")
+                .arg("Move-Item")
+                .arg(from)
+                .arg(to)
+                .status()?;
             if status.success() {
                 Ok(())
             } else {

@@ -1,8 +1,8 @@
 [package]
-name = "habitat_butterfly"
+name = "biome_butterfly"
 version = "0.1.0"
 edition = "2024"
-authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+authors = ["The Biome Maintainers <humans@biome.sh>"]
 build = "build.rs"
 workspace = "../../"
 
@@ -16,8 +16,8 @@ doc = false
 byteorder = "*"
 bytes = "*"
 env_logger = "*"
-habitat_common = { path = "../common" }
-habitat_core = { path = "../core" }
+biome_common = { path = "../common" }
+biome_core = { path = "../core" }
 lazy_static = "*"
 log = "0.4"
 parking_lot = "*"
@@ -43,6 +43,6 @@ prost-build = "*"
 
 [features]
 default = []
-lock_as_rwlock = ["habitat_common/lock_as_rwlock"]
-lock_as_mutex = ["habitat_common/lock_as_mutex"]
-deadlock_detection = ["parking_lot/nightly", "parking_lot/deadlock_detection", "habitat_common/deadlock_detection"]
+lock_as_rwlock = ["biome_common/lock_as_rwlock"]
+lock_as_mutex = ["biome_common/lock_as_mutex"]
+deadlock_detection = ["parking_lot/nightly", "parking_lot/deadlock_detection", "biome_common/deadlock_detection"]

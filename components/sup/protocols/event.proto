@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package chef.habitat.supervisor.event;
+package biome.biome.supervisor.event;
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
@@ -23,7 +23,7 @@ message ServiceMetadata {
   // running.
   string package_ident = 1;
   // This is the identifier the service was loaded with (e.g., the
-  // `core/redis` in `hab svc load core/redis`). While it _can_ be a
+  // `core/redis` in `bio svc load core/redis`). While it _can_ be a
   // fully-qualified package identifier, it is more commonly a 2- or
   // 3-part identifier variant.
   string spec_ident = 2;

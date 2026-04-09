@@ -1,11 +1,11 @@
-hab pkg install core/nginx --channel stable
-hab pkg install core/windows-service
+bio pkg install core/nginx --channel stable
+bio pkg install core/windows-service
 
-Describe "Clean Habitat Shutdown" {
-    Start-Service Habitat
-    hab pkg install core/nginx
+Describe "Clean Biome Shutdown" {
+    Start-Service Biome
+    bio pkg install core/nginx
     Wait-Supervisor -Timeout 45
-    hab svc load core/nginx
+    bio svc load core/nginx
     Wait-SupervisorService nginx -Timeout 20
     It "Starts running nginx" {
         # This will error with a 403 because nginx is not running any sites
@@ -14,9 +14,9 @@ Describe "Clean Habitat Shutdown" {
         [string]$headers.Server | Should -BeLike "nginx/*"
     }
     It "Stops all processes" {
-        Stop-Service Habitat
-        Get-Process hab-sup -ErrorAction SilentlyContinue | Should -Be $null
-        Get-Process hab-launch -ErrorAction SilentlyContinue | Should -Be $null
+        Stop-Service Biome
+        Get-Process bio-sup -ErrorAction SilentlyContinue | Should -Be $null
+        Get-Process bio-launch -ErrorAction SilentlyContinue | Should -Be $null
         Get-Process nginx -ErrorAction SilentlyContinue | Should -Be $null
     }
 }

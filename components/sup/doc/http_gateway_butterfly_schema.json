@@ -55,7 +55,7 @@
       "type": "object"
     }
   },
-  "description": "Schema for all the data the Habitat supervisor makes available at the /butterfly HTTP API endpoint",
+  "description": "Schema for all the data the Biome supervisor makes available at the /butterfly HTTP API endpoint",
   "properties": {
     "departed_members": {
       "description": "A list of member IDs that are departed",

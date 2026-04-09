@@ -1,22 +1,22 @@
 use crate::build::BasePkgIdents;
 use anyhow::Result;
-use habitat_common::package_graph::PackageGraph;
-use habitat_core::package::{FullyQualifiedPackageIdent,
-                            PackageIdent};
+use biome_common::package_graph::PackageGraph;
+use biome_core::package::{FullyQualifiedPackageIdent, PackageIdent};
 use linked_hash_map::LinkedHashMap;
 use std::path::Path;
 
 pub(crate) struct Graph {
-    g:    PackageGraph,
+    g: PackageGraph,
     base: BasePkgIdents,
     user: Vec<FullyQualifiedPackageIdent>,
 }
 
 impl Graph {
-    pub(crate) fn from_packages(base: BasePkgIdents,
-                                user: Vec<FullyQualifiedPackageIdent>,
-                                rootfs: &Path)
-                                -> Result<Graph> {
+    pub(crate) fn from_packages(
+        base: BasePkgIdents,
+        user: Vec<FullyQualifiedPackageIdent>,
+        rootfs: &Path,
+    ) -> Result<Graph> {
         let g = PackageGraph::from_root_path(rootfs)?;
         Ok(Graph { g, base, user })
     }
@@ -40,7 +40,7 @@ impl Graph {
             idents.push(busybox.as_ref().clone());
         }
         idents.push(self.base.launcher.as_ref().clone());
-        idents.push(self.base.hab.as_ref().clone());
+        idents.push(self.base.bio.as_ref().clone());
         idents.push(self.base.sup.as_ref().clone());
         idents.push(self.base.cacerts.as_ref().clone());
         idents
@@ -115,7 +115,9 @@ mod tests {
     /// accessible via function invocation.
     macro_rules! pkg {
         ($fn_name:ident, $ident_str:expr) => {
-            fn $fn_name() -> PackageIdent { $ident_str.parse().unwrap() }
+            fn $fn_name() -> PackageIdent {
+                $ident_str.parse().unwrap()
+            }
         };
     }
 
@@ -127,8 +129,8 @@ mod tests {
         };
     }
 
-    // These are all the packages needed for hab, hab-sup,
-    // hab-launcher and redis
+    // These are all the packages needed for bio, bio-sup,
+    // bio-launcher and redis
 
     // These are the packages that go into every container (well,
     // specific *releases* of those packages, for the purpose of
@@ -136,9 +138,9 @@ mod tests {
     //
     // Yes, these are properly all FullyQualifiedPackageIdents, but
     // the PackageGraph doesn't yet handle those.
-    pkg!(hab, "chef/hab/1.5.71/20200318171932");
-    pkg!(sup, "chef/hab-sup/1.5.71/20200318174937");
-    pkg!(launcher, "chef/hab-launcher/13458/20200318174911");
+    pkg!(bio, "biome/bio/1.5.71/20200318171932");
+    pkg!(sup, "biome/bio-sup/1.5.71/20200318174937");
+    pkg!(launcher, "biome/bio-launcher/13458/20200318174911");
     pkg!(busybox, "core/busybox-static/1.29.2/20190115014552");
     pkg!(cacerts, "core/cacerts/2018.12.05/20190115014206");
 
@@ -158,8 +160,8 @@ mod tests {
     fn test_graph() -> Graph {
         let mut graph = PackageGraph::default();
 
-        // hab, busybox, and cacerts have no dependencies
-        graph.extend(&hab(), &[]);
+        // bio, busybox, and cacerts have no dependencies
+        graph.extend(&bio(), &[]);
         graph.extend(&busybox(), &[]);
         graph.extend(&cacerts(), &[]);
 
@@ -175,17 +177,21 @@ mod tests {
         // User package and its dependencies
         graph.extend(&redis(), &[glibc()]);
 
-        let base = BasePkgIdents { hab:      fqpi!(hab()),
-                                   sup:      fqpi!(sup()),
-                                   launcher: fqpi!(launcher()),
-                                   busybox:  Some(fqpi!(busybox())),
-                                   cacerts:  fqpi!(cacerts()), };
+        let base = BasePkgIdents {
+            bio: fqpi!(bio()),
+            sup: fqpi!(sup()),
+            launcher: fqpi!(launcher()),
+            busybox: Some(fqpi!(busybox())),
+            cacerts: fqpi!(cacerts()),
+        };
 
         let user = vec![fqpi!(redis())];
 
-        Graph { base,
-                user,
-                g: graph }
+        Graph {
+            base,
+            user,
+            g: graph,
+        }
     }
 
     #[test]
@@ -193,22 +199,24 @@ mod tests {
         let g = test_graph();
 
         let actual_deps = g.reverse_topological_sort();
-        let expected_deps = [// busybox
-                             busybox(),
-                             // launcher
-                             linux_headers(),
-                             gcc_libs(),
-                             glibc(),
-                             launcher(),
-                             // hab
-                             hab(),
-                             // sup
-                             libsodium(),
-                             zeromq(),
-                             sup(),
-                             // user package(s)
-                             cacerts(),
-                             redis()];
+        let expected_deps = [
+            // busybox
+            busybox(),
+            // launcher
+            linux_headers(),
+            gcc_libs(),
+            glibc(),
+            launcher(),
+            // bio
+            bio(),
+            // sup
+            libsodium(),
+            zeromq(),
+            sup(),
+            // user package(s)
+            cacerts(),
+            redis(),
+        ];
 
         assert_eq!(actual_deps, expected_deps);
     }

@@ -1,8 +1,8 @@
-Habitat Multi-Supervisor Testing Scenarios
+Biome Multi-Supervisor Testing Scenarios
 ==========================================
 
 Each directory in `testcases` is an individual test. Each test defines
-its own isolated Docker network of peered Habitat Supervisors. One
+its own isolated Docker network of peered Biome Supervisors. One
 container in the network is not running a Supervisor, but is instead a
 "test container"; consider this to be a workstation within the network
 that is issuing commands to the Supervisors and making assertions on
@@ -23,9 +23,9 @@ To run all test cases:
 ./run_all.sh <NAME_OF_CHANNEL>
 ```
 
-This will build all the containers containing `chef/hab`,
-`chef/hab-sup`, and `chef/hab-launcher` packages from the specified
-channel in https://bldr.habitat.sh
+This will build all the containers containing `biome/bio`,
+`biome/bio-sup`, and `biome/bio-launcher` packages from the specified
+channel in https://bldr.biome.sh
 
 For additional background, read the comments in the files in this
 directory.
