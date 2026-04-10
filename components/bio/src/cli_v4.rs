@@ -58,7 +58,7 @@ use plan::PlanCommand;
 #[derive(Debug, Clone, Parser)]
 #[command(name = "bio",
             version = VERSION,
-            about = "Patents: https://biome.sh/patents\n\"A Biome is the natural environment for your services\" - Alan Turing",
+            about = "🌱 Biome — the natural habitat for your services\n🔥 Because it works on my machine. And on yours. And in prod",
             author = "\nThe Biome Maintainers <humans@biome.sh>",
             arg_required_else_help = true,
             propagate_version = true,
