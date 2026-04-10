@@ -1,0 +1,124 @@
+---
+
+# Most uniq patterns should go first
+# !!! ORDER IS IMPORTANT !!!
+
+# This is un-fork forkman configuration: aggressive replace
+patterns:
+  # Coincidence
+  reachable: reachable
+  alphabet: alphabet
+  searchable: searchable
+  dispatchable: dispatchable
+
+  'Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.': 'Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.'
+  Progress Software Corporation: Biome Community
+  Progress Chef Habitat: Biome
+  Progress Chef: Biome Community
+
+  Chef Software Inc: Biome Community
+  Chef License Acceptance: Biome License Acceptance
+  Chef Habitat: Biome
+  Chef Automate: Cinc Automate
+  Chef Infra Client: Cinc Client
+  Chef InSpec: Cinc Auditor
+  docs-chef-io: docs-biome-sh
+  docs.chef.io/habitat: docs.biome.sh
+  www.chef.io: biome.sh
+  chef.io: biome.sh
+  github.com/chef/license-acceptance: github.com/biome-sh/biome
+
+  habicat: biocat
+  The Habitat Maintainers: The Biome Maintainers
+  www.habitat.sh/docs: docs.biome.sh
+  www.habitat.sh/blog: www.habitat.sh/blog
+  github.com/habitat-sh/habitat/issues: github.com/habitat-sh/habitat/issues
+  humans@habitat.sh: humans@biome.sh
+
+  # Async support in fork
+  github.com/habitat-sh/retry: github.com/habitat-sh/retry
+  # Legacy
+  github.com/habitat-sh/rants: github.com/habitat-sh/rants
+
+
+  # Unfortunately docker image constants are different
+  'FROM habitat-${PACKAGE_TARGET}:hab-base as hab': 'FROM biomesh/bio-${PACKAGE_TARGET}:${BIO_VERSION} as bio'
+  'const DOCKER_IMAGE: &str = "habitat/default-studio"': 'const DOCKER_IMAGE: &str = "biomesh/default-studio"'
+  'const DOCKER_WINDOWS_IMAGE: &str = "habitat/win-studio"': 'const DOCKER_WINDOWS_IMAGE: &str = "biomesh/win-studio"'
+  habitat/devshell: biomesh/devshell
+
+
+  # Do not ask for license in cli
+  'license::accept_license(ui)?;': ''
+  'if license_exists() ': 'if true '
+  'license::check_for_license_acceptance_and_prompt(ui)?;': ''
+
+  'default has the uid `42` and the gid `42`': 'default has the uid `69` and the gid `69`'
+  ':x:42:42:': ':x:69:69:'
+  ':x:42:': ':x:69:'
+
+  'const DEFAULT_BIO_UID: u32 = 84;': 'const DEFAULT_BIO_UID: u32 = 138;'
+  'const DEFAULT_BIO_GID: u32 = 84;': 'const DEFAULT_BIO_GID: u32 = 138;'
+
+
+  # Should be final
+  Chef: Biome
+  chef: biome
+  CHEF: BIOME
+
+  Habitat: Biome
+  habitat: biome
+  HABITAT: BIOME
+
+  Hab: Bio
+  hab: bio
+  HAB: BIO
+
+
+# Delete some files which safe to ignore
+deletes:
+  - .expeditor
+  - .github
+  - .vscode
+  - .bldr.toml
+  - .mailmap
+  - .mention-bot
+  - .rustfmt.toml
+  - .gitmodules
+  - BUILDING.md
+  - CHANGELOG-before-2.x.md
+  - CHANGELOG.md
+  - CODE_OF_CONDUCT.md
+  - CONTRIBUTING.md
+  - END_TO_END_TESTING.md
+  - Hab2.0_Getting_Started.md
+  - MAC_BOOTSTRAPPER_VERSION
+  - RUSTFMT_VERSION
+  - RUST_NIGHTLY_VERSION
+  - RELEASE.md
+  - SECURITY.md
+  - UX_PRINCIPLES.md
+  - VERIFICATION_TESTING.md
+  - e2e_env
+  - e2e_local.ps1
+  - e2e_local_raw_command.sh
+  - e2e_local.sh
+  - run-bats.sh
+  - rust-toolchain
+  - sonar-project.properties
+  - components/hab/install.sh
+  - components/hab/install.ps1
+  - components/hab/migrate.sh
+  - components/hab/migrate.ps1
+  - components/hab/win/chocolateyinstall.ps1
+  - components/hab/win/habitat.nuspec
+  - components/hab/tests/test_install_script.ps1
+  - components/hab/tests/test_install_script.bats
+
+# Excludes from patching contents
+excludes:
+  - Cargo.lock
+  - COPYRIGHT.md
+  - NOTICES.txt
+  - components/core/tests/fixtures/unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart
+  - components/core/tests/fixtures/happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart
