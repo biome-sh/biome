@@ -1,157 +1,28 @@
-[![Build Status](https://badge.buildkite.com/f527cd3d7851756ed1a5f6ec463dd41e7145f7941fd932672a.svg)](https://buildkite.com/biome/biome-sh-biome-master-verify?branch=master)
-[![Discourse status](https://img.shields.io/discourse/https/meta.discourse.org/status.svg?style=flat)](https://forums.biome.sh)
-[![Open Source Helpers](https://www.codetriage.com/biome-sh/biome/badges/users.svg)](https://www.codetriage.com/biome-sh/biome)
+# Overview
 
+This repo is community distro of [Chef Habitat Application Automation](https://github.com/habitat-sh/habitat).
 
+It was generated from original using small tool [ForkMan](https://github.com/jsirex/forkman).
 
-[Biome](http://biome.sh) is open source software that creates platform-independent build artifacts and provides built-in deployment and management capabilities.
+## Backporting changes
 
-The goal of Biome is to allow you to automate your application behavior when you create your application, and then bundle your application with the automation it needs to behave with the correct run time behavior, update strategies, failure handling strategies, and scaling behavior, wherever you choose to deploy it.
+Here is how can you proceed:
 
-See a quick demo of how to build, deploy and manage an application with Biome:
+1. Install `forkman` biome/habitat package: `bio pkg install -fb jsirex/forkman`
+2. Clone this project
+3. Update and **commit** [Forkman Configuration File](.forkman.yaml)
+4. Add `habitat` repo as remote: `git remote add habitat https://github.com/habitat-sh/habitat.git`
+5. Fetch latest changes: `git fetch habitat master`
+6. Make sure you have up to date with `origin/forkman-raw` `forkman-raw` branch.
+7. Patch project with  `forkman-patch-git -u habitat/master`
+8. **Avoid** manual **changing** of `forkman-raw` branch, because new run will override it.
+9. Create new branch from `origin/master` and try to merge `forkman-raw`.
+10. If you satisfied with forkmans' job push changes / create PR for your branch and `forkman-raw` branch.
+11. If after all you still need some manual fixes related directly to biome, do it as you do with regular project - send a PR.
 
-[![Build, Deploy and Manage with Biome (5:33)](images/overview-youtube-image.jpg)](http://www.youtube.com/watch?v=VW1DwDezlqM)
+It is highly recommended to not change code by hand because it requires effort for further support.
+If it is possible to update `forkman`s' dictionary - update dictionary.
 
-# Table of Contents
-* [Diagrams](#diagrams)
-* [Training](#training)
-* [Install](#install)
-* [Contribute](#contribute)
-* [Documentation](#documentation)
-* [Code Organization](#code-organization)
-* [Roadmap](#roadmap)
-* [Community and support](#community-and-support)
-* [Building](#building)
-* [Native](#native-packages)
-* [Further reference material](#further-reference-material)
-* [Code of Conduct](#code-of-conduct)
-* [License](#license)
+# Contributing
 
-## Diagrams
-Graphics that will help you and your team better understand the concepts and how they fit together into the larger Biome ecosystem.
-### Where Biome Fits
-
-[![Biome Flow Infographic](https://github.com/biome-sh/biome/raw/main/images/biome-flow-infographic.png)](http://biome.sh#reference-diagram)
-
-Try the interactive infographics on the [website](http://biome.sh#reference-diagram)!
-
-### How Biome Works
-* [Architecture Overview](https://github.com/biome-sh/biome/raw/main/images/biome-architecture-overview.png)
-* [Initial Package Build Flow](https://github.com/biome-sh/biome/raw/main/images/biome-initial-package-build-flow.png)
-* [Application Rebuild Flow](https://github.com/biome-sh/biome/raw/main/images/biome-application-rebuild-flow.png)
-* [Dependency Update Flow](https://github.com/biome-sh/biome/raw/main/images/biome-dependency-update-flow.png)
-* [Promote Packages Through Channels](https://github.com/biome-sh/biome/raw/main/images/biome-promote-packages-through-channels.png)
-
-### Biome and **Docker**
-* [Initial Docker Container Publishing Flow](https://github.com/biome-sh/biome/raw/main/images/biome-initial-docker-container-publishing-flow.png)
-* [Automated Docker Container Publishing Flow](https://github.com/biome-sh/biome/raw/main/images/biome-automated-docker-container-publishing-flow.png)
-
-*View all diagrams in [Docs](https://docs.biome.sh/diagrams/)*
-
-## Training
-*View all demos and tutorials in [Learn](https://www.biome.sh/learn/)*
-
-
-## Install
-
-You can download Biome from the [Biome downloads page](https://docs.biome.sh/install_biome).
-
-Once you have downloaded it, follow the instructions on the page for your specific operating system.
-
-If you are running macOS and use [Homebrew](https://brew.sh), you can use our official [Homebrew tap](https://github.com/biome-sh/homebrew-biome).
-```
-$ brew tap biome-sh/biome
-$ brew install bio
-```
-
-If you are running Windows and use [Chocolatey](https://chocolatey.org), you can install our [chocolatey package](https://chocolatey.org/packages/biome)
-```
-C:\> choco install biome
-```
-
-If you do _not_ run Homebrew or Chocolatey, or if you use Linux, you can use the Biome [install.sh](https://github.com/biome-sh/biome/blob/main/components/bio/install.sh) or [install.ps1](https://github.com/biome-sh/biome/blob/main/components/bio/install.ps1) script.
-
-Bash:
-```
-$ curl https://raw.githubusercontent.com/biome-sh/biome/main/components/bio/install.sh | sudo bash
-```
-
-Powershell:
-```
-C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
-C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/biome-sh/biome/main/components/bio/install.ps1'))
-```
-
-## Contribute
-
-We are always looking for more opportunities for community involvement. Interested in contributing? Check out our [CONTRIBUTING.md](CONTRIBUTING.md) to get started!
-
-## Documentation
-
-Get started with the [Biome tutorials](https://www.biome.sh/learn/) or plunge into the [complete documentation](https://docs.biome.sh/).
-
-## Code Organization
-
-### Core Plans
-
-The Biome plans that are built and maintained by Biome's Core Team are in [their own repo.](https://github.com/biome-sh/core-plans)
-
-### Biome Supervisor and other core components
-
-The code for the Biome Supervisor and other core components are in the [components directory](https://github.com/biome-sh/biome/tree/main/components).
-
-### Docs
-
-Biome's website and documentation source is located in the `www` directory of the Biome source code. See [its README](www/README.md) for more information.
-
-## Roadmap
-
-The Biome project's roadmap is public and is on our [community page](https://www.biome.sh/community/).
-
-The Biome core team's project tracker is also public and on [Github.](https://github.com/biome-sh/biome/projects/1)
-
-## Community and support
-
-* [Biome Community Slack](https://community-slack.biome.sh/)
-* [Forums](https://forums.biome.sh)
-* The Biome Community meeting is every Thursday at 9am Pacific.  More information can be found in the Connect section of [Biome Community](https://community.biome.sh/)
-
-## Building
-
-See [BUILDING.md](BUILDING.md) for platform specific info on building Biome from source.
-
-## Native Packages
-
-See [README.md](https://github.com/biome-sh/biome/blob/main/components/bio/src/command/studio/README.md) for info on Native Packages.
-
-## Further reference material
-
-* [The Rust Programming Language](http://doc.rust-lang.org/book/)
-* [Rust by Example](http://rustbyexample.com/)
-* [Introduction to Bash programming](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html)
-* [Advanced Bash-Scripting Guide](http://www.tldp.org/LDP/abs/html/)
-* [Bash Cheat Sheet](http://tldp.org/LDP/abs/html/refcards.html)
-* [Writing Robust Bash Shell Scripts](http://www.davidpashley.com/articles/writing-robust-shell-scripts/)
-* [Wikibook: Bourne Shell Scripting](https://en.wikibooks.org/wiki/Bourne_Shell_Scripting)
-* [What is the difference between test, \[ and \[\[ ?](http://mywiki.wooledge.org/BashFAQ/031)
-* [POSIX Shell Command Language](http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html)
-
-## Code of Conduct
-Participation in the Biome community is governed by the [code of conduct](https://github.com/biome-sh/biome/blob/main/CODE_OF_CONDUCT.md).
-
-## License
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-# Copyright
-See [COPYRIGHT.md](./COPYRIGHT.md).
+If you want new feature or bug fix - it is good idea to contribute to original [Chef Habitat Application Automation](https://github.com/habitat-sh/habitat) project.
