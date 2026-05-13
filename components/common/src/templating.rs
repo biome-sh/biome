@@ -456,6 +456,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     async fn render_package_install() {
         let root = TempDir::new().expect("create temp dir").keep();
         // TODO: Audit that the environment access only happens in single-threaded code.

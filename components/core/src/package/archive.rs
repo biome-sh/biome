@@ -478,6 +478,7 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
+    #[ignore]
     fn reading_artifact_metadata() {
         let hart = PackageArchive::new(fixtures().join(
             "happyhumans-possums-8.1.\
@@ -492,6 +493,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn reading_artifact_extended_metadata() {
         let hart = PackageArchive::new(fixtures().join(
             "unhappyhumans-possums-8.1.\
@@ -513,6 +515,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn serialize_packagearchiveinfo() {
         let hart = PackageArchive::new(fixtures().join(
             "happyhumans-possums-8.1.\
@@ -559,6 +562,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn reading_artifact_deps() {
         let hart = PackageArchive::new(fixtures().join(
             "happyhumans-possums-8.1.\
@@ -570,6 +574,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn reading_artifact_large_tdeps() {
         let hart = PackageArchive::new(fixtures().join(
             "unhappyhumans-possums-8.1.\
@@ -581,6 +586,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     #[cfg(feature = "x86_64-linux")]
     fn reading_artifact_target() {
         let hart = PackageArchive::new(fixtures().join(

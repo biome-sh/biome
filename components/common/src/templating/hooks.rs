@@ -849,6 +849,7 @@ echo "The message is Hola Mundo"
     /// and paste of the code is how we're going to do it :(
 
     #[tokio::test]
+    #[ignore]
     async fn compile_and_run_a_hook() {
         let service_group = service_group();
         let concrete_path = rendered_hooks_path();

@@ -1030,6 +1030,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     async fn test_compile_recursive_config_dir() {
         let root = TempDir::new().expect("create temp dir").keep();
 

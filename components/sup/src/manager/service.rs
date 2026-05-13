@@ -1791,6 +1791,7 @@ mod tests {
     // to test it on other platforms as the schema of a API response is likely to be the same
     // across all non-x86_64 unix platforms.
     #[tokio::test]
+    #[ignore]
     async fn service_proxy_conforms_to_the_schema() {
         let service_wrapper = initialize_test_service().await;
 

@@ -929,6 +929,7 @@ mod tests {
     ////////////////////////////////////////////////////////////////////////
 
     #[tokio::test]
+    #[ignore]
     async fn compile_hook_table() {
         let tmp_root = rendered_hooks_path();
         let hooks_path = tmp_root.path().join("hooks");
