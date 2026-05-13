@@ -187,11 +187,7 @@ mod tests {
 
         let user = vec![fqpi!(redis())];
 
-        Graph {
-            base,
-            user,
-            g: graph,
-        }
+        Graph { base, user, g: graph }
     }
 
     #[test]

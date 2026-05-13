@@ -38,14 +38,8 @@ impl SupDepartOptions {
             member_id: Some(self.member_id.clone()),
         };
 
-        ui.begin(format!(
-            "Permanently marking {} as departed",
-            &self.member_id
-        ))?;
-        ui.status(
-            Status::Applying,
-            format!("via peer {}", self.remote_sup.inner()),
-        )?;
+        ui.begin(format!("Permanently marking {} as departed", &self.member_id))?;
+        ui.status(Status::Applying, format!("via peer {}", self.remote_sup.inner()))?;
 
         process_sup_request(self.remote_sup.inner(), msg).await?;
         ui.end("Departure recorded.")?;

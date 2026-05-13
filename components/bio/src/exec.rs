@@ -22,11 +22,7 @@ use std::path::PathBuf;
 const RETRY_LIMIT: usize = 5;
 const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "BIO_INTERNAL_BLDR_CHANNEL";
 
-pub async fn command_from_min_pkg(
-    ui: &mut UI,
-    command: impl Into<PathBuf>,
-    ident: &PackageIdent,
-) -> Result<PathBuf> {
+pub async fn command_from_min_pkg(ui: &mut UI, command: impl Into<PathBuf>, ident: &PackageIdent) -> Result<PathBuf> {
     command_from_min_pkg_with_optional_channel(ui, command, ident, None).await
 }
 
@@ -123,8 +119,7 @@ async fn command_from_min_pkg_with_optional_channel(
         Err(e) => return Err(Error::from(e)),
     };
 
-    fs::find_command_in_pkg(&command, &pi, fs_root_path)?
-        .ok_or({ Error::ExecCommandNotFound(command) })
+    fs::find_command_in_pkg(&command, &pi, fs_root_path)?.ok_or({ Error::ExecCommandNotFound(command) })
 }
 
 /// Determine the channel from which to install Biome-specific packages.

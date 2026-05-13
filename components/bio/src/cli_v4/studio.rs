@@ -1,8 +1,6 @@
 use clap_v4 as clap;
 
-use crate::{
-    cli_v4::utils::ExternalCommandArgs, command::studio::enter, error::Result as BioResult,
-};
+use crate::{cli_v4::utils::ExternalCommandArgs, command::studio::enter, error::Result as BioResult};
 use biome_common::ui::UI;
 use clap::Args;
 
@@ -23,10 +21,7 @@ impl StudioOpts {
         #[cfg(any(
             target_os = "macos",
             any(
-                all(
-                    target_os = "linux",
-                    any(target_arch = "x86_64", target_arch = "aarch64")
-                ),
+                all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
                 all(target_os = "windows", target_arch = "x86_64"),
             )
         ))]

@@ -71,10 +71,7 @@ pub async fn start(
         Status::Found,
         format!("{} artifact(s) for upload.", artifact_paths.len()),
     )?;
-    ui.status(
-        Status::Discovering,
-        String::from("origin names from local key cache"),
-    )?;
+    ui.status(Status::Discovering, String::from("origin names from local key cache"))?;
 
     let mut origins = BTreeSet::new();
     for pub_key_path in pub_keys_paths {
@@ -93,10 +90,7 @@ pub async fn start(
         match api_client.check_origin(&origin, token).await {
             Ok(()) => {
                 ui.status(
-                    Status::Custom(
-                        Glyph::CheckMark,
-                        format!("Origin '{}' already exists", &origin),
-                    ),
+                    Status::Custom(Glyph::CheckMark, format!("Origin '{}' already exists", &origin)),
                     String::from(""),
                 )?;
             }

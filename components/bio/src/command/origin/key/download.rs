@@ -1,8 +1,8 @@
 use crate::{
     PRODUCT, VERSION,
     api_client::{
-        self, API_RETRY_COUNT, API_RETRY_DELAY, APIFailure, BuilderAPIClient, Client,
-        Error::APIClientError, retry_builder_api,
+        self, API_RETRY_COUNT, API_RETRY_DELAY, APIFailure, BuilderAPIClient, Client, Error::APIClientError,
+        retry_builder_api,
     },
     common::ui::{Status, UI, UIWriter},
     error::{Error, Result},
@@ -49,10 +49,7 @@ async fn handle_public(
             ui.begin(format!("Downloading public origin key {}", named_revision))?;
             match download_key(ui, api_client, &named_revision, token, key_cache).await {
                 Ok(()) => {
-                    let msg = format!(
-                        "Download of {} public origin key completed.",
-                        named_revision
-                    );
+                    let msg = format!("Download of {} public origin key completed.", named_revision);
                     ui.end(msg)?;
                     Ok(())
                 }
@@ -71,10 +68,7 @@ async fn handle_public(
                         let named_revision = format!("{}-{}", key.origin, key.revision).parse()?;
                         download_key(ui, api_client, &named_revision, token, key_cache).await?;
                     }
-                    ui.end(format!(
-                        "Download of {} public origin keys completed.",
-                        &origin
-                    ))?;
+                    ui.end(format!("Download of {} public origin keys completed.", &origin))?;
                     Ok(())
                 }
                 Err(e) => Err(Error::from(e)),
@@ -97,10 +91,7 @@ async fn handle_secret(
 
     ui.begin(format!("Downloading secret origin keys for {}", origin))?;
     download_secret_key(ui, api_client, origin, token.unwrap(), key_cache).await?; // unwrap is safe because we already checked it above
-    ui.end(format!(
-        "Download of {} secret origin keys completed.",
-        origin
-    ))?;
+    ui.end(format!("Download of {} secret origin keys completed.", origin))?;
     Ok(())
 }
 
@@ -116,15 +107,9 @@ async fn handle_encryption(
         return Ok(());
     }
 
-    ui.begin(format!(
-        "Downloading public encryption origin key for {}",
-        origin
-    ))?;
+    ui.begin(format!("Downloading public encryption origin key for {}", origin))?;
     download_public_encryption_key(ui, api_client, origin, token.unwrap(), key_cache).await?; // unwrap is safe because we already checked it above
-    ui.end(format!(
-        "Download of {} public encryption keys completed.",
-        &origin
-    ))?;
+    ui.end(format!("Download of {} public encryption keys completed.", &origin))?;
     Ok(())
 }
 

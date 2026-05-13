@@ -8,13 +8,8 @@ use std::{
 
 // Threads that end normally, simply aren't tracked any longer
 enum Status {
-    Alive {
-        last_heartbeat: Instant,
-    },
-    DeadWithError {
-        time_of_death: Instant,
-        error: String,
-    },
+    Alive { last_heartbeat: Instant },
+    DeadWithError { time_of_death: Instant, error: String },
 }
 type NameAndStatus = (Option<String>, Status);
 type NameAndLastHeartbeat = (Option<String>, Instant);
@@ -236,16 +231,11 @@ fn log_dead_threads(statuses: &ThreadStatusMap) {
 fn cull_dead_threads(statuses: &mut ThreadStatusMap, max_time_since_death: Duration) {
     statuses.retain(|_thread_id, (_thread_name, status)| match status {
         Status::Alive { .. } => true,
-        Status::DeadWithError { time_of_death, .. } => {
-            time_of_death.elapsed() < max_time_since_death
-        }
+        Status::DeadWithError { time_of_death, .. } => time_of_death.elapsed() < max_time_since_death,
     });
 }
 
-fn threads_missing_heartbeat(
-    statuses: &ThreadStatusMap,
-    threshold: Duration,
-) -> Vec<NameAndLastHeartbeat> {
+fn threads_missing_heartbeat(statuses: &ThreadStatusMap, threshold: Duration) -> Vec<NameAndLastHeartbeat> {
     statuses
         .iter()
         .filter_map(|(thread_id, (thread_name, status))| match status {
@@ -271,10 +261,7 @@ fn threads_exited_with_error(statuses: &ThreadStatusMap) -> Vec<NameAndErrorExit
         .iter()
         .filter_map(|(thread_id, (thread_name, status))| match status {
             Status::Alive { .. } => None,
-            Status::DeadWithError {
-                time_of_death,
-                error,
-            } => {
+            Status::DeadWithError { time_of_death, error } => {
                 let time_since_exit = time_of_death.elapsed();
                 trace!(
                     "{:?} {:?} time of death: {:?} ago",
@@ -336,10 +323,7 @@ mod tests {
         .join()
         .unwrap();
         thread::sleep(TEST_THRESHOLD * 2);
-        assert_eq!(
-            threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(),
-            1
-        );
+        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(), 1);
     }
 
     #[test]
@@ -389,10 +373,7 @@ mod tests {
         .join()
         .ok();
         thread::sleep(TEST_THRESHOLD * 2);
-        assert_eq!(
-            threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(),
-            1
-        );
+        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(), 1);
     }
 
     #[test]
@@ -406,10 +387,7 @@ mod tests {
         .join()
         .unwrap();
         thread::sleep(TEST_THRESHOLD * 2);
-        assert_eq!(
-            threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(),
-            1
-        );
+        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(), 1);
     }
 
     #[test]
@@ -425,10 +403,7 @@ mod tests {
         .join()
         .unwrap();
         thread::sleep(TEST_THRESHOLD * 2);
-        assert_eq!(
-            threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(),
-            0
-        );
+        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(), 0);
     }
 
     #[test]
@@ -444,10 +419,7 @@ mod tests {
         .join()
         .unwrap();
         thread::sleep(TEST_THRESHOLD * 2);
-        assert_eq!(
-            threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(),
-            0
-        );
+        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(), 0);
     }
 
     #[test]

@@ -60,8 +60,7 @@ pub async fn start(
 
     if with_secret {
         // get matching secret key
-        let secret_key: SecretOriginSigningKey =
-            key_cache.secret_signing_key(public_key.named_revision())?;
+        let secret_key: SecretOriginSigningKey = key_cache.secret_signing_key(public_key.named_revision())?;
         let secret_keyfile = key_cache.path_in_cache(&secret_key);
 
         ui.status(Status::Uploading, secret_keyfile.display())?;

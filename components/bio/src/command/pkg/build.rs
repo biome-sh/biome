@@ -31,11 +31,7 @@ pub async fn start(
     }
 
     if !origins.is_empty() {
-        let signing_key_names = origins
-            .iter()
-            .map(AsRef::as_ref)
-            .collect::<Vec<&str>>()
-            .join(",");
+        let signing_key_names = origins.iter().map(AsRef::as_ref).collect::<Vec<&str>>().join(",");
         args.push("-k".into());
         args.push(signing_key_names.into());
     }

@@ -33,10 +33,7 @@ pub fn lookup_fqdn(hostname: &str) -> io::Result<String> {
         Some(first_result) => match first_result {
             Ok(f) => Ok(f.canonname.expect("Some(canonname) if requested")),
             Err(e) => {
-                debug!(
-                    "lookup_fqdn() was unable to lookup the machine fqdn. {:?}",
-                    e
-                );
+                debug!("lookup_fqdn() was unable to lookup the machine fqdn. {:?}", e);
                 Ok(hostname.to_string())
             }
         },

@@ -175,10 +175,7 @@ mod tests {
 
         let dir = TempDir::new().expect("Could not create directory");
         let spec_dir = SpecDir::new(dir.path()).expect("Couldn't make SpecDir");
-        assert!(
-            SpecWatcher::run(&spec_dir).is_ok(),
-            "Couldn't create a SpecWatcher!"
-        );
+        assert!(SpecWatcher::run(&spec_dir).is_ok(), "Couldn't create a SpecWatcher!");
     }
 
     #[test]
@@ -227,10 +224,7 @@ mod tests {
         delay.set("1");
 
         // Just verifying that our delay variable works correctly
-        assert_eq!(
-            SpecWatcherDelay::configured_value().0,
-            Duration::from_millis(1)
-        );
+        assert_eq!(SpecWatcherDelay::configured_value().0, Duration::from_millis(1));
 
         let dir = TempDir::new().expect("Could not create directory");
         let spec_dir = SpecDir::new(dir.path()).expect("Couldn't make SpecDir");

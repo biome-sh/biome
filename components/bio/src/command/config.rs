@@ -68,12 +68,7 @@ where
                 svc_key.named_revision()
             ),
         )?;
-        set_msg.cfg = Some(
-            user_key
-                .encrypt_for_service(&buf, &svc_key)?
-                .to_string()
-                .into_bytes(),
-        );
+        set_msg.cfg = Some(user_key.encrypt_for_service(&buf, &svc_key)?.to_string().into_bytes());
         set_msg.is_encrypted = Some(true);
     } else {
         set_msg.cfg = Some(buf.clone());
@@ -82,10 +77,7 @@ where
     set_msg.service_group = Some(grp.clone().into());
     set_msg.version = Some(version);
 
-    ui.begin(format!(
-        "Setting new configuration version {} for {}",
-        version, grp
-    ))?;
+    ui.begin(format!("Setting new configuration version {} for {}", version, grp))?;
     ui.status(Status::Creating, "service configuration")?;
     let mut resp = SrvClient::request(remote_sup, validate).await?;
     while let Some(msg) = resp.next().await {
@@ -103,11 +95,9 @@ where
                 }
             }
             _ => {
-                return Err(SrvClientError::from(io::Error::new(
-                    io::ErrorKind::UnexpectedEof,
-                    "Unexpected reply",
-                ))
-                .into());
+                return Err(
+                    SrvClientError::from(io::Error::new(io::ErrorKind::UnexpectedEof, "Unexpected reply")).into(),
+                );
             }
         }
     }
@@ -125,11 +115,9 @@ where
                 return Err(SrvClientError::from(net_err).into());
             }
             _ => {
-                return Err(SrvClientError::from(io::Error::new(
-                    io::ErrorKind::UnexpectedEof,
-                    "Unexpected reply",
-                ))
-                .into());
+                return Err(
+                    SrvClientError::from(io::Error::new(io::ErrorKind::UnexpectedEof, "Unexpected reply")).into(),
+                );
             }
         }
     }
@@ -139,10 +127,7 @@ where
     Ok(())
 }
 
-pub(crate) async fn sub_svc_config(
-    ident: PackageIdent,
-    remote_sup_addr: &ResolvedListenCtlAddr,
-) -> Result<()> {
+pub(crate) async fn sub_svc_config(ident: PackageIdent, remote_sup_addr: &ResolvedListenCtlAddr) -> Result<()> {
     let msg = sup_proto::ctl::SvcGetDefaultCfg {
         ident: Some(ident.into()),
     };
@@ -162,11 +147,9 @@ pub(crate) async fn sub_svc_config(
                 return Err(SrvClientError::from(net_err).into());
             }
             _ => {
-                return Err(SrvClientError::from(io::Error::new(
-                    io::ErrorKind::UnexpectedEof,
-                    "Unexpected reply",
-                ))
-                .into());
+                return Err(
+                    SrvClientError::from(io::Error::new(io::ErrorKind::UnexpectedEof, "Unexpected reply")).into(),
+                );
             }
         }
     }

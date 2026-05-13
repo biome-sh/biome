@@ -606,9 +606,7 @@ two = 2
         renderer
             .register_template_string("testing", template_content)
             .expect("Could not register template content");
-        renderer
-            .render("testing", ctx)
-            .expect("Could not render template")
+        renderer.render("testing", ctx).expect("Could not render template")
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -720,10 +718,7 @@ two = 2
         // is expecting
         assert!(ctx.bind.0["foo"].leader.is_none());
 
-        let output = render(
-            "{{#if bind.foo.leader}}THERE IS A LEADER{{else}}NO LEADER{{/if}}",
-            &ctx,
-        );
+        let output = render("{{#if bind.foo.leader}}THERE IS A LEADER{{else}}NO LEADER{{/if}}", &ctx);
 
         assert_eq!(output, "NO LEADER");
     }

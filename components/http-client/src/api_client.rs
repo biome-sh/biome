@@ -2,8 +2,7 @@ use crate::error::{Error, Result};
 use biome_core::{env, package::PackageTarget, util::sys};
 use log::{debug, trace};
 use reqwest::{
-    Certificate as ReqwestCertificate, Client as ReqwestClient, IntoUrl, Proxy, RequestBuilder,
-    Url,
+    Certificate as ReqwestCertificate, Client as ReqwestClient, IntoUrl, Proxy, RequestBuilder, Url,
     header::{CONNECTION, HeaderValue, USER_AGENT},
 };
 use std::{path::Path, time::Duration};
@@ -36,12 +35,7 @@ impl ApiClient {
     /// * If a suitable SSL context cannot be established
     /// * If an HTTP/S proxy cannot be correctly setup
     /// * If a `User-Agent` HTTP header string cannot be constructed
-    pub fn new<T>(
-        endpoint: T,
-        product: &str,
-        version: &str,
-        fs_root_path: Option<&Path>,
-    ) -> Result<Self>
+    pub fn new<T>(endpoint: T, product: &str, version: &str, fs_root_path: Option<&Path>) -> Result<Self>
     where
         T: IntoUrl,
     {

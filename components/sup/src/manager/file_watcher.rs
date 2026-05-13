@@ -31,11 +31,7 @@ impl WatchedFile {
             None
         };
         let path = path.to_path_buf();
-        Ok(Self {
-            path,
-            exists,
-            mtime,
-        })
+        Ok(Self { path, exists, mtime })
     }
 
     pub fn assess_existence(&self) -> bool {
@@ -335,10 +331,7 @@ mod tests {
                 }
 
                 assert_eq!(1, fw.callbacks.callback_type_count(Appeared));
-                assert_eq!(
-                    1,
-                    fw.callbacks.path_instance_count(&descendent_watched_file)
-                );
+                assert_eq!(1, fw.callbacks.path_instance_count(&descendent_watched_file));
 
                 fs::remove(&descendent_watched_file)?;
                 fs::remove(&descendent_dir)?;
@@ -1123,10 +1116,8 @@ mod tests {
 
     impl TestCallbacks {
         fn capture_callback(&mut self, callback_type: CallbackType, path: &Path) {
-            self.type_occurrences
-                .insert(callback_type, path.to_path_buf());
-            self.path_occurrences
-                .insert(path.to_path_buf(), callback_type);
+            self.type_occurrences.insert(callback_type, path.to_path_buf());
+            self.path_occurrences.insert(path.to_path_buf(), callback_type);
         }
 
         fn all_callbacks_count(&self) -> usize {
@@ -1138,9 +1129,7 @@ mod tests {
         }
 
         fn path_instance_count(&self, path: &Path) -> usize {
-            self.path_occurrences
-                .get_vec(&path.to_path_buf())
-                .map_or(0, Vec::len)
+            self.path_occurrences.get_vec(&path.to_path_buf()).map_or(0, Vec::len)
         }
     }
 

@@ -1,6 +1,5 @@
 use crate::error::{
-    ConnectError, IPCCommandError, IPCReadError, ReceiveError, SendError, TryIPCCommandError,
-    TryReceiveError,
+    ConnectError, IPCCommandError, IPCReadError, ReceiveError, SendError, TryIPCCommandError, TryReceiveError,
 };
 use biome_common::types::UserInfo;
 use biome_core::os::process::Pid;
@@ -22,9 +21,8 @@ type IpcServer = IpcOneShotServer<Vec<u8>>;
 
 // Defines how long to wait to receive a reply from the Launcher.
 //
-// Initially used for calls to get the PID from a service as a way to
-// deal with older Launchers that don't know about that protocol
-// message, and don't reply back on unknown messages.
+// Used to guard against hung or unresponsive launchers on calls that
+// should always receive a reply (e.g., pid_of, version).
 //
 // Don't override this value unless you know what you're doing.
 biome_core::env_config_duration!(LauncherInteractionTimeout,
@@ -57,9 +55,7 @@ impl LauncherCli {
         let cmd = protocol::Register { pipe: pipe_to_sup };
         Self::send(&tx, &cmd).map_err(ConnectError::LauncherRegisterSend)?;
         // Accpet the incoming connection from the launcher and read the response
-        let (rx, raw) = ipc_srv
-            .accept()
-            .map_err(ConnectError::IPCIncomingConnection)?;
+        let (rx, raw) = ipc_srv.accept().map_err(ConnectError::IPCIncomingConnection)?;
         Self::read::<protocol::NetOk>(&raw).map_err(ConnectError::LauncherRegisterReceive)?;
 
         let timeout = LauncherInteractionTimeout::configured_value().into();
@@ -79,9 +75,7 @@ impl LauncherCli {
                 .map_err(IPCReadError::PayloadDeserialize)?;
             return Err(IPCReadError::LauncherCommand(err));
         }
-        let msg = txn
-            .decode::<T>()
-            .map_err(IPCReadError::PayloadDeserialize)?;
+        let msg = txn.decode::<T>().map_err(IPCReadError::PayloadDeserialize)?;
         Ok(msg)
     }
 
@@ -96,23 +90,10 @@ impl LauncherCli {
         }
     }
 
-    /// EXPERIMENTAL! BEWARE! EXPERIMENTAL!
+    /// A bounded receive for protocol messages from the Launcher.
     ///
-    /// When this was added, we needed a way for a Supervisor to be
-    /// able to recover from sending a message to an older version of
-    /// the Launcher that didn't know how to process that message. At
-    /// the time, the Launcher would just ignore the message, but we
-    /// always use a `recv` to wait for the response, so the
-    /// Supervisor would hang.
-    ///
-    /// This function is an attempt to get around this situation, but
-    /// ONLY for the specific scenarios where it is appropriate. I am
-    /// hesitant to introduce a global timeout at this point, because
-    /// it's difficult to know how that will affect the overall
-    /// interactions between the Supervisor and the Launcher (it
-    /// *should* be fine, but I can't guarantee that right now).
-    ///
-    /// As such, use this with caution and intention.
+    /// Use this instead of `recv` for calls where a non-responsive launcher
+    /// should be treated as an error rather than blocking indefinitely.
     fn recv_timeout<T>(rx: &IpcReceiver<Vec<u8>>, timeout: Duration) -> Result<T, TryReceiveError>
     where
         T: protocol::LauncherMessage,
@@ -190,8 +171,8 @@ impl LauncherCli {
     pub fn restart(&self, pid: Pid) -> Result<Pid, IPCCommandError> {
         let msg = protocol::Restart { pid: pid.into() };
         Self::send(&self.tx, &msg).map_err(|err| IPCCommandError::Send("restart", err))?;
-        let reply = Self::recv::<protocol::SpawnOk>(&self.rx)
-            .map_err(|err| IPCCommandError::Receive("restart", err))?;
+        let reply =
+            Self::recv::<protocol::SpawnOk>(&self.rx).map_err(|err| IPCCommandError::Receive("restart", err))?;
         Ok(reply.pid as Pid)
     }
 
@@ -231,8 +212,7 @@ impl LauncherCli {
         };
 
         Self::send(&self.tx, &msg).map_err(|err| IPCCommandError::Send("spawn", err))?;
-        let reply = Self::recv::<protocol::SpawnOk>(&self.rx)
-            .map_err(|err| IPCCommandError::Receive("spawn", err))?;
+        let reply = Self::recv::<protocol::SpawnOk>(&self.rx).map_err(|err| IPCCommandError::Receive("spawn", err))?;
         if reply.pid == 0 {
             warn!(target: "pidfile_tracing", "Spawn operation for {} resulted in a spawned PID of 0, which \
                    should be impossible! (proceeding anyway)",
@@ -248,10 +228,6 @@ impl LauncherCli {
             service_name: service_name.to_string(),
         };
         Self::send(&self.tx, &msg).map_err(|err| TryIPCCommandError::Send("pid_of", err))?;
-        // This should be a recv_timeout until pidfile-less
-        // supervisors are the norm. We only expect to not receive a
-        // response when dealing with older Launchers that didn't know
-        // how to return PIDs.
         let reply = Self::recv_timeout::<protocol::PidIs>(&self.rx, self.timeout)
             .map_err(|err| TryIPCCommandError::TryReceive("pid_of", err))?;
         // TODO (CM): really, we need to have all our protocol types
@@ -269,8 +245,6 @@ impl LauncherCli {
         let msg = protocol::Version {};
         Self::send(&self.tx, &msg).map_err(|err| TryIPCCommandError::Send("version", err))?;
 
-        // We only expect to not receive a response when dealing with
-        // older Launchers that didn't know how to return its version.
         let reply = Self::recv_timeout::<protocol::VersionNumber>(&self.rx, self.timeout)
             .map_err(|err| TryIPCCommandError::TryReceive("version", err))?;
         Ok(reply.version)
@@ -279,8 +253,8 @@ impl LauncherCli {
     pub fn terminate(&self, pid: Pid) -> Result<i32, IPCCommandError> {
         let msg = protocol::Terminate { pid: pid.into() };
         Self::send(&self.tx, &msg).map_err(|err| IPCCommandError::Send("terminate", err))?;
-        let reply = Self::recv::<protocol::TerminateOk>(&self.rx)
-            .map_err(|err| IPCCommandError::Receive("terminate", err))?;
+        let reply =
+            Self::recv::<protocol::TerminateOk>(&self.rx).map_err(|err| IPCCommandError::Receive("terminate", err))?;
         Ok(reply.exit_code)
     }
 }

@@ -66,13 +66,7 @@ impl BuilderSecretEncryptionKey {
         // Recover the public key material from the secret key itself.
         let my_public_key = self.key().public_key()?;
 
-        primitives::open(
-            signed_box.ciphertext(),
-            signed_box.nonce(),
-            &my_public_key,
-            self.key(),
-        )
-        .map_err(|_| {
+        primitives::open(signed_box.ciphertext(), signed_box.nonce(), &my_public_key, self.key()).map_err(|_| {
             Error::CryptoError(
                 "Secret key, public key, and nonce could not \
                                                 decrypt ciphertext"
@@ -111,15 +105,8 @@ mod tests {
             .parse::<SignedBox>()
             .unwrap();
 
-        let decrypted = key
-            .decrypt(&encrypted)
-            .map(String::from_utf8)
-            .unwrap()
-            .unwrap();
-        assert_eq!(
-            decrypted,
-            "Fear is the little-death that brings total obliteration."
-        );
+        let decrypted = key.decrypt(&encrypted).map(String::from_utf8).unwrap().unwrap();
+        assert_eq!(decrypted, "Fear is the little-death that brings total obliteration.");
     }
 
     #[test]
@@ -128,11 +115,7 @@ mod tests {
         let message = "Walk without rhythm and you won't attract the worm";
 
         let encrypted = key.encrypt(message).unwrap();
-        let decrypted = key
-            .decrypt(&encrypted)
-            .map(String::from_utf8)
-            .unwrap()
-            .unwrap();
+        let decrypted = key.decrypt(&encrypted).map(String::from_utf8).unwrap().unwrap();
 
         assert_eq!(decrypted, message);
     }

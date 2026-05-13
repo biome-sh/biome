@@ -2,9 +2,7 @@ use super::{BUSYBOX_IDENT, VERSION};
 use crate::{
     common::{
         self, PROGRAM_NAME,
-        command::package::install::{
-            InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
-        },
+        command::package::install::{InstallHookMode, InstallMode, InstallSource, LocalPackageUsage},
         ui::{Status, UI, UIWriter},
     },
     hcore::{
@@ -110,10 +108,7 @@ impl<'a> BuildSpec<'a> {
         let workdir = TempDir::new()?;
         let rootfs = workdir.path().join("rootfs");
 
-        ui.status(
-            Status::Creating,
-            format!("build root in {}", workdir.path().display()),
-        )?;
+        ui.status(Status::Creating, format!("build root in {}", workdir.path().display()))?;
 
         let created_ident = self.prepare_rootfs(ui, &rootfs).await?;
 
@@ -126,29 +121,19 @@ impl<'a> BuildSpec<'a> {
         self.create_symlink_to_artifact_cache(ui, rootfs)?;
         self.create_symlink_to_key_cache(ui, rootfs)?;
         self.install_base_pkgs(ui, rootfs).await?;
-        let ident = self
-            .install_user_pkg(ui, self.ident_or_archive, rootfs)
-            .await?;
+        let ident = self.install_user_pkg(ui, self.ident_or_archive, rootfs).await?;
         self.remove_symlink_to_key_cache(ui, rootfs)?;
         self.remove_symlink_to_artifact_cache(ui, rootfs)?;
 
         Ok(ident)
     }
 
-    fn create_symlink_to_artifact_cache<P: AsRef<Path>>(
-        &self,
-        ui: &mut UI,
-        rootfs: P,
-    ) -> Result<()> {
+    fn create_symlink_to_artifact_cache<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
         ui.status(Status::Creating, "artifact cache symlink")?;
         let src = cache_artifact_path(None::<P>);
         let dst = rootfs.as_ref().join(CACHE_ARTIFACT_PATH);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
-        debug!(
-            "Symlinking src: {} to dst: {}",
-            src.display(),
-            dst.display()
-        );
+        debug!("Symlinking src: {} to dst: {}", src.display(), dst.display());
 
         symlink(src, dst)?;
         Ok(())
@@ -159,11 +144,7 @@ impl<'a> BuildSpec<'a> {
         let src = &*CACHE_KEY_PATH;
         let dst = rootfs.as_ref().join(CACHE_KEY_PATH_POSTFIX);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
-        debug!(
-            "Symlinking src: {} to dst: {}",
-            src.display(),
-            dst.display()
-        );
+        debug!("Symlinking src: {} to dst: {}", src.display(), dst.display());
 
         symlink(src, dst)?;
         Ok(())
@@ -184,10 +165,7 @@ impl<'a> BuildSpec<'a> {
         // something other than a "base" package... replacing busybox
         // isn't really something that's going to need to be done.
         let busybox = if cfg!(target_os = "linux") {
-            Some(
-                self.install_pkg_from_default_channel(ui, BUSYBOX_IDENT, rootfs)
-                    .await?,
-            )
+            Some(self.install_pkg_from_default_channel(ui, BUSYBOX_IDENT, rootfs).await?)
         } else {
             None
         };
@@ -240,15 +218,8 @@ impl<'a> BuildSpec<'a> {
         ident_or_archive: &str,
         fs_root_path: &Path,
     ) -> Result<PackageIdent> {
-        self.install(
-            ui,
-            ident_or_archive,
-            self.url,
-            &self.channel,
-            fs_root_path,
-            self.auth,
-        )
-        .await
+        self.install(ui, ident_or_archive, self.url, &self.channel, fs_root_path, self.auth)
+            .await
     }
 
     async fn install(
@@ -283,11 +254,7 @@ impl<'a> BuildSpec<'a> {
         Ok(package_install.into())
     }
 
-    fn remove_symlink_to_artifact_cache<P: AsRef<Path>>(
-        &self,
-        ui: &mut UI,
-        rootfs: P,
-    ) -> Result<()> {
+    fn remove_symlink_to_artifact_cache<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
         ui.status(Status::Deleting, "artifact cache symlink")?;
         stdfs::remove_dir_all(rootfs.as_ref().join(CACHE_ARTIFACT_PATH))?;
         Ok(())

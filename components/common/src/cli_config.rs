@@ -87,9 +87,7 @@ impl CliConfig {
     }
 
     pub fn maybe_tls_client_config(self) -> Result<Option<TlsClientConfig>, TLSError> {
-        let server_ca_certificates = self
-            .ctl_server_ca_certificate
-            .map(RootCertificateStoreCli::into_inner);
+        let server_ca_certificates = self.ctl_server_ca_certificate.map(RootCertificateStoreCli::into_inner);
         if let Some(server_certificates) = server_ca_certificates {
             let tls_config = TlsClientConfig::builder().with_root_certificates(server_certificates);
             if let Some(client_key) = self.ctl_client_key {
@@ -99,10 +97,8 @@ impl CliConfig {
                 } else {
                     vec![]
                 };
-                let config = tls_config.with_client_auth_cert(
-                    certs,
-                    PrivateKeyDer::Pkcs8(client_key.into_inner().clone_key()),
-                )?;
+                let config = tls_config
+                    .with_client_auth_cert(certs, PrivateKeyDer::Pkcs8(client_key.into_inner().clone_key()))?;
                 Ok(Some(config))
             } else {
                 Ok(Some(tls_config.with_no_client_auth()))
@@ -165,10 +161,7 @@ bldr_url = "https://bldr.example.com"
 
         assert_eq!(config.auth_token, Some("test_token".to_string()));
         assert_eq!(config.refresh_channel, Some("stable".to_string()));
-        assert_eq!(
-            config.bldr_url,
-            Some("https://bldr.example.com".to_string())
-        );
+        assert_eq!(config.bldr_url, Some("https://bldr.example.com".to_string()));
         assert!(config.origin.is_none());
     }
 }

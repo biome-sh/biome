@@ -132,21 +132,14 @@ impl Cfg {
     /// Validates a service configuration against a configuration interface.
     ///
     /// Returns `None` if valid and `Some` containing a list of errors if invalid.
-    pub fn validate(
-        interface: &toml::value::Table,
-        cfg: &toml::value::Table,
-    ) -> Option<Vec<String>> {
+    pub fn validate(interface: &toml::value::Table, cfg: &toml::value::Table) -> Option<Vec<String>> {
         let mut errors = vec![];
         for key in cfg.keys() {
             if !interface.contains_key(key) {
                 errors.push(format!("Unknown key: {}", key));
             }
         }
-        if errors.is_empty() {
-            None
-        } else {
-            Some(errors)
-        }
+        if errors.is_empty() { None } else { Some(errors) }
     }
 
     /// A structured interface which describes configuration keys which are configurable and their
@@ -239,12 +232,7 @@ impl Cfg {
         let mut file = match File::open(&path) {
             Ok(file) => file,
             Err(e) => {
-                debug!(
-                    "Failed to open '{}', {}, {}",
-                    filename.display(),
-                    path.display(),
-                    e
-                );
+                debug!("Failed to open '{}', {}, {}", filename.display(), path.display(), e);
                 return Ok(None);
             }
         };
@@ -255,12 +243,7 @@ impl Cfg {
                 Ok(Some(toml))
             }
             Err(e) => {
-                outputln!(
-                    "Failed to read '{}', {}, {}",
-                    filename.display(),
-                    path.display(),
-                    e
-                );
+                outputln!("Failed to read '{}', {}, {}", filename.display(), path.display(), e);
                 Ok(None)
             }
         }
@@ -323,10 +306,7 @@ impl Cfg {
                 Ok(Some(toml_table))
             }
             Err(e) => {
-                debug!(
-                    "Looking up environment variable {} failed: {:?}",
-                    var_name, e
-                );
+                debug!("Looking up environment variable {} failed: {:?}", var_name, e);
                 Ok(None)
             }
         }
@@ -388,13 +368,7 @@ impl CfgRenderer {
     /// Compile and write all configuration files to the configuration directory.
     ///
     /// Returns `true` if the configuration has changed.
-    pub fn compile<P, T>(
-        &self,
-        service_group_name: &str,
-        pkg: &Pkg,
-        render_path: P,
-        ctx: &T,
-    ) -> Result<bool>
+    pub fn compile<P, T>(&self, service_group_name: &str, pkg: &Pkg, render_path: P, ctx: &T) -> Result<bool>
     where
         P: AsRef<Path>,
         T: Serialize,
@@ -423,12 +397,7 @@ impl CfgRenderer {
                         cfg_dest.display()
                     );
 
-                    ensure_directory_structure(
-                        render_path.as_ref(),
-                        &cfg_dest,
-                        &pkg.svc_user,
-                        &pkg.svc_group,
-                    )?;
+                    ensure_directory_structure(render_path.as_ref(), &cfg_dest, &pkg.svc_user, &pkg.svc_group)?;
                     write_templated_file(&cfg_dest, &compiled, &pkg.svc_user, &pkg.svc_group)?;
                     outputln!(
                         preamble service_group_name,
@@ -447,10 +416,7 @@ impl CfgRenderer {
                         );
                         false
                     } else {
-                        debug!(
-                            "Configuration {} has changed; templating new data",
-                            cfg_dest.display()
-                        );
+                        debug!("Configuration {} has changed; templating new data", cfg_dest.display());
                         write_templated_file(&cfg_dest, &compiled, &pkg.svc_user, &pkg.svc_group)?;
                         outputln!(
                             preamble service_group_name,
@@ -471,11 +437,7 @@ fn toml_merge(me: &mut toml::value::Table, other: &toml::value::Table) -> Result
     toml_merge_recurse(me, other, 0)
 }
 
-fn toml_merge_recurse(
-    me: &mut toml::value::Table,
-    other: &toml::value::Table,
-    depth: u16,
-) -> Result<()> {
+fn toml_merge_recurse(me: &mut toml::value::Table, other: &toml::value::Table, depth: u16) -> Result<()> {
     if depth > TOML_MAX_MERGE_DEPTH {
         return Err(Error::TomlMergeError(format!(
             "Max recursive merge depth \
@@ -498,9 +460,7 @@ fn toml_merge_recurse(
             };
             toml_merge_recurse(
                 me_at_key,
-                other_value
-                    .as_table()
-                    .expect("TOML Value should be a Table"),
+                other_value.as_table().expect("TOML Value should be a Table"),
                 depth + 1,
             )?;
         } else {
@@ -544,11 +504,7 @@ fn set_permissions(path: &Path, _user: &str, _group: &str) -> hcore::error::Resu
 /// construct the list of template files
 ///
 /// `dir` should be a directory that exists.
-fn load_templates(
-    dir: &Path,
-    context: &Path,
-    mut template: TemplateRenderer,
-) -> Result<TemplateRenderer> {
+fn load_templates(dir: &Path, context: &Path, mut template: TemplateRenderer) -> Result<TemplateRenderer> {
     for entry in std::fs::read_dir(dir)?.filter_map(result::Result::ok) {
         // We're storing the pathname relative to the input config directory
         // as the identifier for the template
@@ -560,9 +516,7 @@ fn load_templates(
                     .register_template_file(&relative_path.to_string_lossy(), entry.path())
                     .map_err(Error::TemplateError)?;
             }
-            Ok(file_type) if file_type.is_dir() => {
-                template = load_templates(&entry.path(), &relative_path, template)?
-            }
+            Ok(file_type) if file_type.is_dir() => template = load_templates(&entry.path(), &relative_path, template)?,
             Ok(file_type) => trace!("Skipping non file/directory entry: {:?}", file_type),
             Err(e) => debug!("Failed to get file metadata for {:?} : {}", entry, e),
         }
@@ -613,10 +567,7 @@ mod tests {
         templating::{context::RenderContext, test_helpers::*},
     };
     #[cfg(not(any(
-        all(
-            target_os = "linux",
-            any(target_arch = "x86_64", target_arch = "aarch64")
-        ),
+        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
         all(target_os = "windows", target_arch = "x86_64"),
     )))]
     use hcore::package::metadata::MetaFile;
@@ -639,8 +590,7 @@ mod tests {
     }
 
     fn toml_from_str(content: &str) -> toml::value::Table {
-        toml::from_str(content)
-            .unwrap_or_else(|_| panic!("Content should parse as TOML: {}", content))
+        toml::from_str(content).unwrap_or_else(|_| panic!("Content should parse as TOML: {}", content))
     }
 
     #[test]
@@ -875,8 +825,7 @@ mod tests {
             .truncate(true)
             .open(path)
             .expect("create toml file");
-        file.write_all(text.as_bytes())
-            .expect("write raw toml value");
+        file.write_all(text.as_bytes()).expect("write raw toml value");
         file.flush().expect("flush changes in toml file");
     }
 
@@ -955,12 +904,7 @@ mod tests {
 
     #[test]
     fn can_parse_toml_environment_config() {
-        test_expected_successful_environment_parsing(
-            "BIO_TESTING_TOML",
-            "testing-toml",
-            "port = 1234",
-            "port = 1234",
-        );
+        test_expected_successful_environment_parsing("BIO_TESTING_TOML", "testing-toml", "port = 1234", "port = 1234");
     }
 
     #[test]
@@ -1010,8 +954,7 @@ mod tests {
         let contents = "foo\nbar\n";
 
         assert!(!file.exists());
-        write_templated_file(&file, contents, &curr_username(), &curr_groupname())
-            .expect("writes file");
+        write_templated_file(&file, contents, &curr_username(), &curr_groupname()).expect("writes file");
         assert!(file.exists());
     }
 
@@ -1028,8 +971,7 @@ mod tests {
 
         ensure_directory_structure(&template_dir, &file, &curr_username(), &curr_groupname())
             .expect("create output dir structure");
-        write_templated_file(&file, contents, &curr_username(), &curr_groupname())
-            .expect("writes file");
+        write_templated_file(&file, contents, &curr_username(), &curr_groupname()).expect("writes file");
         assert!(file.exists());
         assert_eq!(file_content(file), contents);
     }
@@ -1049,9 +991,7 @@ mod tests {
         let contents = "foo\nbar\n";
 
         assert!(!file.exists());
-        assert!(
-            write_templated_file(&file, contents, &curr_username(), &curr_groupname()).is_err()
-        );
+        assert!(write_templated_file(&file, contents, &curr_username(), &curr_groupname()).is_err());
     }
 
     #[test]
@@ -1072,8 +1012,8 @@ mod tests {
         create_with_content(dir_b.join("bar.txt"), "Hello world!");
         create_with_content(dir_c.join("baz.txt"), "Hello world!");
 
-        let renderer = load_templates(&input_dir, &PathBuf::new(), TemplateRenderer::new())
-            .expect("visit config dirs");
+        let renderer =
+            load_templates(&input_dir, &PathBuf::new(), TemplateRenderer::new()).expect("visit config dirs");
 
         let expected_keys = vec![
             PathBuf::from("dir_a").join("foo.txt"),
@@ -1098,29 +1038,18 @@ mod tests {
         let pkg_dir = root.join("pkg/testing/test");
         fs::create_dir_all(&pkg_dir).expect("create pkg dir");
         let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
-        let pkg_install = PackageInstall::new_from_parts(
-            pg_id,
-            pkg_dir.clone(),
-            pkg_dir.clone(),
-            pkg_dir.clone(),
-        );
+        let pkg_install = PackageInstall::new_from_parts(pg_id, pkg_dir.clone(), pkg_dir.clone(), pkg_dir.clone());
         let toml_path = pkg_dir.join("default.toml");
         create_with_content(toml_path, "message = \"Hello\"");
 
         let config_dir = pkg_dir.join("config");
         let deep_config_dir = config_dir.join("dir_a").join("dir_b");
         fs::create_dir_all(&deep_config_dir).expect("create config/dir_a/dir_b");
-        create_with_content(
-            deep_config_dir.join("config.txt"),
-            "config message is {{cfg.message}}",
-        );
+        create_with_content(deep_config_dir.join("config.txt"), "config message is {{cfg.message}}");
 
         // Platforms without standard package support require all packages to be native packages
         #[cfg(not(any(
-            all(
-                target_os = "linux",
-                any(target_arch = "x86_64", target_arch = "aarch64")
-            ),
+            all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
             all(target_os = "windows", target_arch = "x86_64")
         )))]
         {
@@ -1131,16 +1060,14 @@ mod tests {
         let output_dir = root.join("output");
         fs::create_dir_all(&output_dir).expect("create output dir");
 
-        let pkg = Pkg::from_install(&pkg_install).await.unwrap();
+        let pkg = Pkg::from_install(&pkg_install, None).await.unwrap();
         let cfg = Cfg::new(&pkg, None).unwrap();
         let ctx = RenderContext::new(&pkg, &cfg);
 
         // Load templates from pkg config dir, and compile then into
         // the output directory
         let renderer = CfgRenderer::new(&config_dir).expect("create cfg renderer");
-        renderer
-            .compile("test", &pkg, &output_dir, &ctx)
-            .expect("compile");
+        renderer.compile("test", &pkg, &output_dir, &ctx).expect("compile");
         let deep_output_dir = output_dir.join("dir_a").join("dir_b");
 
         assert_eq!(

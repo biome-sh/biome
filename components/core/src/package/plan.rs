@@ -15,11 +15,7 @@ impl Plan {
         let mut version: Option<String> = None;
 
         let content = std::str::from_utf8(bytes).map_err(|_| Error::PlanMalformed)?;
-        for line in content
-            .lines()
-            .map(|line| Ok(line.to_string()))
-            .map_while(Result::ok)
-        {
+        for line in content.lines().map(|line| Ok(line.to_string())).map_while(Result::ok) {
             // Rather than just blindly accepting values, let's trim all the
             // whitespace first, verify that we actually have 2 things separated
             // by an equal sign, and strip out quotes of any kind.

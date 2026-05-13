@@ -24,10 +24,7 @@ impl FromStr for Origin {
     type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        Origin::validate(s.to_string()).map_or_else(
-            |e| Err(Error::InvalidOrigin(e)),
-            |_| Ok(Origin(s.to_string())),
-        )
+        Origin::validate(s.to_string()).map_or_else(|e| Err(Error::InvalidOrigin(e)), |_| Ok(Origin(s.to_string())))
     }
 }
 

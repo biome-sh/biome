@@ -144,9 +144,7 @@ impl LockFile {
     /// preventing another instance from being created. Ultimately, this is used
     /// to prevent multiple Supervisors from running on a host at the same time.
     pub fn acquire() -> Result<Self> {
-        let pid: PositiveNonZeroPid = env::var(LAUNCHER_PID_ENV)
-            .map_err(Error::InvalidEnvironment)?
-            .parse()?;
+        let pid: PositiveNonZeroPid = env::var(LAUNCHER_PID_ENV).map_err(Error::InvalidEnvironment)?.parse()?;
 
         let path = lock_file_path();
         Self::acquire_impl(path, pid)
@@ -185,8 +183,7 @@ impl LockFile {
 
             // If we can't get an exclusive lock, then something else has locked the
             // file. Assume it's another Supervisor and bail.
-            file.try_lock_exclusive()
-                .map_err(Error::CannotAcquireExclusiveLock)?;
+            file.try_lock_exclusive().map_err(Error::CannotAcquireExclusiveLock)?;
 
             // Now that we know we have an exclusive lock, we can truncate the file
             // (in case it existed before!) and write the value of the new PID to
@@ -310,10 +307,7 @@ fn read_lock_file_impl<P>(path: P) -> Result<Pid>
 where
     P: AsRef<Path>,
 {
-    let mut file = OpenOptions::new()
-        .read(true)
-        .open(path)
-        .map_err(Error::IOError)?;
+    let mut file = OpenOptions::new().read(true).open(path).map_err(Error::IOError)?;
 
     // This function is expected to be called in a context where a Supervisor is
     // already running. As a result, we should *NOT* be able to acquire an
@@ -327,10 +321,7 @@ where
     let pid: PositiveNonZeroPid = {
         let mut buffer = String::new();
         file.read_to_string(&mut buffer).map_err(Error::IOError)?;
-        buffer
-            .trim()
-            .parse()
-            .map_err(|e| Error::CorruptLockFile(Box::new(e)))?
+        buffer.trim().parse().map_err(|e| Error::CorruptLockFile(Box::new(e)))?
     };
 
     Ok(pid.into())

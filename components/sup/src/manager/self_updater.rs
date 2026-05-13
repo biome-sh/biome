@@ -64,12 +64,7 @@ impl<T: Borrow<SelfUpdater>> From<T> for Runner {
 }
 
 impl SelfUpdater {
-    pub fn new(
-        current: &PackageIdent,
-        update_url: String,
-        update_channel: ChannelIdent,
-        period: Duration,
-    ) -> Self {
+    pub fn new(current: &PackageIdent, update_url: String, update_channel: ChannelIdent, period: Duration) -> Self {
         let runner = Runner {
             current: current.clone(),
             update_url: update_url.clone(),
@@ -115,10 +110,7 @@ impl SelfUpdater {
             match util::pkg::install_no_ui(&update_url, &install_source, &update_channel).await {
                 Ok(package) => {
                     if &current < package.ident() {
-                        debug!(
-                            "Self updater installing newer Supervisor, {}",
-                            package.ident()
-                        );
+                        debug!("Self updater installing newer Supervisor, {}", package.ident());
                         tx.send(package).expect("Main thread has gone away!");
                         break;
                     } else {

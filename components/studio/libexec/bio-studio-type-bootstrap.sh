@@ -154,7 +154,7 @@ PROFILE_ENTER
 
   # This installs any additional packages before starting the studio.
   # It is useful in scenarios where you have a newer version of a package
-  # and want biome to pick the newer locally installed version during 
+  # and want biome to pick the newer locally installed version during
   # a studio build. We do exactly this during the package refresh process.
   if [ -n "${BIO_STUDIO_INSTALL_PKGS:-}" ]; then
     echo "Installing additional packages in bootstrap studio"

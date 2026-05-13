@@ -213,10 +213,7 @@ impl SwimNet {
             Ok(health) => Some(health),
             Err(Error::UnknownMember(_)) => None,
             Err(Error::Timeout(_)) => {
-                panic!(
-                    "Timed out after waiting {:?} querying member health",
-                    HEALTH_OF_TIMEOUT
-                );
+                panic!("Timed out after waiting {:?} querying member health", HEALTH_OF_TIMEOUT);
             }
             Err(e) => {
                 println!("Unexpected error from health_of_by_id_with_timeout: {}", e);
@@ -263,11 +260,7 @@ impl SwimNet {
         self.gossip_rounds().iter().map(|r| r + count).collect()
     }
 
-    fn check_rounds_impl(
-        &self,
-        rounds_in: &[isize],
-        get_rounds: impl Fn(&Server) -> isize,
-    ) -> bool {
+    fn check_rounds_impl(&self, rounds_in: &[isize], get_rounds: impl Fn(&Server) -> isize) -> bool {
         for (member, round) in self.members.iter().zip(rounds_in) {
             if !member.paused() && get_rounds(member) <= *round {
                 return false;
@@ -306,12 +299,7 @@ impl SwimNet {
         }
     }
 
-    pub fn wait_for_election_status(
-        &self,
-        e_num: usize,
-        key: &str,
-        status: ElectionStatus,
-    ) -> bool {
+    pub fn wait_for_election_status(&self, e_num: usize, key: &str, status: ElectionStatus) -> bool {
         let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
         loop {
             let server = self
@@ -427,12 +415,7 @@ impl SwimNet {
 
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
-    pub fn wait_for_health_of_mlr(
-        &self,
-        from_entry: usize,
-        to_check: usize,
-        health: Health,
-    ) -> bool {
+    pub fn wait_for_health_of_mlr(&self, from_entry: usize, to_check: usize, health: Health) -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
             if let Some(real_health) = self.health_of_mlr(from_entry, to_check)
@@ -513,11 +496,7 @@ impl SwimNet {
     }
 
     pub fn add_election(&mut self, member: usize, service: &str) {
-        self[member].start_election_rsw_mlr_rhw_msr(
-            &ServiceGroup::new(service, "prod", None).unwrap(),
-            0,
-            None,
-        );
+        self[member].start_election_rsw_mlr_rhw_msr(&ServiceGroup::new(service, "prod", None).unwrap(), 0, None);
     }
 }
 
@@ -526,10 +505,7 @@ impl SwimNet {
 macro_rules! assert_health_of {
     ($network:expr, $to:expr, $health:expr) => {
         assert!(
-            $network
-                .network_health_of_mlr($to)
-                .into_iter()
-                .all(|x| x == $health),
+            $network.network_health_of_mlr($to).into_iter().all(|x| x == $health),
             "Member {} does not always have health {}",
             $to,
             $health

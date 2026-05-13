@@ -35,22 +35,12 @@ impl Engine for DockerEngine {
     /// `docker --config /path/to/local/config push mycompany/mycoolapp`
     fn image_push_command(&self, image_reference: &str, config_dir: &Path) -> Command {
         let mut cmd = Command::new(&self.binary);
-        cmd.args([
-            "--config",
-            &config_dir.to_string_lossy(),
-            "push",
-            image_reference,
-        ]);
+        cmd.args(["--config", &config_dir.to_string_lossy(), "push", image_reference]);
         cmd
     }
 
     /// `docker build --force-rm --memory MEMORY [--tag TAG] .`
-    fn build_command(
-        &self,
-        build_context: &Path,
-        tags: &[String],
-        memory: Option<&str>,
-    ) -> Command {
+    fn build_command(&self, build_context: &Path, tags: &[String], memory: Option<&str>) -> Command {
         let mut cmd = Command::new(&self.binary);
         cmd.current_dir(build_context);
         cmd.arg("build");

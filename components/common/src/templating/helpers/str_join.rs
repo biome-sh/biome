@@ -1,6 +1,4 @@
-use handlebars::{
-    Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason,
-};
+use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason};
 
 #[derive(Clone, Copy)]
 pub struct StrJoinHelper;
@@ -58,9 +56,7 @@ mod tests {
         let expected = "foo,bar,baz";
         assert_eq!(
             expected,
-            handlebars
-                .render_template("{{strJoin list \",\"}}", &json)
-                .unwrap()
+            handlebars.render_template("{{strJoin list \",\"}}", &json).unwrap()
         );
     }
 
@@ -73,11 +69,6 @@ mod tests {
         });
         let mut handlebars = Handlebars::new();
         handlebars.register_helper("strJoin", Box::new(STR_JOIN));
-        assert_eq!(
-            "",
-            handlebars
-                .render_template("{{strJoin list \",\"}}", &json)
-                .unwrap()
-        );
+        assert_eq!("", handlebars.render_template("{{strJoin list \",\"}}", &json).unwrap());
     }
 }

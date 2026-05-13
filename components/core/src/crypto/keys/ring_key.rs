@@ -35,10 +35,7 @@ impl RingKey {
     pub fn new(name: &str) -> Self {
         let named_revision = NamedRevision::new(name.to_string());
         let key = primitives::gen_key();
-        RingKey {
-            named_revision,
-            key,
-        }
+        RingKey { named_revision, key }
     }
 
     /// Encrypts a sequence of bytes.
@@ -48,10 +45,7 @@ impl RingKey {
     /// needed to decrypt the message.
     pub fn encrypt(&self, data: &[u8]) -> (Vec<u8>, Vec<u8>) {
         let nonce = primitives::gen_nonce();
-        (
-            nonce.as_ref().to_vec(),
-            primitives::seal(data, &nonce, &self.key),
-        )
+        (nonce.as_ref().to_vec(), primitives::seal(data, &nonce, &self.key))
     }
 
     /// Decrypts a ciphertext using a given nonce value.
@@ -60,9 +54,8 @@ impl RingKey {
     pub fn decrypt(&self, nonce: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>> {
         let nonce = primitives::Nonce::try_from_slice(nonce)?;
 
-        primitives::open(ciphertext, &nonce, &self.key).map_err(|_| {
-            Error::CryptoError("Secret key and nonce could not decrypt ciphertext".to_string())
-        })
+        primitives::open(ciphertext, &nonce, &self.key)
+            .map_err(|_| Error::CryptoError("Secret key and nonce could not decrypt ciphertext".to_string()))
     }
 }
 
@@ -104,13 +97,12 @@ mod tests {
         let key: RingKey = fixture_key("keys/ring-key-valid-20160504220722.sym.key");
 
         let nonce = [
-            175u8, 221u8, 237u8, 184u8, 68u8, 112u8, 40u8, 80u8, 11u8, 173u8, 215u8, 154u8, 129u8,
-            39u8, 146u8, 10u8, 51u8, 143u8, 150u8, 71u8, 146u8, 97u8, 70u8, 76u8,
+            175u8, 221u8, 237u8, 184u8, 68u8, 112u8, 40u8, 80u8, 11u8, 173u8, 215u8, 154u8, 129u8, 39u8, 146u8, 10u8,
+            51u8, 143u8, 150u8, 71u8, 146u8, 97u8, 70u8, 76u8,
         ];
         let ciphertext = [
-            161u8, 106u8, 124u8, 7u8, 144u8, 46u8, 9u8, 29u8, 90u8, 176u8, 207u8, 52u8, 61u8, 3u8,
-            209u8, 41u8, 144u8, 32u8, 72u8, 245u8, 159u8, 143u8, 192u8, 36u8, 5u8, 235u8, 241u8,
-            98u8, 231u8, 21u8,
+            161u8, 106u8, 124u8, 7u8, 144u8, 46u8, 9u8, 29u8, 90u8, 176u8, 207u8, 52u8, 61u8, 3u8, 209u8, 41u8, 144u8,
+            32u8, 72u8, 245u8, 159u8, 143u8, 192u8, 36u8, 5u8, 235u8, 241u8, 98u8, 231u8, 21u8,
         ];
 
         let decrypted_message = key.decrypt(&nonce, &ciphertext).unwrap();

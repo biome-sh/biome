@@ -63,18 +63,12 @@ impl PackageInstall {
     ///
     /// An optional `fs_root` path may be provided to search for a package that is mounted on a
     /// filesystem not currently rooted at `/`.
-    pub fn load_at_least(
-        ident: &PackageIdent,
-        fs_root_path: Option<&Path>,
-    ) -> Result<PackageInstall> {
+    pub fn load_at_least(ident: &PackageIdent, fs_root_path: Option<&Path>) -> Result<PackageInstall> {
         let package_install = Self::resolve_package_install_min(ident, fs_root_path)?;
         Ok(package_install)
     }
 
-    fn resolve_package_install<T>(
-        ident: &PackageIdent,
-        fs_root_path: Option<T>,
-    ) -> Result<PackageInstall>
+    fn resolve_package_install<T>(ident: &PackageIdent, fs_root_path: Option<T>) -> Result<PackageInstall>
     where
         T: AsRef<Path>,
     {
@@ -123,10 +117,7 @@ impl PackageInstall {
     }
 
     /// Find an installed package that is at minimum the version of the given ident.
-    fn resolve_package_install_min<T>(
-        ident: &PackageIdent,
-        fs_root_path: Option<T>,
-    ) -> Result<PackageInstall>
+    fn resolve_package_install_min<T>(ident: &PackageIdent, fs_root_path: Option<T>) -> Result<PackageInstall>
     where
         T: AsRef<Path>,
     {
@@ -192,8 +183,7 @@ impl PackageInstall {
     pub fn is_runnable(&self) -> bool {
         // Currently, a runnable package can be determined by checking if a `run` hook exists in
         // package's hooks directory or directly in the package prefix.
-        self.installed_path.join("hooks").join("run").is_file()
-            || self.installed_path.join("run").is_file()
+        self.installed_path.join("hooks").join("run").is_file() || self.installed_path.join("run").is_file()
     }
 
     /// Determine what kind of package this is.
@@ -241,8 +231,7 @@ impl PackageInstall {
         // rooted under FS_ROOT. For backwards compatibility the key/value
         // pairs are duplicated in RUNTIME_ENVIRONMENT so we will remove previously
         // stored values with the same key.
-        let environment_paths =
-            self.runtime_environment_file_map(MetaFile::RuntimeEnvironmentPaths)?;
+        let environment_paths = self.runtime_environment_file_map(MetaFile::RuntimeEnvironmentPaths)?;
         for (key, value) in environment_paths.into_iter() {
             let mut split_path: Vec<_> = env::split_paths(&value).collect();
             let rooted_path = self.root_paths(&mut split_path)?;
@@ -353,8 +342,7 @@ impl PackageInstall {
         match self.read_metafile(MetaFile::Exports) {
             Ok(body) => {
                 let parsed_value = parse_key_value(&body);
-                let result =
-                    parsed_value.map_err(|_| Error::MetaFileMalformed(MetaFile::Exports))?;
+                let result = parsed_value.map_err(|_| Error::MetaFileMalformed(MetaFile::Exports))?;
                 Ok(result)
             }
             Err(Error::MetaFileNotFound(MetaFile::Exports)) => Ok(BTreeMap::new()),
@@ -402,9 +390,7 @@ impl PackageInstall {
                 // Biome 0.50.0, 2017-11-30) which produced `PATH` metafiles containing extra
                 // path entries.
                 let pkg_prefix = fs::pkg_install_path(self.ident(), None::<&Path>);
-                let v = env::split_paths(&body)
-                    .filter(|p| p.starts_with(&pkg_prefix))
-                    .collect();
+                let v = env::split_paths(&body).filter(|p| p.starts_with(&pkg_prefix)).collect();
                 Ok(v)
             }
             Err(Error::MetaFileNotFound(MetaFile::Path)) => {
@@ -417,17 +403,15 @@ impl PackageInstall {
                     // use the value of the `PATH` key as a stand-in for the `PATH` metafile.
                     let pkg_prefix = fs::pkg_install_path(self.ident(), None::<&Path>);
                     match self.read_metafile(MetaFile::RuntimeEnvironment) {
-                        Ok(ref body) => {
-                            match Self::parse_runtime_environment_metafile(body)?.get(PATH_KEY) {
-                                Some(env_path) => {
-                                    let v = env::split_paths(env_path)
-                                        .filter(|p| p.starts_with(&pkg_prefix))
-                                        .collect();
-                                    Ok(v)
-                                }
-                                None => Ok(vec![]),
+                        Ok(ref body) => match Self::parse_runtime_environment_metafile(body)?.get(PATH_KEY) {
+                            Some(env_path) => {
+                                let v = env::split_paths(env_path)
+                                    .filter(|p| p.starts_with(&pkg_prefix))
+                                    .collect();
+                                Ok(v)
                             }
-                        }
+                            None => Ok(vec![]),
+                        },
                         Err(Error::MetaFileNotFound(MetaFile::RuntimeEnvironment)) => Ok(vec![]),
                         Err(e) => Err(e),
                     }
@@ -443,9 +427,7 @@ impl PackageInstall {
         for path in &mut paths.iter_mut() {
             *path = fs::fs_rooted_path(path, &self.fs_root_path);
         }
-        env::join_paths(paths)?
-            .into_string()
-            .map_err(Error::InvalidPathString)
+        env::join_paths(paths)?.into_string().map_err(Error::InvalidPathString)
     }
 
     /// Attempts to load the extracted package for each direct dependency and returns a
@@ -641,9 +623,7 @@ impl PackageInstall {
                     for id in body.lines() {
                         let package = PackageIdent::from_str(id)?;
                         if !package.fully_qualified() {
-                            return Err(Error::FullyQualifiedPackageIdentRequired(
-                                package.to_string(),
-                            ));
+                            return Err(Error::FullyQualifiedPackageIdentRequired(package.to_string()));
                         }
                         deps.push(package);
                     }
@@ -704,10 +684,7 @@ mod tests {
     fn set_runtime_path_for(pkg_install: &PackageInstall, installs: Vec<&PackageInstall>) {
         let mut paths = Vec::new();
         for install in installs {
-            for path in install
-                .paths()
-                .expect("Could not read or parse PATH metafile")
-            {
+            for path in install.paths().expect("Could not read or parse PATH metafile") {
                 paths.push(path)
             }
         }
@@ -778,11 +755,7 @@ mod tests {
         let pkg_install = testing_package_install(ident_s, fs_root.path());
         write_metafile(&pkg_install, MetaFile::Target, &active_target);
 
-        let loaded = PackageInstall::load(
-            &PackageIdent::from_str(ident_s).unwrap(),
-            Some(fs_root.path()),
-        )
-        .unwrap();
+        let loaded = PackageInstall::load(&PackageIdent::from_str(ident_s).unwrap(), Some(fs_root.path())).unwrap();
         assert_eq!(pkg_install, loaded);
         assert_eq!(active_target, loaded.target().unwrap());
     }
@@ -896,12 +869,7 @@ mod tests {
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        std::fs::remove_file(
-            pkg_install
-                .installed_path()
-                .join(MetaFile::Target.to_string()),
-        )
-        .unwrap();
+        std::fs::remove_file(pkg_install.installed_path().join(MetaFile::Target.to_string())).unwrap();
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
@@ -948,11 +916,8 @@ mod tests {
         let pkg_install = testing_package_install(ident_s, fs_root.path());
         write_metafile(&pkg_install, MetaFile::Target, &active_target);
 
-        let loaded = PackageInstall::load_at_least(
-            &PackageIdent::from_str(ident_s).unwrap(),
-            Some(fs_root.path()),
-        )
-        .unwrap();
+        let loaded =
+            PackageInstall::load_at_least(&PackageIdent::from_str(ident_s).unwrap(), Some(fs_root.path())).unwrap();
         assert_eq!(pkg_install, loaded);
         assert_eq!(active_target, loaded.target().unwrap());
     }
@@ -1066,12 +1031,7 @@ mod tests {
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        std::fs::remove_file(
-            pkg_install
-                .installed_path()
-                .join(MetaFile::Target.to_string()),
-        )
-        .unwrap();
+        std::fs::remove_file(pkg_install.installed_path().join(MetaFile::Target.to_string())).unwrap();
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
@@ -1301,12 +1261,7 @@ mod tests {
         set_path_for(&pkg_install, &["nope"]);
 
         // Create a zero-sizd `RUNTIME_PATH` metafile
-        let _ = File::create(
-            pkg_install
-                .installed_path
-                .join(MetaFile::RuntimePath.to_string()),
-        )
-        .unwrap();
+        let _ = File::create(pkg_install.installed_path.join(MetaFile::RuntimePath.to_string())).unwrap();
 
         assert_eq!(Vec::<PathBuf>::new(), pkg_install.runtime_paths().unwrap());
     }
@@ -1351,10 +1306,7 @@ mod tests {
         let alpha = testing_package_install("acme/alpha", fs_root.path());
         set_path_for(&alpha, &["sbin", ".gem/bin", "bin"]);
         set_deps_for(&alpha, &[&charlie, &hotel, &beta]);
-        set_tdeps_for(
-            &alpha,
-            &[&beta, &charlie, &delta, &echo, &foxtrot, &golf, &hotel],
-        );
+        set_tdeps_for(&alpha, &[&beta, &charlie, &delta, &echo, &foxtrot, &golf, &hotel]);
 
         let mut expected = Vec::new();
         expected.append(&mut paths_for(&alpha));
@@ -1405,10 +1357,7 @@ mod tests {
             env::join_paths(vec![
                 fs::fs_rooted_path(&PathBuf::from("/should/not/be/ignored"), &fs_root_path),
                 PathBuf::from("c:/my/dir"),
-                fs::fs_rooted_path(
-                    &PathBuf::from("/should/really/not/be/ignored"),
-                    &fs_root_path,
-                ),
+                fs::fs_rooted_path(&PathBuf::from("/should/really/not/be/ignored"), &fs_root_path),
             ])
             .unwrap()
             .to_string_lossy()
@@ -1459,10 +1408,7 @@ mod tests {
         let fs_root_path = fs_root.keep();
         let mut paths = vec![
             fs::fs_rooted_path(&pkg_prefix_for(&pkg_install).join("bin"), &fs_root_path),
-            fs::fs_rooted_path(
-                &pkg_prefix_for(&other_pkg_install).join("sbin"),
-                &fs_root_path,
-            ),
+            fs::fs_rooted_path(&pkg_prefix_for(&other_pkg_install).join("sbin"), &fs_root_path),
         ];
         if cfg!(windows) {
             paths.append(&mut fs::windows_system_paths());
@@ -1471,10 +1417,7 @@ mod tests {
         expected.insert("JAVA_HOME".to_string(), "/my/java/home".to_string());
         expected.insert(
             "PATH".to_string(),
-            env::join_paths(paths)
-                .unwrap()
-                .to_string_lossy()
-                .into_owned(),
+            env::join_paths(paths).unwrap().to_string_lossy().into_owned(),
         );
 
         assert_eq!(expected, pkg_install.environment_for_command().unwrap());

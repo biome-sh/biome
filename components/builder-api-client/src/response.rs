@@ -17,10 +17,7 @@ impl fmt::Display for NetError {
     }
 }
 
-pub async fn ok_if(
-    response: Response,
-    code: impl IntoIterator<Item = &reqwest::StatusCode>,
-) -> Result<Response> {
+pub async fn ok_if(response: Response, code: impl IntoIterator<Item = &reqwest::StatusCode>) -> Result<Response> {
     debug!("Response Status: {:?}", response.status());
     if code.into_iter().any(|&code| code == response.status()) {
         Ok(response)
@@ -29,10 +26,7 @@ pub async fn ok_if(
     }
 }
 
-pub async fn ok_if_unit(
-    response: Response,
-    code: impl IntoIterator<Item = &reqwest::StatusCode>,
-) -> Result<()> {
+pub async fn ok_if_unit(response: Response, code: impl IntoIterator<Item = &reqwest::StatusCode>) -> Result<()> {
     ok_if(response, code).await.map(|_| ())
 }
 

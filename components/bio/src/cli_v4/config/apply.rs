@@ -43,10 +43,7 @@ pub(crate) struct ConfigApplyOptions {
 
 impl ConfigApplyOptions {
     pub(crate) async fn do_apply(&self, ui: &mut UI) -> BioResult<()> {
-        let service_group = self
-            .service_group
-            .parse()
-            .expect("Invalid service group identifier");
+        let service_group = self.service_group.parse().expect("Invalid service group identifier");
 
         sub_svc_set(
             ui,

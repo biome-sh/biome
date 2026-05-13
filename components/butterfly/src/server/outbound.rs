@@ -14,8 +14,8 @@ use biome_core::util::ToI64;
 use lazy_static::lazy_static;
 use log::{debug, error, trace, warn};
 use prometheus::{
-    HistogramTimer, HistogramVec, IntCounterVec, IntGaugeVec, register_histogram_vec,
-    register_int_counter_vec, register_int_gauge_vec,
+    HistogramTimer, HistogramVec, IntCounterVec, IntGaugeVec, register_histogram_vec, register_int_counter_vec,
+    register_int_gauge_vec,
 };
 use std::{
     collections::HashSet,
@@ -107,14 +107,7 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                     have_members = true;
                 } else {
                     server.member_list.with_initial_members_imlr(|member| {
-                        ping_mlr_smr_rhw(
-                            server,
-                            socket,
-                            member,
-                            member.swim_socket_address(),
-                            None,
-                            false,
-                        );
+                        ping_mlr_smr_rhw(server, socket, member, member.swim_socket_address(), None, false);
                     });
                 }
             }
@@ -125,37 +118,20 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
             continue;
         }
 
-        let members_to_probe = server
-            .probe_list
-            .members_write()
-            .drain()
-            .collect::<Vec<_>>();
+        let members_to_probe = server.probe_list.members_write().drain().collect::<Vec<_>>();
         let mut check_list = server.member_list.check_list_mlr(&server.member_id);
         if !members_to_probe.is_empty() {
-            debug!(
-                "Probing {} members in the Probe List.",
-                members_to_probe.len()
-            );
+            debug!("Probing {} members in the Probe List.", members_to_probe.len());
 
             for member in members_to_probe {
                 trace!("Probing member: {}", member.id);
                 check_list.retain(|mem| mem.id != member.id);
                 let addr = member.swim_socket_address();
-                ping_mlr_smr_rhw(
-                    server,
-                    socket,
-                    &member,
-                    member.swim_socket_address(),
-                    None,
-                    true,
-                );
+                ping_mlr_smr_rhw(server, socket, &member, member.swim_socket_address(), None, true);
                 if recv_ack_mlw_rhw(server, rx_inbound, timing, &member, addr, AckFrom::Ping) {
                     trace!("Probe Successful for Member: {}", member.id);
                 } else {
-                    warn!(
-                        "Probe failed for Member: {}, Marking as Confirmed",
-                        member.id
-                    );
+                    warn!("Probe failed for Member: {}, Marking as Confirmed", member.id);
                     server.insert_member_mlw_rhw(member, Health::Confirmed);
                 }
             }
@@ -213,16 +189,8 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
 /// * `MemberList::entries` (write)
 /// * `Server::member` (read)
 /// * `RumorHeat::inner` (write)
-fn probe_mlw_smr_rhw(
-    server: &Server,
-    socket: &UdpSocket,
-    rx_inbound: &AckReceiver,
-    timing: &Timing,
-    member: Member,
-) {
-    let pa_timer = SWIM_PROBE_DURATION
-        .with_label_values(&["ping/ack"])
-        .start_timer();
+fn probe_mlw_smr_rhw(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timing: &Timing, member: Member) {
+    let pa_timer = SWIM_PROBE_DURATION.with_label_values(&["ping/ack"]).start_timer();
     let mut pr_timer: Option<HistogramTimer> = None;
     let addr = member.swim_socket_address();
 
@@ -247,11 +215,7 @@ fn probe_mlw_smr_rhw(
         .member_list
         .with_pingreq_targets_mlr(server.member_id(), &member.id, |pingreq_target| {
             SWIM_PROBES_SENT.with_label_values(&["pingreq"]).inc();
-            pr_timer = Some(
-                SWIM_PROBE_DURATION
-                    .with_label_values(&["pingreq/ack"])
-                    .start_timer(),
-            );
+            pr_timer = Some(SWIM_PROBE_DURATION.with_label_values(&["pingreq/ack"]).start_timer());
             pingreq(server, socket, pingreq_target, &member, &swim);
         });
 
@@ -263,9 +227,7 @@ fn probe_mlw_smr_rhw(
         // protocol periods to recover.
         warn!("Marking {} as Suspect", &member.id);
         server.insert_member_mlw_rhw(member, Health::Suspect);
-        SWIM_PROBES_SENT
-            .with_label_values(&["pingreq/failure"])
-            .inc();
+        SWIM_PROBES_SENT.with_label_values(&["pingreq/failure"]).inc();
     }
 
     if let Some(prt) = pr_timer {
@@ -337,11 +299,7 @@ fn recv_ack_mlw_rhw(
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (read)
 /// * `RumorHeat::inner` (write)
-pub fn populate_membership_rumors_mlr_rhw(
-    server: &Server,
-    target: &Member,
-    message: impl Into<Swim>,
-) -> Swim {
+pub fn populate_membership_rumors_mlr_rhw(server: &Server, target: &Member, message: impl Into<Swim>) -> Swim {
     let mut swim = message.into();
 
     // If this isn't the first time we are communicating with this target, we want to include this
@@ -376,10 +334,7 @@ pub fn populate_membership_rumors_mlr_rhw(
     // confirmed dead; the odds are, they won't receive them. Lets spam them a little harder with
     // rumors.
     if !server.member_list.persistent_and_confirmed_mlr(target) {
-        server
-            .rumor_heat
-            .lock_rhw()
-            .cool_rumors(&target.id, &rumors);
+        server.rumor_heat.lock_rhw().cool_rumors(&target.id, &rumors);
     }
 
     swim
@@ -499,13 +454,7 @@ pub fn ping_mlr_smr_rhw(
     }
 }
 
-pub fn ping(
-    server: &Server,
-    socket: &UdpSocket,
-    addr: SocketAddr,
-    forward_to: Option<&Member>,
-    swim: &Swim,
-) {
+pub fn ping(server: &Server, socket: &UdpSocket, addr: SocketAddr, forward_to: Option<&Member>, swim: &Swim) {
     let bytes = match swim.clone().encode() {
         Ok(bytes) => bytes,
         Err(e) => {

@@ -28,8 +28,7 @@ use std::{
 // sufficient time for users to update their templates.
 // For more information https://github.com/habitat-sh/habitat/issues/6323
 lazy_static! {
-    static ref RE: Regex =
-        Regex::new(r"(\{\{[^}]+[^.])(\[)").expect("Failed to compile template deprecation regex");
+    static ref RE: Regex = Regex::new(r"(\{\{[^}]+[^.])(\[)").expect("Failed to compile template deprecation regex");
 }
 
 /// A convenience method that compiles a package's install and uninstall hooks and any configuration
@@ -37,8 +36,9 @@ lazy_static! {
 pub async fn compile_for_package_install(
     package: &PackageInstall,
     feature_flags: FeatureFlag,
+    token: Option<&str>,
 ) -> Result<()> {
-    let pkg = package::Pkg::from_install(package).await?;
+    let pkg = package::Pkg::from_install(package, token).await?;
 
     fs::SvcDir::new(&pkg.name, &pkg.svc_user, &pkg.svc_group).create()?;
 
@@ -95,20 +95,14 @@ impl TemplateRenderer {
     {
         let raw = serde_json::to_value(ctx).map_err(Error::RenderContextSerialization)?;
         debug!("Rendering template with context, {}, {}", template, raw);
-        self.0
-            .render(template, &raw)
-            .map_err(Error::TemplateRenderError)
+        self.0.render(template, &raw).map_err(Error::TemplateRenderError)
     }
 
     // This method is only implemented so we can intercept the call to Handlebars and display
     // a deprecation message to users. More information here https://github.com/habitat-sh/habitat/issues/6323.
     // When Handlebars is upgraded and users have had sufficient time to update their templates this
     // can be safely removed.
-    pub fn register_template_file<P>(
-        &mut self,
-        name: &str,
-        path: P,
-    ) -> result::Result<(), TemplateError>
+    pub fn register_template_file<P>(&mut self, name: &str, path: P) -> result::Result<(), TemplateError>
     where
         P: AsRef<std::path::Path>,
     {
@@ -120,12 +114,14 @@ impl TemplateRenderer {
         if RE.is_match(&template_string) {
             // Enumerate over the lines in the template and provide deprecation messages for each
             // instance.
-            template_string.lines()
+            template_string
+                .lines()
                 .enumerate()
                 .filter(|(_i, line)| RE.is_match(line))
                 .map(|(i, line)| (i, line, fix_handlebars_syntax(line)))
                 .for_each(|(i, old_line, new_line)| {
-                    println!("\n\n***************************************************\n\
+                    println!(
+                        "\n\n***************************************************\n\
                               warning: Deprecated object access syntax in handlebars template\n\
                               Use 'object.[index]' syntax instead of 'object[index]'\n\
                               See https://github.com/habitat-sh/habitat/issues/6323 for more information\n\n\
@@ -133,7 +129,11 @@ impl TemplateRenderer {
                               change '{}'\n\
                               to     '{}'\n\n\
                               *******************************************************\n\n",
-                             path.display(), i + 1, old_line, new_line)
+                        path.display(),
+                        i + 1,
+                        old_line,
+                        new_line
+                    )
                 });
         }
 
@@ -188,10 +188,7 @@ mod tests {
         templating::test_helpers::*,
     };
     #[cfg(not(any(
-        all(
-            target_os = "linux",
-            any(target_arch = "x86_64", target_arch = "aarch64")
-        ),
+        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
         all(target_os = "windows", target_arch = "x86_64"),
     )))]
     use biome_core::package::metadata::MetaFile;
@@ -228,11 +225,7 @@ mod tests {
 
     // Translates a toml table to a mustache data structure.
     fn toml_table_to_json(toml: toml::value::Table) -> serde_json::Value {
-        serde_json::Value::Object(
-            toml.into_iter()
-                .map(|(k, v)| (k, toml_to_json(v)))
-                .collect(),
-        )
+        serde_json::Value::Object(toml.into_iter().map(|(k, v)| (k, toml_to_json(v))).collect())
     }
 
     pub fn toml_to_json(value: toml::Value) -> serde_json::Value {
@@ -446,10 +439,7 @@ mod tests {
         let mut renderer = TemplateRenderer::new();
         // template using the new `eachAlive` helper
         renderer
-            .register_template_file(
-                "each_alive",
-                templates().join("each_alive_with_identifier.txt"),
-            )
+            .register_template_file("each_alive", templates().join("each_alive_with_identifier.txt"))
             .unwrap();
 
         // template using an each block with a nested if block filtering on `alive`
@@ -472,24 +462,16 @@ mod tests {
         unsafe { env::set_var(fs::FS_ROOT_ENVVAR, &root) };
         let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
 
-        let pkg_install =
-            PackageInstall::new_from_parts(pg_id, root.clone(), root.clone(), root.clone());
+        let pkg_install = PackageInstall::new_from_parts(pg_id, root.clone(), root.clone(), root.clone());
         // Platforms without standard package support require all packages to be native packages
         #[cfg(not(any(
-            all(
-                target_os = "linux",
-                any(target_arch = "x86_64", target_arch = "aarch64")
-            ),
+            all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
             all(target_os = "windows", target_arch = "x86_64")
         )))]
         {
-            tokio::fs::create_dir_all(pkg_install.installed_path())
-                .await
-                .unwrap();
+            tokio::fs::create_dir_all(pkg_install.installed_path()).await.unwrap();
             create_with_content(
-                pkg_install
-                    .installed_path()
-                    .join(MetaFile::PackageType.to_string()),
+                pkg_install.installed_path().join(MetaFile::PackageType.to_string()),
                 "native",
             );
         }
@@ -497,22 +479,13 @@ mod tests {
         create_with_content(toml_path, "message = \"Hello\"");
         let hooks_path = root.join("hooks");
         std::fs::create_dir_all(&hooks_path).unwrap();
-        create_with_content(
-            hooks_path.join("install"),
-            "install message is {{cfg.message}}",
-        );
-        create_with_content(
-            hooks_path.join("uninstall"),
-            "uninstall message is {{cfg.message}}",
-        );
+        create_with_content(hooks_path.join("install"), "install message is {{cfg.message}}");
+        create_with_content(hooks_path.join("uninstall"), "uninstall message is {{cfg.message}}");
         let config_path = root.join("config_install");
         std::fs::create_dir_all(&config_path).unwrap();
-        create_with_content(
-            config_path.join("config.txt"),
-            "config message is {{cfg.message}}",
-        );
+        create_with_content(config_path.join("config.txt"), "config message is {{cfg.message}}");
 
-        compile_for_package_install(&pkg_install, FeatureFlag::empty())
+        compile_for_package_install(&pkg_install, FeatureFlag::empty(), None)
             .await
             .expect("compile package");
 

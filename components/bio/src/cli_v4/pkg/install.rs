@@ -4,9 +4,7 @@ use clap_v4 as clap;
 
 use std::path::PathBuf;
 
-use clap::{
-    ArgAction, CommandFactory, Parser, builder::NonEmptyStringValueParser, parser::ValueSource,
-};
+use clap::{ArgAction, CommandFactory, Parser, builder::NonEmptyStringValueParser, parser::ValueSource};
 
 use biome_core::{
     ChannelIdent,
@@ -17,9 +15,7 @@ use biome_core::{
 use biome_common::{
     FEATURE_FLAGS, FeatureFlag,
     cli::{BINLINK_DIR_ENVVAR, DEFAULT_BINLINK_DIR},
-    command::package::install::{
-        self, InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
-    },
+    command::package::install::{self, InstallHookMode, InstallMode, InstallSource, LocalPackageUsage},
     ui::UI,
 };
 
@@ -85,11 +81,7 @@ pub(crate) struct PkgInstallOptions {
 }
 
 impl PkgInstallOptions {
-    pub(crate) async fn do_install(
-        &self,
-        ui: &mut UI,
-        feature_flags: FeatureFlag,
-    ) -> BioResult<()> {
+    pub(crate) async fn do_install(&self, ui: &mut UI, feature_flags: FeatureFlag) -> BioResult<()> {
         let pkg_install_args: Vec<_> = std::env::args_os().skip(2).collect();
 
         let auth_token = self.auth_token.try_from_cli_or_config();
@@ -143,13 +135,7 @@ impl PkgInstallOptions {
 
             if do_binlink {
                 let binlink_dir = PathBuf::from(&self.binlink_dir);
-                binlink::binlink_all_in_pkg(
-                    ui,
-                    pkg_install.ident(),
-                    &binlink_dir,
-                    &FS_ROOT_PATH,
-                    self.force,
-                )?;
+                binlink::binlink_all_in_pkg(ui, pkg_install.ident(), &binlink_dir, &FS_ROOT_PATH, self.force)?;
             }
         }
 

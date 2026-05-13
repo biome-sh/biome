@@ -132,12 +132,11 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
     // LookupAccountName will return the sid of the computer account
     // given the computer name. Windows forbids usernames to match the
     // computer name
-    let stripped_name =
-        if name.to_lowercase() == (env::var("COMPUTERNAME").unwrap().to_lowercase() + "$") {
-            &name[..name.len() - 1]
-        } else {
-            name
-        };
+    let stripped_name = if name.to_lowercase() == (env::var("COMPUTERNAME").unwrap().to_lowercase() + "$") {
+        &name[..name.len() - 1]
+    } else {
+        name
+    };
     let mut sid_size: u32 = 0;
     let mut domain_size: u32 = 0;
     let wide = WideCString::from_str(stripped_name).unwrap();
@@ -183,11 +182,7 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
         )
     };
     if ret == 0 {
-        error!(
-            "Failed to retrieve SID for {}: {}",
-            name,
-            Error::last_os_error()
-        );
+        error!("Failed to retrieve SID for {}: {}", name, Error::last_os_error());
         return None;
     }
     unsafe {
@@ -249,16 +244,9 @@ mod tests {
     #[test]
     fn mixing_case_returns_same_account() {
         let current_user = env::var("USERNAME").unwrap();
-        let lower_sid = Account::from_name(current_user.to_lowercase().as_str())
-            .unwrap()
-            .sid;
-        let upper_sid = Account::from_name(current_user.to_uppercase().as_str())
-            .unwrap()
-            .sid;
-        assert_eq!(
-            lower_sid.to_string().unwrap(),
-            upper_sid.to_string().unwrap()
-        )
+        let lower_sid = Account::from_name(current_user.to_lowercase().as_str()).unwrap().sid;
+        let upper_sid = Account::from_name(current_user.to_uppercase().as_str()).unwrap().sid;
+        assert_eq!(lower_sid.to_string().unwrap(), upper_sid.to_string().unwrap())
     }
 
     #[test]

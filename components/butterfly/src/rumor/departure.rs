@@ -46,9 +46,7 @@ impl FromProto<ProtoRumor> for Departure {
             _ => panic!("from-bytes departure"),
         };
         Ok(Departure {
-            member_id: payload
-                .member_id
-                .ok_or(Error::ProtocolMismatch("member-id"))?,
+            member_id: payload.member_id.ok_or(Error::ProtocolMismatch("member-id"))?,
         })
     }
 }

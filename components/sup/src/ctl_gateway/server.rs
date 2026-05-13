@@ -26,9 +26,7 @@ use futures::{
 use lazy_static::lazy_static;
 use log::{debug, error, trace, warn};
 use pin_project::pin_project;
-use prometheus::{
-    HistogramTimer, HistogramVec, IntCounterVec, register_histogram_vec, register_int_counter_vec,
-};
+use prometheus::{HistogramTimer, HistogramVec, IntCounterVec, register_histogram_vec, register_int_counter_vec};
 
 use rustls::{
     self, RootCertStore, ServerConfig as TlsServerConfig,
@@ -46,12 +44,8 @@ use tokio::{io::AsyncWrite, net::TcpListener, task, time};
 use tokio_util::codec::Decoder;
 
 lazy_static! {
-    static ref RPC_CALLS: IntCounterVec = register_int_counter_vec!(
-        "bio_sup_rpc_call_total",
-        "Total number of RPC calls",
-        &["name"]
-    )
-    .unwrap();
+    static ref RPC_CALLS: IntCounterVec =
+        register_int_counter_vec!("bio_sup_rpc_call_total", "Total number of RPC calls", &["name"]).unwrap();
     static ref RPC_CALL_DURATION: HistogramVec = register_histogram_vec!(
         "bio_sup_rpc_call_request_duration_seconds",
         "The latency for RPC calls",
@@ -163,16 +157,8 @@ struct Client {
 impl Client {
     /// Serve the client from the given framed socket stream.
     pub async fn serve(self, mut socket: SrvStream) -> Result<(), HandlerError> {
-        let mgr_sender = self
-            .state
-            .lock()
-            .expect("SrvState mutex poisoned")
-            .mgr_sender
-            .clone();
-        let handshake_with_timeout = time::timeout(
-            Duration::from_millis(REQ_TIMEOUT),
-            self.handshake(&mut socket),
-        );
+        let mgr_sender = self.state.lock().expect("SrvState mutex poisoned").mgr_sender.clone();
+        let handshake_with_timeout = time::timeout(Duration::from_millis(REQ_TIMEOUT), self.handshake(&mut socket));
         handshake_with_timeout
             .await
             .map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "client timed out"))??;
@@ -188,13 +174,9 @@ impl Client {
             .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))??;
         let success = if message.message_id() != "Handshake" {
             debug!("No handshake");
-            return Err(HandlerError::from(io::Error::from(
-                io::ErrorKind::ConnectionAborted,
-            )));
+            return Err(HandlerError::from(io::Error::from(io::ErrorKind::ConnectionAborted)));
         } else if !message.is_transaction() {
-            return Err(HandlerError::from(io::Error::from(
-                io::ErrorKind::ConnectionAborted,
-            )));
+            return Err(HandlerError::from(io::Error::from(io::ErrorKind::ConnectionAborted)));
         } else {
             match message.parse::<protocol::ctl::Handshake>() {
                 Ok(decoded) => {
@@ -210,9 +192,7 @@ impl Client {
                 }
                 Err(err) => {
                     warn!("Handshake error, {:?}", err);
-                    return Err(HandlerError::from(io::Error::from(
-                        io::ErrorKind::ConnectionAborted,
-                    )));
+                    return Err(HandlerError::from(io::Error::from(io::ErrorKind::ConnectionAborted)));
                 }
             }
         };
@@ -333,9 +313,7 @@ impl SrvHandler {
                 // This arm doesn't use a `util` module helper because
                 // it's currently the only thing that behaves like
                 // this.
-                let m = msg
-                    .parse::<protocol::ctl::SvcLoad>()
-                    .map_err(HandlerError::from)?;
+                let m = msg.parse::<protocol::ctl::SvcLoad>().map_err(HandlerError::from)?;
                 Ok(CtlCommand::new(
                     ctl_sender,
                     msg.transaction(),
@@ -345,9 +323,7 @@ impl SrvHandler {
                         // be awaited in a closure. It is safe to use
                         // `block_in_place` here because it is called within a
                         // spawned future.
-                        task::block_in_place(|| {
-                            executor::block_on(commands::service_load(state, req, m.clone()))
-                        })
+                        task::block_in_place(|| executor::block_on(commands::service_load(state, req, m.clone())))
                     },
                 ))
             }
@@ -360,9 +336,7 @@ impl SrvHandler {
             "SupRestart" => util::to_command(msg, ctl_sender, commands::supervisor_restart),
             _ => {
                 warn!("Unhandled message, {}", msg.message_id());
-                Err(HandlerError::from(io::Error::from(
-                    io::ErrorKind::InvalidData,
-                )))
+                Err(HandlerError::from(io::Error::from(io::ErrorKind::InvalidData)))
             }
         }
     }
@@ -370,9 +344,7 @@ impl SrvHandler {
     fn start_timer(&mut self, label: &str) {
         let label_values = &[label];
         RPC_CALLS.with_label_values(label_values).inc();
-        let timer = RPC_CALL_DURATION
-            .with_label_values(label_values)
-            .start_timer();
+        let timer = RPC_CALL_DURATION.with_label_values(label_values).start_timer();
         self.timer = Some(timer);
     }
 }
@@ -394,8 +366,7 @@ impl Future for SrvHandler {
                             self.start_timer(msg.message_id());
                             trace!("OnMessage, {}", msg.message_id());
 
-                            let fut =
-                                Self::command_from_message_gsr_msr(&msg, self.ctl_sender.clone());
+                            let fut = Self::command_from_message_gsr_msr(&msg, self.ctl_sender.clone());
                             tokio::pin!(fut);
                             let cmd = match futures::ready!(fut.poll_unpin(cx)) {
                                 Ok(cmd) => cmd,
@@ -431,42 +402,35 @@ impl Future for SrvHandler {
                         }
                     }
                 }
-                SrvHandlerState::Sending => {
-                    match futures::ready!(self.ctl_receiver.poll_next_unpin(cx)) {
-                        Some(msg) => {
-                            trace!("MgrSender -> SrvHandler, {:?}", msg);
-                            if msg.is_complete() {
-                                self.state = SrvHandlerState::Sent;
-                            }
-                            if let Err(err) =
-                                futures::ready!(self.as_mut().project().io.poll_ready(cx))
-                            {
-                                return Poll::Ready(Err(HandlerError::from(err)));
-                            }
-                            match self.as_mut().project().io.start_send(msg) {
-                                Ok(()) => {
-                                    if let Err(err) =
-                                        futures::ready!(self.as_mut().project().io.poll_flush(cx))
-                                    {
-                                        return Poll::Ready(Err(HandlerError::from(err)));
-                                    }
-                                    continue;
-                                }
-                                Err(e) if e.kind() == ::std::io::ErrorKind::WouldBlock => {
-                                    return Poll::Pending;
-                                }
-                                Err(err) => return Poll::Ready(Err(HandlerError::from(err))),
-                            }
+                SrvHandlerState::Sending => match futures::ready!(self.ctl_receiver.poll_next_unpin(cx)) {
+                    Some(msg) => {
+                        trace!("MgrSender -> SrvHandler, {:?}", msg);
+                        if msg.is_complete() {
+                            self.state = SrvHandlerState::Sent;
                         }
-                        None => self.state = SrvHandlerState::Sent,
+                        if let Err(err) = futures::ready!(self.as_mut().project().io.poll_ready(cx)) {
+                            return Poll::Ready(Err(HandlerError::from(err)));
+                        }
+                        match self.as_mut().project().io.start_send(msg) {
+                            Ok(()) => {
+                                if let Err(err) = futures::ready!(self.as_mut().project().io.poll_flush(cx)) {
+                                    return Poll::Ready(Err(HandlerError::from(err)));
+                                }
+                                continue;
+                            }
+                            Err(e) if e.kind() == ::std::io::ErrorKind::WouldBlock => {
+                                return Poll::Pending;
+                            }
+                            Err(err) => return Poll::Ready(Err(HandlerError::from(err))),
+                        }
                     }
-                }
+                    None => self.state = SrvHandlerState::Sent,
+                },
                 SrvHandlerState::Sent => {
                     if let Some(timer) = self.timer.take() {
                         timer.observe_duration();
                     }
-                    if let Err(err) = futures::ready!(Pin::new(self.io.get_mut()).poll_shutdown(cx))
-                    {
+                    if let Err(err) = futures::ready!(Pin::new(self.io.get_mut()).poll_shutdown(cx)) {
                         return Poll::Ready(Err(HandlerError::from(err)));
                     }
                     trace!("OnMessage complete");
@@ -517,18 +481,14 @@ impl CtlGatewayServer {
             client_certificates,
         } = self;
 
-        let state = SrvState {
-            secret_key,
-            mgr_sender,
-        };
+        let state = SrvState { secret_key, mgr_sender };
         let state = Arc::new(Mutex::new(state));
         let listener = TcpListener::bind(&listen_addr)
             .await
             .expect("Could not bind ctl gateway listen address!");
 
         let maybe_tls_config =
-            Self::maybe_tls_config(server_certificates, server_key, client_certificates)
-                .map(Arc::new);
+            Self::maybe_tls_config(server_certificates, server_key, client_certificates).map(Arc::new);
         loop {
             let tcp_stream = listener.accept().await;
             match tcp_stream {
@@ -543,9 +503,7 @@ impl CtlGatewayServer {
 
                     // Upgrade to a TLS connection if necessary
                     let tcp_stream = if let Some(tls_config) = &maybe_tls_config {
-                        match TcpOrTlsStream::new_tls_server(tcp_stream, Arc::clone(tls_config))
-                            .await
-                        {
+                        match TcpOrTlsStream::new_tls_server(tcp_stream, Arc::clone(tls_config)).await {
                             Ok(tcp_stream) => tcp_stream,
                             Err((e, tcp_stream)) => {
                                 error!("Failed to accept TLS client connection, err {}", e);
@@ -562,12 +520,8 @@ impl CtlGatewayServer {
                                         ErrCode::TlsHandshakeFailed,
                                         format!("TLS handshake failed, err: {}", e),
                                     );
-                                    if let Err(e) = srv_codec.send(SrvMessage::from(net_err)).await
-                                    {
-                                        error!(
-                                            "Failed to send TLS failure message to client, err {}",
-                                            e
-                                        );
+                                    if let Err(e) = srv_codec.send(SrvMessage::from(net_err)).await {
+                                        error!("Failed to send TLS failure message to client, err {}", e);
                                     }
                                 }
                                 continue;

@@ -97,8 +97,7 @@ impl PackageGraph {
                 // `skip` it here so it's not in the result Vec
                 let bfs = Bfs::new(&self.graph, idx).iter(&self.graph).skip(1);
 
-                bfs.map(|child| self.graph.node_weight(child).unwrap())
-                    .collect()
+                bfs.map(|child| self.graph.node_weight(child).unwrap()).collect()
             })
             .unwrap_or_default()
     }
@@ -107,10 +106,7 @@ impl PackageGraph {
     /// allows you to modify the underlying graph (via `PackageGraph::remove`) while traversing the
     /// dependencies
     pub fn owned_ordered_deps(&self, package: &PackageIdent) -> Vec<PackageIdent> {
-        self.ordered_deps(package)
-            .iter()
-            .map(|&p| p.clone())
-            .collect()
+        self.ordered_deps(package).iter().map(|&p| p.clone()).collect()
     }
 
     /// Return the reverse dependencies of a given Package Identifier
@@ -120,12 +116,9 @@ impl PackageGraph {
             .map(|&idx| {
                 // BFS returns the original node as the first node
                 // `skip` it here so it's not in the result Vec
-                let bfs = Bfs::new(&self.graph, idx)
-                    .iter(Reversed(&self.graph))
-                    .skip(1);
+                let bfs = Bfs::new(&self.graph, idx).iter(Reversed(&self.graph)).skip(1);
 
-                bfs.map(|child| self.graph.node_weight(child).unwrap())
-                    .collect()
+                bfs.map(|child| self.graph.node_weight(child).unwrap()).collect()
             })
             .unwrap_or_default()
     }
@@ -155,10 +148,7 @@ impl PackageGraph {
                 match self.graph.remove_node(idx) {
                     Some(ident) => assert_eq!(&ident, package),
                     None => {
-                        panic!(
-                            "removed node from map but it wasn't in the graph: {}",
-                            package
-                        )
+                        panic!("removed node from map but it wasn't in the graph: {}", package)
                     }
                 }
                 true
@@ -184,11 +174,7 @@ impl PackageGraph {
         self.count_edges(ident, petgraph::Incoming)
     }
 
-    fn neighbours(
-        &self,
-        package: &PackageIdent,
-        direction: petgraph::Direction,
-    ) -> Vec<&PackageIdent> {
+    fn neighbours(&self, package: &PackageIdent, direction: petgraph::Direction) -> Vec<&PackageIdent> {
         self.nodes
             .get_by_left(package)
             .map(|&idx| {
@@ -259,10 +245,7 @@ mod tests {
     }
 
     fn empty_package_deps(ident: PackageIdent) -> PackageDeps {
-        PackageDeps {
-            ident,
-            deps: vec![],
-        }
+        PackageDeps { ident, deps: vec![] }
     }
 
     fn package_deps(ident: PackageIdent, deps: &[PackageIdent]) -> PackageDeps {
@@ -503,10 +486,7 @@ mod tests {
     fn cant_remove_package_with_rdeps() {
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b, std::slice::from_ref(&a)),
-        ];
+        let packages = vec![empty_package_deps(a.clone()), package_deps(b, std::slice::from_ref(&a))];
 
         let mut graph = build(&packages);
         assert_eq!(graph.node_count(), 2);

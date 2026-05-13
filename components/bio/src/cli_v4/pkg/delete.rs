@@ -43,20 +43,12 @@ impl PkgDeleteOptions {
     pub(super) async fn do_delete(&self, ui: &mut UI) -> BioResult<()> {
         let auth_token = self.auth_token.from_cli_or_config()?;
 
-        let target = self
-            .pkg_target
-            .unwrap_or_else(|| match PackageTarget::active_target() {
-                #[cfg(feature = "supported_targets")]
-                target::X86_64_DARWIN => target::X86_64_LINUX,
-                t => t,
-            });
+        let target = self.pkg_target.unwrap_or_else(|| match PackageTarget::active_target() {
+            #[cfg(feature = "supported_targets")]
+            target::X86_64_DARWIN => target::X86_64_LINUX,
+            t => t,
+        });
 
-        delete::start(
-            ui,
-            &self.bldr_url.to_string(),
-            (&self.pkg_ident, target),
-            &auth_token,
-        )
-        .await
+        delete::start(ui, &self.bldr_url.to_string(), (&self.pkg_ident, target), &auth_token).await
     }
 }

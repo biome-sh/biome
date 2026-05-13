@@ -32,7 +32,7 @@ pub use self::{
 use crate::{
     census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile},
     error::{Error, Result},
-    manager::{FsCfg, ServicePidSource, ShutdownConfig, Sys, event, sync::GatewayState},
+    manager::{FsCfg, ShutdownConfig, Sys, event, sync::GatewayState},
 };
 use biome_butterfly::rumor::service::Service as ServiceRumor;
 #[cfg(windows)]
@@ -264,12 +264,7 @@ impl ServiceRunState {
         }
     }
 
-    pub fn mark_for_restart(
-        &mut self,
-        old_pid: Option<Pid>,
-        reason: ProcessTerminationReason,
-        timestamp: SystemTime,
-    ) {
+    pub fn mark_for_restart(&mut self, old_pid: Option<Pid>, reason: ProcessTerminationReason, timestamp: SystemTime) {
         self.restart_state = RestartState::NeedsRestart;
         self.last_process_state = Some(LastProcessState {
             pid: old_pid,
@@ -310,10 +305,7 @@ pub struct PersistentServiceWrapper {
 }
 
 impl PersistentServiceWrapper {
-    pub fn new(
-        service: Service,
-        restart_config: &ServiceRestartConfig,
-    ) -> PersistentServiceWrapper {
+    pub fn new(service: Service, restart_config: &ServiceRestartConfig) -> PersistentServiceWrapper {
         PersistentServiceWrapper {
             run_state: ServiceRunState::new(restart_config),
             inner: Some(service),
@@ -356,9 +348,7 @@ impl PersistentServiceWrapper {
     /// the gateway.
     pub fn last_state_change(&self) -> SystemTime {
         if let Some(service) = self.inner.as_ref() {
-            service
-                .last_state_change()
-                .max(self.run_state.last_updated_at)
+            service.last_state_change().max(self.run_state.last_updated_at)
         } else {
             self.run_state.last_updated_at
         }
@@ -449,10 +439,7 @@ impl PersistentServiceWrapper {
     pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
         match &mut self.inner {
             Some(service) => {
-                trace!(
-                    "Starting service tick with persistent state: {:?}",
-                    self.run_state
-                );
+                trace!("Starting service tick with persistent state: {:?}", self.run_state);
                 service.tick(&mut self.run_state, census_ring, launcher)
             }
             None => false,
@@ -569,7 +556,6 @@ impl Service {
         organization: Option<&str>,
         census_ring: Arc<RwLock<CensusRing>>,
         gateway_state: Arc<GatewayState>,
-        pid_source: ServicePidSource,
         feature_flags: FeatureFlag,
     ) -> Result<Service> {
         spec.validate(package)?;
@@ -599,7 +585,7 @@ impl Service {
             user_config_updated: false,
             initialization_state: Arc::new(RwLock::new(InitializationState::Uninitialized)),
             manager_fs_cfg,
-            supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group, pid_source))),
+            supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group))),
             pkg,
             service_group,
             all_pkg_binds,
@@ -635,7 +621,7 @@ impl Service {
     // the current user.
     #[cfg(windows)]
     async fn resolve_pkg(package: &PackageInstall, spec: &ServiceSpec) -> Result<Pkg> {
-        let mut pkg = Pkg::from_install(package).await?;
+        let mut pkg = Pkg::from_install(package, None).await?;
         if spec.svc_encrypted_password.is_none()
             && pkg.svc_user == DEFAULT_USER
             && let Some(user) = users::get_current_username()?
@@ -647,7 +633,7 @@ impl Service {
 
     #[cfg(unix)]
     async fn resolve_pkg(package: &PackageInstall, _spec: &ServiceSpec) -> Result<Pkg> {
-        Ok(Pkg::from_install(package).await?)
+        Ok(Pkg::from_install(package, None).await?)
     }
 
     /// Returns the config root given the package and optional config-from path.
@@ -660,10 +646,7 @@ impl Service {
 
     /// Returns the hooks root given the package and optional config-from path.
     fn hooks_root(package: &Pkg, config_from: Option<&PathBuf>) -> PathBuf {
-        config_from
-            .map(PathBuf::as_path)
-            .unwrap_or(&package.path)
-            .join("hooks")
+        config_from.map(PathBuf::as_path).unwrap_or(&package.path).join("hooks")
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -674,7 +657,6 @@ impl Service {
         organization: Option<&str>,
         census_ring: Arc<RwLock<CensusRing>>,
         gateway_state: Arc<GatewayState>,
-        pid_source: ServicePidSource,
         feature_flags: FeatureFlag,
     ) -> Result<Service> {
         // The package for a spec should already be installed.
@@ -688,7 +670,6 @@ impl Service {
             organization,
             census_ring,
             gateway_state,
-            pid_source,
             feature_flags,
         )
         .await
@@ -703,16 +684,12 @@ impl Service {
 
     fn start(&mut self, launcher: &LauncherCli) {
         debug!("Starting service {}", self.pkg.ident);
-        let result = self
-            .supervisor
-            .lock()
-            .expect("Couldn't lock supervisor")
-            .start(
-                &self.pkg,
-                &self.service_group,
-                launcher,
-                self.spec.svc_encrypted_password.as_deref(),
-            );
+        let result = self.supervisor.lock().expect("Couldn't lock supervisor").start(
+            &self.pkg,
+            &self.service_group,
+            launcher,
+            self.spec.svc_encrypted_password.as_deref(),
+        );
         match result {
             Ok(_) => {
                 self.start_health_checks();
@@ -755,10 +732,7 @@ impl Service {
                 interval,
             }) = rx.recv().await
             {
-                debug!(
-                    "Caching HealthCheckResult = '{}' for '{}'",
-                    result, service_group
-                );
+                debug!("Caching HealthCheckResult = '{}' for '{}'", result, service_group);
                 *service_health_result
                     .lock()
                     .expect("Could not unlock service_health_result") = result;
@@ -867,12 +841,7 @@ impl Service {
     /// Performs updates and executes hooks.
     ///
     /// Returns `true` if the service was marked to be restarted or reconfigured.
-    fn tick(
-        &mut self,
-        run_state: &mut ServiceRunState,
-        census_ring: &CensusRing,
-        launcher: &LauncherCli,
-    ) -> bool {
+    fn tick(&mut self, run_state: &mut ServiceRunState, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
         // We may need to block the service from starting until all
         // its binds are satisfied
         if !self.initialized() {
@@ -1109,8 +1078,7 @@ impl Service {
                 if config.incarnation <= self.cfg.gossip_incarnation {
                     return false;
                 }
-                self.cfg
-                    .set_gossip(config.incarnation, config.value.clone());
+                self.cfg.set_gossip(config.incarnation, config.value.clone());
                 true
             }
             None => false,
@@ -1291,12 +1259,10 @@ impl Service {
     ///
     /// Returns `true` if the configuration has changed.
     fn compile_configuration(&self, ctx: &RenderContext) -> bool {
-        match self.config_renderer.compile(
-            &ctx.service_group_name(),
-            &self.pkg,
-            &self.pkg.svc_config_path,
-            ctx,
-        ) {
+        match self
+            .config_renderer
+            .compile(&ctx.service_group_name(), &self.pkg, &self.pkg.svc_config_path, ctx)
+        {
             Ok(true) => true,
             Ok(false) => false,
             Err(e) => {
@@ -1369,6 +1335,14 @@ impl Service {
         template_update: &TemplateUpdate,
     ) {
         let pid_update = self.update_process_state(launcher);
+
+        // If the launcher returned an error we cannot determine the process state.
+        // Skip all recovery actions to avoid incorrectly restarting or initializing
+        // a service that may still be running.
+        if pid_update.launcher_error {
+            return;
+        }
+
         // We copy the current process id to the run state to avoid
         // having to lock the supervisor for this information.
         run_state.current_pid = pid_update.new_pid;
@@ -1388,11 +1362,7 @@ impl Service {
                 }
             }
             InitializationState::InitializerFailed(failed_at) => {
-                run_state.mark_for_restart(
-                    None,
-                    ProcessTerminationReason::InitHookFailed,
-                    failed_at,
-                );
+                run_state.mark_for_restart(None, ProcessTerminationReason::InitHookFailed, failed_at);
             }
             InitializationState::Initializing => {
                 // Wait until the initializer finishes running
@@ -1420,11 +1390,7 @@ impl Service {
                         ),
                     );
                 } else if let Some(termination_reason) = template_update.needs_restart() {
-                    run_state.mark_for_immediate_restart(
-                        pid_update.new_pid,
-                        termination_reason,
-                        SystemTime::now(),
-                    );
+                    run_state.mark_for_immediate_restart(pid_update.new_pid, termination_reason, SystemTime::now());
                 } else if template_update.needs_reconfigure() {
                     // Only reconfigure if we did NOT restart the service
                     self.reconfigure();
@@ -1526,10 +1492,7 @@ impl Service {
             &self.pkg,
             &self.cfg,
             census,
-            self.spec
-                .binds
-                .iter()
-                .filter(|b| !self.unsatisfied_binds.contains(b)),
+            self.spec.binds.iter().filter(|b| !self.unsatisfied_binds.contains(b)),
         )
     }
 
@@ -1576,8 +1539,7 @@ impl Service {
         use biome_core::{os::process, util::posix_perm};
 
         if process::can_run_services_as_svc_user() {
-            let result =
-                posix_perm::set_owner(path.as_ref(), &self.pkg.svc_user, &self.pkg.svc_group);
+            let result = posix_perm::set_owner(path.as_ref(), &self.pkg.svc_user, &self.pkg.svc_group);
             if let Err(e) = result {
                 outputln!(preamble self.service_group,
                           "Failed to set ownership of cache file {}, {}",
@@ -1689,11 +1651,7 @@ pub struct ServiceQueryModel {
 }
 
 impl ServiceQueryModel {
-    pub fn new(
-        service: &Service,
-        service_run_state: &ServiceRunState,
-        config_rendering: ConfigRendering,
-    ) -> Self {
+    pub fn new(service: &Service, service_run_state: &ServiceRunState, config_rendering: ConfigRendering) -> Self {
         ServiceQueryModel {
             all_pkg_binds: service.all_pkg_binds.clone(),
             binding_mode: service.spec.binding_mode,
@@ -1775,8 +1733,7 @@ mod tests {
     };
 
     async fn initialize_test_service() -> PersistentServiceWrapper {
-        let listen_ctl_addr =
-            ListenCtlAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
+        let listen_ctl_addr = ListenCtlAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
         let sys = Sys::new(
             false,
             GossipListenAddr::default(),
@@ -1819,7 +1776,6 @@ mod tests {
                 Some("haha"),
                 census_ring,
                 gs,
-                ServicePidSource::Launcher,
                 FeatureFlag::empty(),
             )
             .await

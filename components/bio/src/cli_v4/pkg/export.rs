@@ -41,19 +41,11 @@ impl PkgExportCommand {
         match self {
             #[cfg(any(target_os = "linux", target_os = "windows"))]
             PkgExportCommand::Container(opts) => {
-                export::container::start(
-                    ui,
-                    &opts.args.iter().map(OsString::from).collect::<Vec<_>>(),
-                )
-                .await
+                export::container::start(ui, &opts.args.iter().map(OsString::from).collect::<Vec<_>>()).await
             }
             #[cfg(any(target_os = "linux", target_os = "windows"))]
             PkgExportCommand::Tar(opts) => {
-                export::tar::start(
-                    ui,
-                    &opts.args.iter().map(OsString::from).collect::<Vec<_>>(),
-                )
-                .await
+                export::tar::start(ui, &opts.args.iter().map(OsString::from).collect::<Vec<_>>()).await
             }
         }
     }

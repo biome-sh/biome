@@ -190,8 +190,7 @@ impl SrvClient {
         // 2. The `tcp_stream.next()` call returns `None` indicating the connection was unexpectedly
         // closed by the server
         // 3. Any other socket io error
-        let handshake_result =
-            time::timeout(Duration::from_millis(REQ_TIMEOUT), tcp_stream.next()).await;
+        let handshake_result = time::timeout(Duration::from_millis(REQ_TIMEOUT), tcp_stream.next()).await;
         let handshake_reply = handshake_result
             .map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "client timed out"))?
             .ok_or(SrvClientError::ConnectionClosed)??;

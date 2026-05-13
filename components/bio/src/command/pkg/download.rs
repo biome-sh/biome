@@ -171,11 +171,7 @@ where
         download_path, download_path_expanded
     );
 
-    debug!(
-        "{} {}",
-        package_sets.is_empty(),
-        package_sets[0].idents.is_empty()
-    );
+    debug!("{} {}", package_sets.is_empty(), package_sets[0].idents.is_empty());
 
     if package_sets.is_empty() {
         ui.fatal(
@@ -227,10 +223,7 @@ impl DownloadTask<'_> {
     {
         // This was written intentionally with an eye towards data parallelism
         // Any or all of these phases should naturally fit a fork-join model
-        ui.begin(format!(
-            "Storing in download directory {:?} ",
-            self.download_path
-        ))?;
+        ui.begin(format!("Storing in download directory {:?} ", self.download_path))?;
 
         self.verify_and_prepare_download_directory(ui)?;
 
@@ -258,20 +251,12 @@ impl DownloadTask<'_> {
                 "Resolving dependencies for {} package idents",
                 package_set.idents.len()
             ))?;
-            ui.begin(format!(
-                "Using channel {} from {}",
-                package_set.channel, self.url
-            ))?;
+            ui.begin(format!("Using channel {} from {}", package_set.channel, self.url))?;
             ui.begin(format!("Using target {}", package_set.target))?;
 
             for ident in &package_set.idents {
                 if let Some(package) = self
-                    .determine_latest_from_ident(
-                        ui,
-                        &package_set.channel,
-                        package_set.target,
-                        ident,
-                    )
+                    .determine_latest_from_ident(ui, &package_set.channel, package_set.target, ident)
                     .await?
                 {
                     expanded_packages.push((package, package_set.target));
@@ -288,10 +273,7 @@ impl DownloadTask<'_> {
             expanded_idents.insert((package.ident.clone(), target));
         }
 
-        ui.status(
-            Status::Found,
-            format!("{} artifacts", expanded_idents.len()),
-        )?;
+        ui.status(Status::Found, format!("{} artifacts", expanded_idents.len()))?;
 
         Ok(expanded_idents)
     }
@@ -315,19 +297,18 @@ impl DownloadTask<'_> {
         )?;
 
         for (ident, target) in expanded_idents {
-            let archive: PackageArchive =
-                match self.get_downloaded_archive(ui, ident, *target).await {
-                    Ok(v) => v,
-                    Err(e) => {
-                        // Is this the right status? Or should this be a debug message?
-                        debug!("Error fetching archive {} for {}: {:?}", ident, *target, e);
-                        ui.status(
-                            Status::Missing,
-                            format!("Error fetching archive {} for {}", ident, *target),
-                        )?;
-                        return Err(e);
-                    }
-                };
+            let archive: PackageArchive = match self.get_downloaded_archive(ui, ident, *target).await {
+                Ok(v) => v,
+                Err(e) => {
+                    // Is this the right status? Or should this be a debug message?
+                    debug!("Error fetching archive {} for {}: {:?}", ident, *target, e);
+                    ui.status(
+                        Status::Missing,
+                        format!("Error fetching archive {} for {}", ident, *target),
+                    )?;
+                    return Err(e);
+                }
+            };
 
             downloaded_artifacts.push(archive);
         }
@@ -379,22 +360,15 @@ impl DownloadTask<'_> {
                 if self.ignore_missing_seeds {
                     Ok(None)
                 } else {
-                    Err(CommonError::PackageNotFound(format!(
-                        "{} for {} in channel {}",
-                        ident, target, &channel
-                    ))
-                    .into())
+                    Err(
+                        CommonError::PackageNotFound(format!("{} for {} in channel {}", ident, target, &channel))
+                            .into(),
+                    )
                 }
             }
             Err(e) => {
-                debug!(
-                    "Error fetching ident {} for target {}: {:?}",
-                    ident, target, e
-                );
-                ui.warn(format!(
-                    "Error fetching ident {} for target {}",
-                    ident, target
-                ))?;
+                debug!("Error fetching ident {} for target {}: {:?}", ident, target, e);
+                ui.warn(format!("Error fetching ident {} for target {}", ident, target))?;
                 Err(e)
             }
         }
@@ -414,10 +388,7 @@ impl DownloadTask<'_> {
         T: UIWriter,
     {
         if self.downloaded_artifact_path(ident, target).is_file() {
-            debug!(
-                "Found {} in download directory, skipping remote download",
-                ident
-            );
+            debug!("Found {} in download directory, skipping remote download", ident);
             ui.status(
                 Status::Custom(Glyph::Elipses, String::from("Using cached")),
                 format!("{}", ident),
@@ -436,24 +407,14 @@ impl DownloadTask<'_> {
     // This function and its sibling in install.rs deserve to be refactored to eke out commonality.
     /// Retrieve the identified package from the depot, ensuring that
     /// the artifact is downloaded.
-    async fn fetch_artifact<T>(
-        &self,
-        ui: &mut T,
-        ident: &PackageIdent,
-        target: PackageTarget,
-    ) -> Result<()>
+    async fn fetch_artifact<T>(&self, ui: &mut T, ident: &PackageIdent, target: PackageTarget) -> Result<()>
     where
         T: UIWriter,
     {
         ui.status(Status::Downloading, format!("{}", ident))?;
         retry_builder_api!(async {
             self.api_client
-                .fetch_package(
-                    (ident, target),
-                    self.token,
-                    &self.path_for_artifact(),
-                    ui.progress(),
-                )
+                .fetch_package((ident, target), self.token, &self.path_for_artifact(), ui.progress())
                 .await
         })
         .await
@@ -468,12 +429,7 @@ impl DownloadTask<'_> {
         Ok(())
     }
 
-    async fn fetch_origin_key<T>(
-        &self,
-        ui: &mut T,
-        named_revision: NamedRevision,
-        token: Option<&str>,
-    ) -> Result<()>
+    async fn fetch_origin_key<T>(&self, ui: &mut T, named_revision: NamedRevision, token: Option<&str>) -> Result<()>
     where
         T: UIWriter,
     {
@@ -508,12 +464,8 @@ impl DownloadTask<'_> {
         cache.setup()?;
 
         if cache.public_signing_key(&signer).is_err() {
-            ui.status(
-                Status::Downloading,
-                format!("public key for signer {}", signer),
-            )?;
-            self.fetch_origin_key(ui, signer.clone(), self.token)
-                .await?;
+            ui.status(Status::Downloading, format!("public key for signer {}", signer))?;
+            self.fetch_origin_key(ui, signer.clone(), self.token).await?;
         };
 
         if self.verify {
@@ -562,18 +514,11 @@ impl DownloadTask<'_> {
     where
         T: UIWriter,
     {
-        let system_paths = [
-            self.download_path,
-            &self.path_for_keys(),
-            &self.path_for_artifact(),
-        ];
+        let system_paths = [self.download_path, &self.path_for_keys(), &self.path_for_artifact()];
 
         ui.status(
             Status::Verifying,
-            format!(
-                "the download directory \"{}\"",
-                self.download_path.display()
-            ),
+            format!("the download directory \"{}\"", self.download_path.display()),
         )?;
 
         let mut builder = DirBuilder::new();

@@ -1,6 +1,4 @@
-use handlebars::{
-    Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason,
-};
+use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason};
 
 #[derive(Clone, Copy)]
 pub struct StrReplaceHelper;

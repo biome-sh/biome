@@ -63,9 +63,7 @@ impl FixtureRoot {
 
     /// There should be a spec file in the root of the fixture directory
     pub fn spec_path(&self, package_name: &str) -> PathBuf {
-        self.0
-            .to_path_buf()
-            .join(format!("{}.spec", &package_name.to_string()))
+        self.0.to_path_buf().join(format!("{}.spec", &package_name.to_string()))
     }
 
     /// Fixture files for an expanded bundle... think of what a .hart

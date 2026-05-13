@@ -26,6 +26,7 @@ pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 pub const ORIGIN_ENVVAR: &str = "BIO_ORIGIN";
 pub const BLDR_URL_ENVVAR: &str = "BIO_BLDR_URL";
 pub const REFRESH_CHANNEL_ENVVAR: &str = "BIO_REFRESH_CHANNEL";
+pub const SECRET_REFRESH_CHANNEL_ENVVAR: &str = "BIO_STUDIO_SECRET_BIO_REFRESH_CHANNEL";
 
 pub use crate::hcore::AUTH_TOKEN_ENVVAR;
 

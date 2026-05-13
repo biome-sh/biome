@@ -171,8 +171,7 @@ impl FromStr for ServiceBind {
     type Err = NetErr;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        let sb = core::service::ServiceBind::from_str(value)
-            .map_err(|e| net::err(ErrCode::InvalidPayload, e))?;
+        let sb = core::service::ServiceBind::from_str(value).map_err(|e| net::err(ErrCode::InvalidPayload, e))?;
         Ok(sb.into())
     }
 }
@@ -197,8 +196,7 @@ impl FromStr for ServiceGroup {
     type Err = NetErr;
 
     fn from_str(value: &str) -> Result<ServiceGroup, Self::Err> {
-        let sg = core::service::ServiceGroup::from_str(value)
-            .map_err(|e| net::err(ErrCode::InvalidPayload, e))?;
+        let sg = core::service::ServiceGroup::from_str(value).map_err(|e| net::err(ErrCode::InvalidPayload, e))?;
         Ok(sg.into())
     }
 }
@@ -287,8 +285,7 @@ impl From<core::service::ServiceGroup> for ServiceGroup {
 #[allow(clippy::from_over_into)]
 impl Into<core::service::ServiceGroup> for ServiceGroup {
     fn into(self) -> core::service::ServiceGroup {
-        core::service::ServiceGroup::new(self.service, self.group, self.organization.as_deref())
-            .unwrap()
+        core::service::ServiceGroup::new(self.service, self.group, self.organization.as_deref()).unwrap()
     }
 }
 
@@ -382,10 +379,7 @@ impl FromStr for UpdateStrategy {
             "none" => Ok(UpdateStrategy::None),
             "at-once" => Ok(UpdateStrategy::AtOnce),
             "rolling" => Ok(UpdateStrategy::Rolling),
-            _ => Err(net::err(
-                ErrCode::InvalidPayload,
-                "Invalid update strategy.",
-            )),
+            _ => Err(net::err(ErrCode::InvalidPayload, "Invalid update strategy.")),
         }
     }
 }
@@ -414,10 +408,7 @@ impl FromStr for UpdateCondition {
         match strategy {
             "latest" => Ok(UpdateCondition::Latest),
             "track-channel" => Ok(UpdateCondition::TrackChannel),
-            _ => Err(net::err(
-                ErrCode::InvalidPayload,
-                "Invalid update condition.",
-            )),
+            _ => Err(net::err(ErrCode::InvalidPayload, "Invalid update condition.")),
         }
     }
 }
@@ -458,10 +449,7 @@ mod tests {
     #[test]
     fn topology_from_str() {
         assert_eq!(Topology::from_str("leader").unwrap(), Topology::Leader);
-        assert_eq!(
-            Topology::from_str("standalone").unwrap(),
-            Topology::Standalone
-        );
+        assert_eq!(Topology::from_str("standalone").unwrap(), Topology::Standalone);
     }
 
     #[test]
@@ -497,9 +485,7 @@ mod tests {
         struct Data {
             key: Topology,
         }
-        let data = Data {
-            key: Topology::Leader,
-        };
+        let data = Data { key: Topology::Leader };
         let toml = toml::to_string(&data).unwrap();
 
         assert!(toml.starts_with(r#"key = "leader""#))

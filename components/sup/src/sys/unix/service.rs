@@ -64,10 +64,7 @@ impl Process {
         // JW TODO: Determine if the error represents a case where the
         // process was already exited before we return out and assume
         // so.
-        trace!(
-            "Sending {:?} signal to process {}",
-            shutdown_signal, pid_to_kill
-        );
+        trace!("Sending {:?} signal to process {}", shutdown_signal, pid_to_kill);
         #[allow(clippy::question_mark)]
         if signal(pid_to_kill, shutdown_signal).is_err() {
             return ShutdownMethod::AlreadyExited;

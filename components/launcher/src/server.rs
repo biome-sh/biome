@@ -106,8 +106,7 @@ impl Server {
     /// Launcher's process LOCK before starting. This is useful when restarting a Supervisor
     /// that terminated gracefully.
     fn init(args: &[String]) -> Result<((Receiver, Sender), Child)> {
-        let (server, pipe) = IpcOneShotServer::new()
-            .context("Failed to create incoming IPC channel for launcher")?;
+        let (server, pipe) = IpcOneShotServer::new().context("Failed to create incoming IPC channel for launcher")?;
         let supervisor = spawn_supervisor(&pipe, args).context("Failed to spawn supervisor")?;
         let ipc_channel = setup_connection(server).context(
             "Failed to setup launcher IPC \
@@ -131,11 +130,7 @@ impl Server {
     #[cfg(unix)]
     fn forward_signal(&self, signal: Signal) {
         if let Err(err) = core::os::process::signal(self.supervisor.id() as Pid, signal) {
-            error!(
-                "Unable to signal Supervisor, {}, {}",
-                self.supervisor.id(),
-                err
-            );
+            error!("Unable to signal Supervisor, {}, {}", self.supervisor.id(), err);
         }
     }
 
@@ -192,9 +187,7 @@ impl Server {
                             self.services.kill_all();
                             Ok(TickState::Exit(0))
                         }
-                        None => Err(anyhow!(
-                            "Supervisor process was terminated in some unknown manner"
-                        )),
+                        None => Err(anyhow!("Supervisor process was terminated in some unknown manner")),
                     }
                 }
                 // This branch is essentially unreachable as the underlying ExitStatus
@@ -224,11 +217,7 @@ impl Server {
                 );
                 warn!("Forcefully stopping supervisor: {}", self.supervisor.id());
                 if let Err(err) = self.supervisor.kill() {
-                    warn!(
-                        "Unable to kill supervisor, {}, {}",
-                        self.supervisor.id(),
-                        err
-                    );
+                    warn!("Unable to kill supervisor, {}, {}", self.supervisor.id(), err);
                 }
             }
         }
@@ -503,8 +492,7 @@ where
             err
         )
     })?;
-    tx.send(bytes)
-        .context("Failed to send IPC message to supervisor")?;
+    tx.send(bytes).context("Failed to send IPC message to supervisor")?;
     Ok(())
 }
 
@@ -610,13 +598,8 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
     if *started && !wait_result.timed_out() {
         handle.join().unwrap()
     } else {
-        debug!(
-            "Timeout exceeded waiting for IPC connection (started: {})",
-            *started
-        );
-        Err(anyhow!(
-            "Timeout exceeded waiting for IPC connection from supervisor"
-        ))
+        debug!("Timeout exceeded waiting for IPC connection (started: {})", *started);
+        Err(anyhow!("Timeout exceeded waiting for IPC connection from supervisor"))
     }
 }
 
@@ -641,10 +624,7 @@ fn spawn_supervisor(pipe: &str, args: &[String]) -> Result<Child> {
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .env(protocol::LAUNCHER_PIPE_ENV, pipe)
-        .env(
-            protocol::LAUNCHER_PID_ENV,
-            process::current_pid().to_string(),
-        )
+        .env(protocol::LAUNCHER_PID_ENV, process::current_pid().to_string())
         .args(args)
         .spawn()
         .context("Failed to spawn supervisor")?;
@@ -670,9 +650,6 @@ fn supervisor_cmd() -> Result<PathBuf> {
                 SUP_CMD
             )),
         },
-        Err(_) => Err(anyhow!(
-            "Failed to locate supervisor package, {}",
-            SUP_PACKAGE_IDENT
-        )),
+        Err(_) => Err(anyhow!("Failed to locate supervisor package, {}", SUP_PACKAGE_IDENT)),
     }
 }

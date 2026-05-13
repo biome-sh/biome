@@ -6,12 +6,6 @@ const EXPORT_PKG_IDENT_ENVVAR: &str = "BIO_PKG_EXPORT_CONTAINER_PKG_IDENT";
 const EXPORT_CMD: &str = "bio-pkg-export-container";
 
 pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
-    crate::command::pkg::export::export_common::start(
-        ui,
-        args,
-        EXPORT_CMD_ENVVAR,
-        EXPORT_PKG_IDENT_ENVVAR,
-        EXPORT_CMD,
-    )
-    .await
+    crate::command::pkg::export::export_common::start(ui, args, EXPORT_CMD_ENVVAR, EXPORT_PKG_IDENT_ENVVAR, EXPORT_CMD)
+        .await
 }

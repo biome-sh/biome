@@ -197,73 +197,67 @@ impl Worker {
     ) -> io::Result<()> {
         ThreadBuilder::new()
             .name(format!("user-config-watcher-{}", path.display()))
-            .spawn(
-                move || -> liveliness_checker::ThreadUnregistered<(), String> {
+            .spawn(move || -> liveliness_checker::ThreadUnregistered<(), String> {
+                let checked_thread = liveliness_checker::mark_thread_alive();
+
+                debug!("UserConfigWatcher({}) worker thread starting", path.display(),);
+                let callbacks = UserConfigCallbacks { have_events };
+                let mut file_watcher = match FileWatcher::<UserConfigCallbacks>::new(&path, callbacks, false) {
+                    Ok(w) => w,
+                    Err(e) => {
+                        let msg = format!(
+                            "UserConfigWatcher({}) could not \
+                                                               start notifier, ending thread ({})",
+                            path.display(),
+                            e,
+                        );
+                        outputln!("{}", msg);
+                        return checked_thread.unregister(Err(msg));
+                    }
+                };
+
+                let _ = started_watching.try_send(());
+
+                loop {
                     let checked_thread = liveliness_checker::mark_thread_alive();
 
-                    debug!(
-                        "UserConfigWatcher({}) worker thread starting",
-                        path.display(),
-                    );
-                    let callbacks = UserConfigCallbacks { have_events };
-                    let mut file_watcher =
-                        match FileWatcher::<UserConfigCallbacks>::new(&path, callbacks, false) {
-                            Ok(w) => w,
-                            Err(e) => {
+                    match stop_running.try_recv() {
+                        // As long as the `stop_running` channel is
+                        // empty, this branch will execute on every
+                        // iteration.
+                        Err(TryRecvError::Empty) => {
+                            if let Err(e) = file_watcher.single_iteration() {
                                 let msg = format!(
-                                    "UserConfigWatcher({}) could not \
-                                                               start notifier, ending thread ({})",
+                                    "UserConfigWatcher({}) could \
+                                                                   not run notifier, ending \
+                                                                   thread ({})",
                                     path.display(),
                                     e,
                                 );
                                 outputln!("{}", msg);
-                                return checked_thread.unregister(Err(msg));
-                            }
-                        };
-
-                    let _ = started_watching.try_send(());
-
-                    loop {
-                        let checked_thread = liveliness_checker::mark_thread_alive();
-
-                        match stop_running.try_recv() {
-                            // As long as the `stop_running` channel is
-                            // empty, this branch will execute on every
-                            // iteration.
-                            Err(TryRecvError::Empty) => {
-                                if let Err(e) = file_watcher.single_iteration() {
-                                    let msg = format!(
-                                        "UserConfigWatcher({}) could \
-                                                                   not run notifier, ending \
-                                                                   thread ({})",
-                                        path.display(),
-                                        e,
-                                    );
-                                    outputln!("{}", msg);
-                                    break checked_thread.unregister(Err(msg));
-                                };
-                            }
-
-                            // If we receive a message on the channel, we stop.
-                            Ok(_) => break checked_thread.unregister(Ok(())),
-
-                            // If the channel is disconnected, we stop as well.
-                            Err(TryRecvError::Disconnected) => {
-                                let msg = format!(
-                                    "UserConfigWatcher({}) worker \
-                                                               thread failed to receive on \
-                                                               channel",
-                                    path.display(),
-                                );
-                                debug!("{}", msg);
                                 break checked_thread.unregister(Err(msg));
-                            }
+                            };
                         }
 
-                        thread::sleep(Duration::from_secs(1));
+                        // If we receive a message on the channel, we stop.
+                        Ok(_) => break checked_thread.unregister(Ok(())),
+
+                        // If the channel is disconnected, we stop as well.
+                        Err(TryRecvError::Disconnected) => {
+                            let msg = format!(
+                                "UserConfigWatcher({}) worker \
+                                                               thread failed to receive on \
+                                                               channel",
+                                path.display(),
+                            );
+                            debug!("{}", msg);
+                            break checked_thread.unregister(Err(msg));
+                        }
                     }
-                },
-            )?;
+
+                    thread::sleep(Duration::from_secs(1));
+                }
+            })?;
 
         Ok(())
     }
@@ -323,8 +317,7 @@ mod tests {
         ucm.add(&service).expect("adding service");
         assert!(wait_for_watcher(&ucm, &service));
 
-        File::create(service.user_config_path().get_path().join(USER_CONFIG_FILE))
-            .expect("creating file");
+        File::create(service.user_config_path().get_path().join(USER_CONFIG_FILE)).expect("creating file");
 
         assert!(wait_for_events(&ucm, &service));
     }
@@ -339,8 +332,7 @@ mod tests {
         ucm.add(&service).expect("adding service");
         assert!(wait_for_watcher(&ucm, &service));
 
-        File::create(service.user_config_path().get_path().join(USER_CONFIG_FILE))
-            .expect("creating file");
+        File::create(service.user_config_path().get_path().join(USER_CONFIG_FILE)).expect("creating file");
 
         lock.unset();
 

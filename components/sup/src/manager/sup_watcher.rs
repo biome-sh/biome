@@ -2,8 +2,7 @@
 use biome_core::package::target::{AARCH64_DARWIN, PackageTarget};
 use log::debug;
 use notify::{
-    Config, EventHandler, RecommendedWatcher, RecursiveMode, Result, Watcher, WatcherKind,
-    poll::PollWatcher,
+    Config, EventHandler, RecommendedWatcher, RecursiveMode, Result, Watcher, WatcherKind, poll::PollWatcher,
 };
 use std::{env, path::Path, str::FromStr};
 
@@ -19,9 +18,7 @@ impl Watcher for SupWatcher {
             .unwrap_or_else(|_| PackageTarget::active_target());
         if target == AARCH64_DARWIN {
             debug!("Using pollwatcher");
-            Ok(SupWatcher::Fallback(
-                PollWatcher::new(event_handler, config).unwrap(),
-            ))
+            Ok(SupWatcher::Fallback(PollWatcher::new(event_handler, config).unwrap()))
         } else {
             debug!("Using native watcher");
             Ok(SupWatcher::Native(

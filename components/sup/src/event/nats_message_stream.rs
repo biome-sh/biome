@@ -92,10 +92,7 @@ impl NatsMessageStream {
                             packet.subject
                         );
                     } else {
-                        error!(
-                            "Failed to publish message to subject '{}', err: {}",
-                            packet.subject, e
-                        );
+                        error!("Failed to publish message to subject '{}', err: {}", packet.subject, e);
                     }
                 }
             }

@@ -25,10 +25,7 @@ mod env;
 mod exec;
 
 #[cfg(any(
-    all(
-        target_os = "linux",
-        any(target_arch = "x86_64", target_arch = "aarch64")
-    ),
+    all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
     all(target_os = "windows", target_arch = "x86_64")
 ))]
 mod export;
@@ -99,10 +96,7 @@ pub(super) enum PkgCommand {
     Exec(exec::PkgExecOptions),
 
     #[cfg(any(
-        all(
-            target_os = "linux",
-            any(target_arch = "x86_64", target_arch = "aarch64")
-        ),
+        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
         all(target_os = "windows", target_arch = "x86_64")
     ))]
     #[clap(subcommand)]
@@ -150,11 +144,7 @@ pub(super) enum PkgCommand {
 }
 
 impl PkgCommand {
-    pub(crate) async fn do_command(
-        &self,
-        ui: &mut UI,
-        feature_flags: FeatureFlag,
-    ) -> BioResult<()> {
+    pub(crate) async fn do_command(&self, ui: &mut UI, feature_flags: FeatureFlag) -> BioResult<()> {
         match self {
             Self::Binds(opts) => opts.do_binds(),
             Self::Binlink(opts) => opts.do_binlink(ui),
@@ -172,10 +162,7 @@ impl PkgCommand {
             Self::Env(opts) => opts.do_env(),
             Self::Exec(opts) => opts.do_exec(),
             #[cfg(any(
-                all(
-                    target_os = "linux",
-                    any(target_arch = "x86_64", target_arch = "aarch64")
-                ),
+                all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
                 all(target_os = "windows", target_arch = "x86_64")
             ))]
             Self::Export(cmd) => cmd.do_export(ui).await,

@@ -18,8 +18,8 @@ use biome_common::{
     cli::{RING_ENVVAR, RING_KEY_ENVVAR, clap_validators::FileExistsValueParser, is_toml_file},
     command::package::install::InstallSource,
     types::{
-        EventStreamConnectMethod, EventStreamMetaPair, EventStreamServerCertificate,
-        EventStreamToken, GossipListenAddr, HttpListenAddr, ListenCtlAddr, ResolvedListenCtlAddr,
+        EventStreamConnectMethod, EventStreamMetaPair, EventStreamServerCertificate, EventStreamToken,
+        GossipListenAddr, HttpListenAddr, ListenCtlAddr, ResolvedListenCtlAddr,
     },
     ui::UI,
 };

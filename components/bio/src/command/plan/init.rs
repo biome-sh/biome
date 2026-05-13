@@ -12,26 +12,11 @@ use std::{
     path::Path,
 };
 
-const PLAN_TEMPLATE_SH: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/template_plan.sh"
-));
-const PLAN_TEMPLATE_PS1: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/template_plan.ps1"
-));
-const DEFAULT_TOML_TEMPLATE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/template_default.toml"
-));
-const GITIGNORE_TEMPLATE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/template_gitignore"
-));
-const README_TEMPLATE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/template_README.md"
-));
+const PLAN_TEMPLATE_SH: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_plan.sh"));
+const PLAN_TEMPLATE_PS1: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_plan.ps1"));
+const DEFAULT_TOML_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_default.toml"));
+const GITIGNORE_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_gitignore"));
+const README_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_README.md"));
 
 const DEFAULT_PKG_VERSION: &str = "0.1.0";
 
@@ -107,11 +92,7 @@ pub fn start(
     let rendered_default_toml = handlebars
         .render_template(DEFAULT_TOML_TEMPLATE, &data)
         .map_err(|e| Error::HandlebarsRenderError(Box::new(e)))?;
-    create_with_template(
-        ui,
-        &format!("{}/default.toml", root),
-        &rendered_default_toml,
-    )?;
+    create_with_template(ui, &format!("{}/default.toml", root), &rendered_default_toml)?;
     ui.para("`default.toml` contains default values for `cfg` prefixed variables.")?;
 
     let rendered_readme_md = handlebars
@@ -122,10 +103,7 @@ pub fn start(
 
     let config_path = format!("{}/config/", root);
     if Path::new(&config_path).exists() {
-        ui.status(
-            Status::Using,
-            format!("existing directory: {}", config_path),
-        )?;
+        ui.status(Status::Using, format!("existing directory: {}", config_path))?;
     } else {
         ui.status(Status::Creating, format!("directory: {}", config_path))?;
         create_dir_all(&config_path)?;
@@ -164,10 +142,7 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
         if !target_path.exists() {
             create_with_template(ui, &target, GITIGNORE_TEMPLATE)?
         } else {
-            let file = OpenOptions::new()
-                .read(true)
-                .append(true)
-                .open(target_path)?;
+            let file = OpenOptions::new().read(true).append(true).open(target_path)?;
             #[allow(clippy::needless_collect)]
             let entries: Vec<String> = BufReader::new(&file)
                 .lines()

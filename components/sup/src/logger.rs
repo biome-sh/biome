@@ -90,9 +90,7 @@ fn default_config() -> Config {
 }
 
 fn configuration_file() -> PathBuf {
-    biome_sup_protocol::sup_root(None)
-        .join("config")
-        .join("log.yml")
+    biome_sup_protocol::sup_root(None).join("config").join("log.yml")
 }
 
 #[cfg(test)]

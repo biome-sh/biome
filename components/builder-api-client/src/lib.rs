@@ -247,16 +247,11 @@ impl TabularText for PendingOriginInvitationsResponse {
     fn as_tabbed(&self) -> std::result::Result<String, biome_core::error::Error> {
         let tw = tabw().padding(2).minwidth(5);
         if !self.invitations.is_empty() {
-            let mut body = vec![String::from(
-                "Invitation Id\tAccount Name\tCreation Date\tIgnored",
-            )];
+            let mut body = vec![String::from("Invitation Id\tAccount Name\tCreation Date\tIgnored")];
             for invitation in self.invitations.iter() {
                 body.push(format!(
                     "{}\t{}\t{}\t{}",
-                    invitation.id,
-                    invitation.account_name,
-                    invitation.created_at,
-                    invitation.ignored
+                    invitation.id, invitation.account_name, invitation.created_at, invitation.ignored
                 ));
             }
             tabify(tw, &body.join("\n"))
@@ -270,9 +265,7 @@ impl TabularText for OriginInfoResponse {
     fn as_tabbed(&self) -> std::result::Result<String, biome_core::error::Error> {
         let tw = tabw().padding(2).minwidth(5);
         let mut body = Vec::new();
-        body.push(String::from(
-            "Owner Id\tOwner Account\tPrivate Key\tPackage Visibility",
-        ));
+        body.push(String::from("Owner Id\tOwner Account\tPrivate Key\tPackage Visibility"));
         let key_display = match &self.private_key_name {
             Some(key) => key.as_str(),
             None => "None",
@@ -323,12 +316,7 @@ pub struct Client;
 
 impl Client {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new<U>(
-        endpoint: U,
-        product: &str,
-        version: &str,
-        fs_root_path: Option<&Path>,
-    ) -> Result<BuilderAPIClient>
+    pub fn new<U>(endpoint: U, product: &str, version: &str, fs_root_path: Option<&Path>) -> Result<BuilderAPIClient>
     where
         U: IntoUrl,
     {

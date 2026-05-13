@@ -1,6 +1,4 @@
-use crate::{
-    cli_v4::utils::CacheKeyPath, command::ring::key::export::start, error::Result as BioResult,
-};
+use crate::{cli_v4::utils::CacheKeyPath, command::ring::key::export::start, error::Result as BioResult};
 use biome_core::crypto::keys::KeyCache;
 use clap::Parser;
 use clap_v4 as clap;

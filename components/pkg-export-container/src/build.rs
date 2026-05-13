@@ -131,23 +131,14 @@ impl TryFrom<&ArgMatches> for BuildSpec {
             bio_launcher: m.get_one::<String>("BIO_LAUNCHER_PKG").unwrap().to_string(),
             bio_sup: m.get_one::<String>("BIO_SUP_PKG").unwrap().to_string(),
             url: m.get_one::<String>("BLDR_URL").unwrap().to_string(),
-            channel: m
-                .get_one::<String>("CHANNEL")
-                .unwrap_or(stable)
-                .to_string()
-                .into(),
-            base_pkgs_url: m
-                .get_one::<String>("BASE_PKGS_BLDR_URL")
-                .unwrap()
-                .to_string(),
+            channel: m.get_one::<String>("CHANNEL").unwrap_or(stable).to_string().into(),
+            base_pkgs_url: m.get_one::<String>("BASE_PKGS_BLDR_URL").unwrap().to_string(),
             base_pkgs_channel: m
                 .get_one::<String>("BASE_PKGS_CHANNEL")
                 .unwrap_or(stable)
                 .to_string()
                 .into(),
-            auth: m
-                .get_one::<String>("BLDR_AUTH_TOKEN")
-                .map(ToString::to_string),
+            auth: m.get_one::<String>("BLDR_AUTH_TOKEN").map(ToString::to_string),
             idents_or_archives: m
                 .get_many::<String>("PKG_IDENT_OR_ARTIFACT")
                 .unwrap()
@@ -233,10 +224,7 @@ impl BuildSpec {
         debug!("Creating BuildRoot from {:?}", &self);
         let workdir = TempDir::new()?;
         let rootfs = workdir.path().join("rootfs");
-        ui.status(
-            Status::Creating,
-            format!("build root in {}", workdir.path().display()),
-        )?;
+        ui.status(Status::Creating, format!("build root in {}", workdir.path().display()))?;
         let graph = self.prepare_rootfs(ui, &rootfs).await?;
         Ok(BuildRoot {
             workdir,
@@ -265,11 +253,7 @@ impl BuildSpec {
         let src = cache_artifact_path(None::<&Path>);
         let dst = rootfs.join(CACHE_ARTIFACT_PATH);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
-        debug!(
-            "Symlinking src: {} to dst: {}",
-            src.display(),
-            dst.display()
-        );
+        debug!("Symlinking src: {} to dst: {}", src.display(), dst.display());
 
         symlink(src, dst)?;
         Ok(())
@@ -280,11 +264,7 @@ impl BuildSpec {
         let src = &*CACHE_KEY_PATH;
         let dst = rootfs.join(CACHE_KEY_PATH_POSTFIX);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
-        debug!(
-            "Symlinking src: {} to dst: {}",
-            src.display(),
-            dst.display()
-        );
+        debug!("Symlinking src: {} to dst: {}", src.display(), dst.display());
 
         symlink(src, dst)?;
         Ok(())
@@ -293,25 +273,18 @@ impl BuildSpec {
     async fn install_base_pkgs(&self, ui: &mut UI, rootfs: &Path) -> Result<BasePkgIdents> {
         let bio = self.install_base_pkg(ui, &self.bio, rootfs).await?;
         let sup = self.install_base_pkg(ui, &self.bio_sup, rootfs).await?;
-        let launcher = self
-            .install_base_pkg(ui, &self.bio_launcher, rootfs)
-            .await?;
+        let launcher = self.install_base_pkg(ui, &self.bio_launcher, rootfs).await?;
 
         // TODO (CM): at some point these should be considered as
         // something other than "base" packages... replacing busybox
         // and cacerts isn't really something that's going to need to
         // be done
         let busybox = if cfg!(target_os = "linux") {
-            Some(
-                self.install_pkg_from_default_channel(ui, BUSYBOX_IDENT, rootfs)
-                    .await?,
-            )
+            Some(self.install_pkg_from_default_channel(ui, BUSYBOX_IDENT, rootfs).await?)
         } else {
             None
         };
-        let cacerts = self
-            .install_pkg_from_default_channel(ui, CACERTS_IDENT, rootfs)
-            .await?;
+        let cacerts = self.install_pkg_from_default_channel(ui, CACERTS_IDENT, rootfs).await?;
 
         Ok(BasePkgIdents {
             bio,
@@ -322,11 +295,7 @@ impl BuildSpec {
         })
     }
 
-    async fn install_user_pkgs(
-        &self,
-        ui: &mut UI,
-        rootfs: &Path,
-    ) -> Result<Vec<FullyQualifiedPackageIdent>> {
+    async fn install_user_pkgs(&self, ui: &mut UI, rootfs: &Path) -> Result<Vec<FullyQualifiedPackageIdent>> {
         let mut idents = Vec::new();
         for ioa in self.idents_or_archives.iter() {
             idents.push(self.install_user_pkg(ui, ioa, rootfs).await?);
@@ -570,14 +539,8 @@ impl BuildRootContext {
             })
             .collect();
 
-        if license::check_for_license_acceptance()
-            .unwrap_or_default()
-            .accepted()
-        {
-            environment.insert(
-                String::from("BIO_LICENSE"),
-                String::from("accept-no-persist"),
-            );
+        if license::check_for_license_acceptance().unwrap_or_default().accepted() {
+            environment.insert(String::from("BIO_LICENSE"), String::from("accept-no-persist"));
         }
 
         let bin_path = util::bin_path();
@@ -627,12 +590,10 @@ impl BuildRootContext {
     /// * If the primary service package could not be loaded from disk
     pub(crate) fn installed_primary_svc_ident(&self) -> Result<FullyQualifiedPackageIdent> {
         let pkg_install = self.primary_svc()?;
-        Ok(
-            FullyQualifiedPackageIdent::try_from(pkg_install.ident()).expect(
-                "We should always have a fully-qualified \
+        Ok(FullyQualifiedPackageIdent::try_from(pkg_install.ident()).expect(
+            "We should always have a fully-qualified \
                     package identifier at this point",
-            ),
-        )
+        ))
     }
 
     /// Returns the list of package port exposes over all service packages.
@@ -776,11 +737,7 @@ impl BuildRootContext {
                 // SVC_GROUP IS SVC_USER's primary group, because it
                 // has to go somewhere
                 users.push(EtcPasswdEntry::new(&user_name, uid, gid));
-                groups.push(EtcGroupEntry::group_with_users(
-                    &group_name,
-                    gid,
-                    &[&user_name],
-                ));
+                groups.push(EtcGroupEntry::group_with_users(&group_name, gid, &[&user_name]));
 
                 // Just create a bio user in a bio group for safety
                 users.push(EtcPasswdEntry::new("bio", bio_uid, bio_gid));
@@ -1007,10 +964,7 @@ mod tests {
                 .unwrap();
             let link = rootfs.path().join(CACHE_ARTIFACT_PATH);
 
-            assert_eq!(
-                cache_artifact_path(None::<&Path>),
-                link.read_link().unwrap()
-            );
+            assert_eq!(cache_artifact_path(None::<&Path>), link.read_link().unwrap());
         }
 
         #[test]
@@ -1114,12 +1068,8 @@ mod tests {
             let _ = FakePkg::new("acme/libby", rootfs.path()).install();
 
             // A couple service packages
-            let runna_install_ident = FakePkg::new("acme/runna", rootfs.path())
-                .set_svc(true)
-                .install();
-            let _ = FakePkg::new("acme/jogga", rootfs.path())
-                .set_svc(true)
-                .install();
+            let runna_install_ident = FakePkg::new("acme/runna", rootfs.path()).set_svc(true).install();
+            let _ = FakePkg::new("acme/jogga", rootfs.path()).set_svc(true).install();
 
             let mut spec = build_spec();
             spec.idents_or_archives = vec![
@@ -1136,14 +1086,8 @@ mod tests {
                 ],
                 ctx.svc_idents()
             );
-            assert_eq!(
-                &PackageIdent::from_str("acme/runna").unwrap(),
-                ctx.primary_svc_ident()
-            );
-            assert_eq!(
-                runna_install_ident,
-                ctx.installed_primary_svc_ident().unwrap()
-            );
+            assert_eq!(&PackageIdent::from_str("acme/runna").unwrap(), ctx.primary_svc_ident());
+            assert_eq!(runna_install_ident, ctx.installed_primary_svc_ident().unwrap());
 
             assert_eq!(Path::new("/bin"), ctx.bin_path());
             assert_eq!("/bin", ctx.env_path());
@@ -1194,8 +1138,7 @@ mod tests {
             #[cfg(unix)]
             let matches = arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg"]);
             #[cfg(windows)]
-            let matches =
-                arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg", "--base-image", "some/image"]);
+            let matches = arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg", "--base-image", "some/image"]);
 
             let build_spec = BuildSpec::try_from(&matches).unwrap();
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();

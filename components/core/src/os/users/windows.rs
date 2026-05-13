@@ -63,11 +63,6 @@ mod tests {
 
     #[test]
     fn get_uid_of_current_user() {
-        assert!(
-            get_current_username()
-                .unwrap()
-                .map(|s| get_uid_by_name(&s))
-                .is_some()
-        )
+        assert!(get_current_username().unwrap().map(|s| get_uid_by_name(&s)).is_some())
     }
 }

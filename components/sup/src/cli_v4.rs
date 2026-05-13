@@ -55,10 +55,7 @@ static LOGKEY: &str = "MN";
 pub(crate) enum BioSup {
     /// Start an interactive Bash-like shell
     #[cfg(any(
-        all(
-            target_os = "linux",
-            any(target_arch = "x86_64", target_arch = "aarch64")
-        ),
+        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
         all(target_os = "windows", target_arch = "x86_64"),
     ))]
     #[command(aliases = &["b", "ba", "bas"])]
@@ -70,10 +67,7 @@ pub(crate) enum BioSup {
 
     /// Start an interactive Bourne-like shell
     #[cfg(any(
-        all(
-            target_os = "linux",
-            any(target_arch = "x86_64", target_arch = "aarch64")
-        ),
+        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
         all(target_os = "windows", target_arch = "x86_64"),
     ))]
     #[command()]
@@ -85,25 +79,15 @@ pub(crate) enum BioSup {
 }
 
 impl BioSup {
-    async fn do_command(
-        self,
-        launcher: Option<LauncherCli>,
-        feature_flags: FeatureFlag,
-    ) -> Result<()> {
+    async fn do_command(self, launcher: Option<LauncherCli>, feature_flags: FeatureFlag) -> Result<()> {
         match self {
             #[cfg(any(
-                all(
-                    target_os = "linux",
-                    any(target_arch = "x86_64", target_arch = "aarch64")
-                ),
+                all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
                 all(target_os = "windows", target_arch = "x86_64"),
             ))]
             Self::Bash => crate::cli_common::sub_bash().await,
             #[cfg(any(
-                all(
-                    target_os = "linux",
-                    any(target_arch = "x86_64", target_arch = "aarch64")
-                ),
+                all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
                 all(target_os = "windows", target_arch = "x86_64"),
             ))]
             Self::Sh => crate::cli_common::sub_sh().await,
@@ -187,9 +171,7 @@ pub(crate) async fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(
         svc_load_msgs.push(svc_load_msg);
     }
     let manager = Manager::load_imlw(manager_cfg, launcher).await?;
-    manager
-        .run_rsw_imlw_mlw_gsw_smw_rhw_msw(svc_load_msgs)
-        .await
+    manager.run_rsw_imlw_mlw_gsw_smw_rhw_msw(svc_load_msgs).await
 }
 
 // Internal Implementation Details
@@ -266,18 +248,14 @@ pub(crate) async fn split_apart_sup_run(
         gossip_permanent: sup_run.permanent_peer,
         ring_key,
         gossip_peers: sup_run.peer.iter().map(Into::into).collect(),
-        watch_peer_file: sup_run
-            .peer_watch_file
-            .map(|p| p.to_string_lossy().to_string()),
+        watch_peer_file: sup_run.peer_watch_file.map(|p| p.to_string_lossy().to_string()),
         gossip_listen: if sup_run.local_gossip_mode {
             GossipListenAddr::local_only()
         } else {
             sup_run.listen_gossip
         },
         ctl_listen: sup_run.listen_ctl.into(),
-        ctl_server_certificates: sup_run
-            .ctl_server_certificate
-            .map(CertificateChainCli::into_inner),
+        ctl_server_certificates: sup_run.ctl_server_certificate.map(CertificateChainCli::into_inner),
         ctl_server_key: sup_run.ctl_server_key.map(|key| key.into_inner().into()),
         ctl_client_ca_certificates: sup_run
             .ctl_client_ca_certificate
@@ -313,8 +291,7 @@ pub(crate) async fn split_apart_sup_run(
             source @ InstallSource::Archive(_) => {
                 // Install the archive manually then explicitly set the pkg ident to the version
                 // found in the archive. This will lock the software to this specific version.
-                let install =
-                    util::pkg::install(&mut ui::ui(), &bldr_url, &source, &channel).await?;
+                let install = util::pkg::install(&mut ui::ui(), &bldr_url, &source, &channel).await?;
                 install.ident
             }
             InstallSource::Ident(ident, _) => ident,

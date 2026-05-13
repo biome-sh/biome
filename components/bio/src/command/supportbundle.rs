@@ -1,7 +1,10 @@
 use crate::{
     common::ui::{Status, UI, UIWriter},
     error::{Error, Result},
-    hcore::{fs::FS_ROOT_PATH, os::net::hostname},
+    hcore::{
+        fs::{FS_ROOT_PATH, ROOT_PATH},
+        os::net::hostname,
+    },
 };
 use chrono::Local;
 use flate2::{Compression, write::GzEncoder};
@@ -29,21 +32,14 @@ pub fn start(ui: &mut UI) -> Result<()> {
         Ok(host) => host,
         Err(e) => {
             let host = String::from("localhost");
-            ui.warn(format!(
-                "Hostname lookup failed; using fallback of {} ({})",
-                host, e
-            ))?;
+            ui.warn(format!("Hostname lookup failed; using fallback of {} ({})", host, e))?;
             host
         }
     };
     let cwd = env::current_dir().unwrap();
-    let tarball_name = format!(
-        "support-bundle-{}-{}.tar.gz",
-        &host,
-        dt.format("%Y%m%d%H%M%S")
-    );
+    let tarball_name = format!("support-bundle-{}-{}.tar.gz", &host, dt.format("%Y%m%d%H%M%S"));
 
-    let sup_root = Path::new(&*FS_ROOT_PATH).join("bio").join("sup");
+    let sup_root = Path::new(&*FS_ROOT_PATH).join(ROOT_PATH).join("sup");
     let tar_gz = File::create(&tarball_name)?;
     let enc = GzEncoder::new(tar_gz, Compression::default());
     let mut tar = tar::Builder::new(enc);
@@ -51,10 +47,7 @@ pub fn start(ui: &mut UI) -> Result<()> {
     tar.follow_symlinks(false);
 
     if sup_root.exists() {
-        ui.status(
-            Status::Adding,
-            format!("files from {}", &sup_root.display()),
-        )?;
+        ui.status(Status::Adding, format!("files from {}", &sup_root.display()))?;
         if let Err(why) = tar.append_dir_all(format!("bio{}sup", MAIN_SEPARATOR), &sup_root) {
             ui.fatal(format!("Failed to add all files into the tarball: {}", why))?;
             fs::remove_file(&tarball_name)?;

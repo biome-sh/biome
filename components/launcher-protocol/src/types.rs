@@ -111,9 +111,7 @@ impl LauncherMessage for Register {
 
 impl From<Register> for generated::Register {
     fn from(value: Register) -> Self {
-        generated::Register {
-            pipe: Some(value.pipe),
-        }
+        generated::Register { pipe: Some(value.pipe) }
     }
 }
 
@@ -136,9 +134,7 @@ impl LauncherMessage for Restart {
 
 impl From<Restart> for generated::Restart {
     fn from(value: Restart) -> Self {
-        generated::Restart {
-            pid: Some(value.pid),
-        }
+        generated::Restart { pid: Some(value.pid) }
     }
 }
 
@@ -207,9 +203,7 @@ impl LauncherMessage for SpawnOk {
 
 impl From<SpawnOk> for generated::SpawnOk {
     fn from(value: SpawnOk) -> Self {
-        generated::SpawnOk {
-            pid: Some(value.pid),
-        }
+        generated::SpawnOk { pid: Some(value.pid) }
     }
 }
 
@@ -232,9 +226,7 @@ impl LauncherMessage for Terminate {
 
 impl From<Terminate> for generated::Terminate {
     fn from(value: Terminate) -> Self {
-        generated::Terminate {
-            pid: Some(value.pid),
-        }
+        generated::Terminate { pid: Some(value.pid) }
     }
 }
 
@@ -251,9 +243,7 @@ impl LauncherMessage for TerminateOk {
 
     fn from_proto(proto: generated::TerminateOk) -> Result<Self> {
         Ok(TerminateOk {
-            exit_code: proto
-                .exit_code
-                .ok_or(Error::ProtocolMismatch("exit_code"))?,
+            exit_code: proto.exit_code.ok_or(Error::ProtocolMismatch("exit_code"))?,
             shutdown_method: generated::ShutdownMethod::try_from(
                 proto
                     .shutdown_method
@@ -286,9 +276,7 @@ impl LauncherMessage for Envelope {
 
     fn from_proto(proto: generated::Envelope) -> Result<Self> {
         Ok(Envelope {
-            message_id: proto
-                .message_id
-                .ok_or(Error::ProtocolMismatch("message_id"))?,
+            message_id: proto.message_id.ok_or(Error::ProtocolMismatch("message_id"))?,
             payload: proto.payload.ok_or(Error::ProtocolMismatch("payload"))?,
         })
     }
@@ -334,9 +322,7 @@ impl LauncherMessage for PidOf {
 
     fn from_proto(proto: generated::PidOf) -> Result<Self> {
         Ok(PidOf {
-            service_name: proto
-                .service_name
-                .ok_or(Error::ProtocolMismatch("service_name"))?,
+            service_name: proto.service_name.ok_or(Error::ProtocolMismatch("service_name"))?,
         })
     }
 }

@@ -38,10 +38,7 @@ impl Service {
                 .spawn(move || pipe_stderr(stderr, &id))
                 .ok();
         }
-        Service {
-            args: spawn,
-            process,
-        }
+        Service { args: spawn, process }
     }
 
     pub fn args(&self) -> &protocol::Spawn {
@@ -91,10 +88,7 @@ where
             Ok(line) => {
                 let so = StructuredOutput::succinct(id, "O", output::get_format(), &line);
                 if let Err(e) = so.println() {
-                    println!(
-                        "printing output: '{}' to stdout resulted in error: {}",
-                        &line, e
-                    );
+                    println!("printing output: '{}' to stdout resulted in error: {}", &line, e);
                 }
             }
             Err(e) => {
@@ -115,10 +109,7 @@ where
             Ok(line) => {
                 let so = StructuredOutput::succinct(id, "E", output::get_format(), &line);
                 if let Err(e) = so.eprintln() {
-                    println!(
-                        "printing output: '{}' to stderr resulted in error: {}",
-                        &line, e
-                    );
+                    println!("printing output: '{}' to stderr resulted in error: {}", &line, e);
                 }
             }
             Err(e) => {

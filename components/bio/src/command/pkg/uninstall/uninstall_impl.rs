@@ -280,10 +280,7 @@ where
                 ))?;
             }
             ExecutionStrategy::Run => {
-                ui.end(format!(
-                    "Uninstall of {} and {} dependencies complete",
-                    &ident, count
-                ))?;
+                ui.end(format!("Uninstall of {} and {} dependencies complete", &ident, count))?;
             }
         };
     }
@@ -402,10 +399,7 @@ where
 
     let bio = PackageIdent::from_str("biome/bio")?;
     if ident.satisfies(&bio) {
-        ui.status(
-            Status::Skipping,
-            format!("{}. You can't uninstall biome/bio", &ident),
-        )?;
+        ui.status(Status::Skipping, format!("{}. You can't uninstall biome/bio", &ident))?;
         return Ok(false);
     }
 
@@ -422,10 +416,7 @@ where
     // `Identifiable` trait which supplies this logic for PackageIdents
     let should_exclude = excludes.iter().any(|i| i.satisfies(ident));
     if should_exclude {
-        ui.status(
-            Status::Skipping,
-            format!("{}. It is on the exclusion list", &ident),
-        )?;
+        ui.status(Status::Skipping, format!("{}. It is on the exclusion list", &ident))?;
         return Ok(false);
     }
 
@@ -489,9 +480,7 @@ fn do_clean_delete(pkg_root_path: &Path, real_install_path: &Path) -> Result<boo
     // below the pkg_root_path
     match real_install_path.parent() {
         Some(real_install_base) => {
-            let temp_install_path = temp_package_directory(real_install_path)?
-                .path()
-                .to_path_buf();
+            let temp_install_path = temp_package_directory(real_install_path)?.path().to_path_buf();
             fs::rename(real_install_path, &temp_install_path)?;
             fs::remove_dir_all(&temp_install_path)?;
 

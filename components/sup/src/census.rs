@@ -4,8 +4,7 @@ use biome_butterfly::{
     rumor::{
         ConstIdRumor as _, RumorStore,
         election::{
-            Election as ElectionRumor, ElectionStatus as ElectionStatusRumor,
-            ElectionUpdate as ElectionUpdateRumor,
+            Election as ElectionRumor, ElectionStatus as ElectionStatusRumor, ElectionUpdate as ElectionUpdateRumor,
         },
         service::{Service as ServiceRumor, SysInfo},
         service_config::ServiceConfig as ServiceConfigRumor,
@@ -126,11 +125,7 @@ impl CensusRing {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (read)
     /// * `MemberList::entries` (read)
-    fn populate_census_rsr_mlr(
-        &mut self,
-        service_rumors: &RumorStore<ServiceRumor>,
-        member_list: &MemberList,
-    ) {
+    fn populate_census_rsr_mlr(&mut self, service_rumors: &RumorStore<ServiceRumor>, member_list: &MemberList) {
         // Populate our census; new groups are created here, as are
         // new members of those groups.
         //
@@ -180,10 +175,7 @@ impl CensusRing {
 
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (read)
-    fn update_from_election_update_store_rsr(
-        &mut self,
-        election_update_rumors: &RumorStore<ElectionUpdateRumor>,
-    ) {
+    fn update_from_election_update_store_rsr(&mut self, election_update_rumors: &RumorStore<ElectionUpdateRumor>) {
         for (service_group, rumors) in election_update_rumors.lock_rsr().iter() {
             if let Ok(sg) = service_group_from_str(service_group)
                 && let Some(census_group) = self.census_groups.get_mut(&sg)
@@ -254,19 +246,10 @@ impl Serialize for CensusRingProxy<'_> {
         strukt.serialize_field("local_member_id", &self.0.local_member_id)?;
         strukt.serialize_field("last_service_counter", &self.0.last_service_counter)?;
         strukt.serialize_field("last_election_counter", &self.0.last_election_counter)?;
-        strukt.serialize_field(
-            "last_election_update_counter",
-            &self.0.last_election_update_counter,
-        )?;
+        strukt.serialize_field("last_election_update_counter", &self.0.last_election_update_counter)?;
         strukt.serialize_field("last_membership_counter", &self.0.last_membership_counter)?;
-        strukt.serialize_field(
-            "last_service_config_counter",
-            &self.0.last_service_config_counter,
-        )?;
-        strukt.serialize_field(
-            "last_service_file_counter",
-            &self.0.last_service_file_counter,
-        )?;
+        strukt.serialize_field("last_service_config_counter", &self.0.last_service_config_counter)?;
+        strukt.serialize_field("last_service_file_counter", &self.0.last_service_file_counter)?;
         strukt.end()
     }
 }
@@ -391,9 +374,7 @@ impl CensusGroup {
     /// departed. These are the members that we'll reasonably be
     /// interacting with at runtime.
     pub fn active_members(&self) -> impl Iterator<Item = &CensusMember> {
-        self.population
-            .values()
-            .filter(|cm| cm.alive() || cm.suspect())
+        self.population.values().filter(|cm| cm.alive() || cm.suspect())
     }
 
     /// Return references to all a `CensusGroup`'s `ServiceFiles`.
@@ -450,16 +431,13 @@ impl CensusGroup {
             }
             // Yeah - we are ourself - we're alive.
             let is_self = member_id == &self.local_member_id;
-            let member = self
-                .population
-                .entry(member_id.to_string())
-                .or_insert_with(|| {
-                    // Note: this is where CensusMembers are created
-                    CensusMember {
-                        alive: is_self,
-                        ..Default::default()
-                    }
-                });
+            let member = self.population.entry(member_id.to_string()).or_insert_with(|| {
+                // Note: this is where CensusMembers are created
+                CensusMember {
+                    alive: is_self,
+                    ..Default::default()
+                }
+            });
             member.update_from_service_rumor(&self.service_group, service_rumor);
         }
     }
@@ -504,16 +482,11 @@ impl CensusGroup {
         }
     }
 
-    fn update_from_service_config_rumor(
-        &mut self,
-        key_cache: &KeyCache,
-        service_config: &ServiceConfigRumor,
-    ) {
+    fn update_from_service_config_rumor(&mut self, key_cache: &KeyCache, service_config: &ServiceConfigRumor) {
         match service_config.config(key_cache) {
             Ok(config) => {
                 if self.service_config.is_none()
-                    || service_config.incarnation
-                        > self.service_config.as_ref().unwrap().incarnation
+                    || service_config.incarnation > self.service_config.as_ref().unwrap().incarnation
                 {
                     self.service_config = Some(ServiceConfig {
                         incarnation: service_config.incarnation,
@@ -546,10 +519,7 @@ impl CensusGroup {
                     Err(e) => {
                         warn!(
                             "Cannot decrypt service file for {} {} {}: {}",
-                            self.service_group,
-                            service_file_rumor.filename,
-                            service_file_rumor.incarnation,
-                            e
+                            self.service_group, service_file_rumor.filename, service_file_rumor.incarnation, e
                         )
                     }
                 }
@@ -651,8 +621,7 @@ impl CensusMember {
         };
         self.pkg_incarnation = rumor.pkg_incarnation;
         self.sys = rumor.sys.clone();
-        self.cfg =
-            toml::from_str(str::from_utf8(&rumor.cfg).unwrap_or_default()).unwrap_or_default();
+        self.cfg = toml::from_str(str::from_utf8(&rumor.cfg).unwrap_or_default()).unwrap_or_default();
     }
 
     fn update_from_election_rumor(&mut self, election: &ElectionRumor) -> bool {
@@ -774,18 +743,9 @@ impl Serialize for CensusMemberProxy<'_> {
         strukt.serialize_field("election_is_running", &self.election_is_running)?;
         strukt.serialize_field("election_is_no_quorum", &self.election_is_no_quorum)?;
         strukt.serialize_field("election_is_finished", &self.election_is_finished)?;
-        strukt.serialize_field(
-            "update_election_is_running",
-            &self.update_election_is_running,
-        )?;
-        strukt.serialize_field(
-            "update_election_is_no_quorum",
-            &self.update_election_is_no_quorum,
-        )?;
-        strukt.serialize_field(
-            "update_election_is_finished",
-            &self.update_election_is_finished,
-        )?;
+        strukt.serialize_field("update_election_is_running", &self.update_election_is_running)?;
+        strukt.serialize_field("update_election_is_no_quorum", &self.update_election_is_no_quorum)?;
+        strukt.serialize_field("update_election_is_finished", &self.update_election_is_finished)?;
         strukt.serialize_field("sys", &self.sys)?;
         strukt.serialize_field("alive", &self.alive)?;
         strukt.serialize_field("suspect", &self.suspect)?;
@@ -832,10 +792,7 @@ mod tests {
         assert!(census_group_one.update_leader().is_none());
 
         let census_group_two = ring.census_group_for(&sg_two).unwrap();
-        assert_eq!(
-            census_group_two.me().unwrap().member_id,
-            "member-b".to_string()
-        );
+        assert_eq!(census_group_two.me().unwrap().member_id, "member-b".to_string());
         assert_eq!(
             census_group_two.update_leader().unwrap().member_id,
             "member-b".to_string()
@@ -865,38 +822,16 @@ mod tests {
             http_gateway_port: 9631,
             ..Default::default()
         };
-        let pg_id = PackageIdent::new(
-            "starkandwayne",
-            "shield",
-            Some("0.10.4"),
-            Some("20170419115548"),
-        );
+        let pg_id = PackageIdent::new("starkandwayne", "shield", Some("0.10.4"), Some("20170419115548"));
         let sg_one = ServiceGroup::new("shield", "one", None).unwrap();
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
-        let service_one = ServiceRumor::new(
-            "member-a".to_string(),
-            &pg_id,
-            sg_one.clone(),
-            sys_info.clone(),
-            None,
-        );
+        let service_one = ServiceRumor::new("member-a".to_string(), &pg_id, sg_one.clone(), sys_info.clone(), None);
         let sg_two = ServiceGroup::new("shield", "two", None).unwrap();
-        let mut service_two = ServiceRumor::new(
-            "member-b".to_string(),
-            &pg_id,
-            sg_two.clone(),
-            sys_info.clone(),
-            None,
-        );
+        let mut service_two =
+            ServiceRumor::new("member-b".to_string(), &pg_id, sg_two.clone(), sys_info.clone(), None);
         service_two.pkg_incarnation = 1;
-        let mut service_three = ServiceRumor::new(
-            "member-a".to_string(),
-            &pg_id,
-            sg_two.clone(),
-            sys_info,
-            None,
-        );
+        let mut service_three = ServiceRumor::new("member-a".to_string(), &pg_id, sg_two.clone(), sys_info, None);
         service_three.pkg_incarnation = 2;
 
         service_store.insert_rsw(service_one);
@@ -945,9 +880,7 @@ mod tests {
 
     /// Create a bare-minimum CensusMember with the given Health
     fn test_census_member(id: &str, health: Health) -> CensusMember {
-        let pkg = "biome-testing/test_service"
-            .parse()
-            .expect("valid package ident");
+        let pkg = "biome-testing/test_service".parse().expect("valid package ident");
         CensusMember {
             member_id: id.into(),
             pkg,
@@ -990,9 +923,7 @@ mod tests {
 
         let mut census_group = CensusGroup::new(sg, "live-one");
         for member in population {
-            census_group
-                .population
-                .insert(member.member_id.clone(), member);
+            census_group.population.insert(member.member_id.clone(), member);
         }
 
         let mut active_members = census_group.active_members();
@@ -1015,10 +946,7 @@ mod tests {
     #[test]
     fn previous_peer_with_no_alive_members() {
         let me = test_census_member("me", Health::Alive);
-        let members = [
-            test_census_member("left_of_me", Health::Confirmed),
-            me.clone(),
-        ];
+        let members = [test_census_member("left_of_me", Health::Confirmed), me.clone()];
         assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me), None);
     }
 
@@ -1033,10 +961,7 @@ mod tests {
     fn previous_peer_simple() {
         let me = test_census_member("me", Health::Alive);
         let members = [test_census_member("left_of_me", Health::Alive), me.clone()];
-        assert_eq_member_ids(
-            CensusGroup::previous_peer_impl(members.iter(), &me),
-            Some("left_of_me"),
-        );
+        assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me), Some("left_of_me"));
     }
 
     #[test]
@@ -1061,10 +986,7 @@ mod tests {
             me.clone(),
             test_census_member("right_of_me", Health::Alive),
         ];
-        assert_eq_member_ids(
-            CensusGroup::previous_peer_impl(members.iter(), &me),
-            Some("left_of_me"),
-        );
+        assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me), Some("left_of_me"));
     }
 
     #[test]

@@ -21,9 +21,7 @@ pub const INSTALL_TMP_PREFIX: &str = ".bio-pkg-install";
 /// but with TempDir style randomization
 pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
     let base = path.parent().ok_or_else(|| {
-        Error::PackageUnpackFailed(
-            "Could not determine parent directory for temporary package directory".to_owned(),
-        )
+        Error::PackageUnpackFailed("Could not determine parent directory for temporary package directory".to_owned())
     })?;
     fs::create_dir_all(base)?;
     #[cfg(unix)]
@@ -51,9 +49,7 @@ pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
                     .to_owned(),
             )
         })?;
-    Ok(Builder::new()
-        .prefix(&temp_install_prefix)
-        .tempdir_in(cannon_base)?)
+    Ok(Builder::new().prefix(&temp_install_prefix).tempdir_in(cannon_base)?)
 }
 
 /// Returns a list of package structs built from the contents of the given directory.
@@ -94,10 +90,7 @@ pub fn package_list_for_origin(base_pkg_path: &Path, origin: &str) -> Result<Vec
 /// structure is:
 ///
 ///    /base/ORIGIN/NAME/VERSION/RELEASE/
-pub fn package_list_for_ident(
-    base_pkg_path: &Path,
-    ident: &PackageIdent,
-) -> Result<Vec<PackageIdent>> {
+pub fn package_list_for_ident(base_pkg_path: &Path, ident: &PackageIdent) -> Result<Vec<PackageIdent>> {
     let mut package_list: Vec<PackageIdent> = vec![];
     let mut package_path = PathBuf::from(base_pkg_path);
     package_path.push(&ident.origin);
@@ -116,13 +109,7 @@ pub fn package_list_for_ident(
             if !is_existing_dir(&package_path)? {
                 return Ok(package_list);
             }
-            walk_releases(
-                &ident.origin,
-                &ident.name,
-                version,
-                &package_path,
-                &mut package_list,
-            )?
+            walk_releases(&ident.origin, &ident.name, version, &package_path, &mut package_list)?
         }
         // origin/name/version/release
         (Some(version), Some(release)) => {
@@ -133,13 +120,9 @@ pub fn package_list_for_ident(
             }
 
             let active_target = PackageTarget::active_target();
-            if let Some(new_ident) = package_ident_from_dir(
-                &ident.origin,
-                &ident.name,
-                version,
-                active_target,
-                &package_path,
-            ) {
+            if let Some(new_ident) =
+                package_ident_from_dir(&ident.origin, &ident.name, version, active_target, &package_path)
+            {
                 package_list.push(new_ident)
             }
         }
@@ -179,12 +162,7 @@ fn walk_names(origin: &str, dir: &Path, packages: &mut Vec<PackageIdent>) -> Res
 
 /// Helper function for walk_names. Walks the directory at the given
 /// Path and recurses into them to find release directories.
-fn walk_versions(
-    origin: &str,
-    name: &str,
-    dir: &Path,
-    packages: &mut Vec<PackageIdent>,
-) -> Result<()> {
+fn walk_versions(origin: &str, name: &str, dir: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {
     for entry in fs::read_dir(dir)? {
         let version_dir = entry?;
         let version_path = version_dir.path();
@@ -201,20 +179,13 @@ fn walk_versions(
 /// valid package directory. Any resulting packages are pushed onto
 /// the given packages vector, assuming the given origin, name, and
 /// version.
-fn walk_releases(
-    origin: &str,
-    name: &str,
-    version: &str,
-    dir: &Path,
-    packages: &mut Vec<PackageIdent>,
-) -> Result<()> {
+fn walk_releases(origin: &str, name: &str, version: &str, dir: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {
     let active_target = PackageTarget::active_target();
     for entry in fs::read_dir(dir)? {
         let release_dir = entry?;
         let release_path = release_dir.path();
         if fs::metadata(&release_path)?.is_dir()
-            && let Some(ident) =
-                package_ident_from_dir(origin, name, version, active_target, &release_path)
+            && let Some(ident) = package_ident_from_dir(origin, name, version, active_target, &release_path)
         {
             packages.push(ident)
         }

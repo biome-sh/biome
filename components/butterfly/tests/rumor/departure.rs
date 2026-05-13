@@ -7,12 +7,7 @@ fn two_members_share_departures() {
     net.mesh_mlw_smr();
     net.add_departure(0);
     net.wait_for_gossip_rounds(1);
-    assert!(
-        net[1]
-            .departure_store
-            .lock_rsr()
-            .contains_id(net[0].member_id())
-    );
+    assert!(net[1].departure_store.lock_rsr().contains_id(net[0].member_id()));
 }
 
 #[test]
@@ -29,11 +24,6 @@ fn departure_via_client() {
         .send_departure(net[1].member_id())
         .expect("Cannot send the departure");
     net.wait_for_gossip_rounds(1);
-    assert!(
-        net[2]
-            .departure_store
-            .lock_rsr()
-            .contains_id(net[1].member_id())
-    );
+    assert!(net[2].departure_store.lock_rsr().contains_id(net[1].member_id()));
     assert_wait_for_health_of_mlr!(net, 1, Health::Departed);
 }

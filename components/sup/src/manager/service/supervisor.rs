@@ -6,7 +6,7 @@
 use super::{ProcessState, terminator};
 use crate::{
     error::{Error, Result},
-    manager::{ServicePidSource, ShutdownConfig},
+    manager::ShutdownConfig,
 };
 use anyhow::anyhow;
 use biome_common::{outputln, templating::package::Pkg, types::UserInfo};
@@ -28,8 +28,7 @@ use serde::Serialize;
 #[cfg(windows)]
 use std::env;
 use std::{
-    fs::File,
-    io::{BufRead, BufReader, Write},
+    io::Write,
     path::{Path, PathBuf},
     time::{Duration, SystemTime},
 };
@@ -54,6 +53,10 @@ pub struct PidUpdate {
     pub new_pid: Option<Pid>,
     /// The time at which the process changed, will be None if there is no change
     pub timestamp: Option<SystemTime>,
+    /// True when the launcher returned an error for the PID query. Process state
+    /// is unknown; callers must not take recovery actions (restart, initialize, etc.)
+    /// based on a `launcher_error` update.
+    pub launcher_error: bool,
 }
 
 impl PidUpdate {
@@ -112,74 +115,62 @@ pub struct Supervisor {
     /// precision is not necessary, but being able to get the seconds
     /// since the UNIX epoch is.
     state_entered: SystemTime,
-    /// If the Supervisor is being run with an newer Launcher that can
-    /// provide service PIDs, this will be
-    /// `ServicePidSource::Launcher`; otherwise it will be
-    /// `ServicePidSource::Files`. Client code should use this as an
-    /// indicator of which mode the Supervisor is running in.
-    pid_source: ServicePidSource,
     /// Path at which the currently-running PID of this service is
-    /// written to disk.
-    ///
-    /// If `pid_source` is `ServicePidSource::Files`,
-    /// this will be where a restarting Supervisor figures out which
-    /// processes it should continue monitoring.
-    ///
-    /// Regardless of the value of `pid_source`, the current PID will
-    /// always be written to this path, for use by service hooks.
+    /// written to disk, for use by service hooks.
     pid_file: PathBuf,
 }
 
 impl Supervisor {
-    /// Create a new instance for `service_group`.
-    ///
-    /// The `pid_source` governs how we determine the PID of the
-    /// supervised process. Once the we decide to no longer support
-    /// the older Launchers that can't provide service PIDs, this can
-    /// be removed.
-    pub fn new(service_group: &ServiceGroup, pid_source: ServicePidSource) -> Supervisor {
+    pub fn new(service_group: &ServiceGroup) -> Supervisor {
         let pid_file = fs::svc_pid_file(service_group.service());
         Supervisor {
             service_group: service_group.clone(),
             state: ProcessState::Down,
             state_entered: SystemTime::now(),
-            pid_source,
             pid: None,
             pid_file,
         }
     }
 
-    /// Updates the process state from the pid source and returns a PidUpdate
+    /// Updates the process state from the launcher and returns a PidUpdate
     /// object containing the details of the change.
+    ///
+    /// If the launcher returns an error, the returned `PidUpdate` will have
+    /// `launcher_error` set to `true` and the supervisor's state will be
+    /// unchanged. Callers must not act on process state (restart, initialize,
+    /// PID-file cleanup, etc.) when `launcher_error` is set.
     pub fn update_process_state(&mut self, launcher: &LauncherCli) -> PidUpdate {
         let mut pid_update = PidUpdate {
             old_pid: self.pid,
             new_pid: None,
             timestamp: None,
+            launcher_error: false,
         };
-        self.pid = self
-            .pid
-            .or_else(|| {
-                if self.pid_source == ServicePidSource::Files {
-                    read_pid(&self.pid_file)
-                } else {
-                    match launcher.pid_of(&self.service_group) {
-                        Ok(maybe_pid) => maybe_pid,
-                        Err(err) => {
-                            error!("Error getting pid from launcher: {:#}", anyhow!(err));
-                            None
-                        }
-                    }
+
+        // When we don't already hold the PID in memory, ask the launcher.
+        // Any communication error means we cannot determine the current process
+        // state; return immediately so we don't incorrectly clean up the PID
+        // file or trigger an unwanted restart/initialization.
+        if self.pid.is_none() {
+            match launcher.pid_of(&self.service_group) {
+                Ok(maybe_pid) => self.pid = maybe_pid,
+                Err(err) => {
+                    error!("Error getting pid from launcher: {:#}", anyhow!(err));
+                    pid_update.launcher_error = true;
+                    return pid_update;
                 }
-            })
-            .and_then(|pid| {
-                if process::is_alive(pid) {
-                    Some(pid)
-                } else {
-                    debug!("Could not find a live process with PID: {:?}", pid);
-                    None
-                }
-            });
+            }
+        }
+
+        self.pid = self.pid.and_then(|pid| {
+            if process::is_alive(pid) {
+                Some(pid)
+            } else {
+                debug!("Could not find a live process with PID: {:?}", pid);
+                None
+            }
+        });
+
         pid_update.new_pid = self.pid;
         if self.pid.is_some() {
             pid_update.timestamp = self.change_state(ProcessState::Up);
@@ -197,8 +188,8 @@ impl Supervisor {
         if process::can_run_services_as_svc_user() {
             // We have the ability to run services as a user / group other
             // than ourselves, so they better exist
-            let uid = users::get_uid_by_name(&pkg.svc_user)?
-                .ok_or_else(|| Error::UserNotFound(pkg.svc_user.to_string()))?;
+            let uid =
+                users::get_uid_by_name(&pkg.svc_user)?.ok_or_else(|| Error::UserNotFound(pkg.svc_user.to_string()))?;
             let gid = users::get_gid_by_name(&pkg.svc_group)?
                 .ok_or_else(|| Error::GroupNotFound(pkg.svc_group.to_string()))?;
 
@@ -217,9 +208,7 @@ impl Supervisor {
             let groupname = users::get_effective_groupname()?;
             let gid = users::get_effective_gid();
 
-            let name_for_logging = username
-                .clone()
-                .unwrap_or_else(|| format!("anonymous [UID={}]", uid));
+            let name_for_logging = username.clone().unwrap_or_else(|| format!("anonymous [UID={}]", uid));
             outputln!(preamble self.service_group, "Current user ({}) lacks sufficient capabilites to \
                 run services as a different user; running as self!", name_for_logging);
 
@@ -268,18 +257,13 @@ impl Supervisor {
                     Err(
                         err @ TryIPCCommandError::TryReceive(
                             _,
-                            TryReceiveError::IPCRead(IPCReadError::LauncherCommand(
-                                protocol::NetErr {
-                                    code: protocol::ErrCode::UnknownMessage,
-                                    ..
-                                },
-                            )),
+                            TryReceiveError::IPCRead(IPCReadError::LauncherCommand(protocol::NetErr {
+                                code: protocol::ErrCode::UnknownMessage,
+                                ..
+                            })),
                         ),
                     ) => {
-                        error!(
-                            "Launcher does not support the 'version' command: {:#}",
-                            anyhow!(err)
-                        );
+                        error!("Launcher does not support the 'version' command: {:#}", anyhow!(err));
                         legacy_user
                     }
                     Err(err) => {
@@ -436,51 +420,5 @@ impl Supervisor {
         self.state_entered
             .duration_since(SystemTime::UNIX_EPOCH)
             .expect("our time should ALWAYS be after the UNIX Epoch")
-    }
-}
-
-fn read_pid<T>(pid_file: T) -> Option<Pid>
-where
-    T: AsRef<Path>,
-{
-    // TODO (CM): when this pidfile tracing bit has been cleared
-    // up, remove these logging targets; they were added just to
-    // help with debugging. The overall logging messages can stay,
-    // however.
-    let p = pid_file.as_ref();
-
-    match File::open(p) {
-        Ok(file) => {
-            let reader = BufReader::new(file);
-            match reader.lines().next() {
-                Some(Ok(line)) => {
-                    match line.parse::<Pid>() {
-                        Ok(0) => {
-                            error!(target: "pidfile_tracing", "Read PID of 0 from {}!", p.display());
-                            // Treat this the same as a corrupt pid
-                            // file, because that's basically what it
-                            // is. A PID of 0 effectively means the
-                            // Supervisor thinks it's supervising
-                            // itself. This *should* be an impossible situation.
-                            None
-                        }
-                        Ok(pid) => Some(pid),
-                        Err(e) => {
-                            error!(target: "pidfile_tracing", "Unable to parse contents of PID file: {}; {:?}", p.display(), e);
-                            None
-                        }
-                    }
-                }
-                _ => {
-                    error!(target: "pidfile_tracing", "Unable to read a line of PID file: {}", p.display());
-                    None
-                }
-            }
-        }
-        Err(ref err) if err.kind() == std::io::ErrorKind::NotFound => None,
-        Err(_) => {
-            error!(target: "pidfile_tracing", "Error reading PID file: {}", p.display());
-            None
-        }
     }
 }

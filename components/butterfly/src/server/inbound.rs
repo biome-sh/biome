@@ -34,12 +34,7 @@ lazy_static! {
     .unwrap();
 }
 
-pub fn spawn_thread(
-    name: String,
-    server: Server,
-    socket: UdpSocket,
-    tx_outbound: AckSender,
-) -> std::io::Result<()> {
+pub fn spawn_thread(name: String, server: Server, socket: UdpSocket, tx_outbound: AckSender) -> std::io::Result<()> {
     thread::Builder::new()
         .name(name)
         .spawn(move || -> ! { run_loop(&server, &socket, &tx_outbound) })
@@ -68,9 +63,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                         // garbage all the time.
                         error!("Error unwrapping protocol message, {}", e);
                         let label_values = &["unwrap_wire", "failure"];
-                        SWIM_BYTES_RECEIVED
-                            .with_label_values(label_values)
-                            .set(length.to_i64());
+                        SWIM_BYTES_RECEIVED.with_label_values(label_values).set(length.to_i64());
                         SWIM_MESSAGES_RECEIVED.with_label_values(label_values).inc();
                         continue;
                     }
@@ -106,40 +99,28 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                 match msg.kind {
                     SwimKind::Ping(ping) => {
                         if server.is_member_blocked_sblr(&ping.from.id) {
-                            debug!(
-                                "Not processing message from {} - it is blocked",
-                                ping.from.id
-                            );
+                            debug!("Not processing message from {} - it is blocked", ping.from.id);
                             continue;
                         }
                         process_ping_mlw_smw_rhw(server, socket, addr, ping);
                     }
                     SwimKind::Ack(ack) => {
                         if server.is_member_blocked_sblr(&ack.from.id) && ack.forward_to.is_none() {
-                            debug!(
-                                "Not processing message from {} - it is blocked",
-                                ack.from.id
-                            );
+                            debug!("Not processing message from {} - it is blocked", ack.from.id);
                             continue;
                         }
                         process_ack_mlw_smw_rhw(server, socket, tx_outbound, addr, ack);
                     }
                     SwimKind::PingReq(pingreq) => {
                         if server.is_member_blocked_sblr(&pingreq.from.id) {
-                            debug!(
-                                "Not processing message from {} - it is blocked",
-                                pingreq.from.id
-                            );
+                            debug!("Not processing message from {} - it is blocked", pingreq.from.id);
                             continue;
                         }
                         process_pingreq_mlr_smr_rhw(server, socket, addr, pingreq);
                     }
                     SwimKind::ProbePing(probe_ping) => {
                         if server.is_member_blocked_sblr(&probe_ping.from.id) {
-                            debug!(
-                                "Not processing message from {} - it is blocked",
-                                probe_ping.from.id
-                            );
+                            debug!("Not processing message from {} - it is blocked", probe_ping.from.id);
                             continue;
                         }
                         process_probeping_mlw_smw_rhw(server, socket, addr, probe_ping);
@@ -173,12 +154,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
 /// * `MemberList::entries` (read)
 /// * `Server::member` (read)
 /// * `RumorHeat::inner` (write)
-fn process_pingreq_mlr_smr_rhw(
-    server: &Server,
-    socket: &UdpSocket,
-    addr: SocketAddr,
-    mut msg: PingReq,
-) {
+fn process_pingreq_mlr_smr_rhw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: PingReq) {
     if let Some(target) = server.member_list.get_cloned_mlr(&msg.target.id) {
         msg.from.address = addr.ip().to_string();
         let ping_msg = Ping {
@@ -189,13 +165,7 @@ fn process_pingreq_mlr_smr_rhw(
         let swim = outbound::populate_membership_rumors_mlr_rhw(server, &target, ping_msg);
         // Set the route-back address to the one we received the
         // pingreq from
-        outbound::ping(
-            server,
-            socket,
-            target.swim_socket_address(),
-            Some(&msg.from),
-            &swim,
-        );
+        outbound::ping(server, socket, target.swim_socket_address(), Some(&msg.from), &swim);
     } else {
         error!("PingReq request {:?} for invalid target", msg);
     }
@@ -276,12 +246,7 @@ fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAdd
 /// * `MemberList::entries` (write)
 /// * `Server::member` (write)
 /// * `RumorHeat::inner` (write)
-fn process_probeping_mlw_smw_rhw(
-    server: &Server,
-    socket: &UdpSocket,
-    addr: SocketAddr,
-    mut msg: ProbePing,
-) {
+fn process_probeping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: ProbePing) {
     trace!("ProbePing from {}@{}", msg.from.id, addr);
 
     // We received this message because someone believed we are `Confirmed`. For that member to

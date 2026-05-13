@@ -308,11 +308,7 @@ impl SrvMessage {
 
 impl fmt::Debug for SrvMessage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{:?}, {:?}, {:?}",
-            self.header, self.transaction, self.message_id
-        )
+        write!(f, "{:?}, {:?}, {:?}", self.header, self.transaction, self.message_id)
     }
 }
 

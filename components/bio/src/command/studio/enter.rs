@@ -48,12 +48,7 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
 //  the environment variable defined in STUDIO_HOST_ARCH_ENVVAR.
 fn set_arch_env_var() {
     // TODO: Audit that the environment access only happens in single-threaded code.
-    unsafe {
-        env::set_var(
-            STUDIO_HOST_ARCH_ENVVAR,
-            format!("{}", PackageTarget::active_target()),
-        )
-    };
+    unsafe { env::set_var(STUDIO_HOST_ARCH_ENVVAR, format!("{}", PackageTarget::active_target())) };
 }
 
 fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
@@ -62,10 +57,7 @@ fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
     let cert_filename = match cert_path.file_name() {
         Some(cert_filename) => cert_filename,
         None => {
-            return Err(Error::CacheSslCertError(format!(
-                "{:?} is not a file",
-                &cert_file
-            )));
+            return Err(Error::CacheSslCertError(format!("{:?} is not a file", &cert_file)));
         }
     };
     let cache_file = cert_cache_dir.join(cert_filename);
@@ -87,22 +79,14 @@ fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
 pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     let config = CliConfig::load()?;
 
-    set_env_var_from_config(
-        AUTH_TOKEN_ENVVAR,
-        config.auth_token,
-        Sensitivity::NoPrintValue,
-    );
+    set_env_var_from_config(AUTH_TOKEN_ENVVAR, config.auth_token, Sensitivity::NoPrintValue);
     set_env_var_from_config(BLDR_URL_ENVVAR, config.bldr_url, Sensitivity::PrintValue);
     set_env_var_from_config(
         ORIGIN_ENVVAR,
         config.origin.map(|o| o.to_string()),
         Sensitivity::PrintValue,
     );
-    set_env_var_from_config(
-        REFRESH_CHANNEL_ENVVAR,
-        config.refresh_channel,
-        Sensitivity::PrintValue,
-    );
+    set_env_var_from_config(REFRESH_CHANNEL_ENVVAR, config.refresh_channel, Sensitivity::PrintValue);
 
     set_arch_env_var();
 
@@ -166,10 +150,7 @@ mod inner {
     use crate::{
         VERSION,
         command::studio::{docker, native},
-        common::{
-            FEATURE_FLAGS, FeatureFlag,
-            ui::{UI, UIWriter},
-        },
+        common::ui::{UI, UIWriter},
         error::{Error, Result},
         exec,
     };
@@ -189,61 +170,52 @@ mod inner {
     const STUDIO_CMD_ENVVAR: &str = "BIO_STUDIO_BINARY";
 
     pub async fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
-        if cfg!(target_os = "linux") || FEATURE_FLAGS.contains(FeatureFlag::MACOS_NATIVE_SUPPORT) {
-            if is_native_studio(args) {
-                rerun_with_sudo_if_needed(ui, args, true)?;
-                native::start_native_studio(ui, args)
+        if is_native_studio(args) {
+            rerun_with_sudo_if_needed(ui, args, true)?;
+            native::start_native_studio(ui, args)
+        } else {
+            rerun_with_sudo_if_needed(ui, args, false)?;
+            if is_docker_studio(args) {
+                docker::start_docker_studio(ui, args)
             } else {
-                rerun_with_sudo_if_needed(ui, args, false)?;
-                if is_docker_studio(args) {
-                    docker::start_docker_studio(ui, args)
-                } else {
-                    let command = match henv::var(STUDIO_CMD_ENVVAR) {
-                        Ok(command) => PathBuf::from(command),
-                        Err(_) => {
-                            init()?;
-                            let version: Vec<&str> = VERSION.split('/').collect();
-                            let ident = PackageIdent::from_str(&format!(
-                                "{}/{}",
-                                super::STUDIO_PACKAGE_IDENT,
-                                version[0]
-                            ))?;
-                            let command =
-                                exec::command_from_min_pkg(ui, STUDIO_CMD, &ident).await?;
-                            // This is a duplicate of the code in `bio pkg exec` and
-                            // should be refactored as part of or after:
-                            // https://github.com/habitat-sh/habitat/issues/6633
-                            // https://github.com/habitat-sh/habitat/issues/6634
-                            let pkg_install = PackageInstall::load(&ident, None)?;
-                            let cmd_env = pkg_install.environment_for_command()?;
-                            for (key, value) in cmd_env.into_iter() {
-                                debug!("Setting: {}='{}'", key, value);
-                                // TODO: Audit that the environment access only happens in
-                                // single-threaded code.
-                                unsafe { env::set_var(key, value) };
-                            }
-
-                            let mut display_args = STUDIO_CMD.to_string();
-                            for arg in args {
-                                display_args.push(' ');
-                                display_args.push_str(arg.to_string_lossy().as_ref());
-                            }
-                            debug!("Running: {}", display_args);
-
-                            command
+                let command = match henv::var(STUDIO_CMD_ENVVAR) {
+                    Ok(command) => PathBuf::from(command),
+                    Err(_) => {
+                        init()?;
+                        let version: Vec<&str> = VERSION.split('/').collect();
+                        let ident =
+                            PackageIdent::from_str(&format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]))?;
+                        let command = exec::command_from_min_pkg(ui, STUDIO_CMD, &ident).await?;
+                        // This is a duplicate of the code in `bio pkg exec` and
+                        // should be refactored as part of or after:
+                        // https://github.com/habitat-sh/habitat/issues/6633
+                        // https://github.com/habitat-sh/habitat/issues/6634
+                        let pkg_install = PackageInstall::load(&ident, None)?;
+                        let cmd_env = pkg_install.environment_for_command()?;
+                        for (key, value) in cmd_env.into_iter() {
+                            debug!("Setting: {}='{}'", key, value);
+                            // TODO: Audit that the environment access only happens in
+                            // single-threaded code.
+                            unsafe { env::set_var(key, value) };
                         }
-                    };
-                    if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-                        process::become_command(cmd, args)?;
-                        Ok(())
-                    } else {
-                        Err(Error::ExecCommandNotFound(command))
+
+                        let mut display_args = STUDIO_CMD.to_string();
+                        for arg in args {
+                            display_args.push(' ');
+                            display_args.push_str(arg.to_string_lossy().as_ref());
+                        }
+                        debug!("Running: {}", display_args);
+
+                        command
                     }
+                };
+                if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
+                    process::become_command(cmd, args)?;
+                    Ok(())
+                } else {
+                    Err(Error::ExecCommandNotFound(command))
                 }
             }
-        } else {
-            // Fallback to docker studio when not on Linux and feature flag not enabled
-            docker::start_docker_studio(ui, args)
         }
     }
 
@@ -273,11 +245,7 @@ mod inner {
         Ok(docker_members.is_some_and(|d| d.contains(&current_user)))
     }
 
-    fn rerun_with_sudo_if_needed(
-        ui: &mut UI,
-        args: &[OsString],
-        preserve_path: bool,
-    ) -> Result<()> {
+    fn rerun_with_sudo_if_needed(ui: &mut UI, args: &[OsString], preserve_path: bool) -> Result<()> {
         // If I have root permissions or if I am executing a docker studio
         // and have the appropriate group - early return, we are done.
         if am_i_root() || (is_docker_studio(args) && has_docker_group()?) {
@@ -287,11 +255,8 @@ mod inner {
         // Otherwise we will try to re-run this program using `sudo`
         match find_command(SUDO_CMD) {
             Some(sudo_prog) => {
-                let mut args: Vec<OsString> = vec![
-                    "-p".into(),
-                    "[sudo bio-studio] password for %u: ".into(),
-                    "-E".into(),
-                ];
+                let mut args: Vec<OsString> =
+                    vec!["-p".into(), "[sudo bio-studio] password for %u: ".into(), "-E".into()];
                 if preserve_path {
                     args.push("--preserve-env=PATH".into());
                 }
@@ -339,21 +304,14 @@ mod inner {
     pub async fn start_windows_studio(ui: &mut UI, args: &[OsString]) -> Result<()> {
         init()?;
         let version: Vec<&str> = VERSION.split('/').collect();
-        let ident =
-            PackageIdent::from_str(&format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]))?;
+        let ident = PackageIdent::from_str(&format!("{}/{}", super::STUDIO_PACKAGE_IDENT, version[0]))?;
         let pwsh_command = exec::command_from_min_pkg(ui, "pwsh.exe", &ident).await?;
         let studio_command = exec::command_from_min_pkg(ui, "bio-studio.ps1", &ident).await?;
 
-        let mut cmd_args: Vec<OsString> = vec![
-            "-NoProfile",
-            "-ExecutionPolicy",
-            "bypass",
-            "-NoLogo",
-            "-File",
-        ]
-        .into_iter()
-        .map(Into::into)
-        .collect();
+        let mut cmd_args: Vec<OsString> = vec!["-NoProfile", "-ExecutionPolicy", "bypass", "-NoLogo", "-File"]
+            .into_iter()
+            .map(Into::into)
+            .collect();
         if let Some(cmd) = find_command(&studio_command) {
             cmd_args.push(cmd.into());
         } else {

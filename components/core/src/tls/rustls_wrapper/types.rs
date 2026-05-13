@@ -128,8 +128,4 @@ impl std::fmt::Display for RootCertificateStoreCli {
     }
 }
 
-crate::impl_try_from_string_and_into_string!(
-    CertificateChainCli,
-    PrivateKeyCli,
-    RootCertificateStoreCli
-);
+crate::impl_try_from_string_and_into_string!(CertificateChainCli, PrivateKeyCli, RootCertificateStoreCli);

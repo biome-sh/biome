@@ -19,8 +19,7 @@ use crate::{
     crypto::keys::{
         AnonymousBox, Key, NamedRevision,
         encryption::{
-            PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX,
-            SECRET_BOX_KEY_VERSION, primitives,
+            PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION, primitives,
         },
     },
     error::{Error, Result},
@@ -97,9 +96,8 @@ impl OriginSecretEncryptionKey {
         // don't have to pass unnecessary arguments to this function.
         let pk = self.key().public_key()?;
 
-        primitives::sealedbox::open(secret.ciphertext(), &pk, self.key()).map_err(|_| {
-            Error::CryptoError("Could not decrypt origin encrypted secret".to_string())
-        })
+        primitives::sealedbox::open(secret.ciphertext(), &pk, self.key())
+            .map_err(|_| Error::CryptoError("Could not decrypt origin encrypted secret".to_string()))
     }
 }
 
@@ -110,8 +108,7 @@ mod tests {
 
     #[test]
     fn encryption() {
-        let key: OriginPublicEncryptionKey =
-            fixture_key("keys/fhloston-paradise-20200813211603.pub");
+        let key: OriginPublicEncryptionKey = fixture_key("keys/fhloston-paradise-20200813211603.pub");
 
         let secret_message = "Leeloo Dallas Multipass".to_string();
         let anonymous = key.encrypt(secret_message.as_bytes()).unwrap();
@@ -125,8 +122,7 @@ mod tests {
 
     #[test]
     fn decryption() {
-        let key: OriginSecretEncryptionKey =
-            fixture_key("keys/fhloston-paradise-20200813211603.box.key");
+        let key: OriginSecretEncryptionKey = fixture_key("keys/fhloston-paradise-20200813211603.box.key");
 
         #[rustfmt::skip]
         let encrypted = "ANONYMOUS-BOX-1\nfhloston-paradise-20200813211603\nyCye2Rg/LtNwrNzVapYj8rrkbZpTnI3ld7oFTwGzGnsEhsxtebyW2CQDwB1IeZ2eDkNxqAQnD8AaQjK6M42fFCmadBNSMsp+AMFqnH2c".parse::<AnonymousBox>()
@@ -140,10 +136,8 @@ mod tests {
 
     #[test]
     fn encryption_decrytpion_roundtrip() {
-        let pk: OriginPublicEncryptionKey =
-            fixture_key("keys/fhloston-paradise-20200813211603.pub");
-        let sk: OriginSecretEncryptionKey =
-            fixture_key("keys/fhloston-paradise-20200813211603.box.key");
+        let pk: OriginPublicEncryptionKey = fixture_key("keys/fhloston-paradise-20200813211603.pub");
+        let sk: OriginSecretEncryptionKey = fixture_key("keys/fhloston-paradise-20200813211603.box.key");
 
         let secret_message = "Super-green".to_string();
         let encrypted = pk.encrypt(secret_message.as_bytes()).unwrap();

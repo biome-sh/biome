@@ -6,21 +6,12 @@ use crate::{
 };
 use reqwest::StatusCode;
 
-pub async fn start(
-    ui: &mut UI,
-    bldr_url: &str,
-    origin: &str,
-    token: &str,
-    invitation_account: &str,
-) -> Result<()> {
+pub async fn start(ui: &mut UI, bldr_url: &str, origin: &str, token: &str, invitation_account: &str) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(
         Status::Sending,
-        format!(
-            "invitation to user {} for origin {}",
-            invitation_account, origin
-        ),
+        format!("invitation to user {} for origin {}", invitation_account, origin),
     )?;
 
     match api_client

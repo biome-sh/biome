@@ -221,8 +221,7 @@ pub fn start(ui: &mut UI, key_cache: &KeyCache) -> Result<()> {
     }
     #[cfg(windows)]
     {
-        let binlink_path = Path::new(&*FS_ROOT_PATH)
-            .join(Path::new(DEFAULT_BINLINK_DIR).strip_prefix("/").unwrap());
+        let binlink_path = Path::new(&*FS_ROOT_PATH).join(Path::new(DEFAULT_BINLINK_DIR).strip_prefix("/").unwrap());
         ui.heading("Biome Binlink Path")?;
         ui.para(
             "The `bio` command-line tool can create binlinks for package binaries in the \
@@ -266,10 +265,7 @@ fn ask_default_builder_instance(ui: &mut UI) -> Result<bool> {
 }
 
 fn ask_create_origin(ui: &mut UI, origin: &Origin) -> Result<bool> {
-    Ok(ui.prompt_yes_no(
-        &format!("Create an origin key for `{}'?", origin),
-        Some(true),
-    )?)
+    Ok(ui.prompt_yes_no(&format!("Create an origin key for `{}'?", origin), Some(true))?)
 }
 
 fn write_cli_config_origin(origin: &Origin) -> Result<()> {
@@ -330,17 +326,11 @@ fn prompt_origin(ui: &mut UI) -> Result<Origin> {
 }
 
 fn ask_default_auth_token(ui: &mut UI) -> Result<bool> {
-    Ok(ui.prompt_yes_no(
-        "Set up a default Builder personal access token?",
-        Some(false),
-    )?)
+    Ok(ui.prompt_yes_no("Set up a default Builder personal access token?", Some(false))?)
 }
 
 fn ask_default_ctl_secret(ui: &mut UI) -> Result<bool> {
-    Ok(ui.prompt_yes_no(
-        "Set up a default Biome Supervisor control gateway secret?",
-        Some(false),
-    )?)
+    Ok(ui.prompt_yes_no("Set up a default Biome Supervisor control gateway secret?", Some(false))?)
 }
 
 fn ask_default_refresh_channel(ui: &mut UI) -> Result<bool> {
@@ -390,10 +380,7 @@ fn prompt_ctl_secret(ui: &mut UI) -> Result<String> {
         }
         None => henv::var(CTL_SECRET_ENVVAR).ok(),
     };
-    Ok(ui.prompt_ask(
-        "Biome Supervisor control gateway secret",
-        default.as_deref(),
-    )?)
+    Ok(ui.prompt_ask("Biome Supervisor control gateway secret", default.as_deref())?)
 }
 
 fn prompt_refresh_channel(ui: &mut UI) -> Result<String> {
@@ -425,9 +412,7 @@ fn binlink_is_on_path(binlink_path: &Path) -> bool {
         KEY_READ,
     ) {
         Ok(env) => {
-            let path: String = env
-                .get_value("path")
-                .expect("could not find a machine PATH");
+            let path: String = env.get_value("path").expect("could not find a machine PATH");
             env::split_paths(&path).any(|p| p == binlink_path)
         }
         _ => false,

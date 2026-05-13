@@ -101,11 +101,7 @@ pub(crate) struct Credentials {
 }
 
 impl Credentials {
-    pub(crate) async fn new(
-        registry_type: RegistryType,
-        username: &str,
-        password: &str,
-    ) -> Result<Self> {
+    pub(crate) async fn new(registry_type: RegistryType, username: &str, password: &str) -> Result<Self> {
         match registry_type {
             RegistryType::Amazon => {
                 // The username and password should be valid IAM credentials
@@ -159,10 +155,7 @@ impl Credentials {
 /// * Pushing the image to remote registry fails.
 /// * Parsing of credentials fails.
 /// * The image (tags) cannot be removed.
-async fn export_for_cli_matches(
-    ui: &mut UI,
-    matches: &clap::ArgMatches,
-) -> Result<Option<ContainerImage>> {
+async fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<Option<ContainerImage>> {
     os::ensure_proper_docker_platform()?;
 
     #[cfg(not(windows))]
@@ -179,8 +172,7 @@ async fn export_for_cli_matches(
     ))?;
 
     let build_context = BuildContext::from_build_root(spec.create(ui).await?, ui)?;
-    let container_image =
-        build_context.export(ui, &naming, memory.map(String::as_str), engine.as_ref())?;
+    let container_image = build_context.export(ui, &naming, memory.map(String::as_str), engine.as_ref())?;
 
     build_context.destroy(ui)?;
     ui.end(format!(
@@ -257,10 +249,7 @@ fn push_image(
     create_docker_config_file(credentials, registry_url, workdir)?;
 
     for image_tag in image.expanded_identifiers() {
-        ui.status(
-            Status::Uploading,
-            format!("image '{}' to remote registry", image_tag),
-        )?;
+        ui.status(Status::Uploading, format!("image '{}' to remote registry", image_tag))?;
         engine.push_image(image_tag, workdir)?;
         ui.status(Status::Uploaded, format!("image '{}'", image_tag))?;
     }
@@ -273,11 +262,7 @@ fn push_image(
     Ok(())
 }
 
-fn create_docker_config_file(
-    credentials: &Credentials,
-    registry_url: Option<&str>,
-    workdir: &Path,
-) -> Result<()> {
+fn create_docker_config_file(credentials: &Credentials, registry_url: Option<&str>, workdir: &Path) -> Result<()> {
     std::fs::create_dir_all(workdir)?; // why wouldn't this already exist?
     let config = workdir.join("config.json");
 

@@ -14,12 +14,9 @@ pub fn tabw() -> TabWriter<Vec<u8>> {
 pub fn tabify(mut tw: TabWriter<Vec<u8>>, s: &str) -> Result<String> {
     write!(&mut tw, "{}", s)?;
     tw.flush()?;
-    let inner = tw.into_inner().map_err(|e| {
-        IoError::new(
-            e.error().kind(),
-            "Unable to flush tabwriter buffer to inner.",
-        )
-    })?;
+    let inner = tw
+        .into_inner()
+        .map_err(|e| IoError::new(e.error().kind(), "Unable to flush tabwriter buffer to inner."))?;
     String::from_utf8(inner).map_err(Error::StringFromUtf8Error)
 }
 

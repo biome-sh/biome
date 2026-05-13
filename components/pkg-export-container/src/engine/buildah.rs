@@ -15,10 +15,7 @@ use thiserror::Error;
 ///
 /// See https://www.mankier.com/5/containers-policy.json for further
 /// information.
-const SIGNATURE_POLICY: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/defaults/containers-policy.json"
-));
+const SIGNATURE_POLICY: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/defaults/containers-policy.json"));
 
 #[derive(Debug)]
 pub(crate) struct BuildahEngine {
@@ -55,8 +52,7 @@ impl BuildahEngine {
     ///
     /// The file will be removed when that `TempPath` is dropped.
     fn signature_policy() -> Result<TempPath, BuildahError> {
-        let mut policy =
-            tempfile::NamedTempFile::new().map_err(BuildahError::SignaturePolicyError)?;
+        let mut policy = tempfile::NamedTempFile::new().map_err(BuildahError::SignaturePolicyError)?;
         policy
             .write_all(SIGNATURE_POLICY.as_bytes())
             .map_err(BuildahError::SignaturePolicyError)?;
@@ -91,18 +87,11 @@ impl Engine for BuildahEngine {
         cmd
     }
 
-    fn build_command(
-        &self,
-        build_context: &Path,
-        tags: &[String],
-        memory: Option<&str>,
-    ) -> Command {
+    fn build_command(&self, build_context: &Path, tags: &[String], memory: Option<&str>) -> Command {
         let mut cmd = Command::new(&self.binary);
         cmd.current_dir(build_context);
 
-        cmd.arg("build-using-dockerfile")
-            .arg("--layers")
-            .arg("--force-rm");
+        cmd.arg("build-using-dockerfile").arg("--layers").arg("--force-rm");
 
         // Need this (Buildah's default format is OCI) because
         // apparently DockerHub has problems with OCI images.

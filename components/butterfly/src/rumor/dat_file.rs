@@ -2,9 +2,7 @@ use crate::{
     error::{Error, Result},
     member::{MemberList, Membership},
     protocol::{Message, newscast},
-    rumor::{
-        Departure, Election, ElectionUpdate, Rumor, RumorStore, Service, ServiceConfig, ServiceFile,
-    },
+    rumor::{Departure, Election, ElectionUpdate, Rumor, RumorStore, Service, ServiceConfig, ServiceFile},
     server::Server,
 };
 use biome_core::fs::AtomicWriter;
@@ -32,8 +30,7 @@ const SIZE_OF_HEADER_FIELD: usize = mem::size_of::<u64>();
 const HEADER_VERSION_1_NUM_FIELDS: usize = 6;
 const HEADER_VERSION_2_NUM_FIELDS: usize = 7;
 const HEADER_VERSION_1_SIZE: usize = SIZE_OF_HEADER_FIELD * HEADER_VERSION_1_NUM_FIELDS;
-const HEADER_VERSION_2_SIZE: usize =
-    (SIZE_OF_HEADER_FIELD * HEADER_VERSION_2_NUM_FIELDS) + SIZE_OF_HEADER_FIELD;
+const HEADER_VERSION_2_SIZE: usize = (SIZE_OF_HEADER_FIELD * HEADER_VERSION_2_NUM_FIELDS) + SIZE_OF_HEADER_FIELD;
 
 trait WriteExt: Write {
     fn write_all_with_size(&mut self, buf: &[u8]) -> io::Result<usize> {
@@ -170,11 +167,10 @@ impl DatFileReader {
         let mut rumors = Vec::new();
 
         if let Some(offset) = self.header.offset_for_rumor(T::MESSAGE_ID) {
-            self.dat_file
-                .read_and_process(&mut self.reader, offset, |r| {
-                    rumors.push(T::from_bytes(r)?);
-                    Ok(())
-                })?;
+            self.dat_file.read_and_process(&mut self.reader, offset, |r| {
+                rumors.push(T::from_bytes(r)?);
+                Ok(())
+            })?;
         }
 
         Ok(rumors)
@@ -184,11 +180,10 @@ impl DatFileReader {
         let mut members = Vec::new();
 
         if let Some(offset) = self.header.member_offset() {
-            self.dat_file
-                .read_and_process(&mut self.reader, offset, |r| {
-                    members.push(Membership::from_bytes(r)?);
-                    Ok(())
-                })?;
+            self.dat_file.read_and_process(&mut self.reader, offset, |r| {
+                members.push(Membership::from_bytes(r)?);
+                Ok(())
+            })?;
         }
 
         Ok(members)
@@ -219,8 +214,7 @@ impl DatFileWriter {
         departure_store: &RumorStore<Departure>,
     ) -> Result<usize> {
         let mut header = Header::default();
-        let w = AtomicWriter::new(self.path())
-            .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?;
+        let w = AtomicWriter::new(self.path()).map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?;
         w.with_writer(|mut f| {
             let mut writer = BufWriter::new(&mut f);
             let header_reserve = vec![0; HEADER_VERSION_2_SIZE];
@@ -279,11 +273,7 @@ impl DatFileWriter {
 
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
-    fn write_member_list_mlr(
-        &self,
-        writer: &mut impl Write,
-        member_list: &MemberList,
-    ) -> Result<u64> {
+    fn write_member_list_mlr(&self, writer: &mut impl Write, member_list: &MemberList) -> Result<u64> {
         let mut total = 0;
         member_list.with_memberships_mlr(|membership| {
             total += self.write_member(writer, &membership)?;
@@ -301,12 +291,10 @@ impl DatFileWriter {
         LittleEndian::write_u64(&mut len_buf, bytes.len() as u64);
         total += writer
             .write_all_with_size(&len_buf)
-            .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
-            as u64;
+            .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))? as u64;
         total += writer
             .write_all_with_size(&bytes)
-            .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
-            as u64;
+            .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))? as u64;
         Ok(total)
     }
 
@@ -335,12 +323,10 @@ impl DatFileWriter {
         LittleEndian::write_u64(&mut rumor_len, bytes.len() as u64);
         total += writer
             .write_all_with_size(&rumor_len)
-            .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
-            as u64;
+            .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))? as u64;
         total += writer
             .write_all_with_size(&bytes)
-            .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
-            as u64;
+            .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))? as u64;
         Ok(total)
     }
 }
@@ -365,8 +351,7 @@ impl DatFile {
             return Err(Error::DatFileIO(path.to_path_buf(), err));
         }
 
-        let header = Header::from_file(reader, version[0])
-            .map_err(|err| Error::DatFileIO(path.to_path_buf(), err))?;
+        let header = Header::from_file(reader, version[0]).map_err(|err| Error::DatFileIO(path.to_path_buf(), err))?;
         debug!("Header: {:?}", header);
 
         reader
@@ -375,12 +360,7 @@ impl DatFile {
         Ok(header)
     }
 
-    fn read_and_process<F>(
-        &mut self,
-        reader: &mut BufReader<File>,
-        offset: u64,
-        mut op: F,
-    ) -> Result<()>
+    fn read_and_process<F>(&mut self, reader: &mut BufReader<File>, offset: u64, mut op: F) -> Result<()>
     where
         F: FnMut(&mut Vec<u8>) -> Result<()>,
     {
@@ -439,8 +419,7 @@ impl Header {
     }
 
     fn insert_member_offset(&mut self, offset: u64) {
-        self.offsets
-            .insert(Membership::MESSAGE_ID.to_string(), offset);
+        self.offsets.insert(Membership::MESSAGE_ID.to_string(), offset);
     }
 
     fn insert_offset_for_rumor(&mut self, message_id: &str, offset: u64) {
@@ -464,14 +443,8 @@ impl Header {
             1 => {
                 let size: u64 = HEADER_VERSION_1_SIZE as u64;
                 let mut offsets = HashMap::new();
-                offsets.insert(
-                    Membership::MESSAGE_ID.to_string(),
-                    LittleEndian::read_u64(&bytes[0..8]),
-                );
-                offsets.insert(
-                    Service::MESSAGE_ID.to_string(),
-                    LittleEndian::read_u64(&bytes[8..16]),
-                );
+                offsets.insert(Membership::MESSAGE_ID.to_string(), LittleEndian::read_u64(&bytes[0..8]));
+                offsets.insert(Service::MESSAGE_ID.to_string(), LittleEndian::read_u64(&bytes[8..16]));
                 offsets.insert(
                     ServiceConfig::MESSAGE_ID.to_string(),
                     LittleEndian::read_u64(&bytes[16..24]),
@@ -480,20 +453,13 @@ impl Header {
                     ServiceFile::MESSAGE_ID.to_string(),
                     LittleEndian::read_u64(&bytes[24..32]),
                 );
-                offsets.insert(
-                    Election::MESSAGE_ID.to_string(),
-                    LittleEndian::read_u64(&bytes[32..40]),
-                );
+                offsets.insert(Election::MESSAGE_ID.to_string(), LittleEndian::read_u64(&bytes[32..40]));
                 offsets.insert(
                     ElectionUpdate::MESSAGE_ID.to_string(),
                     LittleEndian::read_u64(&bytes[40..48]),
                 );
                 offsets.insert(Departure::MESSAGE_ID.to_string(), 0);
-                Header {
-                    offsets,
-                    size,
-                    version,
-                }
+                Header { offsets, size, version }
             }
             // This should be the latest version of the header. As we deprecate
             // header versions, just roll this code up, and match it, then add
@@ -510,10 +476,7 @@ impl Header {
                     Membership::MESSAGE_ID.to_string(),
                     LittleEndian::read_u64(&bytes[8..16]),
                 );
-                offsets.insert(
-                    Service::MESSAGE_ID.to_string(),
-                    LittleEndian::read_u64(&bytes[16..24]),
-                );
+                offsets.insert(Service::MESSAGE_ID.to_string(), LittleEndian::read_u64(&bytes[16..24]));
                 offsets.insert(
                     ServiceConfig::MESSAGE_ID.to_string(),
                     LittleEndian::read_u64(&bytes[24..32]),
@@ -522,10 +485,7 @@ impl Header {
                     ServiceFile::MESSAGE_ID.to_string(),
                     LittleEndian::read_u64(&bytes[32..40]),
                 );
-                offsets.insert(
-                    Election::MESSAGE_ID.to_string(),
-                    LittleEndian::read_u64(&bytes[40..48]),
-                );
+                offsets.insert(Election::MESSAGE_ID.to_string(), LittleEndian::read_u64(&bytes[40..48]));
                 offsets.insert(
                     ElectionUpdate::MESSAGE_ID.to_string(),
                     LittleEndian::read_u64(&bytes[48..56]),
@@ -534,11 +494,7 @@ impl Header {
                     Departure::MESSAGE_ID.to_string(),
                     LittleEndian::read_u64(&bytes[56..64]),
                 );
-                Header {
-                    offsets,
-                    size,
-                    version,
-                }
+                Header { offsets, size, version }
             }
         }
     }
@@ -547,14 +503,10 @@ impl Header {
         let header_size = HEADER_VERSION_2_SIZE;
         let mut bytes = vec![0; header_size];
         LittleEndian::write_u64(&mut bytes[0..8], header_size as u64);
-        LittleEndian::write_u64(
-            &mut bytes[8..16],
-            self.member_offset().expect("member offset"),
-        );
+        LittleEndian::write_u64(&mut bytes[8..16], self.member_offset().expect("member offset"));
         LittleEndian::write_u64(
             &mut bytes[16..24],
-            self.offset_for_rumor(Service::MESSAGE_ID)
-                .expect("service offset"),
+            self.offset_for_rumor(Service::MESSAGE_ID).expect("service offset"),
         );
         LittleEndian::write_u64(
             &mut bytes[24..32],
@@ -568,8 +520,7 @@ impl Header {
         );
         LittleEndian::write_u64(
             &mut bytes[40..48],
-            self.offset_for_rumor(Election::MESSAGE_ID)
-                .expect("election offset"),
+            self.offset_for_rumor(Election::MESSAGE_ID).expect("election offset"),
         );
         LittleEndian::write_u64(
             &mut bytes[48..56],
@@ -578,8 +529,7 @@ impl Header {
         );
         LittleEndian::write_u64(
             &mut bytes[56..64],
-            self.offset_for_rumor(Departure::MESSAGE_ID)
-                .expect("departure offset"),
+            self.offset_for_rumor(Departure::MESSAGE_ID).expect("departure offset"),
         );
         bytes
     }

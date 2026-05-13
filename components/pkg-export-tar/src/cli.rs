@@ -2,10 +2,7 @@ use clap::Parser;
 
 use biome_common::{
     cli::clap_validators::{BioPackageInstallSourceValueParser, UrlValueParser},
-    consts::{
-        DEFAULT_BIO_LAUNCHER_PKG_IDENT, DEFAULT_BIO_PKG_IDENT, DEFAULT_BIO_SUP_PKG_IDENT,
-        DEFAULT_BUILDER_URL,
-    },
+    consts::{DEFAULT_BIO_LAUNCHER_PKG_IDENT, DEFAULT_BIO_PKG_IDENT, DEFAULT_BIO_SUP_PKG_IDENT, DEFAULT_BUILDER_URL},
 };
 
 #[derive(Debug, Clone, Parser)]

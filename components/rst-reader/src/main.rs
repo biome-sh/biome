@@ -1,9 +1,7 @@
 use crate::error::Result;
 use clap::Parser;
 
-use biome_butterfly::rumor::{
-    Departure, Election, ElectionUpdate, Service, ServiceConfig, ServiceFile, dat_file,
-};
+use biome_butterfly::rumor::{Departure, Election, ElectionUpdate, Service, ServiceConfig, ServiceFile, dat_file};
 use log::error;
 use std::{path::PathBuf, process};
 
@@ -34,15 +32,14 @@ fn main() -> error::Result<()> {
 
     let rst_reader = RstReader::parse();
 
-    let dat_file =
-        dat_file::DatFileReader::read(PathBuf::from(&rst_reader.file)).unwrap_or_else(|e| {
-            error!(
-                "Could not read \
+    let dat_file = dat_file::DatFileReader::read(PathBuf::from(&rst_reader.file)).unwrap_or_else(|e| {
+        error!(
+            "Could not read \
                                                                                   dat file {}: {}",
-                &rst_reader.file, e
-            );
-            process::exit(1);
-        });
+            &rst_reader.file, e
+        );
+        process::exit(1);
+    });
 
     let result = if rst_reader.stats {
         output_stats(dat_file)

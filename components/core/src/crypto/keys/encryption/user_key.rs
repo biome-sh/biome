@@ -15,8 +15,8 @@ use crate::{
     crypto::keys::{
         Key, NamedRevision, ServicePublicEncryptionKey,
         encryption::{
-            PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX,
-            SECRET_BOX_KEY_VERSION, SignedBox, primitives,
+            PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION, SignedBox,
+            primitives,
         },
     },
     error::{Error, Result},
@@ -91,9 +91,7 @@ mod tests {
 
         let message = "HOT, HOT, HAAAAAWWT!".to_string();
 
-        let signed = user
-            .encrypt_for_service(message.as_bytes(), &service)
-            .unwrap();
+        let signed = user.encrypt_for_service(message.as_bytes(), &service).unwrap();
 
         // Not a whole lot we can specifically test here, since the
         // ciphertext will be different each time. If we've got the

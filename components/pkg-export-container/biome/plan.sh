@@ -4,10 +4,7 @@ _pkg_distname=$pkg_name
 pkg_origin=biome
 pkg_maintainer="The Biome Maintainers <humans@biome.sh>"
 pkg_license=('Apache-2.0')
-pkg_deps=(
-    core/buildah
-    core/docker
-)
+pkg_deps=()
 pkg_build_deps=(
     core/musl
     core/perl # Needed for vendored openssl-sys

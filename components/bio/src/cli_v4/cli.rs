@@ -25,11 +25,7 @@ pub(crate) enum CliCommand {
 }
 
 impl CliCommand {
-    pub(crate) async fn do_command(
-        &self,
-        ui: &mut UI,
-        feature_flags: FeatureFlag,
-    ) -> BioResult<()> {
+    pub(crate) async fn do_command(&self, ui: &mut UI, feature_flags: FeatureFlag) -> BioResult<()> {
         match self {
             CliCommand::Setup(opts) => opts.do_setup(ui).await,
             CliCommand::Completers(opts) => opts.do_completers(feature_flags),

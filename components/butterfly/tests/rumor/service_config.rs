@@ -32,12 +32,7 @@ fn service_config_via_client() {
     );
     let payload = b"I want to get lost in you, tokyo";
     client
-        .send_service_config(
-            ServiceGroup::new("witcher", "prod", None).unwrap(),
-            0,
-            payload,
-            false,
-        )
+        .send_service_config(ServiceGroup::new("witcher", "prod", None).unwrap(), 0, payload, false)
         .expect("Cannot send the service configuration");
     net.wait_for_gossip_rounds(1);
     assert!(

@@ -4,7 +4,7 @@
 # bio pkg exec instead, which is the underlying mechanism for running
 # external package binaries.
 
-$channel = "aarch64-darwin"
+$channel = "base-2025"
 
 Describe "`bio` correctly executes external binaries" {
     BeforeAll {

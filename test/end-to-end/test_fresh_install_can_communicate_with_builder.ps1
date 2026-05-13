@@ -14,7 +14,7 @@ Describe "Clean bio installation" {
     }
     It "can talk to builder" {
         if ($IsMacOS) {
-            $pkgChannel = "aarch64-darwin"
+            $pkgChannel = "base-2025"
             # core/redis may not exist for aarch64-darwin; use core/nginx instead
             bio pkg install core/nginx --channel $pkgChannel
         } else {

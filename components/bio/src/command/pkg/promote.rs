@@ -40,10 +40,7 @@ pub async fn start(
 ) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
-    ui.begin(format!(
-        "Promoting {} ({}) to channel '{}'",
-        ident, target, channel
-    ))?;
+    ui.begin(format!("Promoting {} ({}) to channel '{}'", ident, target, channel))?;
 
     let default_channel_for_ident = channel == &ChannelIdent::default();
 
@@ -61,10 +58,7 @@ pub async fn start(
         };
     }
 
-    match api_client
-        .promote_package((ident, target), channel, token)
-        .await
-    {
+    match api_client.promote_package((ident, target), channel, token).await {
         Ok(_) => (),
         Err(e) => {
             println!("Failed to promote '{}': {:?}", ident, e);

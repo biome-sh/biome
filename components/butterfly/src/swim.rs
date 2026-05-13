@@ -374,11 +374,7 @@ impl From<Swim> for proto::Swim {
     fn from(value: Swim) -> Self {
         proto::Swim {
             r#type: value.r#type as i32,
-            membership: value
-                .membership
-                .into_iter()
-                .map(proto::Membership::from)
-                .collect(),
+            membership: value.membership.into_iter().map(proto::Membership::from).collect(),
             payload: Some(value.kind.into()),
         }
     }

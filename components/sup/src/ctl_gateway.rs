@@ -66,10 +66,7 @@ pub struct CtlRequest {
 impl CtlRequest {
     /// Create a new CtlRequest from [`server.CtlSender`] and optional
     /// [`protocol.codec.SrvTxn`].
-    pub fn new(
-        tx: server::CtlSender,
-        transaction: Option<biome_sup_protocol::codec::SrvTxn>,
-    ) -> Self {
+    pub fn new(tx: server::CtlSender, transaction: Option<biome_sup_protocol::codec::SrvTxn>) -> Self {
         CtlRequest {
             tx: Some(tx),
             transaction,
@@ -106,10 +103,7 @@ impl CtlRequest {
         T: Into<biome_sup_protocol::codec::SrvMessage> + fmt::Debug,
     {
         if !self.transactional() {
-            warn!(
-                "Attempted to reply to a non-transactional message with {:?}",
-                msg
-            );
+            warn!("Attempted to reply to a non-transactional message with {:?}", msg);
             return;
         }
         let mut wire: biome_sup_protocol::codec::SrvMessage = msg.into();
@@ -201,12 +195,11 @@ impl Write for CtlRequest {
         // non-json content should just be printed as-is.
         let is_line_ending = line.ends_with('\n');
         if self.is_new_line || output::get_format() == OutputFormat::Json {
-            let output_format =
-                if !self.current_color_spec.is_none() && output::get_format().is_color() {
-                    OutputFormat::Color(self.current_color_spec.clone())
-                } else {
-                    output::get_format()
-                };
+            let output_format = if !self.current_color_spec.is_none() && output::get_format().is_color() {
+                OutputFormat::Color(self.current_color_spec.clone())
+            } else {
+                output::get_format()
+            };
             let so = StructuredOutput::new(
                 &PROGRAM_NAME,
                 LOGKEY,
@@ -287,8 +280,7 @@ where
     T: AsRef<Path>,
 {
     let mut out = String::new();
-    fs::create_dir_all(&sup_root)
-        .map_err(|e| Error::CtlSecretIo(sup_root.as_ref().to_path_buf(), e))?;
+    fs::create_dir_all(&sup_root).map_err(|e| Error::CtlSecretIo(sup_root.as_ref().to_path_buf(), e))?;
     if !biome_sup_protocol::read_secret_key(&sup_root, &mut out)
         .ok()
         .unwrap_or(false)

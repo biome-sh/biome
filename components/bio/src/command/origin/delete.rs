@@ -38,10 +38,7 @@ pub async fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Re
                 "Delete any user created origin channels with the command:\nbio bldr \
                       channel destroy [OPTIONS] <CHANNEL>",
             )?;
-            Err(Error::APIClient(api_client::Error::APIError(
-                StatusCode::CONFLICT,
-                msg,
-            )))
+            Err(Error::APIClient(api_client::Error::APIError(StatusCode::CONFLICT, msg)))
         }
         Err(e) => {
             ui.fatal(format!("Failed to delete origin {}, {:?}", origin, e))?;

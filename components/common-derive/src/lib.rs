@@ -1,8 +1,8 @@
 use proc_macro::TokenStream;
 
 use syn::{
-    Attribute, Data, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Ident, Lit, Meta,
-    MetaNameValue, Token, parse_macro_input, punctuated::Punctuated,
+    Attribute, Data, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Ident, Lit, Meta, MetaNameValue, Token,
+    parse_macro_input, punctuated::Punctuated,
 };
 
 use quote::quote;
@@ -75,9 +75,7 @@ fn get_field_doc(attrs: &[Attribute]) -> String {
         let Attribute { meta, .. } = attr;
         if let Meta::NameValue(MetaNameValue { path, value, .. }) = meta
             && path.segments[0].ident == "doc"
-            && let Expr::Lit(ExprLit {
-                lit: Lit::Str(lit), ..
-            }) = value
+            && let Expr::Lit(ExprLit { lit: Lit::Str(lit), .. }) = value
         {
             doc_string += &format!("### {}\n", lit.value());
         }
@@ -95,8 +93,7 @@ fn is_hidden_field(field: &Field) -> bool {
                 if let Meta::NameValue(MetaNameValue { path, value, .. }) = meta
                     && path.is_ident("hide")
                     && let Expr::Lit(ExprLit {
-                        lit: Lit::Bool(hide),
-                        ..
+                        lit: Lit::Bool(hide), ..
                     }) = value
                 {
                     return hide.value;

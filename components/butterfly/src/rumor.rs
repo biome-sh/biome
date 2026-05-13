@@ -74,9 +74,7 @@ impl From<RumorKind> for RumorPayload {
             RumorKind::ElectionUpdate(election) => RumorPayload::Election(election.into()),
             RumorKind::Membership(membership) => RumorPayload::Member(membership.into()),
             RumorKind::Service(service) => RumorPayload::Service((*service).into()),
-            RumorKind::ServiceConfig(service_config) => {
-                RumorPayload::ServiceConfig(service_config.into())
-            }
+            RumorKind::ServiceConfig(service_config) => RumorPayload::ServiceConfig(service_config.into()),
             RumorKind::ServiceFile(service_file) => RumorPayload::ServiceFile(service_file.into()),
         }
     }
@@ -98,11 +96,7 @@ pub struct RumorKey {
 }
 
 impl RumorKey {
-    pub fn new(
-        kind: RumorType,
-        id: impl Into<RumorKeyId>,
-        key: impl Into<RumorKeyKey>,
-    ) -> RumorKey {
+    pub fn new(kind: RumorType, id: impl Into<RumorKeyId>, key: impl Into<RumorKeyKey>) -> RumorKey {
         RumorKey {
             kind,
             id: id.into(),
@@ -220,11 +214,7 @@ mod storage {
 
         /// Return the result of applying `f` to the rumor accessible with the provided key or
         /// `None` if no such rumor is present.
-        fn map_key<OUT>(
-            &self,
-            RumorKey { key, id, .. }: &RumorKey,
-            f: impl Fn(&T) -> OUT,
-        ) -> Option<OUT> {
+        fn map_key<OUT>(&self, RumorKey { key, id, .. }: &RumorKey, f: impl Fn(&T) -> OUT) -> Option<OUT> {
             self.service_group(key).0.and_then(|m| m.get(id).map(f))
         }
     }
@@ -241,12 +231,8 @@ mod storage {
         /// # Errors
         /// * Error::NonExistentRumor if no rumor is stored for the key
         pub fn encode_rumor_for(&self, key: &RumorKey) -> Result<Vec<u8>> {
-            self.map_key(key, R::write_to_bytes).unwrap_or_else(|| {
-                Err(Error::NonExistentRumor(
-                    String::from(&key.id),
-                    String::from(&key.key),
-                ))
-            })
+            self.map_key(key, R::write_to_bytes)
+                .unwrap_or_else(|| Err(Error::NonExistentRumor(String::from(&key.id), String::from(&key.key))))
         }
     }
 
@@ -340,8 +326,7 @@ mod storage {
         pub fn insert_rsw(&self, rumor: R) -> bool {
             let mut list = self.list.write();
             let rumors = list.entry(String::from(rumor.key())).or_default();
-            let kind_ignored_count =
-                IGNORED_RUMOR_COUNT.with_label_values(&[&rumor.kind().to_string()]);
+            let kind_ignored_count = IGNORED_RUMOR_COUNT.with_label_values(&[&rumor.kind().to_string()]);
             // Result reveals if there was a change so we can increment the counter if needed.
             let result = match rumors.entry(rumor.id().into()) {
                 Entry::Occupied(mut entry) => entry.get_mut().merge(rumor),
@@ -520,27 +505,18 @@ impl RumorEnvelope {
     pub fn decode(bytes: &[u8]) -> Result<Self> {
         let proto = ProtoRumor::decode(bytes)?;
         let r#type = RumorType::try_from(proto.r#type).or(Err(Error::ProtocolMismatch("type")))?;
-        let from_id = proto
-            .from_id
-            .clone()
-            .ok_or(Error::ProtocolMismatch("from-id"))?;
+        let from_id = proto.from_id.clone().ok_or(Error::ProtocolMismatch("from-id"))?;
         let kind = match r#type {
             RumorType::Departure => RumorKind::Departure(Departure::from_proto(proto)?),
             RumorType::Election => RumorKind::Election(Election::from_proto(proto)?),
-            RumorType::ElectionUpdate => {
-                RumorKind::ElectionUpdate(ElectionUpdate::from_proto(proto)?)
-            }
+            RumorType::ElectionUpdate => RumorKind::ElectionUpdate(ElectionUpdate::from_proto(proto)?),
             RumorType::Member => RumorKind::Membership(Membership::from_proto(proto)?),
             RumorType::Service => RumorKind::Service(Box::new(Service::from_proto(proto)?)),
             RumorType::ServiceConfig => RumorKind::ServiceConfig(ServiceConfig::from_proto(proto)?),
             RumorType::ServiceFile => RumorKind::ServiceFile(ServiceFile::from_proto(proto)?),
             RumorType::Fake | RumorType::Fake2 => panic!("fake rumor"),
         };
-        Ok(RumorEnvelope {
-            r#type,
-            from_id,
-            kind,
-        })
+        Ok(RumorEnvelope { r#type, from_id, kind })
     }
 
     pub fn encode(self) -> Result<Vec<u8>> {
@@ -717,10 +693,7 @@ mod tests {
             let key = RumorKey::from(&f);
             rs.insert_rsw(f);
 
-            assert_eq!(
-                rs.lock_rsr().encode_rumor_for(&key).unwrap(),
-                b"foo-bar".to_vec()
-            );
+            assert_eq!(rs.lock_rsr().encode_rumor_for(&key).unwrap(), b"foo-bar".to_vec());
         }
 
         #[test]
@@ -754,15 +727,11 @@ mod tests {
             assert!(rs.insert_rsw(f2));
             assert_eq!(rs.lock_rsr().len(), 1);
             assert_eq!(
-                rs.lock_rsr()
-                    .service_group(&key)
-                    .map_rumor(&f1_id, |r| r.id.clone()),
+                rs.lock_rsr().service_group(&key).map_rumor(&f1_id, |r| r.id.clone()),
                 Some(f1_id)
             );
             assert_eq!(
-                rs.lock_rsr()
-                    .service_group(&key)
-                    .map_rumor(&f2_id, |r| r.id.clone()),
+                rs.lock_rsr().service_group(&key).map_rumor(&f2_id, |r| r.id.clone()),
                 Some(f2_id)
             );
         }

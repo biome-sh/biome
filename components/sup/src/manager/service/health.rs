@@ -1,8 +1,6 @@
 use crate::{
     error::Error,
-    manager::service::{
-        ProcessOutput, ProcessState, hook_runner, hooks::HealthCheckHook, supervisor::Supervisor,
-    },
+    manager::service::{ProcessOutput, ProcessState, hook_runner, hooks::HealthCheckHook, supervisor::Supervisor},
 };
 use biome_common::{outputln, templating::package::Pkg};
 use biome_core::service::{HealthCheckInterval, ServiceGroup};
@@ -106,24 +104,17 @@ async fn check(
     password: Option<String>,
 ) -> (HealthCheckHookStatus, HealthCheckResult) {
     let status = if let Some(hook) = hook {
-        let result =
-            hook_runner::HookRunner::new(hook, service_group.clone(), package.clone(), password)
-                .into_future()
-                .await;
+        let result = hook_runner::HookRunner::new(hook, service_group.clone(), package.clone(), password)
+            .into_future()
+            .await;
         match result {
             Ok((output, duration)) => HealthCheckHookStatus::Ran(output, duration),
             Err(Error::WithDuration(e, duration)) => {
-                error!(
-                    "Error running health check hook for {}: {:?}",
-                    service_group, e
-                );
+                error!("Error running health check hook for {}: {:?}", service_group, e);
                 HealthCheckHookStatus::FailedToRun(duration)
             }
             Err(e) => {
-                error!(
-                    "Error starting health check hook for {}: {:?}",
-                    service_group, e
-                );
+                error!("Error starting health check hook for {}: {:?}", service_group, e);
                 HealthCheckHookStatus::FailedToStart
             }
         }
@@ -156,11 +147,7 @@ async fn check(
         }
         HealthCheckHookStatus::NoHook => {
             //  There was no hook to run. Use the supervisor status as a healthcheck.
-            match supervisor
-                .lock()
-                .expect("couldn't unlock supervisor")
-                .status()
-            {
+            match supervisor.lock().expect("couldn't unlock supervisor").status() {
                 ProcessState::Up => HealthCheckResult::Ok,
                 ProcessState::Down => HealthCheckResult::Critical,
             }

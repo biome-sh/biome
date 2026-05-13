@@ -40,11 +40,7 @@ pub fn handle_from_pid(pid: Pid) -> Option<HANDLE> {
         //
         // This will also happen if pid is 0 (i.e., the system
         // process)
-        if proc_handle.is_null() {
-            None
-        } else {
-            Some(proc_handle)
-        }
+        if proc_handle.is_null() { None } else { Some(proc_handle) }
     }
 }
 
@@ -74,10 +70,7 @@ pub fn terminate(pid: Pid) -> Result<()> {
     if let Some(handle) = handle_from_pid(pid)
         && unsafe { processthreadsapi::TerminateProcess(handle, 1) } == 0
     {
-        return Err(Error::TerminateProcessFailed(
-            pid,
-            io::Error::last_os_error(),
-        ));
+        return Err(Error::TerminateProcessFailed(pid, io::Error::last_os_error()));
     }
     Ok(())
 }
@@ -90,11 +83,7 @@ pub fn terminate(pid: Pid) -> Result<()> {
 ///
 /// * If the child process cannot be created
 fn become_child_command(command: PathBuf, args: &[OsString]) -> Result<()> {
-    debug!(
-        "Calling child process: ({:?}) {:?}",
-        command.display(),
-        &args
-    );
+    debug!("Calling child process: ({:?}) {:?}", command.display(), &args);
     let status = Command::new(command).args(args).status()?;
     // Let's honor the exit codes from the child process we finished running
     process::exit(status.code().unwrap())

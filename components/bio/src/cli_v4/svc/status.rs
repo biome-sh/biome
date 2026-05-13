@@ -60,10 +60,7 @@ impl StatusCommand {
                 print_svc_status(&mut out, &reply, true)?;
             }
             _ => {
-                return Err(SrvClientError::from(std::io::Error::from(
-                    std::io::ErrorKind::UnexpectedEof,
-                ))
-                .into());
+                return Err(SrvClientError::from(std::io::Error::from(std::io::ErrorKind::UnexpectedEof)).into());
             }
         }
         while let Some(message_result) = response.next().await {
@@ -75,18 +72,12 @@ impl StatusCommand {
     }
 }
 
-fn print_svc_status<T>(
-    out: &mut T,
-    reply: &SrvMessage,
-    print_header: bool,
-) -> Result<(), SrvClientError>
+fn print_svc_status<T>(out: &mut T, reply: &SrvMessage, print_header: bool) -> Result<(), SrvClientError>
 where
     T: Write,
 {
     let status = match reply.message_id() {
-        "ServiceStatus" => reply
-            .parse::<ServiceStatus>()
-            .map_err(SrvClientError::Decode)?,
+        "ServiceStatus" => reply.parse::<ServiceStatus>().map_err(SrvClientError::Decode)?,
         "NetOk" => {
             println!("No services loaded.");
             return Ok(());
@@ -107,9 +98,7 @@ where
         match status.process {
             Some(process) => (
                 process.state.to_string(),
-                process
-                    .pid
-                    .map_or_else(|| "<none>".to_string(), |p| p.to_string()),
+                process.pid.map_or_else(|| "<none>".to_string(), |p| p.to_string()),
                 process.elapsed.unwrap_or_default().to_string(),
             ),
             None => (

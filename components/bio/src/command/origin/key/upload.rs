@@ -1,8 +1,7 @@
 use crate::{
     PRODUCT, VERSION,
     api_client::{
-        self, API_RETRY_COUNT, API_RETRY_DELAY, APIFailure, Client, Error::APIClientError,
-        retry_builder_api,
+        self, API_RETRY_COUNT, API_RETRY_DELAY, APIFailure, Client, Error::APIClientError, retry_builder_api,
     },
     common::ui::{Status, UI, UIWriter},
     error::Result,
@@ -19,10 +18,7 @@ pub async fn start(
     secret_keyfile: Option<&Path>,
 ) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
-    ui.begin(format!(
-        "Uploading public origin key {}",
-        public_keyfile.display()
-    ))?;
+    ui.begin(format!("Uploading public origin key {}", public_keyfile.display()))?;
 
     let public_key: PublicOriginSigningKey = TryFrom::try_from(public_keyfile)?;
     let name = public_key.named_revision().name();

@@ -6,13 +6,7 @@ use crate::{
 };
 use biome_core::{ChannelIdent, origin::Origin};
 
-pub async fn start(
-    ui: &mut UI,
-    bldr_url: &str,
-    token: &str,
-    origin: &Origin,
-    channel: &ChannelIdent,
-) -> Result<()> {
+pub async fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &Origin, channel: &ChannelIdent) -> Result<()> {
     let bldr_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Deleting, format!("channel {}.", channel))?;

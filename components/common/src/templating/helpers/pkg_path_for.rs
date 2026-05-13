@@ -2,9 +2,7 @@ use crate::hcore::{
     fs,
     package::{Identifiable, PackageIdent},
 };
-use handlebars::{
-    Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason,
-};
+use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason};
 use std::str::FromStr;
 
 #[derive(Clone, Copy)]
@@ -23,13 +21,8 @@ impl HelperDef for PkgPathForHelper {
             .param(0)
             .and_then(|v| v.value().as_str())
             .and_then(|v| PackageIdent::from_str(v).ok())
-            .ok_or_else(|| {
-                RenderErrorReason::Other(
-                    "Invalid package identifier for \"pkgPathFor\"".to_string(),
-                )
-            })?;
-        let deps =
-            serde_json::from_value::<Vec<PackageIdent>>(ctx.data()["pkg"]["deps"].clone()).unwrap();
+            .ok_or_else(|| RenderErrorReason::Other("Invalid package identifier for \"pkgPathFor\"".to_string()))?;
+        let deps = serde_json::from_value::<Vec<PackageIdent>>(ctx.data()["pkg"]["deps"].clone()).unwrap();
         let target_pkg = deps
             .iter()
             .find_map(|ident| {

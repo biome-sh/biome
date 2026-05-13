@@ -9,10 +9,7 @@ use reqwest::StatusCode;
 pub async fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
-    ui.status(
-        Status::Departing,
-        format!("membership from origin {}.", origin),
-    )?;
+    ui.status(Status::Departing, format!("membership from origin {}.", origin))?;
 
     match api_client.depart_origin(origin, token).await {
         Ok(_) => ui
@@ -32,10 +29,7 @@ pub async fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Re
             Err(Error::APIClient(err))
         }
         Err(e) => {
-            ui.fatal(format!(
-                "Failed to depart membership from origin {}, {:?}",
-                origin, e
-            ))?;
+            ui.fatal(format!("Failed to depart membership from origin {}, {:?}", origin, e))?;
             Err(Error::from(e))
         }
     }

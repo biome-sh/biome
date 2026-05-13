@@ -43,13 +43,11 @@ impl PkgChannelsOptions {
     pub(super) async fn do_channels(&self, ui: &mut UI) -> BioResult<()> {
         let auth_token = self.auth_token.try_from_cli_or_config();
 
-        let target = self
-            .pkg_target
-            .unwrap_or_else(|| match PackageTarget::active_target() {
-                #[cfg(feature = "supported_targets")]
-                target::X86_64_DARWIN => target::X86_64_LINUX,
-                t => t,
-            });
+        let target = self.pkg_target.unwrap_or_else(|| match PackageTarget::active_target() {
+            #[cfg(feature = "supported_targets")]
+            target::X86_64_DARWIN => target::X86_64_LINUX,
+            t => t,
+        });
 
         channels::start(
             ui,

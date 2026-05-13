@@ -29,7 +29,7 @@ use biome_core::{
     url::{BLDR_URL_ENVVAR, DEFAULT_BLDR_URL, bldr_url_from_env},
 };
 
-use crate::REFRESH_CHANNEL_ENVVAR;
+use crate::{REFRESH_CHANNEL_ENVVAR, SECRET_REFRESH_CHANNEL_ENVVAR};
 
 use bio_common_derive::GenConfig;
 
@@ -41,8 +41,8 @@ use biome_sup_protocol::types::UpdateCondition;
 use crate::error::{Error as BioError, Result as BioResult};
 
 use std::{
-    convert::TryFrom, ffi::OsString, fmt, net::SocketAddr, num::ParseIntError, path::PathBuf,
-    str::FromStr, time::Duration,
+    convert::TryFrom, ffi::OsString, fmt, net::SocketAddr, num::ParseIntError, path::PathBuf, str::FromStr,
+    time::Duration,
 };
 
 #[cfg(not(target_os = "macos"))]
@@ -61,8 +61,7 @@ use futures::stream::StreamExt;
 use biome_sup_client::{SrvClient, SrvClientError};
 
 lazy_static! {
-    pub(crate) static ref CACHE_KEY_PATH_DEFAULT: String =
-        CACHE_KEY_PATH.to_string_lossy().to_string();
+    pub(crate) static ref CACHE_KEY_PATH_DEFAULT: String = CACHE_KEY_PATH.to_string_lossy().to_string();
     static ref CHANNEL_IDENT_DEFAULT: String = ChannelIdent::default().to_string();
     static ref GROUP_DEFAULT: String = String::from("default");
 }
@@ -162,9 +161,7 @@ impl BldrUrl {
 
 fn bldr_url_from_env_load_or_default() -> String {
     bldr_url_from_env().unwrap_or_else(|| match CliConfig::load() {
-        Ok(config) => config
-            .bldr_url
-            .unwrap_or_else(|| DEFAULT_BLDR_URL.to_string()),
+        Ok(config) => config.bldr_url.unwrap_or_else(|| DEFAULT_BLDR_URL.to_string()),
         Err(e) => {
             error!(
                 "Found a cli.toml but unable to load it. Resorting to \
@@ -333,10 +330,8 @@ impl TryFrom<String> for SocketAddrProxy {
     // Ok(SocketAddrProxy(addr))
     // }
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let (_, addr) = biome_common::util::resolve_socket_addr_with_default_port(
-            value,
-            GossipListenAddr::DEFAULT_PORT,
-        )?;
+        let (_, addr) =
+            biome_common::util::resolve_socket_addr_with_default_port(value, GossipListenAddr::DEFAULT_PORT)?;
         Ok(SocketAddrProxy(addr))
     }
 }
@@ -372,10 +367,7 @@ impl FromStr for SocketAddrProxy {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<SocketAddrProxy, Error> {
-        let (_, addr) = biome_common::util::resolve_socket_addr_with_default_port(
-            s,
-            GossipListenAddr::DEFAULT_PORT,
-        )?;
+        let (_, addr) = biome_common::util::resolve_socket_addr_with_default_port(s, GossipListenAddr::DEFAULT_PORT)?;
         Ok((&addr).into())
     }
 }
@@ -562,11 +554,7 @@ pub struct ExternalCommandArgs {
 // For example:
 // `bio pkg exec core/bash bash --login` instead of `bio pkg exec core/bash bash -- --login`
 #[derive(Clone, Debug, Args)]
-#[command(
-    trailing_var_arg = true,
-    allow_hyphen_values = true,
-    disable_help_subcommand = true
-)]
+#[command(trailing_var_arg = true, allow_hyphen_values = true, disable_help_subcommand = true)]
 pub struct CommandAndArgs {
     /// Command to execute (eg. ls)
     pub cmd: PathBuf,
@@ -670,11 +658,7 @@ pub fn shared_load_cli_to_ctl(
         None
     } else {
         Some(ServiceBindList {
-            binds: shared_load
-                .bind
-                .into_iter()
-                .map(ServiceBind::from)
-                .collect(),
+            binds: shared_load.bind.into_iter().map(ServiceBind::from).collect(),
         })
     };
 
@@ -743,16 +727,16 @@ pub(crate) fn maybe_bldr_auth_token_from_args_or_load(opt: Option<String>) -> Op
     bldr_auth_token_from_args_env_or_load(opt).ok()
 }
 
-pub(crate) fn refresh_channel_from_args_env_or_config(
-    opt: Option<String>,
-) -> Result<String, Error> {
+pub(crate) fn refresh_channel_from_args_env_or_config(opt: Option<String>) -> Result<String, Error> {
     if let Some(channel) = opt {
         Ok(channel)
     } else {
         match hcore_env::var(REFRESH_CHANNEL_ENVVAR) {
             Ok(v) => Ok(v),
             Err(_) => {
-                CliConfig::load()?.refresh_channel.ok_or_else(|| {
+                match hcore_env::var(SECRET_REFRESH_CHANNEL_ENVVAR) {
+                    Ok(v) => Ok(v),
+                    Err(_) => CliConfig::load()?.refresh_channel.ok_or_else(|| {
                                                        Error::ArgumentError("No refresh channel \
                                                                              specified. Please \
                                                                              specify with \
@@ -761,6 +745,7 @@ pub(crate) fn refresh_channel_from_args_env_or_config(
                                                                              add refresh_channel to ~/.bio/etc/cli.toml"
                                                                                              .into())
                                                    })
+                }
             }
         }
     }
@@ -798,9 +783,7 @@ pub(crate) async fn process_sup_request(
                 return Err(SrvClientError::from(m).into());
             }
             _ => {
-                return Err(
-                    SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into(),
-                );
+                return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into());
             }
         }
     }
@@ -901,12 +884,7 @@ mod tests {
 
             let test_auth_token = result.unwrap();
             let auth_token = test_auth_token.a.try_from_cli_or_config();
-            assert_eq!(
-                Some("env-auth-token".to_string()),
-                auth_token,
-                "{:#?}",
-                auth_token
-            );
+            assert_eq!(Some("env-auth-token".to_string()), auth_token, "{:#?}", auth_token);
         }
 
         #[test]
@@ -1027,9 +1005,35 @@ mod tests {
             env_var.set("env_channel");
 
             // CLI arg should take precedence over env
-            let result =
-                maybe_refresh_channel_from_args_env_or_config(Some("cli_channel".to_string()));
+            let result = maybe_refresh_channel_from_args_env_or_config(Some("cli_channel".to_string()));
             assert_eq!(result, Some("cli_channel".to_string()));
+        }
+
+        #[test]
+        fn test_no_arg_no_env_defaults_to_base_channel() {
+            let env_var = locked_refresh_channel();
+            env_var.unset();
+
+            // No CLI arg and no env var → None; pkg build falls back to ChannelIdent::default()
+            let result = maybe_refresh_channel_from_args_env_or_config(None);
+            let channel = result.unwrap_or_else(|| ChannelIdent::default().to_string());
+            assert_eq!(channel, ChannelIdent::default().to_string());
+        }
+    }
+
+    mod secret_refresh_channel_tests {
+        use crate::cli_v4::utils::maybe_refresh_channel_from_args_env_or_config;
+        use biome_core::ChannelIdent;
+
+        biome_core::locked_env_var!(BIO_STUDIO_SECRET_BIO_REFRESH_CHANNEL, locked_refresh_channel);
+
+        #[test]
+        fn test_refresh_channel_from_env() {
+            let env_var = locked_refresh_channel();
+            env_var.set("staging");
+
+            let result = maybe_refresh_channel_from_args_env_or_config(None);
+            assert_eq!(result, Some("staging".to_string()));
         }
 
         #[test]

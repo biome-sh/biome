@@ -1,7 +1,5 @@
 use pin_project::pin_project;
-use rustls::{
-    ClientConfig as TlsClientConfig, ServerConfig as TlsServerConfig, pki_types::ServerName,
-};
+use rustls::{ClientConfig as TlsClientConfig, ServerConfig as TlsServerConfig, pki_types::ServerName};
 use std::{
     convert::TryFrom,
     pin::Pin,
@@ -44,9 +42,7 @@ impl TcpOrTlsStream {
         domain: &str,
     ) -> Result<Self, (io::Error, TcpStream)> {
         let tcp_stream = Self::new(stream);
-        tcp_stream
-            .maybe_upgrade_to_tls_client(tls_config, domain)
-            .await
+        tcp_stream.maybe_upgrade_to_tls_client(tls_config, domain).await
     }
 
     /// Upgrade a `TcpStream` into a `TlsStream` using server configuration
@@ -77,17 +73,12 @@ impl TcpOrTlsStream {
                 let server_name = match ServerName::try_from(domain.to_string()) {
                     Ok(name) => name,
                     Err(_) => {
-                        let error = io::Error::new(
-                            io::ErrorKind::InvalidInput,
-                            format!("invalid DNS name '{}'", domain),
-                        );
+                        let error =
+                            io::Error::new(io::ErrorKind::InvalidInput, format!("invalid DNS name '{}'", domain));
                         return Err((error, stream));
                     }
                 };
-                let tls_stream = tls_connector
-                    .connect(server_name, stream)
-                    .into_fallible()
-                    .await?;
+                let tls_stream = tls_connector.connect(server_name, stream).into_fallible().await?;
                 Self::TlsStream(TlsStream::Client(tls_stream))
             }
             stream @ Self::TlsStream(_) => stream,
@@ -97,11 +88,7 @@ impl TcpOrTlsStream {
 }
 
 impl AsyncRead for TcpOrTlsStream {
-    fn poll_read(
-        self: Pin<&mut Self>,
-        cx: &mut Context,
-        buf: &mut ReadBuf<'_>,
-    ) -> Poll<io::Result<()>> {
+    fn poll_read(self: Pin<&mut Self>, cx: &mut Context, buf: &mut ReadBuf<'_>) -> Poll<io::Result<()>> {
         match self.project() {
             TcpOrTlsStreamProj::TcpStream(stream) => stream.poll_read(cx, buf),
             TcpOrTlsStreamProj::TlsStream(stream) => {
@@ -115,9 +102,7 @@ impl AsyncRead for TcpOrTlsStream {
                     // For that case, we check here for a UnexpectedEof and return
                     // Poll::Ready(Ok(())) to mimic the 0.19 rustls behavior. We should
                     // consider removing this when releasing a biome 2.0.
-                    Poll::Ready(Err(err)) if err.kind() == io::ErrorKind::UnexpectedEof => {
-                        Poll::Ready(Ok(()))
-                    }
+                    Poll::Ready(Err(err)) if err.kind() == io::ErrorKind::UnexpectedEof => Poll::Ready(Ok(())),
                     output => output,
                 }
             }

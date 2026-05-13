@@ -1,9 +1,7 @@
 mod package_update_worker;
 mod rolling_update_worker;
 
-use self::{
-    package_update_worker::PackageUpdateWorker, rolling_update_worker::RollingUpdateWorker,
-};
+use self::{package_update_worker::PackageUpdateWorker, rolling_update_worker::RollingUpdateWorker};
 use crate::{
     census::CensusRing,
     manager::service::{Service, UpdateStrategy},
@@ -13,9 +11,7 @@ use biome_core::{package::PackageIdent, service::ServiceGroup};
 use futures::future::{self, AbortHandle};
 use log::debug;
 use parking_lot::{Mutex, RwLock};
-use std::{
-    self, cmp::Ordering, collections::HashMap, fmt, future::Future, sync::Arc, time::Duration,
-};
+use std::{self, cmp::Ordering, collections::HashMap, fmt, future::Future, sync::Arc, time::Duration};
 
 static LOGKEY: &str = "SU";
 
@@ -63,11 +59,7 @@ pub struct ServiceUpdater {
 }
 
 impl ServiceUpdater {
-    pub fn new(
-        butterfly: biome_butterfly::Server,
-        census_ring: Arc<RwLock<CensusRing>>,
-        period: Duration,
-    ) -> Self {
+    pub fn new(butterfly: biome_butterfly::Server, census_ring: Arc<RwLock<CensusRing>>, period: Duration) -> Self {
         ServiceUpdater {
             butterfly,
             census_ring,
@@ -120,10 +112,7 @@ impl ServiceUpdater {
         self.updates.lock().get(service_group).cloned()
     }
 
-    fn at_once_worker(
-        &mut self,
-        service: &Service,
-    ) -> impl Future<Output = ()> + Send + 'static + use<> {
+    fn at_once_worker(&mut self, service: &Service) -> impl Future<Output = ()> + Send + 'static + use<> {
         debug!(
             "'{}' service updater spawning at-once worker watching for changes to '{}' from \
                 channel '{}'",
@@ -161,8 +150,7 @@ impl ServiceUpdater {
         let service_group = service.service_group.clone();
         let full_ident = service.pkg.ident.clone();
         let updates = Arc::clone(&self.updates);
-        let worker =
-            RollingUpdateWorker::new(service, census_ring, self.butterfly.clone(), self.period);
+        let worker = RollingUpdateWorker::new(service, census_ring, self.butterfly.clone(), self.period);
         async move {
             let new_ident = worker.run().await;
             debug!(
@@ -189,11 +177,7 @@ impl ServiceUpdater {
     }
 
     /// Make the worker abortable and spawn it
-    fn spawn_worker(
-        &mut self,
-        service_group: ServiceGroup,
-        worker: impl Future<Output = ()> + Send + 'static,
-    ) {
+    fn spawn_worker(&mut self, service_group: ServiceGroup, worker: impl Future<Output = ()> + Send + 'static) {
         let (worker, abort_handle) = future::abortable(worker);
         self.workers.insert(service_group, Worker(abort_handle));
         tokio::spawn(worker);

@@ -138,13 +138,7 @@ where
 
     with_ps_module_path(&mut new_env);
 
-    Child::spawn(
-        "pwsh.exe",
-        &args,
-        &new_env,
-        svc_user,
-        svc_encrypted_password,
-    )
+    Child::spawn("pwsh.exe", &args, &new_env, svc_user, svc_encrypted_password)
 }
 
 /// Makes sure the modules path inside the same package as pwsh.exe
@@ -380,19 +374,12 @@ mod tests {
         File::create(ps_temp2.path().join("pwsh.exe")).expect("couldn't create pwsh");
         env.insert(
             "PATH".to_string(),
-            format!(
-                "{};{}",
-                ps_path.to_string_lossy(),
-                ps_temp2.path().to_string_lossy()
-            ),
+            format!("{};{}", ps_path.to_string_lossy(), ps_temp2.path().to_string_lossy()),
         );
 
         with_ps_module_path(&mut env);
 
-        assert_eq!(
-            env["PSModulePath"],
-            ps_path.join("Modules").to_string_lossy()
-        )
+        assert_eq!(env["PSModulePath"], ps_path.join("Modules").to_string_lossy())
     }
 
     #[test]
@@ -408,10 +395,7 @@ mod tests {
 
         with_ps_module_path(&mut env);
 
-        assert_eq!(
-            env["PSModulePath"],
-            ps_path.join("Modules").to_string_lossy()
-        )
+        assert_eq!(env["PSModulePath"], ps_path.join("Modules").to_string_lossy())
     }
 
     #[test]
@@ -428,10 +412,7 @@ mod tests {
 
         with_ps_module_path(&mut env);
 
-        assert_eq!(
-            env["PSModulePath"],
-            format!("{}\\Modules;path1;path2", ps_str)
-        )
+        assert_eq!(env["PSModulePath"], format!("{}\\Modules;path1;path2", ps_str))
     }
 
     #[test]
@@ -447,10 +428,7 @@ mod tests {
 
         with_ps_module_path(&mut env);
 
-        assert_eq!(
-            env["PSModulePath"],
-            format!("{}\\Modules;provided_path", ps_str)
-        )
+        assert_eq!(env["PSModulePath"], format!("{}\\Modules;provided_path", ps_str))
     }
 
     #[test]

@@ -73,15 +73,11 @@ pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
     let current_group = get_current_groupname()?;
 
     if current_user.is_none() {
-        return Err(Error::PermissionFailed(
-            "Can't determine current user".to_string(),
-        ));
+        return Err(Error::PermissionFailed("Can't determine current user".to_string()));
     }
 
     if current_group.is_none() {
-        return Err(Error::PermissionFailed(
-            "Can't determine current group".to_string(),
-        ));
+        return Err(Error::PermissionFailed("Can't determine current group".to_string()));
     }
 
     let current_user = current_user.unwrap();

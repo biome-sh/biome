@@ -39,17 +39,13 @@ pub fn service_cfg_msr(
     for service in mgr.services.lock_msr().running_services() {
         if service.pkg.ident.satisfies(&ident) {
             if let Some(ref cfg) = service.cfg.default {
-                msg.default =
-                    Some(toml::to_string_pretty(&toml::value::Value::Table(cfg.clone())).unwrap());
+                msg.default = Some(toml::to_string_pretty(&toml::value::Value::Table(cfg.clone())).unwrap());
                 req.reply_complete(msg);
             }
             return Ok(());
         }
     }
-    Err(net::err(
-        ErrCode::NotFound,
-        format!("Service not loaded, {}", ident),
-    ))
+    Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", ident)))
 }
 
 pub fn service_cfg_validate(
@@ -63,10 +59,7 @@ pub fn service_cfg_validate(
         .and_then(|f| protocol::types::service_cfg::Format::try_from(f).ok())
         .unwrap_or_default();
     if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
-        return Err(net::err(
-            ErrCode::EntityTooLarge,
-            "Configuration too large.",
-        ));
+        return Err(net::err(ErrCode::EntityTooLarge, "Configuration too large."));
     }
     if format != protocol::types::service_cfg::Format::Toml {
         return Err(net::err(
@@ -120,26 +113,15 @@ pub fn service_cfg_validate(
     // ))
 }
 
-pub fn service_cfg_set(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcSetCfg,
-) -> NetResult<()> {
+pub fn service_cfg_set(mgr: &ManagerState, req: &mut CtlRequest, opts: protocol::ctl::SvcSetCfg) -> NetResult<()> {
     let cfg = opts.cfg.ok_or_else(err_update_client)?;
     let is_encrypted = opts.is_encrypted.unwrap_or(false);
     let version = opts.version.ok_or_else(err_update_client)?;
     let service_group: ServiceGroup = opts.service_group.ok_or_else(err_update_client)?.into();
     if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
-        return Err(net::err(
-            ErrCode::EntityTooLarge,
-            "Configuration too large.",
-        ));
+        return Err(net::err(ErrCode::EntityTooLarge, "Configuration too large."));
     }
-    outputln!(
-        "Setting new configuration version {} for {}",
-        version,
-        service_group,
-    );
+    outputln!("Setting new configuration version {} for {}", version, service_group,);
     let mut client = match butterfly::client::Client::new(
         &mgr.cfg.gossip_listen.local_addr().to_string(),
         mgr.cfg.ring_key.clone(),
@@ -158,11 +140,7 @@ pub fn service_cfg_set(
         })
 }
 
-pub fn service_file_put(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcFilePut,
-) -> NetResult<()> {
+pub fn service_file_put(mgr: &ManagerState, req: &mut CtlRequest, opts: protocol::ctl::SvcFilePut) -> NetResult<()> {
     let content = opts.content.ok_or_else(err_update_client)?;
     let filename = opts.filename.ok_or_else(err_update_client)?;
     let is_encrypted = opts.is_encrypted.unwrap_or(false);
@@ -195,11 +173,7 @@ pub fn service_file_put(
         })
 }
 
-pub async fn service_load(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcLoad,
-) -> NetResult<()> {
+pub async fn service_load(mgr: &ManagerState, req: &mut CtlRequest, opts: protocol::ctl::SvcLoad) -> NetResult<()> {
     let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
     let source = InstallSource::Ident(ident.clone(), PackageTarget::active_target());
     let spec = if let Some(spec) = mgr.cfg.spec_for_ident(source.as_ref()) {
@@ -222,15 +196,11 @@ pub async fn service_load(
         ServiceSpec::try_from(opts)?
     };
 
-    let package =
-        util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel).await?;
+    let package = util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel).await?;
     spec.validate(&package)?;
     mgr.cfg.save_spec_for(&spec)?;
 
-    req.info(format!(
-        "The {} service was successfully loaded",
-        spec.ident
-    ))?;
+    req.info(format!("The {} service was successfully loaded", spec.ident))?;
     req.reply_complete(net::ok());
     Ok(())
 }
@@ -280,11 +250,7 @@ pub fn service_unload(
     }
 }
 
-pub fn service_start(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcStart,
-) -> NetResult<()> {
+pub fn service_start(mgr: &ManagerState, req: &mut CtlRequest, opts: protocol::ctl::SvcStart) -> NetResult<()> {
     let ident = opts.ident.ok_or_else(err_update_client)?.into();
     match mgr.cfg.spec_for_ident(&ident) {
         Some(mut spec) => {
@@ -302,10 +268,7 @@ pub fn service_start(
             }
         }
         None => {
-            return Err(net::err(
-                ErrCode::NotFound,
-                format!("Service not loaded, {}", &ident),
-            ));
+            return Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", &ident)));
         }
     };
     req.reply_complete(net::ok());
@@ -339,10 +302,7 @@ pub fn service_stop(
             }
         }
         None => {
-            return Err(net::err(
-                ErrCode::NotFound,
-                format!("Service not loaded, {}", &ident),
-            ));
+            return Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", &ident)));
         }
     };
 
@@ -350,11 +310,7 @@ pub fn service_stop(
     Ok(())
 }
 
-pub fn supervisor_depart(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SupDepart,
-) -> NetResult<()> {
+pub fn supervisor_depart(mgr: &ManagerState, req: &mut CtlRequest, opts: protocol::ctl::SupDepart) -> NetResult<()> {
     let member_id = opts.member_id.ok_or_else(err_update_client)?;
     let mut client = match butterfly::client::Client::new(
         &mgr.cfg.gossip_listen.local_addr().to_string(),
@@ -388,33 +344,21 @@ pub fn supervisor_restart(
 
 /// # Locking (see locking.md)
 /// * `GatewayState::inner` (read)
-pub fn service_status_gsr(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcStatus,
-) -> NetResult<()> {
+pub fn service_status_gsr(mgr: &ManagerState, req: &mut CtlRequest, opts: protocol::ctl::SvcStatus) -> NetResult<()> {
     if let Some(ident) = opts.ident {
-        let service_status = mgr
-            .gateway_state
-            .lock_gsr()
-            .services_data()
-            .iter()
-            .find_map(|service| {
-                if service.pkg.ident.satisfies(&ident) {
-                    Some(protocol::types::ServiceStatus::from(service))
-                } else {
-                    None
-                }
-            });
+        let service_status = mgr.gateway_state.lock_gsr().services_data().iter().find_map(|service| {
+            if service.pkg.ident.satisfies(&ident) {
+                Some(protocol::types::ServiceStatus::from(service))
+            } else {
+                None
+            }
+        });
         match service_status {
             Some(service_status) => {
                 req.reply_complete(service_status);
                 Ok(())
             }
-            None => Err(net::err(
-                ErrCode::NotFound,
-                format!("Service not loaded, {}", ident),
-            )),
+            None => Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", ident))),
         }
     } else {
         // We're not dealing with a single service, but with all of them.

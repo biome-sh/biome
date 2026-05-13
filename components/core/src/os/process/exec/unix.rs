@@ -110,10 +110,7 @@ fn with_user_and_group_information(cmd: &mut Command, uid: Uid, gid: Gid) -> &mu
 /// Once https://github.com/rust-lang/rust/pull/72160 merges, we can
 /// use all `CommandExt` methods, and thus simplify things a (little)
 /// bit.
-fn set_supplementary_groups(
-    user_id: Uid,
-    group_id: Gid,
-) -> impl Fn() -> result::Result<(), io::Error> {
+fn set_supplementary_groups(user_id: Uid, group_id: Gid) -> impl Fn() -> result::Result<(), io::Error> {
     // Note: since this function will be run a separate process that doesn't
     // inherit RUST_LOG, none of the log! macros will work actually
     // work here.

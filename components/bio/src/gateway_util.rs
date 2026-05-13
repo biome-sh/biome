@@ -19,10 +19,7 @@ use termcolor::{self, Color, ColorSpec};
 ///
 /// Unfortunately not all control gateway-interacting functions use
 /// this logic yet.
-pub async fn send(
-    remote_sup_addr: &ResolvedListenCtlAddr,
-    msg: impl Into<SrvMessage> + fmt::Debug,
-) -> Result<()> {
+pub async fn send(remote_sup_addr: &ResolvedListenCtlAddr, msg: impl Into<SrvMessage> + fmt::Debug) -> Result<()> {
     let mut response = SrvClient::request(remote_sup_addr, msg).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
@@ -45,9 +42,7 @@ fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
                 .map_err(SrvClientError::Decode)?;
             let mut new_spec = ColorSpec::new();
             let msg_spec = match m.color {
-                Some(color) => new_spec
-                    .set_fg(Some(Color::from_str(&color)?))
-                    .set_bold(m.bold),
+                Some(color) => new_spec.set_fg(Some(Color::from_str(&color)?)).set_bold(m.bold),
                 None => new_spec.set_bold(m.bold),
             };
             common::ui::print(UI::default_with_env().out(), m.line.as_bytes(), msg_spec)?;

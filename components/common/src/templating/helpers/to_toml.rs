@@ -1,6 +1,4 @@
-use handlebars::{
-    Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason,
-};
+use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason};
 
 #[derive(Clone, Copy)]
 pub struct ToTomlHelper;
@@ -16,30 +14,26 @@ impl HelperDef for ToTomlHelper {
     ) -> HelperResult {
         let param = h
             .param(0)
-            .ok_or_else(|| {
-                RenderErrorReason::Other("Expected 1 parameter for \"toToml\"".to_string())
-            })?
+            .ok_or_else(|| RenderErrorReason::Other("Expected 1 parameter for \"toToml\"".to_string()))?
             .value();
         // Since `param` is a JSON object, this only works reliably if
         // `serde_json` has been compiled with the `preserve_order`
         // feature, since order *is* important for TOML (values must
         // be emitted before tables).
         if param.is_object() {
-            let toml = toml::ser::to_string(&param).map_err(|e| {
-                RenderErrorReason::Other(format!("Can't serialize parameter to TOML: {}", e))
-            })?;
+            let toml = toml::ser::to_string(&param)
+                .map_err(|e| RenderErrorReason::Other(format!("Can't serialize parameter to TOML: {}", e)))?;
             out.write(toml.as_ref())?;
         } else {
             let mut value = String::new();
-            serde::Serialize::serialize(&param, toml::ser::ValueSerializer::new(&mut value))
-                .map_err(|e| {
-                    RenderErrorReason::Other(format!(
-                        "Can't serialize \
+            serde::Serialize::serialize(&param, toml::ser::ValueSerializer::new(&mut value)).map_err(|e| {
+                RenderErrorReason::Other(format!(
+                    "Can't serialize \
                                                          parameter to TOML: \
                                                          {}",
-                        e
-                    ))
-                })?;
+                    e
+                ))
+            })?;
             out.write(value.as_ref())?;
         }
         Ok(())
@@ -74,24 +68,16 @@ mod tests {
     #[test]
     fn toml_tables_are_serialized_appropriately() {
         let mut tags = Table::new();
-        tags.insert(
-            "service".to_string(),
-            Value::String("service_name".to_string()),
-        );
+        tags.insert("service".to_string(), Value::String("service_name".to_string()));
 
-        let urls = Value::Array(vec![Value::String(
-            "http://127.0.0.1:15000/metrics".to_string(),
-        )]);
+        let urls = Value::Array(vec![Value::String("http://127.0.0.1:15000/metrics".to_string())]);
 
         let mut prometheus = Table::new();
         prometheus.insert("urls".to_string(), urls);
         prometheus.insert("tags".to_string(), Value::Table(tags));
 
         let mut inputs = Table::new();
-        inputs.insert(
-            "prometheus".to_string(),
-            Value::Array(vec![Value::Table(prometheus)]),
-        );
+        inputs.insert("prometheus".to_string(), Value::Array(vec![Value::Table(prometheus)]));
 
         let mut the_stuff = Table::new();
         the_stuff.insert("inputs".to_string(), Value::Table(inputs));
@@ -150,10 +136,7 @@ mod tests {
             "build_targets".to_string(),
             Value::Array(vec![Value::String("x86_64-linux".to_string())]),
         );
-        config.insert(
-            "features_enabled".to_string(),
-            Value::String("".to_string()),
-        );
+        config.insert("features_enabled".to_string(), Value::String("".to_string()));
 
         let mut cfg = Table::new();
         cfg.insert("cfg".to_string(), Value::Table(config));
@@ -185,10 +168,7 @@ features_enabled = "{{cfg.features_enabled}}""#;
             "build_targets".to_string(),
             Value::Array(vec![Value::String("x86_64-linux".to_string())]),
         );
-        config.insert(
-            "features_enabled".to_string(),
-            Value::String("".to_string()),
-        );
+        config.insert("features_enabled".to_string(), Value::String("".to_string()));
 
         let mut backend = Table::new();
         backend.insert("backend".to_string(), Value::String("local".to_string()));

@@ -139,9 +139,8 @@ impl<'de> serde::Deserialize<'de> for ServiceBind {
             where
                 E: serde::de::Error,
             {
-                ServiceBind::from_str(s).map_err(|_| {
-                    serde::de::Error::invalid_value(serde::de::Unexpected::Str(s), &self)
-                })
+                ServiceBind::from_str(s)
+                    .map_err(|_| serde::de::Error::invalid_value(serde::de::Unexpected::Str(s), &self))
             }
         }
 
@@ -454,10 +453,7 @@ mod tests {
         let bind = ServiceBind::from_str(bind_str).unwrap();
 
         assert_eq!(bind.name, String::from("name"));
-        assert_eq!(
-            bind.service_group,
-            ServiceGroup::from_str("service.group").unwrap()
-        );
+        assert_eq!(bind.service_group, ServiceGroup::from_str("service.group").unwrap());
     }
 
     #[test]
@@ -538,10 +534,7 @@ mod tests {
 
     #[test]
     fn default_health_check_interval_has_correct_default() {
-        assert_eq!(
-            HealthCheckInterval::default(),
-            HealthCheckInterval::from(30)
-        );
+        assert_eq!(HealthCheckInterval::default(), HealthCheckInterval::from(30));
     }
 
     #[test]

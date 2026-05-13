@@ -32,8 +32,7 @@ pub enum Error {
 }
 
 fn buf_from_file(path: impl AsRef<Path>) -> Result<BufReader<File>, Error> {
-    let file =
-        File::open(path.as_ref()).map_err(|e| Error::FailedToReadFile(path.as_ref().into(), e))?;
+    let file = File::open(path.as_ref()).map_err(|e| Error::FailedToReadFile(path.as_ref().into(), e))?;
     Ok(BufReader::new(file))
 }
 
@@ -64,9 +63,7 @@ fn buf_from_file(path: impl AsRef<Path>) -> Result<BufReader<File>, Error> {
 ///
 /// Returns [`Error::FailedToReadFile`] if the file cannot be read, or
 /// [`Error::FailedToReadCerts`] if the certificates cannot be parsed.
-pub fn certificates_from_file(
-    path: impl AsRef<Path>,
-) -> Result<Vec<CertificateDer<'static>>, Error> {
+pub fn certificates_from_file(path: impl AsRef<Path>) -> Result<Vec<CertificateDer<'static>>, Error> {
     let mut buf = buf_from_file(path.as_ref())?;
     let mut pem_data = Vec::new();
     buf.read_to_end(&mut pem_data)
@@ -109,9 +106,7 @@ pub fn certificates_from_file(
 ///
 /// Only PKCS8 format is supported. Keys in other formats (e.g., PKCS1, SEC1)
 /// must be converted to PKCS8 first.
-fn private_keys_from_file(
-    path: impl AsRef<Path>,
-) -> Result<Vec<PrivatePkcs8KeyDer<'static>>, Error> {
+fn private_keys_from_file(path: impl AsRef<Path>) -> Result<Vec<PrivatePkcs8KeyDer<'static>>, Error> {
     let mut buf = buf_from_file(path.as_ref())?;
     let mut pem_data = Vec::new();
     buf.read_to_end(&mut pem_data)
@@ -328,10 +323,7 @@ rqXRfboQnoZsG4q5WTP468SQvvG5
         let result = private_key_from_file(file.path());
         assert!(result.is_err());
         // Malformed PEM should result in FailedToReadPrivateKeys
-        assert!(matches!(
-            result.unwrap_err(),
-            Error::FailedToReadPrivateKeys(_)
-        ));
+        assert!(matches!(result.unwrap_err(), Error::FailedToReadPrivateKeys(_)));
     }
 
     #[test]
