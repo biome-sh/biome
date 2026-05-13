@@ -70,11 +70,7 @@ impl Binlink {
             .and_then(toml::value::Value::as_table)
             // Prior to 0.84.0, we used 'source' so we fallback
             // to 'source' for links created with older versions
-            .and_then(|toml_table| {
-                toml_table
-                    .get("target")
-                    .or_else(|| toml_table.get("source"))
-            })
+            .and_then(|toml_table| toml_table.get("target").or_else(|| toml_table.get("source")))
             .and_then(toml::value::Value::as_str)
             .map(String::from)
     }
@@ -159,10 +155,7 @@ pub fn start(
         src = fs_root_path.join(src.strip_prefix("/")?);
     }
     if !dst_path.is_dir() {
-        ui.status(
-            Status::Creating,
-            format!("parent directory {}", dst_path.display()),
-        )?;
+        ui.status(Status::Creating, format!("parent directory {}", dst_path.display()))?;
         fs::create_dir_all(&dst_path)?
     }
 
@@ -226,14 +219,10 @@ pub fn binlink_all_in_pkg(
                 match bin_file.path().extension() {
                     Some(executable_extensions) => match env::var_os("PATHEXT") {
                         Some(val) => {
-                            let any_matches =
-                                env::split_paths(&val.to_string_lossy().to_uppercase()).any(|e| {
-                                    e.to_string_lossy()
-                                        == format!(
-                                            ".{}",
-                                            executable_extensions.to_string_lossy().to_uppercase()
-                                        )
-                                });
+                            let any_matches = env::split_paths(&val.to_string_lossy().to_uppercase()).any(|e| {
+                                e.to_string_lossy()
+                                    == format!(".{}", executable_extensions.to_string_lossy().to_uppercase())
+                            });
                             if !any_matches {
                                 continue;
                             }
@@ -295,9 +284,7 @@ mod tests {
 
         let mut rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>).join("bin");
         if cfg!(target_os = "windows") {
-            rootfs_src_dir = rootfs
-                .path()
-                .join(rootfs_src_dir.strip_prefix("/").unwrap());
+            rootfs_src_dir = rootfs.path().join(rootfs_src_dir.strip_prefix("/").unwrap());
         }
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
@@ -313,15 +300,7 @@ mod tests {
         #[cfg(target_os = "windows")]
         let hypnoanalyze_link = "hypnoanalyze.bat";
 
-        start(
-            &mut ui,
-            &ident,
-            "magicate.exe",
-            dst_path,
-            rootfs.path(),
-            force,
-        )
-        .unwrap();
+        start(&mut ui, &ident, "magicate.exe", dst_path, rootfs.path(), force).unwrap();
         #[cfg(windows)]
         assert!(
             fs::read_to_string(rootfs_bin_dir.join(magicate_link))
@@ -337,20 +316,10 @@ mod tests {
         );
         assert_eq!(
             rootfs_src_dir.join("magicate.exe"),
-            Binlink::from_file(&rootfs_bin_dir.join(magicate_link))
-                .unwrap()
-                .target
+            Binlink::from_file(&rootfs_bin_dir.join(magicate_link)).unwrap().target
         );
 
-        start(
-            &mut ui,
-            &ident,
-            "hypnoanalyze.exe",
-            dst_path,
-            rootfs.path(),
-            force,
-        )
-        .unwrap();
+        start(&mut ui, &ident, "hypnoanalyze.exe", dst_path, rootfs.path(), force).unwrap();
         #[cfg(windows)]
         assert!(
             fs::read_to_string(rootfs_bin_dir.join(hypnoanalyze_link))
@@ -383,9 +352,7 @@ mod tests {
 
         let mut rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>);
         if cfg!(target_os = "windows") {
-            rootfs_src_dir = rootfs
-                .path()
-                .join(rootfs_src_dir.strip_prefix("/").unwrap());
+            rootfs_src_dir = rootfs.path().join(rootfs_src_dir.strip_prefix("/").unwrap());
         }
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
@@ -408,9 +375,7 @@ mod tests {
 
         assert_eq!(
             rootfs_src_dir.join("bin/magicate.exe"),
-            Binlink::from_file(&rootfs_bin_dir.join(magicate_link))
-                .unwrap()
-                .target
+            Binlink::from_file(&rootfs_bin_dir.join(magicate_link)).unwrap().target
         );
         assert_eq!(
             rootfs_src_dir.join("bin/hypnoanalyze.exe"),
@@ -448,9 +413,7 @@ mod tests {
 
         assert_eq!(
             rootfs_src_dir.join("bin/magicate.exe"),
-            Binlink::from_file(&rootfs_bin_dir.join("magicate.bat"))
-                .unwrap()
-                .target
+            Binlink::from_file(&rootfs_bin_dir.join("magicate.bat")).unwrap().target
         );
         assert!(Binlink::from_file(&rootfs_bin_dir.join("hypnoanalyze.bat")).is_err());
     }
@@ -466,19 +429,14 @@ mod tests {
 
         let mut rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>);
         if cfg!(target_os = "windows") {
-            rootfs_src_dir = rootfs
-                .path()
-                .join(rootfs_src_dir.strip_prefix("/").unwrap());
+            rootfs_src_dir = rootfs.path().join(rootfs_src_dir.strip_prefix("/").unwrap());
         }
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
 
         // Create an empty subdirectory that is not strictly a directory containing package
         // binaries
-        fs::create_dir_all(
-            hcore::fs::pkg_install_path(&ident, Some(rootfs.path())).join("bin/__junk__"),
-        )
-        .unwrap();
+        fs::create_dir_all(hcore::fs::pkg_install_path(&ident, Some(rootfs.path())).join("bin/__junk__")).unwrap();
 
         #[cfg(target_os = "linux")]
         let magicate_link = "magicate.exe";
@@ -494,9 +452,7 @@ mod tests {
 
         assert_eq!(
             rootfs_src_dir.join("bin/magicate.exe"),
-            Binlink::from_file(&rootfs_bin_dir.join(magicate_link))
-                .unwrap()
-                .target
+            Binlink::from_file(&rootfs_bin_dir.join(magicate_link)).unwrap().target
         );
         assert_eq!(
             rootfs_src_dir.join("bin/moar/bonus-round.exe"),
@@ -506,11 +462,7 @@ mod tests {
         );
     }
 
-    fn fake_bin_pkg_install<P>(
-        ident: &str,
-        binaries: HashMap<&str, Vec<&str>>,
-        rootfs: P,
-    ) -> PackageIdent
+    fn fake_bin_pkg_install<P>(ident: &str, binaries: HashMap<&str, Vec<&str>>, rootfs: P) -> PackageIdent
     where
         P: AsRef<Path>,
     {
@@ -532,22 +484,14 @@ mod tests {
                 write_file(prefix.join(path).join(bin), "");
             }
         }
-        write_file(
-            prefix.join("PATH"),
-            env::join_paths(paths).unwrap().to_str().unwrap(),
-        );
+        write_file(prefix.join("PATH"), env::join_paths(paths).unwrap().to_str().unwrap());
         ident
     }
 
     fn write_file<P: AsRef<Path>>(file: P, content: &str) {
-        fs::create_dir_all(
-            file.as_ref()
-                .parent()
-                .expect("Parent directory doesn't exist"),
-        )
-        .expect("Failed to create parent directory");
+        fs::create_dir_all(file.as_ref().parent().expect("Parent directory doesn't exist"))
+            .expect("Failed to create parent directory");
         let mut f = File::create(file).expect("File is not created");
-        f.write_all(content.as_bytes())
-            .expect("Bytes not written to file");
+        f.write_all(content.as_bytes()).expect("Bytes not written to file");
     }
 }

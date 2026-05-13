@@ -44,12 +44,7 @@ impl<H> HookRunner<H>
 where
     H: Hook + Sync + 'static,
 {
-    pub fn new(
-        hook: Arc<H>,
-        service_group: ServiceGroup,
-        pkg: Pkg,
-        passwd: Option<String>,
-    ) -> HookRunner<H> {
+    pub fn new(hook: Arc<H>, service_group: ServiceGroup, pkg: Pkg, passwd: Option<String>) -> HookRunner<H> {
         HookRunner {
             hook,
             service_group,
@@ -82,9 +77,7 @@ where
             // we're not able to use the same timer for both :(
             let _timer = hook_timer(H::FILE_NAME);
             let start = Instant::now();
-            let result = self
-                .hook
-                .run(&self.service_group, &self.pkg, self.passwd.as_ref());
+            let result = self.hook.run(&self.service_group, &self.pkg, self.passwd.as_ref());
             let run_time = start.elapsed();
             let exit_value = result.map_err(|e| Error::from(e).with_duration(run_time))?;
             Ok((exit_value, run_time))

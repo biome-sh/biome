@@ -153,8 +153,7 @@ pub(crate) mod sync {
             // particular member... it's leaving, so none of its services
             // will be around either.
             let count_before = self.0.len();
-            self.0
-                .retain(|k, _| !(k.kind == RumorType::Service && k.id == id));
+            self.0.retain(|k, _| !(k.kind == RumorType::Service && k.id == id));
             let count_after = self.0.len();
             debug!(
                 "Purged {} service rumor mappings for {:?}",
@@ -335,9 +334,7 @@ pub(crate) mod sync {
                         .expect("Should have had a member rumor present");
                     for m in &[member_1_id, member_2_id, member_3_id] {
                         assert_eq!(
-                            heat_map
-                                .get(*m)
-                                .expect("Should have had an entry for the member"),
+                            heat_map.get(*m).expect("Should have had an entry for the member"),
                             &RumorShareLimit::default().0
                         );
                     }
@@ -350,9 +347,7 @@ pub(crate) mod sync {
                         .expect("Should have had a service rumor present");
                     for m in &[member_1_id, member_2_id, member_3_id] {
                         assert_eq!(
-                            heat_map
-                                .get(*m)
-                                .expect("Should have had an entry for the member"),
+                            heat_map.get(*m).expect("Should have had an entry for the member"),
                             &RumorShareLimit::default().0
                         );
                     }
@@ -373,18 +368,12 @@ pub(crate) mod sync {
                     let heat_map = inner
                         .get(&RumorKey::from(*m))
                         .expect("Should have had a member rumor present");
-                    assert_eq!(
-                        heat_map.get(member_1_id).expect("lulz"),
-                        &RumorShareLimit::default().0
-                    );
+                    assert_eq!(heat_map.get(member_1_id).expect("lulz"), &RumorShareLimit::default().0);
                     assert!(
                         heat_map.get(member_2_id).is_none(),
                         "Heat information for a purged member should be removed"
                     );
-                    assert_eq!(
-                        heat_map.get(member_3_id).expect("lulz"),
-                        &RumorShareLimit::default().0
-                    );
+                    assert_eq!(heat_map.get(member_3_id).expect("lulz"), &RumorShareLimit::default().0);
                 }
 
                 // Check the Service rumors
@@ -396,18 +385,12 @@ pub(crate) mod sync {
                     let heat_map = inner
                         .get(&RumorKey::from(*s))
                         .expect("Should have had a service rumor present");
-                    assert_eq!(
-                        heat_map.get(member_1_id).expect("lulz"),
-                        &RumorShareLimit::default().0
-                    );
+                    assert_eq!(heat_map.get(member_1_id).expect("lulz"), &RumorShareLimit::default().0);
                     assert!(
                         heat_map.get(member_2_id).is_none(),
                         "Heat information for a purged member should be removed"
                     );
-                    assert_eq!(
-                        heat_map.get(member_3_id).expect("lulz"),
-                        &RumorShareLimit::default().0
-                    );
+                    assert_eq!(heat_map.get(member_3_id).expect("lulz"), &RumorShareLimit::default().0);
                 }
             }
         }
@@ -626,8 +609,7 @@ mod tests {
         cool_rumor_completely_rhw(&heat, member, &cold_rumor);
 
         // Cool this one off just a little bit
-        heat.lock_rhw()
-            .cool_rumors(member, std::slice::from_ref(&warm_key));
+        heat.lock_rhw().cool_rumors(member, std::slice::from_ref(&warm_key));
 
         // cold_rumor should be completely out, and the cooler
         // rumor sorts before the hotter one.

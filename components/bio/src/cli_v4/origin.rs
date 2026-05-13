@@ -51,11 +51,7 @@ pub(super) enum OriginCommand {
 }
 
 impl OriginCommand {
-    pub(crate) async fn do_command(
-        &self,
-        ui: &mut UI,
-        _feature_flags: FeatureFlag,
-    ) -> BioResult<()> {
+    pub(crate) async fn do_command(&self, ui: &mut UI, _feature_flags: FeatureFlag) -> BioResult<()> {
         match self {
             Self::Create(opts) => opts.do_create(ui).await,
             Self::Delete(opts) => opts.do_delete(ui).await,

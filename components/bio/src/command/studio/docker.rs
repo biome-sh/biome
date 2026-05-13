@@ -62,37 +62,72 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
         )));
     }
 
-    let mut volumes = vec![
-        format!(
-            "{}:{}{}",
-            env::current_dir().unwrap().to_string_lossy(),
-            mnt_prefix,
-            "/src"
-        ),
-        format!(
+    let mut volumes = vec![];
+
+    volumes.push(format!(
+        "{}:{}{}",
+        env::current_dir().unwrap().to_string_lossy(),
+        mnt_prefix,
+        "/src"
+    ));
+    if !cfg!(target_os = "macos") {
+        volumes.push(format!(
             "{}:{}/{}",
             local_cache_key_path.display(),
             mnt_prefix,
             CACHE_KEY_PATH_POSTFIX
-        ),
-    ];
-    if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
-        // Don't use Path::join here as "\" can cause problems in Docker mounts
+        ));
+
+        if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
+            // Don't use Path::join here as "\" can cause problems in Docker mounts
+            volumes.push(format!(
+                "{}:{}/{}",
+                cache_artifact_path, mnt_prefix, CACHE_ARTIFACT_PATH
+            ));
+        }
+
+        if let Ok(cache_ssl_path) = henv::var(CERT_PATH_ENVVAR) {
+            // Don't use Path::join here as "\" can cause problems in Docker mounts
+            volumes.push(format!("{}:{}/{}", cache_ssl_path, mnt_prefix, CACHE_SSL_PATH));
+        }
+    } else {
         volumes.push(format!(
             "{}:{}/{}",
-            cache_artifact_path, mnt_prefix, CACHE_ARTIFACT_PATH
+            local_cache_key_path.display(),
+            mnt_prefix,
+            CACHE_KEY_PATH_POSTFIX.strip_prefix("opt/").expect(
+                "key cache path not starting with \
+                                                            'opt/' on macOS."
+            )
         ));
+
+        if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
+            // Don't use Path::join here as "\" can cause problems in Docker mounts
+            volumes.push(format!(
+                "{}:{}/{}",
+                cache_artifact_path,
+                mnt_prefix,
+                CACHE_ARTIFACT_PATH.strip_prefix("opt/").expect(
+                    "artifact cache path not starting \
+                                                             with 'opt/' on macOS."
+                )
+            ));
+        }
+
+        if let Ok(cache_ssl_path) = henv::var(CERT_PATH_ENVVAR) {
+            // Don't use Path::join here as "\" can cause problems in Docker mounts
+            volumes.push(format!(
+                "{}:{}/{}",
+                cache_ssl_path,
+                mnt_prefix,
+                CACHE_SSL_PATH.strip_prefix("opt/").expect(
+                    "ssl cache path not starting with \
+                                                        'opt/' on macOS."
+                )
+            ));
+        }
     }
-    if let Ok(cache_ssl_path) = henv::var(CERT_PATH_ENVVAR) {
-        // Don't use Path::join here as "\" can cause problems in Docker mounts
-        volumes.push(format!(
-            "{}:{}/{}",
-            cache_ssl_path, mnt_prefix, CACHE_SSL_PATH
-        ));
-    }
-    if !using_windows_containers
-        && (Path::new(DOCKER_SOCKET).exists() || cfg!(target_os = "windows"))
-    {
+    if !using_windows_containers && (Path::new(DOCKER_SOCKET).exists() || cfg!(target_os = "windows")) {
         volumes.push(format!("{}:{}", DOCKER_SOCKET, DOCKER_SOCKET));
     }
 
@@ -169,10 +204,17 @@ fn update_ssl_cert_file_envvar(mnt_prefix: &str) {
                 // Don't use Path::join here in order to work around platform
                 // differences with paths on Windows with linux containers enabled
                 // TODO: Audit that the environment access only happens in single-threaded code.
+                let cache_ssl_path = if cfg!(target_os = "macos") {
+                    CACHE_SSL_PATH
+                        .strip_prefix("opt/")
+                        .expect("ssl cache path not starting with 'opt/' on macOS")
+                } else {
+                    CACHE_SSL_PATH
+                };
                 unsafe {
                     env::set_var(
                         SSL_CERT_FILE_ENVVAR,
-                        format!("{}/{}/{}", mnt_prefix, CACHE_SSL_PATH, cert_file_name),
+                        format!("{}/{}/{}", mnt_prefix, cache_ssl_path, cert_file_name),
                     )
                 };
             } else {
@@ -262,8 +304,7 @@ where
 
     let stderr = String::from_utf8(version_output.stderr).unwrap();
     if !stderr.is_empty()
-        && (stderr.as_str().contains("Mounts denied")
-            || stderr.as_str().contains("drive is not shared"))
+        && (stderr.as_str().contains("Mounts denied") || stderr.as_str().contains("drive is not shared"))
     {
         return Err(Error::DockerFileSharingNotEnabled);
     }
@@ -304,10 +345,7 @@ where
             .collect::<Vec<_>>();
 
         if !opts.is_empty() {
-            debug!(
-                "Adding extra Docker options from {} = {:?}",
-                DOCKER_OPTS_ENVVAR, opts
-            );
+            debug!("Adding extra Docker options from {} = {:?}", DOCKER_OPTS_ENVVAR, opts);
             cmd_args.extend_from_slice(opts.as_slice());
         }
     }
@@ -390,6 +428,10 @@ fn image_identifier(windows_base_tag: Option<&str>, target: target::PackageTarge
 fn studio_target(windows: bool, target: target::PackageTarget) -> target::PackageTarget {
     if windows {
         #[cfg(feature = "supported_targets")]
+        if target == target::AARCH64_WINDOWS {
+            panic!("{} studios are not supported", target::AARCH64_WINDOWS);
+        }
+        #[cfg(feature = "supported_targets")]
         return target::X86_64_WINDOWS;
     }
     match target {
@@ -406,7 +448,11 @@ fn studio_target(windows: bool, target: target::PackageTarget) -> target::Packag
         #[cfg(feature = "supported_targets")]
         target::AARCH64_DARWIN => target::X86_64_LINUX,
         #[cfg(feature = "supported_targets")]
-        target::AARCH64_LINUX => panic!("{} studios are not supported", target::AARCH64_LINUX),
+        target::AARCH64_LINUX => target::AARCH64_LINUX,
+        #[cfg(feature = "supported_targets")]
+        target::AARCH64_WINDOWS => {
+            panic!("{} studios are not supported", target::AARCH64_LINUX)
+        }
         // This is only needed for the case that we have no target enabled. In that case, we get a
         // non-exhaustive patterns error because the match statement is empty.
         #[cfg(not(any(feature = "supported_targets", feature = "aarch64-linux")))]
@@ -416,9 +462,7 @@ fn studio_target(windows: bool, target: target::PackageTarget) -> target::Packag
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        DOCKER_IMAGE, DOCKER_WINDOWS_IMAGE, image_identifier, update_ssl_cert_file_envvar,
-    };
+    use super::{DOCKER_IMAGE, DOCKER_WINDOWS_IMAGE, image_identifier, update_ssl_cert_file_envvar};
     use crate::VERSION;
 
     use crate::{
@@ -440,6 +484,10 @@ mod tests {
             format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION)
         );
         assert_eq!(
+            image_identifier(None, target::AARCH64_LINUX),
+            format!("{}-{}:{}", DOCKER_IMAGE, "aarch64-linux", VERSION)
+        );
+        assert_eq!(
             image_identifier(None, target::X86_64_WINDOWS),
             format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION)
         );
@@ -457,12 +505,6 @@ mod tests {
                 DOCKER_WINDOWS_IMAGE, "x86_64-windows", "ltsc2016", VERSION
             )
         );
-    }
-
-    #[should_panic]
-    #[cfg(feature = "aarch64-linux")]
-    fn retrieve_aarch64_image_identifier() {
-        image_identifier(None, target::AARCH64_LINUX);
     }
 
     #[test]
@@ -488,7 +530,12 @@ mod tests {
         // Don't use Path::join here because we format! the path above,
         // in order to work around platform differences with paths on
         // windows with linux containers enabled
-        let internal_cert_path = format!("{}/{}/{}", mnt_prefix, CACHE_SSL_PATH, key_name);
+        let internal_cert_path = format!(
+            "{}/{}/{}",
+            mnt_prefix,
+            CACHE_SSL_PATH.strip_prefix("opt/").unwrap_or(CACHE_SSL_PATH),
+            key_name
+        );
 
         assert_eq!(std::env::var(SSL_CERT_FILE_ENVVAR), Ok(internal_cert_path));
     }

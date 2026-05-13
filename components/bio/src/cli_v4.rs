@@ -107,10 +107,7 @@ enum Bio {
     #[cfg(any(
         target_os = "macos",
         any(
-            all(
-                target_os = "linux",
-                any(target_arch = "x86_64", target_arch = "aarch64")
-            ),
+            all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
             all(target_os = "windows", target_arch = "x86_64")
         )
     ))]
@@ -150,9 +147,7 @@ impl Bio {
             Self::Ring(ring_command) => ring_command.do_command(ui).await,
             Self::Studio(studio_command) => studio_command.do_command(ui).await,
             Self::Plan(plan_command) => plan_command.do_command(ui).await,
-            Self::SupportBundle(support_bundle_command) => {
-                support_bundle_command.do_command(ui).await
-            }
+            Self::SupportBundle(support_bundle_command) => support_bundle_command.do_command(ui).await,
         }
     }
 }
@@ -179,9 +174,7 @@ pub async fn cli_driver(ui: &mut UI, feature_flags: FeatureFlag) -> BioResult<()
     // true Supervisor version.
     if args.len() >= 3
         && args.get(1).is_some_and(|arg| arg == "sup")
-        && args
-            .get(2)
-            .is_some_and(|arg| arg == "--version" || arg == "-V")
+        && args.get(2).is_some_and(|arg| arg == "--version" || arg == "-V")
     {
         let os_args: Vec<std::ffi::OsString> = std::env::args_os().skip(2).collect();
         return start(ui, &os_args).await;

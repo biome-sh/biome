@@ -17,8 +17,7 @@ mod types;
 
 pub(crate) use self::types::ServiceMetadata;
 use self::types::{
-    EventMessage, EventMetadata, HealthCheckEvent, ServiceStartedEvent, ServiceStoppedEvent,
-    ServiceUpdateStartedEvent,
+    EventMessage, EventMetadata, HealthCheckEvent, ServiceStartedEvent, ServiceStoppedEvent, ServiceUpdateStartedEvent,
 };
 use crate::manager::{
     service::{HealthCheckHookStatus, HealthCheckResult, ProcessOutput, Service, StandardStreams},
@@ -143,15 +142,12 @@ pub fn health_check(
         let health_check_result: types::HealthCheckResult = health_check_result.into();
         let maybe_duration = health_check_hook_status.maybe_duration();
         let maybe_process_output = health_check_hook_status.maybe_process_output();
-        let exit_status = maybe_process_output
-            .as_ref()
-            .and_then(|o| o.exit_status().code());
+        let exit_status = maybe_process_output.as_ref().and_then(|o| o.exit_status().code());
         let StandardStreams { stdout, stderr } = maybe_process_output
             .map(ProcessOutput::standard_streams)
             .unwrap_or_default();
 
-        let prost_interval =
-            ProstDuration::try_from(Duration::from(health_check_interval)).unwrap_or_default();
+        let prost_interval = ProstDuration::try_from(Duration::from(health_check_interval)).unwrap_or_default();
 
         publish(
             &HEALTHCHECK_SUBJECT,
@@ -193,12 +189,7 @@ struct EventCore {
 }
 
 impl EventCore {
-    fn new(
-        supervisor_id: &str,
-        ip_address: SocketAddr,
-        fqdn: &str,
-        config: &EventStreamConfig,
-    ) -> Self {
+    fn new(supervisor_id: &str, ip_address: SocketAddr, fqdn: &str, config: &EventStreamConfig) -> Self {
         EventCore {
             supervisor_id: String::from(supervisor_id),
             ip_address,
@@ -328,8 +319,7 @@ mod tests {
         assert_eq!(event.stderr, None);
 
         let default_interval = HealthCheckInterval::default();
-        let prost_interval =
-            ProstDuration::try_from(Duration::from(default_interval)).unwrap_or_default();
+        let prost_interval = ProstDuration::try_from(Duration::from(default_interval)).unwrap_or_default();
         let prost_interval_option = Some(prost_interval);
 
         assert_eq!(event.interval, prost_interval_option);

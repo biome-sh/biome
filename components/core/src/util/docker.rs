@@ -45,9 +45,7 @@ pub fn default_base_tag_for_host() -> Result<&'static str> {
                 Semantic(10, 0, 18362) => Ok("1903"),
                 Semantic(10, 0, 20348) => Ok("ltsc2022"),
                 Semantic(10, 0, 26100) => Ok("ltsc2025"),
-                unsupported_version => Err(Error::UnsupportedDockerHostKernel(
-                    unsupported_version.to_string(),
-                )),
+                unsupported_version => Err(Error::UnsupportedDockerHostKernel(unsupported_version.to_string())),
             }
         }
     } else {

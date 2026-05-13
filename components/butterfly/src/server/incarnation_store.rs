@@ -100,11 +100,7 @@ mod tests {
     #[test]
     fn retrieving_from_a_nonexistent_file_is_an_error() {
         let path = Path::new("/omg/wtf/this-is-not-a-real-file");
-        assert!(
-            !path.exists(),
-            "The path {:?} shouldn't exist, but it does",
-            path
-        );
+        assert!(!path.exists(), "The path {:?} shouldn't exist, but it does", path);
 
         let i = IncarnationStore::new(path);
         assert!(i.load().is_err());
@@ -114,9 +110,7 @@ mod tests {
     fn unparseable_incarnation_file_is_an_error() {
         let path = Temp::new_file().expect("Could not create temp file");
         let mut buffer = File::create(&path).expect("could not create file");
-        buffer
-            .write_all(b"this is not a u64")
-            .expect("could not write file");
+        buffer.write_all(b"this is not a u64").expect("could not write file");
 
         let i = IncarnationStore::new(&path);
         assert!(i.load().is_err());
@@ -150,8 +144,7 @@ mod tests {
         assert!(!path.exists());
 
         let mut i = IncarnationStore::new(&path);
-        i.initialize()
-            .expect("`initialize` should return the initial value");
+        i.initialize().expect("`initialize` should return the initial value");
 
         assert!(
             path.exists(),

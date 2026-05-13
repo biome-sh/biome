@@ -43,10 +43,7 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
         None => {
-            return Err(Error::PermissionFailed(format!(
-                "Invalid path {:?}",
-                &path.as_ref()
-            )));
+            return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())));
         }
     };
     let result = chown(s_path, uid, gid);
@@ -98,10 +95,7 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
         None => {
-            return Err(Error::PermissionFailed(format!(
-                "Invalid path {:?}",
-                &path.as_ref()
-            )));
+            return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())));
         }
     };
 
@@ -173,10 +167,7 @@ mod tests {
 
     #[test]
     fn chmod_ok_test() {
-        let tmp_dir = Builder::new()
-            .prefix("foo")
-            .tempdir()
-            .expect("create temp dir");
+        let tmp_dir = Builder::new().prefix("foo").tempdir().expect("create temp dir");
         let file_path = tmp_dir.path().join("test.txt");
         let mut tmp_file = File::create(&file_path).expect("create temp file");
         writeln!(tmp_file, "foobar123").expect("write temp file");
@@ -198,10 +189,7 @@ mod tests {
             }
             Err(Error::PermissionFailed(_)) => { /* OK */ }
             Err(e) => {
-                panic!(
-                    "Got unexpected error chmodding a non-existent file: {:?}",
-                    e
-                );
+                panic!("Got unexpected error chmodding a non-existent file: {:?}", e);
             }
         }
     }

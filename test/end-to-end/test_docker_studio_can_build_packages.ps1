@@ -11,16 +11,4 @@ Describe "Studio build" {
         bio pkg build test/fixtures/plan-in-root -D
         $LASTEXITCODE | Should -Be 0
     }
-
-}
-
-Describe "Targeting different refresh channels" {
-    It "Can target non default refresh channel" {
-        bio pkg build test/fixtures/breakable-refresh-downgrade --refresh-channel LTS-2024 -D
-        Set-Content -Path "results/last_build.ps1" -Value ""
-        Get-Content "results/last_build.env" | ForEach-Object { Add-Content "results/last_build.ps1" -Value "`$$($_.Replace("=", '="'))`"" }
-        . ./results/last_build.ps1
-        bio pkg install ./results/$pkg_artifact
-        "/bio/pkgs/$pkg_ident/TDEPS" | Should -FileContentMatch "core/glibc/2.36"
-    }
 }

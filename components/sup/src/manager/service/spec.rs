@@ -130,8 +130,7 @@ impl ServiceSpec {
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let file = File::open(&path)
-            .map_err(|err| Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))?;
+        let file = File::open(&path).map_err(|err| Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))?;
         let mut file = BufReader::new(file);
         let mut buf = String::new();
         file.read_to_string(&mut buf)
@@ -140,20 +139,14 @@ impl ServiceSpec {
     }
 
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
-        debug!(
-            "Writing service spec to '{}': {:?}",
-            path.as_ref().display(),
-            &self
-        );
+        debug!("Writing service spec to '{}': {:?}", path.as_ref().display(), &self);
         let dst_path = path
             .as_ref()
             .parent()
             .expect("Cannot determine parent directory for service spec");
-        fs::create_dir_all(dst_path)
-            .map_err(|err| Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))?;
+        fs::create_dir_all(dst_path).map_err(|err| Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))?;
         let toml = self.to_toml_string()?;
-        atomic_write(path.as_ref(), toml)
-            .map_err(|err| Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))?;
+        atomic_write(path.as_ref(), toml).map_err(|err| Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))?;
         Ok(())
     }
 
@@ -200,9 +193,7 @@ impl ServiceSpec {
         // If we have remaining service binds then they are neither required nor optional package
         // binds. In this case, return an `Err`.
         if !svc_binds.is_empty() {
-            return Err(Error::InvalidBinds(
-                svc_binds.into_iter().map(str::to_string).collect(),
-            ));
+            return Err(Error::InvalidBinds(svc_binds.into_iter().map(str::to_string).collect()));
         }
 
         Ok(())
@@ -368,10 +359,7 @@ impl ServiceSpec {
     /// refer to the same service.
     ///
     /// Returning `None` indicates that no operation is required.
-    pub(crate) fn reconcile(
-        old: Option<ServiceSpec>,
-        new: Option<ServiceSpec>,
-    ) -> Option<ServiceOperation> {
+    pub(crate) fn reconcile(old: Option<ServiceSpec>, new: Option<ServiceSpec>) -> Option<ServiceOperation> {
         // We need to compare the old spec to the new spec, taking
         // into consideration the desired state of each. While we can
         // do that via pattern matching directly, it gets a little
@@ -593,8 +581,7 @@ mod tests {
         let file = File::open(path).expect("failed to open file");
         let mut file = BufReader::new(file);
         let mut buf = String::new();
-        file.read_to_string(&mut buf)
-            .expect("cannot read file to string");
+        file.read_to_string(&mut buf).expect("cannot read file to string");
         buf
     }
 
@@ -632,14 +619,8 @@ mod tests {
                 ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
             ]
         );
-        assert_eq!(
-            spec.config_from,
-            Some(PathBuf::from("/only/for/development"))
-        );
-        assert_eq!(
-            spec.health_check_interval,
-            HealthCheckInterval::from_str("5").unwrap()
-        );
+        assert_eq!(spec.config_from, Some(PathBuf::from("/only/for/development")));
+        assert_eq!(spec.health_check_interval, HealthCheckInterval::from_str("5").unwrap());
     }
 
     #[test]
@@ -799,20 +780,14 @@ mod tests {
             ]
         );
         assert_eq!(spec.channel, ChannelIdent::default());
-        assert_eq!(
-            spec.config_from,
-            Some(PathBuf::from("/only/for/development"))
-        );
+        assert_eq!(spec.config_from, Some(PathBuf::from("/only/for/development")));
 
         assert_eq!(
             spec.binding_mode,
             BindingMode::Strict,
             "Strict is the default mode, if nothing was previously specified."
         );
-        assert_eq!(
-            spec.health_check_interval,
-            HealthCheckInterval::from_str("5").unwrap()
-        );
+        assert_eq!(spec.health_check_interval, HealthCheckInterval::from_str("5").unwrap());
     }
 
     #[test]
@@ -966,12 +941,7 @@ mod tests {
     fn testing_package_install() -> PackageInstall {
         let ident = if cfg!(target_os = "linux") {
             if cfg!(target_arch = "x86_64") {
-                PackageIdent::new(
-                    "test-bind",
-                    "test-bind",
-                    Some("0.1.0"),
-                    Some("20190219230309"),
-                )
+                PackageIdent::new("test-bind", "test-bind", Some("0.1.0"), Some("20190219230309"))
             } else if cfg!(target_arch = "aarch64") {
                 PackageIdent::new(
                     "test-bind-native",
@@ -983,12 +953,7 @@ mod tests {
                 panic!("This is being run on a platform that's not currently supported");
             }
         } else if cfg!(target_os = "windows") {
-            PackageIdent::new(
-                "test-bind",
-                "test-bind-win",
-                Some("0.1.0"),
-                Some("20190219231616"),
-            )
+            PackageIdent::new("test-bind", "test-bind-win", Some("0.1.0"), Some("20190219231616"))
         } else {
             panic!("This is being run on a platform that's not currently supported");
         };
@@ -1107,14 +1072,8 @@ mod tests {
                 ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
             ]
         );
-        assert_eq!(
-            spec.config_from,
-            Some(PathBuf::from("/only/for/development"))
-        );
-        assert_eq!(
-            spec.health_check_interval,
-            HealthCheckInterval::from_str("5").unwrap()
-        );
+        assert_eq!(spec.config_from, Some(PathBuf::from("/only/for/development")));
+        assert_eq!(spec.health_check_interval, HealthCheckInterval::from_str("5").unwrap());
     }
 
     #[test]
@@ -1128,8 +1087,7 @@ mod tests {
         // Don't set channel, let it use default
 
         // Convert SvcLoad to ServiceSpec using TryFrom
-        let spec =
-            ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
+        let spec = ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
 
         // The key assertion - core origin with no channel should default to the 'base' channel
         assert_eq!(spec.channel, ChannelIdent::base());
@@ -1148,8 +1106,7 @@ mod tests {
         // Don't set channel, let it use default
 
         // Convert SvcLoad to ServiceSpec using TryFrom
-        let spec =
-            ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
+        let spec = ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
 
         assert_eq!(spec.channel, ChannelIdent::default());
         assert_eq!(spec.ident.origin, "howdy");
@@ -1168,8 +1125,7 @@ mod tests {
         svc_load.bldr_channel = Some("mychannel".to_string());
 
         // Convert SvcLoad to ServiceSpec using TryFrom
-        let spec =
-            ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
+        let spec = ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
 
         // The key assertion - should use the explicitly specified channel
         assert_eq!(spec.channel, ChannelIdent::from("mychannel"));
@@ -1189,8 +1145,7 @@ mod tests {
         svc_load.bldr_channel = Some("mychannel".to_string());
 
         // Convert SvcLoad to ServiceSpec using TryFrom
-        let spec =
-            ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
+        let spec = ServiceSpec::try_from(svc_load).expect("Failed to convert SvcLoad to ServiceSpec");
 
         // The key assertion - should use the explicitly specified channel, not base channel
         assert_eq!(spec.channel, ChannelIdent::from("mychannel"));
@@ -1220,10 +1175,7 @@ mod tests {
             assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), None), None);
             assert_eq!(ServiceSpec::reconcile(None, Some(down_spec.clone())), None);
             assert_eq!(ServiceSpec::reconcile(None, Some(down_spec.clone())), None);
-            assert_eq!(
-                ServiceSpec::reconcile(Some(down_spec.clone()), Some(down_spec)),
-                None
-            );
+            assert_eq!(ServiceSpec::reconcile(Some(down_spec.clone()), Some(down_spec)), None);
             assert_eq!(ServiceSpec::reconcile(None, None), None);
         }
 
@@ -1312,12 +1264,7 @@ mod tests {
             };
         }
 
-        reconcile!(
-            ident_causes_restart,
-            restart,
-            ident,
-            "core/foo".parse().unwrap()
-        );
+        reconcile!(ident_causes_restart, restart, ident, "core/foo".parse().unwrap());
         reconcile!(group_causes_restart, restart, group, "prod".to_string());
         reconcile!(topology_causes_restart, restart, topology, Topology::Leader);
         reconcile!(
@@ -1326,12 +1273,7 @@ mod tests {
             binds,
             vec![ServiceBind::new("foo", "blah.default".parse().unwrap())]
         );
-        reconcile!(
-            binding_mode_causes_restart,
-            restart,
-            binding_mode,
-            BindingMode::Relaxed
-        );
+        reconcile!(binding_mode_causes_restart, restart, binding_mode, BindingMode::Relaxed);
         reconcile!(
             config_from_causes_restart,
             restart,

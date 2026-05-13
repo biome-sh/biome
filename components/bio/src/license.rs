@@ -32,7 +32,7 @@ use crate::{
     common::ui::{self, UI, UIReader, UIWriter},
     error::{Error, Result},
     hcore::{
-        fs::{FS_ROOT_PATH, am_i_root},
+        fs::{FS_ROOT_PATH, ROOT_PATH, am_i_root},
         users::get_current_username,
     },
 };
@@ -155,7 +155,7 @@ pub fn accept_license(ui: &mut UI) -> Result<()> {
 }
 
 fn superuser_license_root() -> PathBuf {
-    PathBuf::from(&*FS_ROOT_PATH).join("bio")
+    PathBuf::from(&*FS_ROOT_PATH).join(ROOT_PATH)
 }
 
 fn user_license_root() -> PathBuf {

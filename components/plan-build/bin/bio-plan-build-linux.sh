@@ -304,6 +304,7 @@
 # [A complete list of callbacks, their description, and attendant source code,
 # is but a click away.](#build-phases)
 #
+
 # # Internals
 source_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "${source_dir}/public.bash"
@@ -354,7 +355,7 @@ BIO_PLAN_FILENAME="plan.sh"
 export BIO_BLDR_URL
 # The default Biome channel from where to download dependencies. If
 # `BIO_BLDR_CHANNEL` is set, this value is overridden.
-: "${BIO_BLDR_CHANNEL:=stable}"
+: "${BIO_BLDR_CHANNEL:=base}"
 # Export Builder channel so all other programs and subshells use this same one
 export BIO_BLDR_CHANNEL
 # Fall back here if package can't be installed from $BIO_BLDR_CHANNEL

@@ -47,11 +47,7 @@ pub(super) enum SupCommand {
 }
 
 impl SupCommand {
-    pub(crate) async fn do_command(
-        &self,
-        ui: &mut UI,
-        _feature_flags: FeatureFlag,
-    ) -> BioResult<()> {
+    pub(crate) async fn do_command(&self, ui: &mut UI, _feature_flags: FeatureFlag) -> BioResult<()> {
         match self {
             Self::Depart(opts) => opts.do_depart(ui).await,
             Self::Restart(opts) => opts.do_restart().await,

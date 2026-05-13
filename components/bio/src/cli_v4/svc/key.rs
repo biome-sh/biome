@@ -7,9 +7,7 @@ use clap::Parser;
 use biome_common::ui::UI;
 use biome_core::{crypto::keys::KeyCache, service::ServiceGroup};
 
-use crate::{
-    cli_v4::utils::CacheKeyPath, command::service::key::generate::start, error::Result as BioResult,
-};
+use crate::{cli_v4::utils::CacheKeyPath, command::service::key::generate::start, error::Result as BioResult};
 
 /// Commands relating to Biome service keys
 #[derive(Clone, Debug, Parser)]

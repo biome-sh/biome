@@ -125,9 +125,7 @@ where
     // Third line is the hash type of the signature.
     let mut line = String::new();
     let hash_type = if reader.read_line(&mut line)? == 0 {
-        Err(Error::CryptoError(
-            "Corrupt payload, can't read hash type".to_string(),
-        ))
+        Err(Error::CryptoError("Corrupt payload, can't read hash type".to_string()))
     } else {
         let line = line.trim();
         if line != SIG_HASH_TYPE {
@@ -144,13 +142,10 @@ where
     // Fourth line is the base64-encoded signature.
     let mut line = String::new();
     let signature = if reader.read_line(&mut line)? == 0 {
-        Err(Error::CryptoError(
-            "Corrupt payload, can't read signature".to_string(),
-        ))
+        Err(Error::CryptoError("Corrupt payload, can't read signature".to_string()))
     } else {
         let line = line.trim();
-        crate::base64::decode(line)
-            .map_err(|e| Error::CryptoError(format!("Can't decode signature: {}", e)))
+        crate::base64::decode(line).map_err(|e| Error::CryptoError(format!("Can't decode signature: {}", e)))
     }?;
 
     // Fifth line should be an empty delimiter line.
@@ -319,14 +314,8 @@ mod tests {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(
-            format!(
-                "HART-1\n{}\nBLAKE2b\nnot:base64:signature",
-                public.named_revision()
-            )
-            .as_bytes(),
-        )
-        .unwrap();
+        f.write_all(format!("HART-1\n{}\nBLAKE2b\nnot:base64:signature", public.named_revision()).as_bytes())
+            .unwrap();
 
         verify(&dst, &cache).unwrap();
     }
@@ -340,14 +329,8 @@ mod tests {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(
-            format!(
-                "HART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n",
-                public.named_revision()
-            )
-            .as_bytes(),
-        )
-        .unwrap();
+        f.write_all(format!("HART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n", public.named_revision()).as_bytes())
+            .unwrap();
 
         verify(&dst, &cache).unwrap();
     }
@@ -367,25 +350,15 @@ mod tests {
         let f = File::open(&dst).unwrap();
         let f = BufReader::new(f);
         let mut lines = f.lines();
-        corrupted
-            .write_all(lines.next().unwrap().unwrap().as_bytes())
-            .unwrap(); // version
+        corrupted.write_all(lines.next().unwrap().unwrap().as_bytes()).unwrap(); // version
         corrupted.write_all(b"\n").unwrap();
-        corrupted
-            .write_all(lines.next().unwrap().unwrap().as_bytes())
-            .unwrap(); // key
+        corrupted.write_all(lines.next().unwrap().unwrap().as_bytes()).unwrap(); // key
         corrupted.write_all(b"\n").unwrap();
-        corrupted
-            .write_all(lines.next().unwrap().unwrap().as_bytes())
-            .unwrap(); // hash type
+        corrupted.write_all(lines.next().unwrap().unwrap().as_bytes()).unwrap(); // hash type
         corrupted.write_all(b"\n").unwrap();
-        corrupted
-            .write_all(lines.next().unwrap().unwrap().as_bytes())
-            .unwrap(); // signature
+        corrupted.write_all(lines.next().unwrap().unwrap().as_bytes()).unwrap(); // signature
         corrupted.write_all(b"\n\n").unwrap();
-        corrupted
-            .write_all(b"payload-wont-match-signature")
-            .unwrap(); // archive
+        corrupted.write_all(b"payload-wont-match-signature").unwrap(); // archive
 
         verify(&dst_corrupted, &cache).unwrap();
     }

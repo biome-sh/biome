@@ -17,14 +17,8 @@ const BIO_PLAN_BUILD_SOURCE_FILES: [(&str, &[u8]); 4] = [
         "environment.bash",
         include_bytes!("../../../../plan-build/bin/environment.bash"),
     ),
-    (
-        "shared.bash",
-        include_bytes!("../../../../plan-build/bin/shared.bash"),
-    ),
-    (
-        "public.bash",
-        include_bytes!("../../../../plan-build/bin/public.bash"),
-    ),
+    ("shared.bash", include_bytes!("../../../../plan-build/bin/shared.bash")),
+    ("public.bash", include_bytes!("../../../../plan-build/bin/public.bash")),
     (
         "bio-plan-build.sh",
         include_bytes!("../../../../plan-build/bin/bio-plan-build-linux.sh"),
@@ -32,23 +26,18 @@ const BIO_PLAN_BUILD_SOURCE_FILES: [(&str, &[u8]); 4] = [
 ];
 
 #[cfg(target_os = "macos")]
-const BIO_PLAN_BUILD_SOURCE_FILES: [(&str, &[u8]); 5] = [
+const BIO_PLAN_BUILD_SOURCE_FILES: [(&str, &[u8]); 6] = [
     (
         "environment.bash",
         include_bytes!("../../../../plan-build/bin/environment.bash"),
     ),
-    (
-        "shared.bash",
-        include_bytes!("../../../../plan-build/bin/shared.bash"),
-    ),
-    (
-        "public.bash",
-        include_bytes!("../../../../plan-build/bin/public.bash"),
-    ),
+    ("shared.bash", include_bytes!("../../../../plan-build/bin/shared.bash")),
+    ("public.bash", include_bytes!("../../../../plan-build/bin/public.bash")),
     (
         "bio-plan-build.sh",
         include_bytes!("../../../../plan-build/bin/bio-plan-build-darwin.sh"),
     ),
+    ("internal.sh", include_bytes!("../../../../plan-build/bin/internal.sh")),
     (
         "bio-plan-build-darwin-internal.bash",
         include_bytes!("../../../../plan-build/bin/bio-plan-build-darwin-internal.bash"),
@@ -95,10 +84,7 @@ fn start_native_studio_impl(_ui: &mut UI, args: &[OsString]) -> anyhow::Result<(
         cmd.env("BIO_SRC_PATH", env::current_dir().unwrap());
     }
 
-    debug!(
-        "Executing biome plan build script with command: [{:?}]",
-        cmd
-    );
+    debug!("Executing biome plan build script with command: [{:?}]", cmd);
 
     let mut child = cmd.spawn().context("Failed to run bio plan build script")?;
     let exit_status = child

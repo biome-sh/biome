@@ -97,15 +97,9 @@ lazy_static! {
                 "BIO_FEAT_NO_NAMED_PIPE_HEALTH_CHECK",
             ),
             #[cfg(target_family = "unix")]
-            (
-                FeatureFlag::NATIVE_PACKAGE_SUPPORT,
-                "BIO_FEAT_NATIVE_PACKAGE_SUPPORT",
-            ),
+            (FeatureFlag::NATIVE_PACKAGE_SUPPORT, "BIO_FEAT_NATIVE_PACKAGE_SUPPORT"),
             #[cfg(target_family = "unix")]
-            (
-                FeatureFlag::MACOS_NATIVE_SUPPORT,
-                "BIO_FEAT_MACOS_NATIVE_SUPPORT",
-            ),
+            (FeatureFlag::MACOS_NATIVE_SUPPORT, "BIO_FEAT_MACOS_NATIVE_SUPPORT"),
         ];
 
         HashMap::from_iter(mapping)
@@ -140,8 +134,7 @@ impl FeatureFlag {
         // There's no reason why "list feature flags" should itself be a
         // feature-flag.
         if flags.contains(FeatureFlag::LIST) {
-            ui.warn("Listing feature flags environment variables:")
-                .unwrap();
+            ui.warn("Listing feature flags environment variables:").unwrap();
             for (feature, env_var) in ENV_VARS.iter() {
                 ui.warn(format!(
                     "  * {:?}: {}={:?}",

@@ -158,20 +158,14 @@ impl Hook for HealthCheckHook {
     }
 
     #[cfg(windows)]
-    fn run<T>(
-        &self,
-        service_group: &str,
-        pkg: &Pkg,
-        svc_encrypted_password: Option<T>,
-    ) -> Result<Self::ExitValue>
+    fn run<T>(&self, service_group: &str, pkg: &Pkg, svc_encrypted_password: Option<T>) -> Result<Self::ExitValue>
     where
         T: ToString,
     {
         if let Some(client) = &self.pipe_client {
             match client.exec_hook(service_group, pkg, svc_encrypted_password) {
                 Ok(exit) => {
-                    let hook_output =
-                        HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
+                    let hook_output = HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
                     Ok(self.handle_exit(pkg, &hook_output, ExitStatus::from(exit)))
                 }
                 Err(err) => {
@@ -185,12 +179,7 @@ impl Hook for HealthCheckHook {
         }
     }
 
-    fn handle_exit(
-        &self,
-        pkg: &Pkg,
-        hook_output: &HookOutput,
-        status: ExitStatus,
-    ) -> Self::ExitValue {
+    fn handle_exit(&self, pkg: &Pkg, hook_output: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         if status.code().is_none() {
             Self::output_termination_message(&pkg.name, status);
         }
@@ -471,12 +460,7 @@ impl Hook for SuitabilityHook {
         }
     }
 
-    fn handle_exit(
-        &self,
-        pkg: &Pkg,
-        hook_output: &HookOutput,
-        status: ExitStatus,
-    ) -> Self::ExitValue {
+    fn handle_exit(&self, pkg: &Pkg, hook_output: &HookOutput, status: ExitStatus) -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => match hook_output.stdout() {
@@ -614,14 +598,7 @@ impl HookCompileTable {
             post_run,
             post_stop,
         } = self;
-        *health_check
-            || *init
-            || *file_updated
-            || *reconfigure
-            || *suitability
-            || *run
-            || *post_run
-            || *post_stop
+        *health_check || *init || *file_updated || *reconfigure || *suitability || *run || *post_run || *post_stop
     }
 }
 
@@ -709,12 +686,7 @@ pub struct HookTable {
 
 impl HookTable {
     /// Read all available hook templates from the table's package directory into the table.
-    pub fn load<P, T>(
-        package_name: &str,
-        templates: T,
-        hooks_path: P,
-        feature_flags: FeatureFlag,
-    ) -> Self
+    pub fn load<P, T>(package_name: &str, templates: T, hooks_path: P, feature_flags: FeatureFlag) -> Self
     where
         P: AsRef<Path>,
         T: AsRef<Path>,
@@ -723,24 +695,15 @@ impl HookTable {
         if let Ok(meta) = std::fs::metadata(templates.as_ref())
             && meta.is_dir()
         {
-            table.file_updated =
-                FileUpdatedHook::load(package_name, &hooks_path, &templates, feature_flags);
+            table.file_updated = FileUpdatedHook::load(package_name, &hooks_path, &templates, feature_flags);
             table.health_check =
-                HealthCheckHook::load(package_name, &hooks_path, &templates, feature_flags)
-                    .map(Arc::new);
-            table.suitability =
-                SuitabilityHook::load(package_name, &hooks_path, &templates, feature_flags);
-            table.init =
-                InitHook::load(package_name, &hooks_path, &templates, feature_flags).map(Arc::new);
-            table.reconfigure =
-                ReconfigureHook::load(package_name, &hooks_path, &templates, feature_flags);
+                HealthCheckHook::load(package_name, &hooks_path, &templates, feature_flags).map(Arc::new);
+            table.suitability = SuitabilityHook::load(package_name, &hooks_path, &templates, feature_flags);
+            table.init = InitHook::load(package_name, &hooks_path, &templates, feature_flags).map(Arc::new);
+            table.reconfigure = ReconfigureHook::load(package_name, &hooks_path, &templates, feature_flags);
             table.run = RunHook::load(package_name, &hooks_path, &templates, feature_flags);
-            table.post_run =
-                PostRunHook::load(package_name, &hooks_path, &templates, feature_flags)
-                    .map(Arc::new);
-            table.post_stop =
-                PostStopHook::load(package_name, &hooks_path, &templates, feature_flags)
-                    .map(Arc::new);
+            table.post_run = PostRunHook::load(package_name, &hooks_path, &templates, feature_flags).map(Arc::new);
+            table.post_stop = PostStopHook::load(package_name, &hooks_path, &templates, feature_flags).map(Arc::new);
         }
         debug!(
             "{}, Hooks loaded, destination={}, templates={}",
@@ -820,10 +783,7 @@ mod tests {
         types::{GossipListenAddr, HttpListenAddr, ListenCtlAddr},
     };
     #[cfg(not(any(
-        all(
-            target_os = "linux",
-            any(target_arch = "x86_64", target_arch = "aarch64")
-        ),
+        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
         all(target_os = "windows", target_arch = "x86_64"),
     )))]
     use biome_core::package::metadata::MetaFile;
@@ -896,24 +856,17 @@ mod tests {
         );
         // Platforms without standard package support require all packages to be native packages
         #[cfg(not(any(
-            all(
-                target_os = "linux",
-                any(target_arch = "x86_64", target_arch = "aarch64")
-            ),
+            all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
             all(target_os = "windows", target_arch = "x86_64")
         )))]
         {
-            tokio::fs::create_dir_all(pkg_install.installed_path())
-                .await
-                .unwrap();
+            tokio::fs::create_dir_all(pkg_install.installed_path()).await.unwrap();
             create_with_content(
-                pkg_install
-                    .installed_path()
-                    .join(MetaFile::PackageType.to_string()),
+                pkg_install.installed_path().join(MetaFile::PackageType.to_string()),
                 "native",
             );
         }
-        Pkg::from_install(&pkg_install).await.unwrap()
+        Pkg::from_install(&pkg_install, None).await.unwrap()
     }
 
     fn ctx<'a>(
@@ -996,17 +949,11 @@ mod tests {
             HttpListenAddr::default(),
             IpAddr::V4(Ipv4Addr::LOCALHOST),
         );
-        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
-            .expect("Could not create config");
+        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf())).expect("Could not create config");
         let mut ring = CensusRing::new("member-a");
         let ctx = ctx(&service_group, &pkg, &sys, &cfg, &mut ring);
 
-        let hook_table = HookTable::load(
-            &service_group,
-            &template_path,
-            &hooks_path,
-            FeatureFlag::empty(),
-        );
+        let hook_table = HookTable::load(&service_group, &template_path, &hooks_path, FeatureFlag::empty());
         assert!(hook_table.compile(&service_group, &ctx).changed());
 
         // Verify init hook
@@ -1108,8 +1055,7 @@ mod tests {
             HttpListenAddr::default(),
             IpAddr::V4(Ipv4Addr::LOCALHOST),
         );
-        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
-            .expect("Could not create config");
+        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf())).expect("Could not create config");
         let mut ring = CensusRing::new("member-a");
         let ctx = ctx(&service_group, &pkg, &sys, &cfg, &mut ring);
 
@@ -1118,13 +1064,7 @@ mod tests {
         let result = hook.run(&service_group, &pkg, None::<&str>).unwrap();
 
         assert_eq!(Some(1), result.exit_status().code());
-        assert!(
-            result
-                .standard_streams()
-                .stdout
-                .unwrap()
-                .contains("Named pipe created")
-        );
+        assert!(result.standard_streams().stdout.unwrap().contains("Named pipe created"));
     }
 
     #[cfg(windows)]
@@ -1148,13 +1088,7 @@ mod tests {
         let mut flags = FeatureFlag::empty();
         flags.insert(FeatureFlag::NO_NAMED_PIPE_HEALTH_CHECK);
 
-        let hook = HealthCheckHook::load(
-            service_group.service(),
-            &concrete_path,
-            &template_path,
-            flags,
-        )
-        .expect(
+        let hook = HealthCheckHook::load(service_group.service(), &concrete_path, &template_path, flags).expect(
             "Could not create testing healch-check \
                                                         hook",
         );
@@ -1167,8 +1101,7 @@ mod tests {
             HttpListenAddr::default(),
             IpAddr::V4(Ipv4Addr::LOCALHOST),
         );
-        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
-            .expect("Could not create config");
+        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf())).expect("Could not create config");
         let mut ring = CensusRing::new("member-a");
         let ctx = ctx(&service_group, &pkg, &sys, &cfg, &mut ring);
 
@@ -1177,12 +1110,6 @@ mod tests {
         let result = hook.run(&service_group, &pkg, None::<&str>).unwrap();
 
         assert_eq!(Some(1), result.exit_status().code());
-        assert!(
-            !result
-                .standard_streams()
-                .stdout
-                .unwrap()
-                .contains("Named pipe created")
-        );
+        assert!(!result.standard_streams().stdout.unwrap().contains("Named pipe created"));
     }
 }

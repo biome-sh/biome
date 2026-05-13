@@ -2,10 +2,7 @@ use clap_v4 as clap;
 
 use clap::Parser;
 
-use crate::{
-    cli_v4::utils::origin_param_or_env, command::bldr::channel::list::start,
-    error::Result as BioResult,
-};
+use crate::{cli_v4::utils::origin_param_or_env, command::bldr::channel::list::start, error::Result as BioResult};
 
 use biome_common::ui::UI;
 use biome_core::origin::Origin;

@@ -1,6 +1,4 @@
-use handlebars::{
-    Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason,
-};
+use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason};
 
 #[derive(Clone, Copy)]
 pub struct ToYamlHelper;
@@ -16,13 +14,10 @@ impl HelperDef for ToYamlHelper {
     ) -> HelperResult {
         let param = h
             .param(0)
-            .ok_or_else(|| {
-                RenderErrorReason::Other("Expected 1 parameter for \"toYaml\"".to_string())
-            })?
+            .ok_or_else(|| RenderErrorReason::Other("Expected 1 parameter for \"toYaml\"".to_string()))?
             .value();
-        let yaml = serde_yaml::to_string(param).map_err(|e| {
-            RenderErrorReason::Other(format!("Can't serialize parameter to YAML: {}", e))
-        })?;
+        let yaml = serde_yaml::to_string(param)
+            .map_err(|e| RenderErrorReason::Other(format!("Can't serialize parameter to YAML: {}", e)))?;
         out.write(yaml.as_ref())?;
         Ok(())
     }

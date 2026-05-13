@@ -7,10 +7,7 @@ use std::{borrow::Cow, fs, path::Path};
 
 /// Show render context rooted at `path`
 #[allow(clippy::needless_pass_by_value)] // Required by actix-web API
-pub async fn show(
-    config: web::Data<config::Config>,
-    req: HttpRequest,
-) -> actix_web::Result<HttpResponse> {
+pub async fn show(config: web::Data<config::Config>, req: HttpRequest) -> actix_web::Result<HttpResponse> {
     // A JSON pointer of "" means "everything". Pointers starting with
     // "/" describe paths into the structure. We'll chop off any
     // trailing "/" since that will end up looking for an item with a

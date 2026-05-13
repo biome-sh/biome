@@ -36,12 +36,7 @@ impl Client {
     ///
     /// A time-based incarnation value is automatically used,
     /// resulting in less clutter in your tests.
-    pub fn apply(
-        &mut self,
-        package_name: &str,
-        service_group: &str,
-        applied_config: &str,
-    ) -> Result<()> {
+    pub fn apply(&mut self, package_name: &str, service_group: &str, applied_config: &str) -> Result<()> {
         let config = applied_config.to_string();
         let config = config.as_bytes();
 

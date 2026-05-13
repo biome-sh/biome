@@ -14,8 +14,8 @@ use crate::{
     crypto::keys::{
         Key, NamedRevision, UserPublicEncryptionKey,
         encryption::{
-            PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX,
-            SECRET_BOX_KEY_VERSION, SignedBox, primitives,
+            PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX, SECRET_BOX_KEY_VERSION, SignedBox,
+            primitives,
         },
     },
     error::{Error, Result},
@@ -130,8 +130,7 @@ mod tests {
     #[test]
     fn encryption_decrytpion_roundtrip() {
         let user_public: UserPublicEncryptionKey = fixture_key("keys/ruby-rhod-20200813204159.pub");
-        let user_secret: UserSecretEncryptionKey =
-            fixture_key("keys/ruby-rhod-20200813204159.box.key");
+        let user_secret: UserSecretEncryptionKey = fixture_key("keys/ruby-rhod-20200813204159.box.key");
         let service_public: ServicePublicEncryptionKey =
             fixture_key("keys/service-key-valid.default@acme-20160509181736.pub");
         let service_secret: ServiceSecretEncryptionKey =
@@ -144,9 +143,7 @@ mod tests {
             .encrypt_for_service(message.as_bytes(), &service_public)
             .unwrap();
 
-        let decrypted_message = service_secret
-            .decrypt_user_message(&signed, &user_public)
-            .unwrap();
+        let decrypted_message = service_secret.decrypt_user_message(&signed, &user_public).unwrap();
         let decrypted_message = std::str::from_utf8(&decrypted_message).unwrap();
 
         assert_eq!(decrypted_message, message);

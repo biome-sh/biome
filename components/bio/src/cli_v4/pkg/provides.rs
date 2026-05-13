@@ -30,11 +30,6 @@ pub(crate) struct PkgProvidesOptions {
 
 impl PkgProvidesOptions {
     pub(super) fn do_provides(&self) -> BioResult<()> {
-        provides::start(
-            &self.file,
-            &FS_ROOT_PATH,
-            self.full_releases,
-            self.full_paths,
-        )
+        provides::start(&self.file, &FS_ROOT_PATH, self.full_releases, self.full_paths)
     }
 }

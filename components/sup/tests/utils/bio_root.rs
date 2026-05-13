@@ -64,20 +64,17 @@ impl BioRoot {
     // This is only used on non-x86 platforms
     #[allow(dead_code)]
     pub fn target_path(&self, origin: &str, pkg_name: &str) -> PathBuf {
-        self.pkg_dir_path(origin, pkg_name)
-            .join(MetaFile::Target.to_string())
+        self.pkg_dir_path(origin, pkg_name).join(MetaFile::Target.to_string())
     }
 
     /// Returns the path to the service user metafile for a given package.
     pub fn svc_user_path(&self, origin: &str, pkg_name: &str) -> PathBuf {
-        self.pkg_dir_path(origin, pkg_name)
-            .join(MetaFile::SvcUser.to_string())
+        self.pkg_dir_path(origin, pkg_name).join(MetaFile::SvcUser.to_string())
     }
 
     /// Returns the path to the service group metafile for a given package.
     pub fn svc_group_path(&self, origin: &str, pkg_name: &str) -> PathBuf {
-        self.pkg_dir_path(origin, pkg_name)
-            .join(MetaFile::SvcGroup.to_string())
+        self.pkg_dir_path(origin, pkg_name).join(MetaFile::SvcGroup.to_string())
     }
 
     /// The path to which a spec file should be written for a given
@@ -95,8 +92,7 @@ impl BioRoot {
     /// The path to which a spec file should be written for a given
     /// package name.
     pub fn spec_path(&self, pkg_name: &str, service_group: &str) -> PathBuf {
-        self.spec_dir_path(service_group)
-            .join(format!("{}.spec", pkg_name))
+        self.spec_dir_path(service_group).join(format!("{}.spec", pkg_name))
     }
 
     /// Path to the service directory for a package

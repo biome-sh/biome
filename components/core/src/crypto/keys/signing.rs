@@ -20,9 +20,7 @@ mod primitives {
 ///
 /// The resulting keys will need to be saved to a cache in order to
 /// persist.
-pub fn generate_signing_key_pair(
-    origin: &Origin,
-) -> Result<(PublicOriginSigningKey, SecretOriginSigningKey)> {
+pub fn generate_signing_key_pair(origin: &Origin) -> Result<(PublicOriginSigningKey, SecretOriginSigningKey)> {
     let named_revision = NamedRevision::new(origin.to_string());
     let (pk, sk) = primitives::gen_keypair()?;
 
@@ -126,27 +124,23 @@ mod tests {
     /// file, signed by
     /// `tests/fixtures/keys/origin-key-valid-20160509190508.sig.key`.
     const SIGNED_SIGNME_DAT_BLAKE2B_HASH: [u8; 128] = [
-        148u8, 34u8, 226u8, 235u8, 2u8, 136u8, 218u8, 135u8, 130u8, 241u8, 129u8, 134u8, 193u8,
-        206u8, 3u8, 15u8, 158u8, 99u8, 68u8, 169u8, 139u8, 38u8, 13u8, 140u8, 120u8, 92u8, 152u8,
-        143u8, 97u8, 135u8, 22u8, 233u8, 20u8, 243u8, 48u8, 63u8, 59u8, 82u8, 26u8, 51u8, 53u8,
-        63u8, 5u8, 214u8, 166u8, 231u8, 113u8, 123u8, 241u8, 33u8, 25u8, 227u8, 91u8, 201u8, 76u8,
-        48u8, 199u8, 214u8, 183u8, 110u8, 173u8, 161u8, 150u8, 12u8, 50u8, 48u8, 53u8, 57u8, 48u8,
-        97u8, 53u8, 50u8, 99u8, 52u8, 102u8, 48u8, 48u8, 53u8, 56u8, 56u8, 99u8, 53u8, 48u8, 48u8,
-        51u8, 50u8, 56u8, 98u8, 49u8, 54u8, 100u8, 52u8, 54u8, 54u8, 99u8, 57u8, 56u8, 50u8, 97u8,
-        50u8, 54u8, 102u8, 97u8, 98u8, 97u8, 97u8, 53u8, 102u8, 97u8, 52u8, 100u8, 99u8, 99u8,
-        56u8, 51u8, 48u8, 53u8, 50u8, 100u8, 100u8, 48u8, 97u8, 56u8, 52u8, 102u8, 50u8, 51u8,
-        51u8,
+        148u8, 34u8, 226u8, 235u8, 2u8, 136u8, 218u8, 135u8, 130u8, 241u8, 129u8, 134u8, 193u8, 206u8, 3u8, 15u8,
+        158u8, 99u8, 68u8, 169u8, 139u8, 38u8, 13u8, 140u8, 120u8, 92u8, 152u8, 143u8, 97u8, 135u8, 22u8, 233u8, 20u8,
+        243u8, 48u8, 63u8, 59u8, 82u8, 26u8, 51u8, 53u8, 63u8, 5u8, 214u8, 166u8, 231u8, 113u8, 123u8, 241u8, 33u8,
+        25u8, 227u8, 91u8, 201u8, 76u8, 48u8, 199u8, 214u8, 183u8, 110u8, 173u8, 161u8, 150u8, 12u8, 50u8, 48u8, 53u8,
+        57u8, 48u8, 97u8, 53u8, 50u8, 99u8, 52u8, 102u8, 48u8, 48u8, 53u8, 56u8, 56u8, 99u8, 53u8, 48u8, 48u8, 51u8,
+        50u8, 56u8, 98u8, 49u8, 54u8, 100u8, 52u8, 54u8, 54u8, 99u8, 57u8, 56u8, 50u8, 97u8, 50u8, 54u8, 102u8, 97u8,
+        98u8, 97u8, 97u8, 53u8, 102u8, 97u8, 52u8, 100u8, 99u8, 99u8, 56u8, 51u8, 48u8, 53u8, 50u8, 100u8, 100u8,
+        48u8, 97u8, 56u8, 52u8, 102u8, 50u8, 51u8, 51u8,
     ];
 
     /// The hex-encoded Blake2b hash of the contents of
     /// `tests/fixtures/signme.dat`.
-    const SIGNME_DAT_BLAKE2B_HASH: &str =
-        "20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233";
+    const SIGNME_DAT_BLAKE2B_HASH: &str = "20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233";
 
     #[test]
     fn signing() {
-        let key: SecretOriginSigningKey =
-            fixture_key("keys/origin-key-valid-20160509190508.sig.key");
+        let key: SecretOriginSigningKey = fixture_key("keys/origin-key-valid-20160509190508.sig.key");
         let file_to_sign = fixture("signme.dat");
         let signed_message = key.sign(file_to_sign).unwrap();
         let expected = SIGNED_SIGNME_DAT_BLAKE2B_HASH.to_vec();
@@ -168,9 +162,7 @@ mod tests {
         let f = File::open(fixture("signme.dat")).unwrap();
         let mut reader = BufReader::new(f);
 
-        let file_blake2b_hash = key
-            .verify(&SIGNED_SIGNME_DAT_BLAKE2B_HASH, &mut reader)
-            .unwrap();
+        let file_blake2b_hash = key.verify(&SIGNED_SIGNME_DAT_BLAKE2B_HASH, &mut reader).unwrap();
 
         assert_eq!(
             file_blake2b_hash,
@@ -180,8 +172,7 @@ mod tests {
 
     #[test]
     fn sign_and_verify_roundtrip() {
-        let sk: SecretOriginSigningKey =
-            fixture_key("keys/origin-key-valid-20160509190508.sig.key");
+        let sk: SecretOriginSigningKey = fixture_key("keys/origin-key-valid-20160509190508.sig.key");
         let pk: PublicOriginSigningKey = fixture_key("keys/origin-key-valid-20160509190508.pub");
 
         let file_to_sign = fixture("signme.dat");

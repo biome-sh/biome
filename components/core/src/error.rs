@@ -178,10 +178,7 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::BadBindingMode(ref value) => format!("Unknown binding mode '{}'", value),
             Error::BadKeyPath(ref e) => {
-                format!(
-                    "Invalid keypath: {}. Specify an absolute path to a file on disk.",
-                    e
-                )
+                format!("Invalid keypath: {}. Specify an absolute path to a file on disk.", e)
             }
             Error::BadOriginMemberRole(ref value) => {
                 format!("Unknown origin member role '{}'", value)
@@ -190,10 +187,7 @@ impl fmt::Display for Error {
                 format!("The package is not a composite: {}", ident)
             }
             Error::ConfigFileSyntax(ref e) => {
-                format!(
-                    "Syntax errors while parsing TOML configuration file:\n\n{}",
-                    e
-                )
+                format!("Syntax errors while parsing TOML configuration file:\n\n{}", e)
             }
             Error::ConfigInvalidArraySocketAddr(ref f) => {
                 format!(
@@ -235,10 +229,7 @@ impl fmt::Display for Error {
                 )
             }
             Error::ConfigInvalidBool(ref f) => {
-                format!(
-                    "Invalid boolean value in config, field={}. (example: true)",
-                    f
-                )
+                format!("Invalid boolean value in config, field={}. (example: true)", f)
             }
             Error::ConfigInvalidIdent(ref f) => {
                 format!(
@@ -265,10 +256,7 @@ impl fmt::Display for Error {
                 format!("Invalid string value in config, field={}.", f)
             }
             Error::ConfigInvalidTableString(ref f) => {
-                format!(
-                    "Invalid table value of string fields and values in config, field={}",
-                    f
-                )
+                format!("Invalid table value of string fields and values in config, field={}", f)
             }
             Error::ConfigInvalidTarget(ref f) => {
                 format!(
@@ -291,10 +279,7 @@ impl fmt::Display for Error {
             Error::CryptUnprotectDataFailed(ref e) => e.to_string(),
             Error::CtlGatewayTls(ref e) => e.to_string(),
             Error::DockerCommandNotFound(ref c) => {
-                format!(
-                    "Docker command `{}' was not found on the filesystem or in PATH",
-                    c
-                )
+                format!("Docker command `{}' was not found on the filesystem or in PATH", c)
             }
             Error::DockerVersionCommandFailed(ref e) => {
                 format!("Docker version command failed to execute: {}", e)
@@ -367,9 +352,7 @@ impl fmt::Display for Error {
             }
             Error::LogonUserFailed(ref e) => format!("Failure calling LogonUserW: {:?}", e),
             Error::NativeTlsError(ref e) => format!("{}", e),
-            Error::MetaFileBadBind => {
-                "Bad value parsed from BIND, BIND_OPTIONAL, or BIND_MAP".to_string()
-            }
+            Error::MetaFileBadBind => "Bad value parsed from BIND, BIND_OPTIONAL, or BIND_MAP".to_string(),
             Error::MetaFileMalformed(ref e) => {
                 format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
             }

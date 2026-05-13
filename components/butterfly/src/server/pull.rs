@@ -89,9 +89,7 @@ fn run_loop(server: &Server) -> ! {
                 GOSSIP_BYTES_RECEIVED
                     .with_label_values(label_values)
                     .set(msg.len().to_i64());
-                GOSSIP_MESSAGES_RECEIVED
-                    .with_label_values(label_values)
-                    .inc();
+                GOSSIP_MESSAGES_RECEIVED.with_label_values(label_values).inc();
                 continue;
             }
         };
@@ -104,9 +102,7 @@ fn run_loop(server: &Server) -> ! {
                 GOSSIP_BYTES_RECEIVED
                     .with_label_values(label_values)
                     .set(payload.len().to_i64());
-                GOSSIP_MESSAGES_RECEIVED
-                    .with_label_values(label_values)
-                    .inc();
+                GOSSIP_MESSAGES_RECEIVED.with_label_values(label_values).inc();
                 continue 'recv;
             }
         };
@@ -115,18 +111,13 @@ fn run_loop(server: &Server) -> ! {
         let blocked_label = if blocked { "true" } else { "false" };
         let label_values = &[&proto.r#type.to_string(), "success", blocked_label];
 
-        GOSSIP_MESSAGES_RECEIVED
-            .with_label_values(label_values)
-            .inc();
+        GOSSIP_MESSAGES_RECEIVED.with_label_values(label_values).inc();
         GOSSIP_BYTES_RECEIVED
             .with_label_values(label_values)
             .set(payload.len().to_i64());
 
         if blocked {
-            warn!(
-                "Not processing message from {} - it is blocked",
-                proto.from_id
-            );
+            warn!("Not processing message from {} - it is blocked", proto.from_id);
             continue 'recv;
         }
 

@@ -15,9 +15,7 @@ use unix as implementation;
 pub mod exec;
 
 // Common platform-independent interface
-pub use implementation::{
-    Pid, become_command, can_run_services_as_svc_user, current_pid, is_alive,
-};
+pub use implementation::{Pid, become_command, can_run_services_as_svc_user, current_pid, is_alive};
 
 #[cfg(unix)]
 pub(crate) use unix::SignalCode;

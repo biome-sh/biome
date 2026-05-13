@@ -18,10 +18,7 @@ pub async fn start(
 ) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
-    match api_client
-        .get_member_role(origin.clone(), token, member_account)
-        .await
-    {
+    match api_client.get_member_role(origin.clone(), token, member_account).await {
         Ok(resp) => {
             if to_json {
                 match resp.as_json() {

@@ -46,22 +46,9 @@ pub(crate) struct PkgBinlinkOptions {
 impl PkgBinlinkOptions {
     pub(super) fn do_binlink(&self, ui: &mut UI) -> BioResult<()> {
         if let Some(binary) = &self.binary {
-            binlink::start(
-                ui,
-                &self.pkg_ident,
-                binary,
-                &self.dest_dir,
-                &FS_ROOT_PATH,
-                self.force,
-            )
+            binlink::start(ui, &self.pkg_ident, binary, &self.dest_dir, &FS_ROOT_PATH, self.force)
         } else {
-            binlink::binlink_all_in_pkg(
-                ui,
-                &self.pkg_ident,
-                &self.dest_dir,
-                &FS_ROOT_PATH,
-                self.force,
-            )
+            binlink::binlink_all_in_pkg(ui, &self.pkg_ident, &self.dest_dir, &FS_ROOT_PATH, self.force)
         }
     }
 }

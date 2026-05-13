@@ -97,9 +97,7 @@ impl PkgEnv {
         Self {
             inner: vec![EnvVar {
                 key: "PATH".to_string(),
-                value: p
-                    .into_string()
-                    .expect("Failed to convert path to utf8 string"),
+                value: p.into_string().expect("Failed to convert path to utf8 string"),
                 separator: Some(ENV_PATH_SEPARATOR),
             }],
         }
@@ -282,8 +280,7 @@ port=front-end.port
         );
         m.insert(
             "PYTHONPATH".to_string(),
-            "/bio/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
-                .to_string(),
+            "/bio/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages".to_string(),
         );
 
         assert_eq!(parse_key_value(ENVIRONMENT).unwrap(), m);

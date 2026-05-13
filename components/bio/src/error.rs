@@ -88,17 +88,12 @@ impl fmt::Display for Error {
             Error::CannotParseBinlinkTarget(ref p) => {
                 format!("Cannot parse binlink target path from {}.", p.display())
             }
-            Error::CannotRemoveDockerStudio => {
-                "Docker Studios are not persistent and cannot be removed".to_string()
-            }
+            Error::CannotRemoveDockerStudio => "Docker Studios are not persistent and cannot be removed".to_string(),
             Error::CannotRemoveFromChannel((ref p, ref c)) => {
                 format!("{} cannot be removed from the {} channel.", p, c)
             }
             Error::CannotRemovePackage(ref p, ref c) => {
-                format!(
-                    "Can't remove package: {}. It is a dependency of {} packages",
-                    p, c
-                )
+                format!("Can't remove package: {}. It is a dependency of {} packages", p, c)
             }
             Error::CommandNotFoundInPkg((ref p, ref c)) => {
                 format!(
@@ -111,9 +106,7 @@ impl fmt::Display for Error {
             Error::CryptoCLI(ref e) => e.to_string(),
             Error::CtlClient(ref e) => e.to_string(),
             Error::CtrlcError(ref err) => format!("{}", err),
-            Error::DockerDaemonDown => {
-                "Can not connect to Docker. Is the Docker daemon running?".to_string()
-            }
+            Error::DockerDaemonDown => "Can not connect to Docker. Is the Docker daemon running?".to_string(),
             #[cfg(not(windows))]
             Error::DockerFileSharingNotEnabled => {
                 "File Sharing must be enabled in order to enter a studio.\nPlease enable it in the \
@@ -150,10 +143,7 @@ impl fmt::Display for Error {
                 .collect::<Vec<_>>()
                 .join("\n"),
             Error::ExecCommandNotFound(ref c) => {
-                format!(
-                    "`{}' was not found on the filesystem or in PATH",
-                    c.display()
-                )
+                format!("`{}' was not found on the filesystem or in PATH", c.display())
             }
             Error::FFINulError(ref e) => e.to_string(),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
@@ -194,9 +184,7 @@ impl fmt::Display for Error {
             Error::ParseUrlError(ref err) => format!("{}", err),
             Error::PathPrefixError(ref err) => format!("{}", err),
             Error::ProvidesError(ref err) => format!("Can't find {}", err),
-            Error::RootRequired => {
-                "Root or administrator permissions required to complete operation".to_string()
-            }
+            Error::RootRequired => "Root or administrator permissions required to complete operation".to_string(),
             Error::ScheduleStatus(ref e) => format!("Failed to retrieve job group status: {:?}", e),
             Error::SubcommandNotSupported(ref e) => {
                 format!("Subcommand `{}' not supported on this operating system", e)

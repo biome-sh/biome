@@ -15,8 +15,8 @@ use winapi::{
         securitybaseapi::GetTokenInformation,
         winbase,
         winnt::{
-            ACCESS_MASK, ACL, DACL_SECURITY_INFORMATION, LPCWSTR, MAXDWORD, PACL, PHANDLE,
-            PSECURITY_DESCRIPTOR, PSECURITY_INFORMATION, PSID, PTOKEN_USER, TOKEN_READ, TokenUser,
+            ACCESS_MASK, ACL, DACL_SECURITY_INFORMATION, LPCWSTR, MAXDWORD, PACL, PHANDLE, PSECURITY_DESCRIPTOR,
+            PSECURITY_INFORMATION, PSID, PTOKEN_USER, TOKEN_READ, TokenUser,
         },
     },
 };
@@ -49,13 +49,8 @@ unsafe extern "system" {
 
 #[link(name = "user32")]
 unsafe extern "system" {
-    fn AddAccessAllowedAceEx(
-        pAcl: PACL,
-        dwAceRevision: DWORD,
-        aceFlags: DWORD,
-        accessMask: DWORD,
-        pSid: PSID,
-    ) -> BOOL;
+    fn AddAccessAllowedAceEx(pAcl: PACL, dwAceRevision: DWORD, aceFlags: DWORD, accessMask: DWORD, pSid: PSID)
+    -> BOOL;
     fn AddAce(
         pAcl: PACL,
         dwAceRevision: DWORD,
@@ -87,21 +82,14 @@ unsafe extern "system" {
         lpnLengthNeeded: LPDWORD,
     ) -> BOOL;
     fn InitializeAcl(pAcl: PACL, nAclLength: DWORD, dwAclRevision: DWORD) -> BOOL;
-    fn InitializeSecurityDescriptor(
-        pSecurityDescriptor: PSECURITY_DESCRIPTOR,
-        dwRevision: DWORD,
-    ) -> BOOL;
+    fn InitializeSecurityDescriptor(pSecurityDescriptor: PSECURITY_DESCRIPTOR, dwRevision: DWORD) -> BOOL;
     fn SetSecurityDescriptorDacl(
         pSecurityDescriptor: PSECURITY_DESCRIPTOR,
         bDaclPresent: BOOL,
         pDacl: PACL,
         bDaclDefaulted: BOOL,
     ) -> BOOL;
-    fn SetUserObjectSecurity(
-        hObj: HANDLE,
-        pSIRequested: PSECURITY_INFORMATION,
-        pSID: PSECURITY_DESCRIPTOR,
-    ) -> BOOL;
+    fn SetUserObjectSecurity(hObj: HANDLE, pSIRequested: PSECURITY_INFORMATION, pSID: PSECURITY_DESCRIPTOR) -> BOOL;
 }
 
 pub const GENERIC_READ: DWORD = 0x8000_0000;
@@ -162,8 +150,7 @@ impl Sid {
                 }
             }
 
-            let mut buffer =
-                Vec::<std::mem::MaybeUninit<u8>>::with_capacity(dw_buffer_size as usize);
+            let mut buffer = Vec::<std::mem::MaybeUninit<u8>>::with_capacity(dw_buffer_size as usize);
             buffer.set_len(dw_buffer_size as usize);
             let p_token_user = buffer.as_mut_ptr() as PTOKEN_USER;
 
@@ -236,12 +223,7 @@ impl Sid {
     // This code was adapted from much of the C++ code in
     // https://msdn.microsoft.com/en-us/library/windows/desktop/aa379608(v=vs.85).aspx
     #[allow(clippy::not_unsafe_ptr_arg_deref)]
-    pub fn add_to_user_object(
-        &self,
-        handle: HANDLE,
-        ace_flags: DWORD,
-        access_mask: DWORD,
-    ) -> io::Result<()> {
+    pub fn add_to_user_object(&self, handle: HANDLE, ace_flags: DWORD, access_mask: DWORD) -> io::Result<()> {
         unsafe {
             let mut needed_len: u32 = 0;
             let mut sd: Vec<u8> = Vec::new();
@@ -299,8 +281,7 @@ impl Sid {
                 aclBytesFree: 0,
             };
             if !pacl.is_null() {
-                let mut acl_size_buf: Vec<u8> =
-                    Vec::with_capacity(mem::size_of::<ACL_SIZE_INFORMATION>());
+                let mut acl_size_buf: Vec<u8> = Vec::with_capacity(mem::size_of::<ACL_SIZE_INFORMATION>());
                 cvt(GetAclInformation(
                     pacl,
                     acl_size_buf.as_mut_ptr() as LPVOID,
@@ -317,10 +298,9 @@ impl Sid {
             }
 
             let psid_length = GetLengthSid(self.raw.as_ptr() as PSID);
-            let new_acl_size = size_info.aclBytesInUse
-                + (2 * (mem::size_of::<ACCESS_ALLOWED_ACE>() as DWORD))
-                + (2 * psid_length)
-                - (2 * (mem::size_of::<DWORD>() as DWORD));
+            let new_acl_size =
+                size_info.aclBytesInUse + (2 * (mem::size_of::<ACCESS_ALLOWED_ACE>() as DWORD)) + (2 * psid_length)
+                    - (2 * (mem::size_of::<DWORD>() as DWORD));
             let mut new_acl_buf: Vec<u8> = Vec::with_capacity(new_acl_size as usize);
 
             // TODO JB: fix this clippy
@@ -381,11 +361,7 @@ impl Sid {
 }
 
 fn cvt(i: i32) -> io::Result<i32> {
-    if i == 0 {
-        Err(io::Error::last_os_error())
-    } else {
-        Ok(i)
-    }
+    if i == 0 { Err(io::Error::last_os_error()) } else { Ok(i) }
 }
 
 #[cfg(test)]
@@ -399,17 +375,12 @@ mod tests {
         assert!(current_sid.is_ok());
         assert_eq!(
             env::var("USERNAME").unwrap(),
-            Account::from_sid(
-                &current_sid
-                    .expect("current_sid")
-                    .to_string()
-                    .expect("sid to_string")
-            )
-            .expect(
-                "account from \
+            Account::from_sid(&current_sid.expect("current_sid").to_string().expect("sid to_string"))
+                .expect(
+                    "account from \
                                                                                    sid"
-            )
-            .name
+                )
+                .name
         );
     }
 

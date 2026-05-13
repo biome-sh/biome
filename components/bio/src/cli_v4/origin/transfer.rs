@@ -52,10 +52,7 @@ impl OriginTransferOptions {
         // Show transferring status
         ui.status(
             Status::Transferring,
-            format!(
-                "ownership of origin {} to {}.",
-                self.origin, self.new_owner_account
-            ),
+            format!("ownership of origin {} to {}.", self.origin, self.new_owner_account),
         )?;
 
         // Call the transfer API and handle outcomes

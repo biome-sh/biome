@@ -43,12 +43,7 @@ pub struct PipeHookClient {
 }
 
 impl PipeHookClient {
-    pub fn new(
-        hook_name: String,
-        hook_path: PathBuf,
-        stdout_log_file: PathBuf,
-        stderr_log_file: PathBuf,
-    ) -> Self {
+    pub fn new(hook_name: String, hook_path: PathBuf, stdout_log_file: PathBuf, stderr_log_file: PathBuf) -> Self {
         let pipe_name = format!("{}-hook-{}", hook_name, Uuid::new_v4());
         Self {
             hook_name,
@@ -59,12 +54,7 @@ impl PipeHookClient {
         }
     }
 
-    pub fn exec_hook<T>(
-        &self,
-        service_group: &str,
-        pkg: &Pkg,
-        svc_encrypted_password: Option<T>,
-    ) -> Result<u32>
+    pub fn exec_hook<T>(&self, service_group: &str, pkg: &Pkg, svc_encrypted_password: Option<T>) -> Result<u32>
     where
         T: ToString,
     {
@@ -85,10 +75,7 @@ impl PipeHookClient {
         File::create(&self.stderr_log_file)?;
 
         let (mut pipe, mut poll) = self.connect()?;
-        debug!(
-            "connected to {} {} hook pipe",
-            service_group, self.hook_name
-        );
+        debug!("connected to {} {} hook pipe", service_group, self.hook_name);
 
         // The powershell server takes a single byte as input which will be either
         // 0 to shut down (see drop below) or 1 to run the hook
@@ -131,9 +118,7 @@ impl PipeHookClient {
 
     fn connect(&self) -> Result<(NamedPipe, Poll)> {
         let mut opts = OpenOptions::new();
-        opts.read(true)
-            .write(true)
-            .custom_flags(winbase::FILE_FLAG_OVERLAPPED);
+        opts.read(true).write(true).custom_flags(winbase::FILE_FLAG_OVERLAPPED);
         let file = opts.open(self.abs_pipe_name())?;
 
         let mut pipe = unsafe { NamedPipe::from_raw_handle(file.into_raw_handle()) };
@@ -143,12 +128,7 @@ impl PipeHookClient {
         Ok((pipe, poll))
     }
 
-    fn start_server<T>(
-        &self,
-        service_group: &str,
-        pkg: &Pkg,
-        svc_encrypted_password: Option<T>,
-    ) -> Result<()>
+    fn start_server<T>(&self, service_group: &str, pkg: &Pkg, svc_encrypted_password: Option<T>) -> Result<()>
     where
         T: ToString,
     {
@@ -168,12 +148,7 @@ impl PipeHookClient {
         );
 
         // Start instance of powershell to host named pipe server for this client
-        let child = util::spawn_pwsh(
-            &ps_cmd,
-            &pkg.env.to_hash_map(),
-            &pkg.svc_user,
-            svc_encrypted_password,
-        )?;
+        let child = util::spawn_pwsh(&ps_cmd, &pkg.env.to_hash_map(), &pkg.svc_user, svc_encrypted_password)?;
         debug!(
             "spawned powershell server for {} {} hook on pipe: {}",
             service_group, self.hook_name, self.pipe_name
@@ -192,19 +167,13 @@ impl PipeHookClient {
         // stream its stdout/err in separate threads
         if let Some(o) = out {
             thread::Builder::new()
-                .name(format!(
-                    "{}-{}-pipe-server-out",
-                    service_group, self.hook_name
-                ))
+                .name(format!("{}-{}-pipe-server-out", service_group, self.hook_name))
                 .spawn(move || stream_output(o, &out_path, &preamble_out_str))
                 .ok();
         }
         if let Some(e) = err {
             thread::Builder::new()
-                .name(format!(
-                    "{}-{}-pipe-server-err",
-                    service_group, self.hook_name
-                ))
+                .name(format!("{}-{}-pipe-server-err", service_group, self.hook_name))
                 .spawn(move || stream_output(e, &err_path, &preamble_err_str))
                 .ok();
         }
@@ -218,9 +187,7 @@ impl PipeHookClient {
                 Ok(_) => return Ok(()),
                 Err(err) => {
                     if start.elapsed() >= timeout {
-                        self.win32_result(unsafe {
-                            processthreadsapi::TerminateProcess(handle.raw(), 1)
-                        })?;
+                        self.win32_result(unsafe { processthreadsapi::TerminateProcess(handle.raw(), 1) })?;
                         return Err(Error::NamedPipeTimeoutOnStart(
                             service_group.to_string(),
                             self.hook_name.to_string(),
@@ -236,10 +203,7 @@ impl PipeHookClient {
     // Simple call to win32 API to see if named pipe exists.
     // Note that we cannot use Path::exists for named pipes
     fn pipe_wait(&self) -> io::Result<()> {
-        let pipe_path: Vec<u16> = OsStr::new(&self.abs_pipe_name())
-            .encode_wide()
-            .chain(once(0))
-            .collect();
+        let pipe_path: Vec<u16> = OsStr::new(&self.abs_pipe_name()).encode_wide().chain(once(0)).collect();
         // Note that WaitNamedPipeW will error immediately if the pipe has not yet
         // been created. The timeout is honored if the pipe exists and then the
         // waits for it to be ready for clients
@@ -260,21 +224,14 @@ impl PipeHookClient {
     }
 
     fn win32_result(&self, i: i32) -> io::Result<i32> {
-        if i == 0 {
-            Err(io::Error::last_os_error())
-        } else {
-            Ok(i)
-        }
+        if i == 0 { Err(io::Error::last_os_error()) } else { Ok(i) }
     }
 }
 
 impl Drop for PipeHookClient {
     fn drop(&mut self) {
         if let Err(err) = self.quit() {
-            error!(
-                "Unable to tell {} pipe server to quit. {}",
-                self.pipe_name, err
-            );
+            error!("Unable to tell {} pipe server to quit. {}", self.pipe_name, err);
         }
     }
 }
@@ -351,7 +308,7 @@ mod tests {
             PathBuf::from("/tmp"),
             PathBuf::from("/tmp"),
         );
-        Pkg::from_install(&pkg_install).await.unwrap()
+        Pkg::from_install(&pkg_install, None).await.unwrap()
     }
 
     #[tokio::test]
@@ -369,9 +326,7 @@ mod tests {
             tmpdir.path().join("err.log"),
         );
 
-        let exit = client
-            .exec_hook("tg1", &pkg().await, None::<String>)
-            .unwrap();
+        let exit = client.exec_hook("tg1", &pkg().await, None::<String>).unwrap();
 
         assert_eq!(5000, exit);
     }
@@ -391,9 +346,7 @@ mod tests {
             tmpdir.path().join("err.log"),
         );
 
-        let exit = client
-            .exec_hook("tg2", &pkg().await, None::<String>)
-            .unwrap();
+        let exit = client.exec_hook("tg2", &pkg().await, None::<String>).unwrap();
 
         assert_eq!(0, exit);
     }
@@ -413,9 +366,7 @@ mod tests {
             tmpdir.path().join("err.log"),
         );
 
-        client
-            .exec_hook("tg3", &pkg().await, None::<String>)
-            .unwrap();
+        client.exec_hook("tg3", &pkg().await, None::<String>).unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -438,9 +389,7 @@ mod tests {
             tmpdir.path().join("err.log"),
         );
 
-        client
-            .exec_hook("tg4", &pkg().await, None::<String>)
-            .unwrap();
+        client.exec_hook("tg4", &pkg().await, None::<String>).unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -463,12 +412,8 @@ mod tests {
             tmpdir.path().join("err.log"),
         );
 
-        let pid1 = client
-            .exec_hook("tg5", &pkg().await, None::<String>)
-            .unwrap();
-        let pid2 = client
-            .exec_hook("tg5", &pkg().await, None::<String>)
-            .unwrap();
+        let pid1 = client.exec_hook("tg5", &pkg().await, None::<String>).unwrap();
+        let pid2 = client.exec_hook("tg5", &pkg().await, None::<String>).unwrap();
 
         assert_eq!(pid1, pid2);
     }
@@ -477,10 +422,7 @@ mod tests {
     async fn pipe_hook_client_start_server_terminates_failed_server() {
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("fake-server.ps1");
-        create_with_content(
-            &path,
-            "write-host $PID;while($true){Start-Sleep -Seconds 5}",
-        );
+        create_with_content(&path, "write-host $PID;while($true){Start-Sleep -Seconds 5}");
         let var = pipe_service_path();
         var.set(&path);
         let client = PipeHookClient::new(
@@ -498,10 +440,7 @@ mod tests {
 
         assert!(result.is_err());
         assert!(!process::is_alive(
-            pid_str
-                .trim()
-                .parse::<process::Pid>()
-                .expect("could no parse pid")
+            pid_str.trim().parse::<process::Pid>().expect("could no parse pid")
         ));
     }
 
@@ -572,18 +511,14 @@ mod tests {
             tmpdir.path().join("err.log"),
         );
 
-        let pid1 = client
-            .exec_hook("tg9", &pkg().await, None::<String>)
-            .unwrap();
+        let pid1 = client.exec_hook("tg9", &pkg().await, None::<String>).unwrap();
 
         let handle = process::handle_from_pid(pid1).expect("unable to get handle to pipe server");
         unsafe {
             processthreadsapi::TerminateProcess(handle, 1);
         }
 
-        let pid2 = client
-            .exec_hook("tg9", &pkg().await, None::<String>)
-            .unwrap();
+        let pid2 = client.exec_hook("tg9", &pkg().await, None::<String>).unwrap();
 
         assert_ne!(pid1, pid2);
     }
@@ -594,10 +529,7 @@ mod tests {
         var.set(named_pipe_service_ps1());
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("health-check");
-        create_with_content(
-            &path,
-            "if($env:test_var) { exit 10 } else { $env:test_var=1;exit 0 }",
-        );
+        create_with_content(&path, "if($env:test_var) { exit 10 } else { $env:test_var=1;exit 0 }");
 
         let client = PipeHookClient::new(
             "test".to_string(),
@@ -606,12 +538,8 @@ mod tests {
             tmpdir.path().join("err.log"),
         );
 
-        let exit1 = client
-            .exec_hook("tg10", &pkg().await, None::<String>)
-            .unwrap();
-        let exit2 = client
-            .exec_hook("tg10", &pkg().await, None::<String>)
-            .unwrap();
+        let exit1 = client.exec_hook("tg10", &pkg().await, None::<String>).unwrap();
+        let exit2 = client.exec_hook("tg10", &pkg().await, None::<String>).unwrap();
 
         assert_eq!(0, exit1);
         assert_eq!(0, exit2);
@@ -633,9 +561,7 @@ mod tests {
                 tmpdir.path().join("err.log"),
             );
 
-            client
-                .exec_hook("tg11", &pkg().await, None::<String>)
-                .unwrap()
+            client.exec_hook("tg11", &pkg().await, None::<String>).unwrap()
         };
         let handle = process::handle_from_pid(pid).expect("unable to get handle to pipe server");
         unsafe {
@@ -660,9 +586,7 @@ mod tests {
             tmpdir.path().join("err.log"),
         );
 
-        let exit = client
-            .exec_hook("tg12", &pkg().await, None::<String>)
-            .unwrap();
+        let exit = client.exec_hook("tg12", &pkg().await, None::<String>).unwrap();
 
         assert_eq!(3, exit);
     }
@@ -682,12 +606,8 @@ mod tests {
             tmpdir.path().join("err.log"),
         );
 
-        client
-            .exec_hook("tg13", &pkg().await, None::<String>)
-            .unwrap();
-        client
-            .exec_hook("tg13", &pkg().await, None::<String>)
-            .unwrap();
+        client.exec_hook("tg13", &pkg().await, None::<String>).unwrap();
+        client.exec_hook("tg13", &pkg().await, None::<String>).unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -713,12 +633,8 @@ mod tests {
             tmpdir.path().join("err.log"),
         );
 
-        client
-            .exec_hook("tg14", &pkg().await, None::<String>)
-            .unwrap();
-        client
-            .exec_hook("tg14", &pkg().await, None::<String>)
-            .unwrap();
+        client.exec_hook("tg14", &pkg().await, None::<String>).unwrap();
+        client.exec_hook("tg14", &pkg().await, None::<String>).unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -745,9 +661,7 @@ mod tests {
             tmpdir.path().join("err.log"),
         );
 
-        let exit = client
-            .exec_hook("tg15", &pkg().await, None::<String>)
-            .unwrap();
+        let exit = client.exec_hook("tg15", &pkg().await, None::<String>).unwrap();
 
         assert_eq!(std::process::id(), exit);
     }

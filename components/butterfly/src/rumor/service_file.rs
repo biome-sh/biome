@@ -59,12 +59,7 @@ impl PartialEq for ServiceFile {
 
 impl ServiceFile {
     /// Creates a new ServiceFile.
-    pub fn new<S1, S2>(
-        member_id: S1,
-        service_group: ServiceGroup,
-        filename: S2,
-        body: Vec<u8>,
-    ) -> Self
+    pub fn new<S1, S2>(member_id: S1, service_group: ServiceGroup, filename: S2, body: Vec<u8>) -> Self
     where
         S1: Into<String>,
         S2: Into<String>,
@@ -117,9 +112,7 @@ impl FromProto<ProtoRumor> for ServiceFile {
                 .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
             incarnation: payload.incarnation.unwrap_or(0),
             encrypted: payload.encrypted.unwrap_or(false),
-            filename: payload
-                .filename
-                .ok_or(Error::ProtocolMismatch("filename"))?,
+            filename: payload.filename.ok_or(Error::ProtocolMismatch("filename"))?,
             body: payload.body.unwrap_or_default(),
         })
     }

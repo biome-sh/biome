@@ -176,25 +176,13 @@ mod tests {
         {
             let lock = lock_var();
             lock.set("foo");
-            assert_eq!(
-                env::var("BIO_TESTING_LOCKED_ENV_VAR"),
-                Ok(String::from("foo"))
-            );
+            assert_eq!(env::var("BIO_TESTING_LOCKED_ENV_VAR"), Ok(String::from("foo")));
             lock.set("bar");
-            assert_eq!(
-                env::var("BIO_TESTING_LOCKED_ENV_VAR"),
-                Ok(String::from("bar"))
-            );
+            assert_eq!(env::var("BIO_TESTING_LOCKED_ENV_VAR"), Ok(String::from("bar")));
             lock.set("foobar");
-            assert_eq!(
-                env::var("BIO_TESTING_LOCKED_ENV_VAR"),
-                Ok(String::from("foobar"))
-            );
+            assert_eq!(env::var("BIO_TESTING_LOCKED_ENV_VAR"), Ok(String::from("foobar")));
             lock.unset();
-            assert_eq!(
-                env::var("BIO_TESTING_LOCKED_ENV_VAR"),
-                Err(VarError::NotPresent)
-            );
+            assert_eq!(env::var("BIO_TESTING_LOCKED_ENV_VAR"), Err(VarError::NotPresent));
         }
 
         assert_eq!(

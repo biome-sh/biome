@@ -371,11 +371,7 @@ pub trait Config: Default + FromStr {
     ///
     /// By default, we log a message at the `warn` level.
     fn log_parsable(env_value: &str) {
-        warn!(
-            "Found '{}' in environment; using value '{}'",
-            Self::ENVVAR,
-            env_value
-        );
+        warn!("Found '{}' in environment; using value '{}'", Self::ENVVAR, env_value);
     }
 
     /// Overridable function for logging when an environment variable

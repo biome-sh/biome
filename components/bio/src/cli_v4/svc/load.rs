@@ -47,11 +47,7 @@ impl TryFrom<LoadCommand> for biome_sup_protocol::ctl::SvcLoad {
     type Error = BioError;
 
     fn try_from(cmd: LoadCommand) -> BioResult<Self> {
-        shared_load_cli_to_ctl(
-            cmd.pkg_ident.unwrap().pkg_ident(),
-            cmd.shared_load,
-            cmd.force,
-        )
+        shared_load_cli_to_ctl(cmd.pkg_ident.unwrap().pkg_ident(), cmd.shared_load, cmd.force)
     }
 }
 

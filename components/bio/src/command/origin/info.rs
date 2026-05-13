@@ -7,13 +7,7 @@ use crate::{
 
 use biome_core::util::text_render::{PortableText, TabularText};
 
-pub async fn start(
-    ui: &mut UI,
-    bldr_url: &str,
-    token: &str,
-    origin: &str,
-    to_json: bool,
-) -> Result<()> {
+pub async fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, to_json: bool) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     match api_client.origin_info(token, origin).await {

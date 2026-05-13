@@ -45,16 +45,10 @@ pub async fn start(
     ui.begin(format!("Demoting {} ({}) from {}", ident, target, channel))?;
 
     if channel == &ChannelIdent::unstable() {
-        return Err(Error::CannotRemoveFromChannel((
-            ident.to_string(),
-            channel.to_string(),
-        )));
+        return Err(Error::CannotRemoveFromChannel((ident.to_string(), channel.to_string())));
     }
 
-    match api_client
-        .demote_package((ident, target), channel, token)
-        .await
-    {
+    match api_client.demote_package((ident, target), channel, token).await {
         Ok(_) => (),
         Err(e) => {
             println!("Failed to demote '{}': {:?}", ident, e);

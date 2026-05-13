@@ -132,9 +132,7 @@ impl FromProto<newscast::Rumor> for Service {
             _ => panic!("from-bytes service"),
         };
         Ok(Service {
-            member_id: payload
-                .member_id
-                .ok_or(Error::ProtocolMismatch("member-id"))?,
+            member_id: payload.member_id.ok_or(Error::ProtocolMismatch("member-id"))?,
             service_group: payload
                 .service_group
                 .ok_or(Error::ProtocolMismatch("service-group"))
@@ -347,13 +345,7 @@ mod tests {
     fn service_package_name_mismatch() {
         let ident = PackageIdent::from_str("core/overwatch/1.2.3/20161208121212").unwrap();
         let sg = ServiceGroup::new("counter-strike", "times", Some("ofgrace")).unwrap();
-        Service::new(
-            "bad-member".to_string(),
-            &ident,
-            sg,
-            SysInfo::default(),
-            None,
-        );
+        Service::new("bad-member".to_string(), &ident, sg, SysInfo::default(), None);
     }
 
     #[test]

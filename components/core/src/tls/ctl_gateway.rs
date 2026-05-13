@@ -5,10 +5,7 @@ use crate::{
     crypto::keys::NamedRevision,
     tls::rustls_wrapper::{self, Error as RustlsReadersError},
 };
-use rcgen::{
-    CertificateParams, DistinguishedName, DnType, Error as RcgenError, KeyPair,
-    PKCS_ECDSA_P256_SHA256,
-};
+use rcgen::{CertificateParams, DistinguishedName, DnType, Error as RcgenError, KeyPair, PKCS_ECDSA_P256_SHA256};
 
 use rustls::{
     RootCertStore,
@@ -57,15 +54,11 @@ pub fn generate_self_signed_certificate_and_key(
     fs::create_dir_all(&path)?;
     let named_revision = NamedRevision::new(NAME_PREFIX.to_string());
 
-    let crt_path = path
-        .as_ref()
-        .join(format!("{}.{}", named_revision, CRT_EXTENSION));
+    let crt_path = path.as_ref().join(format!("{}.{}", named_revision, CRT_EXTENSION));
     let mut crt_file = File::create(crt_path)?;
     crt_file.write_all(crt.as_bytes())?;
 
-    let key_path = path
-        .as_ref()
-        .join(format!("{}.{}", named_revision, KEY_EXTENSION));
+    let key_path = path.as_ref().join(format!("{}.{}", named_revision, KEY_EXTENSION));
     let mut key_file = File::create(key_path)?;
     key_file.write_all(key.as_bytes())?;
 
@@ -110,14 +103,9 @@ mod tests {
     fn ctl_gateway_generate_and_read_tls_files() {
         let tmpdir = TempDir::new().unwrap();
 
-        generate_self_signed_certificate_and_key(
-            &DnsName::try_from("a_test_domain").unwrap(),
-            &tmpdir,
-        )
-        .unwrap();
+        generate_self_signed_certificate_and_key(&DnsName::try_from("a_test_domain").unwrap(), &tmpdir).unwrap();
         assert_eq!(fs::read_dir(&tmpdir).unwrap().count(), 2);
-        let first_path =
-            get_last_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();
+        let first_path = get_last_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();
         let certificates = latest_certificates(&tmpdir).unwrap();
         assert_eq!(certificates.len(), 1);
         latest_private_key(&tmpdir).unwrap();
@@ -128,14 +116,9 @@ mod tests {
         // name.
         std::thread::sleep(Duration::from_secs(2));
 
-        generate_self_signed_certificate_and_key(
-            &DnsName::try_from("another_domain").unwrap(),
-            &tmpdir,
-        )
-        .unwrap();
+        generate_self_signed_certificate_and_key(&DnsName::try_from("another_domain").unwrap(), &tmpdir).unwrap();
         assert_eq!(fs::read_dir(&tmpdir).unwrap().count(), 4);
-        let second_path =
-            get_last_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();
+        let second_path = get_last_path(&tmpdir, &format!("{}-*.{}", NAME_PREFIX, CRT_EXTENSION)).unwrap();
         let certificates = latest_certificates(&tmpdir).unwrap();
         assert_eq!(certificates.len(), 1);
         latest_private_key(&tmpdir).unwrap();

@@ -135,10 +135,7 @@ pub fn sup_root(custom_state_path: Option<&PathBuf>) -> PathBuf {
 /// Given an Environment variable name, attempts to parse a SocketAddr from it.
 /// If the Environment variable is empty or unparseable, returns the default as passed in.
 pub fn socket_addr_env_or_default(env_var: &str, default: SocketAddr) -> SocketAddr {
-    henv::var(env_var)
-        .unwrap_or_default()
-        .parse()
-        .unwrap_or(default)
+    henv::var(env_var).unwrap_or_default().parse().unwrap_or(default)
 }
 
 #[cfg(test)]

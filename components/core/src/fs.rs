@@ -25,30 +25,69 @@ use std::{
 };
 
 /// The default root path of the Biome filesystem
+#[cfg(not(target_os = "macos"))]
 pub const ROOT_PATH: &str = "bio";
+#[cfg(target_os = "macos")]
+pub const ROOT_PATH: &str = "opt/bio";
+
 /// The default cache path
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_PATH: &str = "bio/cache";
+#[cfg(target_os = "macos")]
+pub const CACHE_PATH: &str = "opt/bio/cache";
+
 /// The default download root path for package artifacts, used on package installation
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_ARTIFACT_PATH: &str = "bio/cache/artifacts";
+#[cfg(target_os = "macos")]
+pub const CACHE_ARTIFACT_PATH: &str = "opt/bio/cache/artifacts";
+
 /// The default path where bio-plan-build scripts are written, used for native package builds
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_BUILD_PATH: &str = "bio/cache/build";
+#[cfg(target_os = "macos")]
+pub const CACHE_BUILD_PATH: &str = "opt/bio/cache/build";
+
 /// The default path where cryptographic keys are stored
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_KEY_PATH_POSTFIX: &str = "bio/cache/keys";
+#[cfg(target_os = "macos")]
+pub const CACHE_KEY_PATH_POSTFIX: &str = "opt/bio/cache/keys";
+
 /// The default path for ctl gateway TLS certificate and keys
+#[cfg(not(target_os = "macos"))]
 pub const BIO_CTL_KEYS_CACHE: &str = "/bio/cache/keys/ctl";
+#[cfg(target_os = "macos")]
+pub const BIO_CTL_KEYS_CACHE: &str = "/opt/bio/cache/keys/ctl";
+
 /// The default path where source artifacts are downloaded, extracted, & compiled
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_SRC_PATH: &str = "bio/cache/src";
+#[cfg(target_os = "macos")]
+pub const CACHE_SRC_PATH: &str = "opt/bio/cache/src";
+
 /// The default path where SSL-related artifacts are placed
+#[cfg(not(target_os = "macos"))]
 pub const CACHE_SSL_PATH: &str = "bio/cache/ssl";
+#[cfg(target_os = "macos")]
+pub const CACHE_SSL_PATH: &str = "opt/bio/cache/ssl";
+
 /// The root path for the launcher runtime
+#[cfg(not(target_os = "macos"))]
 pub const LAUNCHER_ROOT_PATH: &str = "bio/launcher";
+#[cfg(target_os = "macos")]
+pub const LAUNCHER_ROOT_PATH: &str = "opt/bio/launcher";
+
 /// The root path containing all locally installed packages
 /// Because this value is used in template rendering, we
 /// use native directory separator
-#[cfg(not(target_os = "windows"))]
+#[cfg(target_os = "linux")]
 pub const PKG_PATH: &str = "bio/pkgs";
+#[cfg(target_os = "macos")]
+pub const PKG_PATH: &str = "opt/bio/pkgs";
 #[cfg(target_os = "windows")]
 pub const PKG_PATH: &str = "bio\\pkgs";
+
 /// The environment variable pointing to the filesystem root. This exists for internal Biome team
 /// usage and is not intended to be used by Biome consumers. Using this variable could lead to
 /// broken Supervisor services and should be used with extreme caution. The services may break due
@@ -153,11 +192,11 @@ lazy_static::lazy_static! {
 
     /// The root path containing all runtime service directories and files
     pub static ref SVC_ROOT: PathBuf = {
-        Path::new(&*FS_ROOT_PATH).join("bio").join("svc")
+        Path::new(&*FS_ROOT_PATH).join(ROOT_PATH).join("svc")
     };
 
     pub static ref USER_ROOT: PathBuf = {
-        Path::new(&*FS_ROOT_PATH).join("bio").join("user")
+        Path::new(&*FS_ROOT_PATH).join(ROOT_PATH).join("user")
     };
 
     static ref EUID: u32 = users::get_effective_uid();
@@ -167,7 +206,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_PATH)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_PATH)),
+                Some(home) => home.join(format!(".{}", CACHE_PATH.strip_prefix("opt/").unwrap_or(CACHE_PATH))),
                 None => PathBuf::from(CACHE_PATH),
             }
         }
@@ -178,7 +217,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_ARTIFACT_PATH)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_ARTIFACT_PATH)),
+                Some(home) => home.join(format!(".{}", CACHE_ARTIFACT_PATH.strip_prefix("opt/").unwrap_or(CACHE_ARTIFACT_PATH))),
                 None => PathBuf::from(CACHE_ARTIFACT_PATH),
             }
         }
@@ -189,7 +228,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_BUILD_PATH)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_BUILD_PATH)),
+                Some(home) => home.join(format!(".{}", CACHE_BUILD_PATH.strip_prefix("opt/").unwrap_or(CACHE_BUILD_PATH))),
                 None => PathBuf::from(CACHE_BUILD_PATH),
             }
         }
@@ -200,7 +239,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_KEY_PATH_POSTFIX)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_KEY_PATH_POSTFIX)),
+                Some(home) => home.join(format!(".{}", CACHE_KEY_PATH_POSTFIX.strip_prefix("opt/").unwrap_or(CACHE_KEY_PATH_POSTFIX))),
                 None => PathBuf::from(CACHE_KEY_PATH_POSTFIX),
             }
         }
@@ -214,7 +253,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_SRC_PATH)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_SRC_PATH)),
+                Some(home) => home.join(format!(".{}", CACHE_SRC_PATH.strip_prefix("opt/").unwrap_or(CACHE_SRC_PATH))),
                 None => PathBuf::from(CACHE_SRC_PATH),
             }
         }
@@ -225,7 +264,7 @@ lazy_static::lazy_static! {
             PathBuf::from(CACHE_SSL_PATH)
         } else {
             match dirs::home_dir() {
-                Some(home) => home.join(format!(".{}", CACHE_SSL_PATH)),
+                Some(home) => home.join(format!(".{}", CACHE_SSL_PATH.strip_prefix("opt/").unwrap_or(CACHE_SSL_PATH))),
                 None => PathBuf::from(CACHE_SSL_PATH),
             }
         }
@@ -474,14 +513,8 @@ impl<'a> SvcDir<'a> {
     /// versions of a service that have been removed from the current
     /// version.
     pub fn purge_templated_content(&self) -> Result<()> {
-        for dir_path in &[
-            svc_config_path(self.service_name),
-            svc_hooks_path(self.service_name),
-        ] {
-            debug!(
-                "Purging any old templated content from {}",
-                dir_path.display()
-            );
+        for dir_path in &[svc_config_path(self.service_name), svc_hooks_path(self.service_name)] {
+            debug!("Purging any old templated content from {}", dir_path.display());
             Self::purge_directory_content(dir_path)?;
         }
         Ok(())
@@ -681,11 +714,7 @@ where
 /// # Failures
 ///
 /// * The path entries metadata cannot be loaded
-pub fn find_command_in_pkg<T, U>(
-    command: T,
-    pkg_install: &PackageInstall,
-    fs_root_path: U,
-) -> Result<Option<PathBuf>>
+pub fn find_command_in_pkg<T, U>(command: T, pkg_install: &PackageInstall, fs_root_path: U) -> Result<Option<PathBuf>>
 where
     T: AsRef<Path>,
     U: AsRef<Path>,
@@ -717,25 +746,23 @@ where
 pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
     let ident = PackageIdent::from_str(ident_str).unwrap();
     let abs_path = match PackageInstall::load(&ident, None) {
-        Ok(ref pkg_install) => {
-            match find_command_in_pkg(program, pkg_install, Path::new(&*FS_ROOT_PATH)) {
-                Ok(Some(p)) => p,
-                Ok(None) => {
-                    panic!(
-                        "Could not find '{}' in the '{}' package! This is required for the \
+        Ok(ref pkg_install) => match find_command_in_pkg(program, pkg_install, Path::new(&*FS_ROOT_PATH)) {
+            Ok(Some(p)) => p,
+            Ok(None) => {
+                panic!(
+                    "Could not find '{}' in the '{}' package! This is required for the \
                             proper operation of this program.",
-                        program, &ident
-                    )
-                }
-                Err(err) => {
-                    panic!(
-                        "Error finding '{}' in the '{}' package! This is required for the \
-                            proper operation of this program. (Err: {:?})",
-                        program, &ident, err
-                    )
-                }
+                    program, &ident
+                )
             }
-        }
+            Err(err) => {
+                panic!(
+                    "Error finding '{}' in the '{}' package! This is required for the \
+                            proper operation of this program. (Err: {:?})",
+                    program, &ident, err
+                )
+            }
+        },
         Err(err) => {
             panic!(
                 "Package installation for '{}' not found on disk! This is required for the \
@@ -796,10 +823,7 @@ fn parent(p: &Path) -> io::Result<&Path> {
     match p.parent() {
         Some(parent_path) if parent_path.as_os_str().is_empty() => Ok(Path::new(".")),
         Some(nonempty_parent_path) => Ok(nonempty_parent_path),
-        None => Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "path has no parent",
-        )),
+        None => Err(io::Error::new(io::ErrorKind::InvalidInput, "path has no parent")),
     }
 }
 
@@ -869,8 +893,7 @@ impl AtomicWriter {
             #[cfg(not(windows))]
             let permissions = *permissions;
 
-            set_permissions(self.tempfile.path(), permissions)
-                .map_err(|e| io::Error::other(e.to_string()))?;
+            set_permissions(self.tempfile.path(), permissions).map_err(|e| io::Error::other(e.to_string()))?;
         }
         self.tempfile.as_file().sync_all()?;
 
@@ -895,10 +918,7 @@ impl AtomicWriter {
             // if the filesystem does not support calling fsync() on
             // directories. libc's EINVAL is mapped to InvalidInput.
             if e.kind() == std::io::ErrorKind::InvalidInput {
-                info!(
-                    "Ignoring InvalidInput from sync_all on {}",
-                    parent.to_string_lossy()
-                );
+                info!("Ignoring InvalidInput from sync_all on {}", parent.to_string_lossy());
                 Ok(())
             } else {
                 Err(e)
@@ -927,8 +947,7 @@ fn rename_windows<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<
         if MoveFileExW(
             windows_u16s(from.as_ref()).as_ptr(),
             windows_u16s(to.as_ref()).as_ptr(),
-            winapi::um::winbase::MOVEFILE_WRITE_THROUGH
-                | winapi::um::winbase::MOVEFILE_REPLACE_EXISTING,
+            winapi::um::winbase::MOVEFILE_WRITE_THROUGH | winapi::um::winbase::MOVEFILE_REPLACE_EXISTING,
         ) == 0
         {
             Err(io::Error::last_os_error())
@@ -950,18 +969,11 @@ fn rename_unix<P: AsRef<Path>, Q: AsRef<Path> + std::convert::AsRef<std::path::P
 
 /// atomic_rename is a cross platform  helper function for renaming a file atomically with
 /// durability guarantees.
-pub fn atomic_rename<
-    P: AsRef<Path>,
-    Q: AsRef<Path> + std::convert::AsRef<std::path::Path> + Copy,
->(
+pub fn atomic_rename<P: AsRef<Path>, Q: AsRef<Path> + std::convert::AsRef<std::path::Path> + Copy>(
     from: P,
     to: Q,
 ) -> io::Result<()> {
-    debug!(
-        "Renaming {} to {}",
-        from.as_ref().display(),
-        to.as_ref().display()
-    );
+    debug!("Renaming {} to {}", from.as_ref().display(), to.as_ref().display());
     #[cfg(windows)]
     return rename_windows(from, to);
     #[cfg(unix)]
@@ -1032,11 +1044,7 @@ mod test_find_command {
 
     #[allow(dead_code)]
     fn setup_pathext(lock: &LockedEnvVar) {
-        let path_bufs = vec![
-            PathBuf::from(".BAT"),
-            PathBuf::from(".COM"),
-            PathBuf::from(".EXE"),
-        ];
+        let path_bufs = vec![PathBuf::from(".BAT"), PathBuf::from(".COM"), PathBuf::from(".EXE")];
         let new_path = env::join_paths(path_bufs).unwrap();
         lock.set(new_path);
     }
@@ -1269,8 +1277,7 @@ mod test_atomic_writer {
         assert!(res.is_ok());
         let mut f = File::open(dest_file_path).expect("file not found");
         let mut actual_content = String::new();
-        f.read_to_string(&mut actual_content)
-            .expect("failed to read file");
+        f.read_to_string(&mut actual_content).expect("failed to read file");
         assert_eq!(EXPECTED_CONTENT, actual_content);
     }
 
@@ -1293,8 +1300,7 @@ mod test_atomic_writer {
 
         let mut f = File::open(dest_file_path).expect("file not found");
         let mut actual_content = String::new();
-        f.read_to_string(&mut actual_content)
-            .expect("failed to read file");
+        f.read_to_string(&mut actual_content).expect("failed to read file");
         assert_eq!(EXPECTED_CONTENT, actual_content);
     }
 }

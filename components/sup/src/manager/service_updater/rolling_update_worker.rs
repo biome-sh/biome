@@ -235,9 +235,7 @@ impl RollingUpdateWorker {
                                 "leader with member id {} has incarnation {} that is not \
                                     caught up with the census group incarnation {}, waiting for \
                                     update to start",
-                                leader.member_id,
-                                leader.pkg_incarnation,
-                                census_group.pkg_incarnation
+                                leader.member_id, leader.pkg_incarnation, census_group.pkg_incarnation
                             );
                         }
 
@@ -319,9 +317,7 @@ impl RollingUpdateWorker {
                             debug!(
                                 "leader with member id {} has incarnation {} that is not \
                                     caught up with the census group incarnation {}",
-                                leader.member_id,
-                                leader.pkg_incarnation,
-                                census_group.pkg_incarnation
+                                leader.member_id, leader.pkg_incarnation, census_group.pkg_incarnation
                             );
                         } else if peer.pkg_incarnation == leader.pkg_incarnation {
                             // It is now this followers turn. The previous peer is done updating.
@@ -387,16 +383,12 @@ impl RollingUpdateWorker {
         loop {
             {
                 let census_ring = RwLockReadGuardRef::new(self.census_ring.read().into());
-                let maybe_census_group = census_ring.try_map(|census_ring| {
-                    census_ring.census_group_for(&self.service_group).ok_or(())
-                });
+                let maybe_census_group =
+                    census_ring.try_map(|census_ring| census_ring.census_group_for(&self.service_group).ok_or(()));
                 if let Ok(census_group) = maybe_census_group {
                     break census_group;
                 } else {
-                    warn!(
-                        "'{}' rolling update could not find census group",
-                        self.service_group
-                    );
+                    warn!("'{}' rolling update could not find census group", self.service_group);
                 }
             }
             time::sleep(DELAY).await;

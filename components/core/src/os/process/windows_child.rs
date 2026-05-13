@@ -27,8 +27,8 @@ use winapi::{
         minwindef::{BOOL, DWORD, FALSE, HWINSTA, LPVOID, TRUE},
         windef::HDESK,
         winerror::{
-            ERROR_ACCESS_DENIED, ERROR_BROKEN_PIPE, ERROR_HANDLE_EOF, ERROR_INVALID_PARAMETER,
-            ERROR_IO_PENDING, ERROR_LOGON_TYPE_NOT_GRANTED, ERROR_PRIVILEGE_NOT_HELD,
+            ERROR_ACCESS_DENIED, ERROR_BROKEN_PIPE, ERROR_HANDLE_EOF, ERROR_INVALID_PARAMETER, ERROR_IO_PENDING,
+            ERROR_LOGON_TYPE_NOT_GRANTED, ERROR_PRIVILEGE_NOT_HELD,
         },
     },
     um::{
@@ -37,21 +37,17 @@ use winapi::{
         ioapiset,
         minwinbase::{LPSECURITY_ATTRIBUTES, OVERLAPPED, SECURITY_ATTRIBUTES},
         namedpipeapi,
-        processthreadsapi::{
-            self, LPPROCESS_INFORMATION, LPSTARTUPINFOW, PROCESS_INFORMATION, STARTUPINFOW,
-        },
+        processthreadsapi::{self, LPPROCESS_INFORMATION, LPSTARTUPINFOW, PROCESS_INFORMATION, STARTUPINFOW},
         synchapi,
         winbase::{
             CREATE_NEW_PROCESS_GROUP, CREATE_UNICODE_ENVIRONMENT, FILE_FLAG_FIRST_PIPE_INSTANCE,
-            FILE_FLAG_OPEN_REPARSE_POINT, FILE_FLAG_OVERLAPPED, INFINITE, PIPE_ACCESS_INBOUND,
-            PIPE_ACCESS_OUTBOUND, PIPE_READMODE_BYTE, PIPE_REJECT_REMOTE_CLIENTS, PIPE_TYPE_BYTE,
-            PIPE_WAIT, SECURITY_SQOS_PRESENT, STARTF_USESTDHANDLES, STD_ERROR_HANDLE,
-            STD_INPUT_HANDLE, STD_OUTPUT_HANDLE, WAIT_OBJECT_0,
+            FILE_FLAG_OPEN_REPARSE_POINT, FILE_FLAG_OVERLAPPED, INFINITE, PIPE_ACCESS_INBOUND, PIPE_ACCESS_OUTBOUND,
+            PIPE_READMODE_BYTE, PIPE_REJECT_REMOTE_CLIENTS, PIPE_TYPE_BYTE, PIPE_WAIT, SECURITY_SQOS_PRESENT,
+            STARTF_USESTDHANDLES, STD_ERROR_HANDLE, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE, WAIT_OBJECT_0,
         },
         winnt::{
-            ACCESS_MASK, FILE_GENERIC_WRITE, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE,
-            FILE_WRITE_DATA, GENERIC_READ, GENERIC_WRITE, HANDLE, LPCWSTR, LPWSTR, MAXDWORD,
-            PHANDLE, READ_CONTROL, WRITE_DAC,
+            ACCESS_MASK, FILE_GENERIC_WRITE, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_WRITE_DATA,
+            GENERIC_READ, GENERIC_WRITE, HANDLE, LPCWSTR, LPWSTR, MAXDWORD, PHANDLE, READ_CONTROL, WRITE_DAC,
         },
     },
 };
@@ -87,12 +83,7 @@ unsafe extern "system" {
 
     fn GetProcessWindowStation() -> HWINSTA;
 
-    fn OpenDesktopW(
-        lpszDesktop: LPWSTR,
-        dwFlags: DWORD,
-        fInherit: BOOL,
-        dwDesiredAccess: ACCESS_MASK,
-    ) -> HDESK;
+    fn OpenDesktopW(lpszDesktop: LPWSTR, dwFlags: DWORD, fInherit: BOOL, dwDesiredAccess: ACCESS_MASK) -> HDESK;
 }
 
 const HANDLE_FLAG_INHERIT: DWORD = 0x0000_0001;
@@ -188,9 +179,7 @@ impl Child {
                 // Split the value and test each path to see if the
                 // program exists.
                 for path in env::split_paths(&v) {
-                    let path = path
-                        .join(program)
-                        .with_extension(env::consts::EXE_EXTENSION);
+                    let path = path.join(program).with_extension(env::consts::EXE_EXTENSION);
                     if fs::metadata(&path).is_ok() {
                         res = Some(path.into_os_string());
                         break;
@@ -280,10 +269,7 @@ impl Child {
                 )));
             }
             let mut status = 0;
-            cvt(processthreadsapi::GetExitCodeProcess(
-                self.handle.raw(),
-                &mut status,
-            ))?;
+            cvt(processthreadsapi::GetExitCodeProcess(self.handle.raw(), &mut status))?;
             Ok(ExitStatus(status))
         }
     }
@@ -439,10 +425,7 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
                 processthreadsapi::GetCurrentProcessId(),
                 key
             );
-            let wide_name = OsStr::new(&name)
-                .encode_wide()
-                .chain(Some(0))
-                .collect::<Vec<_>>();
+            let wide_name = OsStr::new(&name).encode_wide().chain(Some(0)).collect::<Vec<_>>();
             let mut flags = FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED;
             if ours_readable {
                 flags |= PIPE_ACCESS_INBOUND;
@@ -484,9 +467,7 @@ pub fn anon_pipe(ours_readable: bool) -> io::Result<Pipes> {
                 if tries < 10 {
                     if raw_os_err == Some(ERROR_ACCESS_DENIED as i32) {
                         continue;
-                    } else if reject_remote_clients_flag != 0
-                        && raw_os_err == Some(ERROR_INVALID_PARAMETER as i32)
-                    {
+                    } else if reject_remote_clients_flag != 0 && raw_os_err == Some(ERROR_INVALID_PARAMETER as i32) {
                         reject_remote_clients_flag = 0;
                         tries -= 1;
                         continue;
@@ -620,9 +601,7 @@ impl OpenOptions {
             (true, true, false, None) => Ok(GENERIC_READ | GENERIC_WRITE),
             (false, _, true, None) => Ok(FILE_GENERIC_WRITE & !FILE_WRITE_DATA),
             (true, _, true, None) => Ok(GENERIC_READ | (FILE_GENERIC_WRITE & !FILE_WRITE_DATA)),
-            (false, false, false, None) => {
-                Err(io::Error::from_raw_os_error(ERROR_INVALID_PARAMETER))
-            }
+            (false, false, false, None) => Err(io::Error::from_raw_os_error(ERROR_INVALID_PARAMETER)),
         }
     }
 
@@ -716,12 +695,7 @@ impl Handle {
 
     pub fn new_event(manual: bool, init: bool) -> io::Result<Handle> {
         unsafe {
-            let event = synchapi::CreateEventW(
-                ptr::null_mut(),
-                i32::from(manual),
-                i32::from(init),
-                ptr::null(),
-            );
+            let event = synchapi::CreateEventW(ptr::null_mut(), i32::from(manual), i32::from(init), ptr::null());
             if event.is_null() {
                 Err(io::Error::last_os_error())
             } else {
@@ -769,15 +743,8 @@ impl RawHandle {
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         let mut read = 0;
         let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
-        let res = cvt(unsafe {
-            fileapi::ReadFile(
-                self.0,
-                buf.as_mut_ptr() as LPVOID,
-                len,
-                &mut read,
-                ptr::null_mut(),
-            )
-        });
+        let res =
+            cvt(unsafe { fileapi::ReadFile(self.0, buf.as_mut_ptr() as LPVOID, len, &mut read, ptr::null_mut()) });
 
         match res {
             Ok(_) => Ok(read as usize),
@@ -819,16 +786,10 @@ impl RawHandle {
     // TODO JB: fix this allow
     #[allow(clippy::trivially_copy_pass_by_ref)]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn read_overlapped(
-        &self,
-        buf: &mut [u8],
-        overlapped: *mut OVERLAPPED,
-    ) -> io::Result<Option<usize>> {
+    pub unsafe fn read_overlapped(&self, buf: &mut [u8], overlapped: *mut OVERLAPPED) -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
         let mut amt = 0;
-        let res = cvt(unsafe {
-            fileapi::ReadFile(self.0, buf.as_ptr() as LPVOID, len, &mut amt, overlapped)
-        });
+        let res = cvt(unsafe { fileapi::ReadFile(self.0, buf.as_ptr() as LPVOID, len, &mut amt, overlapped) });
         match res {
             Ok(_) => Ok(Some(amt as usize)),
             Err(e) => {
@@ -846,15 +807,10 @@ impl RawHandle {
     // TODO JB: fix this allow
     #[allow(clippy::trivially_copy_pass_by_ref)]
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn overlapped_result(
-        &self,
-        overlapped: *mut OVERLAPPED,
-        wait: bool,
-    ) -> io::Result<usize> {
+    pub unsafe fn overlapped_result(&self, overlapped: *mut OVERLAPPED, wait: bool) -> io::Result<usize> {
         let mut bytes = 0;
         let wait = if wait { TRUE } else { FALSE };
-        let res =
-            cvt(unsafe { ioapiset::GetOverlappedResult(self.raw(), overlapped, &mut bytes, wait) });
+        let res = cvt(unsafe { ioapiset::GetOverlappedResult(self.raw(), overlapped, &mut bytes, wait) });
         match res {
             Ok(_) => Ok(bytes as usize),
             Err(e) => {
@@ -887,15 +843,7 @@ impl RawHandle {
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         let mut amt = 0;
         let len = cmp::min(buf.len(), <DWORD>::MAX as usize) as DWORD;
-        cvt(unsafe {
-            fileapi::WriteFile(
-                self.0,
-                buf.as_ptr() as LPVOID,
-                len,
-                &mut amt,
-                ptr::null_mut(),
-            )
-        })?;
+        cvt(unsafe { fileapi::WriteFile(self.0, buf.as_ptr() as LPVOID, len, &mut amt, ptr::null_mut()) })?;
         Ok(amt as usize)
     }
 
@@ -1007,11 +955,7 @@ fn create_process_as_user(
         sid.add_to_user_object(
             station as HANDLE,
             sid::NO_PROPAGATE_INHERIT_ACE,
-            sid::WINSTA_ALL_ACCESS
-                | sid::DELETE
-                | sid::READ_CONTROL
-                | sid::WRITE_DAC
-                | sid::WRITE_OWNER,
+            sid::WINSTA_ALL_ACCESS | sid::DELETE | sid::READ_CONTROL | sid::WRITE_DAC | sid::WRITE_OWNER,
         )?;
         sid.add_to_user_object(
             hdesk as HANDLE,
@@ -1054,10 +998,7 @@ fn create_process_as_user(
     }
 }
 
-fn create_user_environment(
-    token: HANDLE,
-    env: &mut HashMap<String, String>,
-) -> io::Result<Vec<u16>> {
+fn create_user_environment(token: HANDLE, env: &mut HashMap<String, String>) -> io::Result<Vec<u16>> {
     unsafe {
         let mut new_env: Vec<u16> = Vec::new();
         let mut block = ptr::null_mut();
@@ -1127,11 +1068,7 @@ fn create_user_environment(
 }
 
 fn cvt(i: i32) -> io::Result<i32> {
-    if i == 0 {
-        Err(io::Error::last_os_error())
-    } else {
-        Ok(i)
-    }
+    if i == 0 { Err(io::Error::last_os_error()) } else { Ok(i) }
 }
 
 fn ensure_no_nuls<T: AsRef<OsStr>>(str: T) -> io::Result<T> {
@@ -1247,9 +1184,7 @@ unsafe fn read_to_end_uninitialized(r: &mut impl Read, buf: &mut Vec<u8>) -> io:
             buf.reserve(1);
         }
 
-        let buf_slice = unsafe {
-            from_raw_parts_mut(buf.as_mut_ptr().add(buf.len()), buf.capacity() - buf.len())
-        };
+        let buf_slice = unsafe { from_raw_parts_mut(buf.as_mut_ptr().add(buf.len()), buf.capacity() - buf.len()) };
 
         match r.read(buf_slice) {
             Ok(0) => {
@@ -1272,11 +1207,7 @@ fn stdio_piped_handle(stdio_id: DWORD, pipe: &mut Option<AnonPipe>) -> io::Resul
     let pipes = anon_pipe(ours_readable)?;
     *pipe = Some(pipes.ours);
     cvt(unsafe {
-        handleapi::SetHandleInformation(
-            pipes.theirs.handle().raw(),
-            HANDLE_FLAG_INHERIT,
-            HANDLE_FLAG_INHERIT,
-        )
+        handleapi::SetHandleInformation(pipes.theirs.handle().raw(), HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT)
     })?;
     Ok(pipes.theirs.into_handle())
 }

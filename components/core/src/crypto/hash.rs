@@ -177,8 +177,7 @@ mod tests {
     #[test]
     fn strings_can_be_hashed() {
         let message = "supercalifragilisticexpialadocious";
-        let expected =
-            hash_from_hex("2ca8ebafca7e189de2a36125b92a1db20f393d1e2708f5daa55e51cf05114437");
+        let expected = hash_from_hex("2ca8ebafca7e189de2a36125b92a1db20f393d1e2708f5daa55e51cf05114437");
         let actual = Blake2bHash::from_bytes(message);
 
         assert_eq!(expected, actual);
@@ -187,8 +186,7 @@ mod tests {
     #[test]
     fn bytes_can_be_hashed() {
         let message = [0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8, 9u8];
-        let expected =
-            hash_from_hex("8b57a796a5d07cb04cc1614dfc2acb3f73edc712d7f433619ca3bbe66bb15f49");
+        let expected = hash_from_hex("8b57a796a5d07cb04cc1614dfc2acb3f73edc712d7f433619ca3bbe66bb15f49");
         let actual = Blake2bHash::from_bytes(message);
 
         assert_eq!(expected, actual);
@@ -201,29 +199,22 @@ mod tests {
         //      b2sum -s=32 signme.dat
 
         let computed = Blake2bHash::from_file(fixture("signme.dat")).unwrap();
-        let expected =
-            hash_from_hex("20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233");
+        let expected = hash_from_hex("20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233");
         assert_eq!(computed, expected);
 
-        let computed =
-            Blake2bHash::from_file(fixture("happyhumans-20160424223347.sig.key")).unwrap();
-        let expected =
-            hash_from_hex("e966844bbc50b7a3a6d81e94dd38e27b92814b944095a8e55f1780921bfcfbe1");
+        let computed = Blake2bHash::from_file(fixture("happyhumans-20160424223347.sig.key")).unwrap();
+        let expected = hash_from_hex("e966844bbc50b7a3a6d81e94dd38e27b92814b944095a8e55f1780921bfcfbe1");
         assert_eq!(computed, expected);
 
         let computed = Blake2bHash::from_file(fixture("happyhumans-20160424223347.pub")).unwrap();
-        let expected =
-            hash_from_hex("b80c4f412f9a0a7727b6e6f115e1b5fa3bae79ad2fcf47f769ed4e42cfb12265");
+        let expected = hash_from_hex("b80c4f412f9a0a7727b6e6f115e1b5fa3bae79ad2fcf47f769ed4e42cfb12265");
         assert_eq!(computed, expected);
     }
 
     #[test]
     #[cfg(feature = "functional")]
     fn hash_file_large_binary() {
-        let dir = tempfile::Builder::new()
-            .prefix("large_file")
-            .tempdir()
-            .unwrap();
+        let dir = tempfile::Builder::new().prefix("large_file").tempdir().unwrap();
 
         let url = "http://www.kernel.org/pub/linux/kernel/v4.x/linux-4.3.tar.gz";
         let file = dir.path().join(url.rsplit('/').next().unwrap());
@@ -234,8 +225,7 @@ mod tests {
         res.copy_to(&mut f).unwrap();
 
         let computed = Blake2bHash::from_file(&file).unwrap();
-        let expected =
-            hash_from_hex("ba640dc063f0ed27e60b38dbb7cf19778cf7805d9fc91eb129fb68b409d46414");
+        let expected = hash_from_hex("ba640dc063f0ed27e60b38dbb7cf19778cf7805d9fc91eb129fb68b409d46414");
         assert_eq!(computed, expected);
     }
 
@@ -243,15 +233,15 @@ mod tests {
     fn eq() {
         let zeroes = Blake2bHash {
             digest: [
-                0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
-                0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
+                0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
+                0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8,
             ],
         };
 
         let ones = Blake2bHash {
             digest: [
-                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
             ],
         };
 
@@ -264,8 +254,8 @@ mod tests {
     fn display() {
         let ones = Blake2bHash {
             digest: [
-                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
-                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
+                1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8, 1u8,
             ],
         };
         assert_eq!(
@@ -277,23 +267,20 @@ mod tests {
     #[test]
     fn from_str_good() {
         // Exactly 32 bytes long
-        let h = "0101010101010101010101010101010101010101010101010101010101010101"
-            .parse::<Blake2bHash>();
+        let h = "0101010101010101010101010101010101010101010101010101010101010101".parse::<Blake2bHash>();
         assert!(h.is_ok());
     }
 
     #[test]
     fn from_str_short() {
         // This is one byte too short
-        let h =
-            "01010101010101010101010101010101010101010101010101010101010101".parse::<Blake2bHash>();
+        let h = "01010101010101010101010101010101010101010101010101010101010101".parse::<Blake2bHash>();
         assert!(h.is_err());
     }
     #[test]
     fn from_str_long() {
         // This is one byte too long
-        let h = "010101010101010101010101010101010101010101010101010101010101010101"
-            .parse::<Blake2bHash>();
+        let h = "010101010101010101010101010101010101010101010101010101010101010101".parse::<Blake2bHash>();
         assert!(h.is_err());
     }
 

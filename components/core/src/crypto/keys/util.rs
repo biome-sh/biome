@@ -63,10 +63,7 @@ macro_rules! from_str_impl_for_key {
                         if line == <Self as crate::crypto::keys::KeyFile>::version() {
                             Ok(())
                         } else {
-                            Err(Error::CryptoError(format!(
-                                "Unsupported key version: {}",
-                                line
-                            )))
+                            Err(Error::CryptoError(format!("Unsupported key version: {}", line)))
                         }
                     })??;
 
@@ -82,17 +79,9 @@ macro_rules! from_str_impl_for_key {
                     .map(crate::base64::decode)?
                     .map_err(|_| Error::CryptoError("Invalid base64 key material".to_string()))
                     .map(|b| <Self as crate::crypto::keys::Key>::Crypto::from_bytes(&b))?
-                    .map_err(|_| {
-                        Error::CryptoError(format!(
-                            "Could not parse bytes as key for {}",
-                            named_revision
-                        ))
-                    })?;
+                    .map_err(|_| Error::CryptoError(format!("Could not parse bytes as key for {}", named_revision)))?;
 
-                Ok(Self {
-                    named_revision,
-                    key,
-                })
+                Ok(Self { named_revision, key })
             }
         }
     };
@@ -161,10 +150,9 @@ macro_rules! try_from_bytes_for_key {
 #[cfg(test)]
 mod tests {
     use crate::crypto::keys::{
-        Key, NamedRevision, OriginPublicEncryptionKey, OriginSecretEncryptionKey,
-        PublicOriginSigningKey, RingKey, SecretOriginSigningKey, ServicePublicEncryptionKey,
-        ServiceSecretEncryptionKey, UserPublicEncryptionKey, UserSecretEncryptionKey,
-        generate_origin_encryption_key_pair, generate_service_encryption_key_pair,
+        Key, NamedRevision, OriginPublicEncryptionKey, OriginSecretEncryptionKey, PublicOriginSigningKey, RingKey,
+        SecretOriginSigningKey, ServicePublicEncryptionKey, ServiceSecretEncryptionKey, UserPublicEncryptionKey,
+        UserSecretEncryptionKey, generate_origin_encryption_key_pair, generate_service_encryption_key_pair,
         generate_signing_key_pair, generate_user_encryption_key_pair,
     };
 
@@ -211,8 +199,7 @@ mod tests {
 
         #[test]
         fn service_keys() {
-            let (public, secret) =
-                generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
+            let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
             assert_parse_round_trip!(ServicePublicEncryptionKey, public);
             assert_parse_round_trip!(ServiceSecretEncryptionKey, secret);
         }
@@ -248,11 +235,7 @@ mod tests {
                 };
             }
 
-            parse!(
-                ring_key,
-                RingKey,
-                "keys/ring-key-valid-20160504220722.sym.key"
-            );
+            parse!(ring_key, RingKey, "keys/ring-key-valid-20160504220722.sym.key");
 
             parse!(
                 public_origin_signing_key,
@@ -343,8 +326,7 @@ mod tests {
 
                 #[test]
                 fn user_encryption_keys_can_parse_as_all_other_encryption_keys() {
-                    let (user_public, user_secret) =
-                        generate_user_encryption_key_pair("test-user").unwrap();
+                    let (user_public, user_secret) = generate_user_encryption_key_pair("test-user").unwrap();
                     assert_public_key_equivalence!(user_public);
                     assert_secret_key_equivalence!(user_secret);
                 }
@@ -360,8 +342,7 @@ mod tests {
                 #[test]
                 fn origin_encryption_keys_can_parse_as_all_other_encryption_keys() {
                     let origin = "test-origin".parse().unwrap();
-                    let (origin_public, origin_secret) =
-                        generate_origin_encryption_key_pair(&origin).unwrap();
+                    let (origin_public, origin_secret) = generate_origin_encryption_key_pair(&origin).unwrap();
                     assert_public_key_equivalence!(origin_public);
                     assert_secret_key_equivalence!(origin_secret);
                 }
@@ -386,17 +367,11 @@ mod tests {
         fn user_keys() {
             let (public, secret) = generate_user_encryption_key_pair("my-user").unwrap();
             assert_eq!(
-                format!(
-                    "UserPublicEncryptionKey my-user-{}",
-                    public.named_revision().revision()
-                ),
+                format!("UserPublicEncryptionKey my-user-{}", public.named_revision().revision()),
                 format!("{:?}", public)
             );
             assert_eq!(
-                format!(
-                    "UserSecretEncryptionKey my-user-{}",
-                    secret.named_revision().revision()
-                ),
+                format!("UserSecretEncryptionKey my-user-{}", secret.named_revision().revision()),
                 format!("{:?}", secret)
             );
         }
@@ -424,8 +399,7 @@ mod tests {
 
         #[test]
         fn service_keys() {
-            let (public, secret) =
-                generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
+            let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
 
             assert_eq!(
                 format!(
@@ -473,14 +447,9 @@ mod tests {
         #[test]
         fn filename() {
             let source = "foo-20160504220722".parse::<NamedRevision>().unwrap();
-            let service_source = "redis.default@biome-20160504220722"
-                .parse::<NamedRevision>()
-                .unwrap();
+            let service_source = "redis.default@biome-20160504220722".parse::<NamedRevision>().unwrap();
 
-            assert_eq!(
-                RingKey::filename(&source),
-                PathBuf::from("foo-20160504220722.sym.key")
-            );
+            assert_eq!(RingKey::filename(&source), PathBuf::from("foo-20160504220722.sym.key"));
 
             assert_eq!(
                 PublicOriginSigningKey::filename(&source),
@@ -572,8 +541,7 @@ mod tests {
 
             #[test]
             fn service_keys() {
-                let (public, secret) =
-                    generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
+                let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
                 assert_eq!(
                     PathBuf::from(&format!("{}.pub", public.named_revision())),
                     public.own_filename()
@@ -624,34 +592,14 @@ mod tests {
             extension!(public_origin_signing_key, PublicOriginSigningKey, "pub");
             extension!(secret_origin_signing_key, SecretOriginSigningKey, "sig.key");
 
-            extension!(
-                origin_public_encryption_key,
-                OriginPublicEncryptionKey,
-                "pub"
-            );
-            extension!(
-                origin_secret_encryption_key,
-                OriginSecretEncryptionKey,
-                "box.key"
-            );
+            extension!(origin_public_encryption_key, OriginPublicEncryptionKey, "pub");
+            extension!(origin_secret_encryption_key, OriginSecretEncryptionKey, "box.key");
 
-            extension!(
-                service_public_encryption_key,
-                ServicePublicEncryptionKey,
-                "pub"
-            );
-            extension!(
-                service_secret_encryption_key,
-                ServiceSecretEncryptionKey,
-                "box.key"
-            );
+            extension!(service_public_encryption_key, ServicePublicEncryptionKey, "pub");
+            extension!(service_secret_encryption_key, ServiceSecretEncryptionKey, "box.key");
 
             extension!(user_public_encryption_key, UserPublicEncryptionKey, "pub");
-            extension!(
-                user_secret_encryption_key,
-                UserSecretEncryptionKey,
-                "box.key"
-            );
+            extension!(user_secret_encryption_key, UserSecretEncryptionKey, "box.key");
         }
 
         mod permissions {
@@ -743,49 +691,17 @@ mod tests {
 
             version!(ring_key, RingKey, "SYM-SEC-1");
 
-            version!(
-                public_origin_signing_key,
-                PublicOriginSigningKey,
-                "SIG-PUB-1"
-            );
-            version!(
-                secret_origin_signing_key,
-                SecretOriginSigningKey,
-                "SIG-SEC-1"
-            );
+            version!(public_origin_signing_key, PublicOriginSigningKey, "SIG-PUB-1");
+            version!(secret_origin_signing_key, SecretOriginSigningKey, "SIG-SEC-1");
 
-            version!(
-                origin_public_encryption_key,
-                OriginPublicEncryptionKey,
-                "BOX-PUB-1"
-            );
-            version!(
-                origin_secret_encryption_key,
-                OriginSecretEncryptionKey,
-                "BOX-SEC-1"
-            );
+            version!(origin_public_encryption_key, OriginPublicEncryptionKey, "BOX-PUB-1");
+            version!(origin_secret_encryption_key, OriginSecretEncryptionKey, "BOX-SEC-1");
 
-            version!(
-                service_public_encryption_key,
-                ServicePublicEncryptionKey,
-                "BOX-PUB-1"
-            );
-            version!(
-                service_secret_encryption_key,
-                ServiceSecretEncryptionKey,
-                "BOX-SEC-1"
-            );
+            version!(service_public_encryption_key, ServicePublicEncryptionKey, "BOX-PUB-1");
+            version!(service_secret_encryption_key, ServiceSecretEncryptionKey, "BOX-SEC-1");
 
-            version!(
-                user_public_encryption_key,
-                UserPublicEncryptionKey,
-                "BOX-PUB-1"
-            );
-            version!(
-                user_secret_encryption_key,
-                UserSecretEncryptionKey,
-                "BOX-SEC-1"
-            );
+            version!(user_public_encryption_key, UserPublicEncryptionKey, "BOX-PUB-1");
+            version!(user_secret_encryption_key, UserSecretEncryptionKey, "BOX-SEC-1");
         }
     }
 }

@@ -63,15 +63,9 @@ pub async fn start(
     let ident = archive.ident()?;
     let target = archive.target()?;
 
-    match api_client
-        .check_package((&ident, target), Some(token))
-        .await
-    {
+    match api_client.check_package((&ident, target), Some(token)).await {
         Ok(_) if !force_upload => {
-            ui.status(
-                Status::Using,
-                format!("existing {} already on target", &ident),
-            )?;
+            ui.status(Status::Using, format!("existing {} already on target", &ident))?;
             // Always promote to additional_release_channel if specified
             if let Some(channel) = additional_release_channel.clone() {
                 promote_to_channel(ui, &api_client, (&ident, target), channel, token).await?
@@ -81,10 +75,7 @@ pub async fn start(
         Err(api_client::Error::APIError(StatusCode::NOT_FOUND, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
                 match api_client.check_package((&dep, target), Some(token)).await {
-                    Ok(_) => ui.status(
-                        Status::Using,
-                        format!("existing {} already on target", &dep),
-                    )?,
+                    Ok(_) => ui.status(Status::Using, format!("existing {} already on target", &dep))?,
                     Err(api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {
                         let candidate_path = match archive_path.parent() {
                             Some(p) => PathBuf::from(p),
@@ -171,10 +162,7 @@ async fn upload_into_depot(
             true
         }
         Err(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
-            return Err(Error::PackageArchiveMalformed(format!(
-                "{}",
-                archive.path.display()
-            )));
+            return Err(Error::PackageArchiveMalformed(format!("{}", archive.path.display())));
         }
         Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
             println!(
@@ -224,9 +212,7 @@ async fn promote_to_channel(
         };
     }
 
-    api_client
-        .promote_package((ident, target), &channel, token)
-        .await?;
+    api_client.promote_package((ident, target), &channel, token).await?;
     ui.status(Status::Promoted, ident)?;
 
     Ok(())
@@ -270,9 +256,7 @@ async fn attempt_upload_dep(
                 archives_dir.display()
             ),
         )?;
-        Err(Error::FileNotFound(
-            archives_dir.to_string_lossy().into_owned(),
-        ))
+        Err(Error::FileNotFound(archives_dir.to_string_lossy().into_owned()))
     }
 }
 
@@ -297,10 +281,7 @@ async fn upload_public_key(
         .await
     {
         Ok(()) => {
-            ui.begin(format!(
-                "Uploading public origin key {}",
-                public_keyfile_name.display()
-            ))?;
+            ui.begin(format!("Uploading public origin key {}", public_keyfile_name.display()))?;
 
             ui.status(
                 Status::Uploaded,

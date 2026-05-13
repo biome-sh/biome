@@ -42,12 +42,7 @@ pub(crate) struct PlanRender {
     print: bool,
 
     /// Path to render templates
-    #[arg(
-        name = "RENDER_DIR",
-        short = 'r',
-        long = "render-dir",
-        default_value = "./results"
-    )]
+    #[arg(name = "RENDER_DIR", short = 'r', long = "render-dir", default_value = "./results")]
     render_dir: PathBuf,
 
     /// Don't write anything to disk, ignores --render-dir

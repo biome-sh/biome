@@ -1,6 +1,4 @@
-use aws_sdk_ecr::{
-    error::SdkError, operation::get_authorization_token::GetAuthorizationTokenError,
-};
+use aws_sdk_ecr::{error::SdkError, operation::get_authorization_token::GetAuthorizationTokenError};
 use thiserror::Error;
 
 #[derive(Debug, Error)]

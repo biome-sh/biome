@@ -16,8 +16,8 @@ use self::{
     peer_watcher::PeerWatcher,
     self_updater::{SUP_PKG_IDENT, SelfUpdater},
     service::{
-        ConfigRendering, DesiredState, PersistentServiceWrapper, Service, ServiceQueryModel,
-        ServiceRunState, ServiceSpec, Topology,
+        ConfigRendering, DesiredState, PersistentServiceWrapper, Service, ServiceQueryModel, ServiceRunState,
+        ServiceSpec, Topology,
         spec::{RefreshOperation, ServiceOperation},
     },
     service_updater::ServiceUpdater,
@@ -133,43 +133,6 @@ biome_core::env_config_duration!( HttpStartupTimeout,
                                     BIO_HTTP_STARTUP_TIMEOUT_SECS => from_secs,
                                     Duration::from_secs(10));
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-/// Determines whether the new pidfile-less behavior is enabled, or
-/// the old behavior is used.
-pub enum ServicePidSource {
-    /// The "old" behavior; find out a Service's PID by reading a pidfile.
-    Files,
-    /// The "new" behavior; query the Launcher directly to discover a
-    /// Service's PID.
-    Launcher,
-}
-
-impl ServicePidSource {
-    /// This check is to determine if the user is working with a
-    /// Launcher that can provide service PIDs. If not, we will
-    /// continue to use the old pidfile logic.
-    ///
-    /// You should call this function once early in the Supservisor's
-    /// lifecycle and cache the results. We only want to incur the
-    /// timeout hit when we check to see if the launcher can answer
-    /// our query once. Otherwise, if we were using an older launcher,
-    /// we would incur that hit each time we start a new service.
-    fn determine_source(launcher: &LauncherCli) -> Self {
-        if launcher
-            .pid_of("fake_service.just_to_see_if_the_launcher_can_handle_this_message")
-            .is_err()
-        {
-            warn!(
-                "You do not appear to be running a Launcher that can provide service PIDs to \
-                   the Supervisor. Using pidfiles for services instead."
-            );
-            ServicePidSource::Files
-        } else {
-            ServicePidSource::Launcher
-        }
-    }
-}
-
 /// A Supervisor can stop in a handful of ways.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 enum ShutdownMode {
@@ -194,11 +157,9 @@ pub struct ShutdownConfig {
 
 impl ShutdownConfig {
     fn new(shutdown_input: Option<&ShutdownInput>, service: &Service) -> Self {
-        let timeout = shutdown_input.and_then(|si| si.timeout).unwrap_or_else(|| {
-            service
-                .shutdown_timeout()
-                .unwrap_or(service.pkg.shutdown_timeout)
-        });
+        let timeout = shutdown_input
+            .and_then(|si| si.timeout)
+            .unwrap_or_else(|| service.shutdown_timeout().unwrap_or(service.pkg.shutdown_timeout));
         Self {
             timeout,
             #[cfg(not(windows))]
@@ -334,9 +295,7 @@ impl ManagerConfig {
     }
 
     fn spec_path_for(&self, ident: &PackageIdent) -> PathBuf {
-        self.sup_root()
-            .join("specs")
-            .join(ServiceSpec::ident_file(ident))
+        self.sup_root().join("specs").join(ServiceSpec::ident_file(ident))
     }
 
     pub fn save_spec_for(&self, spec: &ServiceSpec) -> Result<()> {
@@ -560,9 +519,7 @@ pub(crate) mod sync {
         }
 
         pub fn running_services(&self) -> impl Iterator<Item = &Service> {
-            self.0
-                .values()
-                .filter_map(PersistentServiceWrapper::service)
+            self.0.values().filter_map(PersistentServiceWrapper::service)
         }
     }
 
@@ -573,10 +530,7 @@ pub(crate) mod sync {
             Self(lock.write())
         }
 
-        pub fn iter_mut(
-            &mut self,
-        ) -> impl Iterator<Item = (&PackageIdent, &mut PersistentServiceWrapper)> + use<'_>
-        {
+        pub fn iter_mut(&mut self) -> impl Iterator<Item = (&PackageIdent, &mut PersistentServiceWrapper)> + use<'_> {
             self.0.iter_mut()
         }
 
@@ -597,22 +551,16 @@ pub(crate) mod sync {
             self.0.get_mut(key)
         }
 
-        pub fn services(
-            &mut self,
-        ) -> impl Iterator<Item = &mut PersistentServiceWrapper> + use<'_> {
+        pub fn services(&mut self) -> impl Iterator<Item = &mut PersistentServiceWrapper> + use<'_> {
             self.0.values_mut()
         }
 
         pub fn running_services(&mut self) -> impl Iterator<Item = &mut Service> + use<'_> {
-            self.0
-                .values_mut()
-                .filter_map(PersistentServiceWrapper::service_mut)
+            self.0.values_mut().filter_map(PersistentServiceWrapper::service_mut)
         }
 
         pub fn drain_services(&mut self) -> impl Iterator<Item = Service> + '_ + use<'_> {
-            self.0
-                .drain()
-                .filter_map(|(_, mut state)| state.shutdown(false))
+            self.0.drain().filter_map(|(_, mut state)| state.shutdown(false))
         }
     }
 
@@ -702,7 +650,6 @@ pub struct Manager {
     services_need_reconciliation: ReconciliationFlag,
 
     feature_flags: FeatureFlag,
-    pid_source: ServicePidSource,
 
     /// Open file handle to the Launcher's lock file. As long as we hold this,
     /// we are the only Supervisor process that may run on this host. We don't
@@ -821,8 +768,6 @@ impl Manager {
             event::init(&sys, fqdn, config).await?;
         }
 
-        let pid_source = ServicePidSource::determine_source(&launcher);
-
         let census_ring = Arc::new(RwLock::new(CensusRing::new(sys.member_id.clone())));
         Ok(Manager {
             state: Arc::new(ManagerState {
@@ -853,7 +798,6 @@ impl Manager {
             updated_service_pkg_incarnations: Arc::default(),
             services_need_reconciliation: ReconciliationFlag::new(false),
             feature_flags: cfg.feature_flags,
-            pid_source,
             _lock_file: lock_file,
         })
     }
@@ -901,8 +845,7 @@ impl Manager {
                 for entry in entries.flatten() {
                     match entry.path().extension().and_then(OsStr::to_str) {
                         Some("tmp") | Some("health") => {
-                            fs::remove_file(entry.path())
-                                .map_err(|err| Error::BadDataPath(data_path.clone(), err))?;
+                            fs::remove_file(entry.path()).map_err(|err| Error::BadDataPath(data_path.clone(), err))?;
                         }
                         _ => continue,
                     }
@@ -961,7 +904,6 @@ impl Manager {
             self.organization.as_deref(),
             self.census_ring.clone(),
             self.state.gateway_state.clone(),
-            self.pid_source,
             self.feature_flags,
         )
         .await
@@ -981,8 +923,7 @@ impl Manager {
         // Resolve an auth token for install hooks, if available.
         let auth_token = pkg::get_auth_token();
 
-        if let Ok(package) =
-            PackageInstall::load(service.pkg.ident.as_ref(), Some(Path::new(&*FS_ROOT_PATH)))
+        if let Ok(package) = PackageInstall::load(service.pkg.ident.as_ref(), Some(Path::new(&*FS_ROOT_PATH)))
             && let Err(err) = biome_common::command::package::install::check_install_hooks(
                 &mut biome_common::ui::UI::with_sinks(),
                 &package,
@@ -996,11 +937,7 @@ impl Manager {
         }
 
         if let Err(e) = service.create_svc_path() {
-            outputln!(
-                "Can't create directory {}: {}",
-                service.pkg.svc_path.display(),
-                e
-            );
+            outputln!("Can't create directory {}: {}", service.pkg.svc_path.display(), e);
             outputln!(
                 "If this service is running as non-root, you'll need to create {} and give \
                        the current user write access to it",
@@ -1029,11 +966,7 @@ impl Manager {
         }
 
         if let Err(e) = self.user_config_watcher.add(&service) {
-            outputln!(
-                "Unable to start UserConfigWatcher for {}: {}",
-                service.spec_ident(),
-                e
-            );
+            outputln!("Unable to start UserConfigWatcher for {}: {}", service.spec_ident(), e);
             return;
         }
 
@@ -1079,16 +1012,12 @@ impl Manager {
         let (ctl_shutdown_tx, ctl_shutdown_rx) = oneshot::channel();
         let (action_sender, action_receiver) = std_mpsc::channel();
 
-        let ctl_handler = CtlAcceptor::new(
-            self.state.clone(),
-            mgr_receiver,
-            ctl_shutdown_rx,
-            action_sender,
-        )
-        .for_each(move |handler| {
-            tokio::spawn(handler);
-            future::ready(())
-        });
+        let ctl_handler = CtlAcceptor::new(self.state.clone(), mgr_receiver, ctl_shutdown_rx, action_sender).for_each(
+            move |handler| {
+                tokio::spawn(handler);
+                future::ready(())
+            },
+        );
         tokio::spawn(ctl_handler);
 
         for svc_load_msg in svc_load_msgs {
@@ -1099,12 +1028,8 @@ impl Manager {
         // this gives us the chance to sort out initial member state and
         // process any previously persisted dat file before service rumors
         // are gossiped and preventing them from unwanted purging.
-        outputln!(
-            "Starting gossip-listener on {}",
-            self.butterfly.gossip_addr()
-        );
-        self.butterfly
-            .start_rsw_mlw_smw_rhw_msr(&Timing::default())?;
+        outputln!("Starting gossip-listener on {}", self.butterfly.gossip_addr());
+        self.butterfly.start_rsw_mlw_smw_rhw_msr(&Timing::default())?;
         debug!("gossip-listener started");
 
         // Update the census state from the butterfly service rumours.
@@ -1138,12 +1063,7 @@ impl Manager {
             secret_key: ctl_gateway::readgen_secret_key(&self.fs_cfg.sup_root)?,
             mgr_sender,
             server_certificates: self.state.cfg.ctl_server_certificates.clone(),
-            server_key: self
-                .state
-                .cfg
-                .ctl_server_key
-                .as_ref()
-                .map(|key| key.0.clone_key()),
+            server_key: self.state.cfg.ctl_server_key.as_ref().map(|key| key.0.clone_key()),
             client_certificates: self.state.cfg.ctl_client_ca_certificates.clone(),
         };
         outputln!("Starting ctl-gateway on {}", ctl_gateway_server.listen_addr);
@@ -1168,10 +1088,7 @@ impl Manager {
             // Here we use a Condvar to wait on the HTTP gateway server to start up and inspect its
             // return value. Specifically, we're looking for errors when it tries to bind to the
             // listening TCP socket, so we can alert the user.
-            let pair = Arc::new((
-                StdMutex::new(http_gateway::ServerStartup::NotStarted),
-                Condvar::new(),
-            ));
+            let pair = Arc::new((StdMutex::new(http_gateway::ServerStartup::NotStarted), Condvar::new()));
 
             outputln!("Starting http-gateway on {}", &http_listen_addr);
             http_gateway::Server::run(
@@ -1188,8 +1105,7 @@ impl Manager {
             if let Some(latest) = pkg::installed(&*THIS_SUPERVISOR_FUZZY_IDENT)
                 && *THIS_SUPERVISOR_IDENT == latest.ident
             {
-                self.maybe_uninstall_old_packages(&THIS_SUPERVISOR_FUZZY_IDENT)
-                    .await;
+                self.maybe_uninstall_old_packages(&THIS_SUPERVISOR_FUZZY_IDENT).await;
             }
 
             let (lock, cvar) = &*pair;
@@ -1201,9 +1117,7 @@ impl Manager {
             loop {
                 match *started {
                     http_gateway::ServerStartup::NotStarted => {
-                        started = match cvar
-                            .wait_timeout(started, HttpStartupTimeout::configured_value().into())
-                        {
+                        started = match cvar.wait_timeout(started, HttpStartupTimeout::configured_value().into()) {
                             Ok((mutex, timeout_result)) => {
                                 if timeout_result.timed_out() {
                                     return Err(Error::BindTimeout(http_listen_addr.to_string()));
@@ -1258,9 +1172,7 @@ impl Manager {
                 && let Ok(mut exit_code_file) = File::open(&exit_file_path)
             {
                 let mut buffer = String::new();
-                exit_code_file
-                    .read_to_string(&mut buffer)
-                    .expect("couldn't read");
+                exit_code_file.read_to_string(&mut buffer).expect("couldn't read");
                 if let Ok(exit_code) = buffer.lines().next().unwrap_or("").parse::<i32>() {
                     fs::remove_file(&exit_file_path).expect("couldn't remove");
                     outputln!("Simulating abrupt, unexpected exit with code {}", exit_code);
@@ -1293,10 +1205,7 @@ impl Manager {
             }
 
             if let Some(package) = self.check_for_updated_supervisor().await {
-                outputln!(
-                    "Supervisor shutting down for automatic update to {}",
-                    package
-                );
+                outputln!("Supervisor shutting down for automatic update to {}", package);
                 break ShutdownMode::Restarting;
             }
 
@@ -1513,10 +1422,7 @@ impl Manager {
                         // now we just want to gossip this followers
                         // new incarnation (which should now be synced with the leader) and spin up
                         // a new service updater.
-                        self.gossip_latest_service_rumor_rsw_mlw_rhw(
-                            service,
-                            new_ident.incarnation,
-                        );
+                        self.gossip_latest_service_rumor_rsw_mlw_rhw(service, new_ident.incarnation);
                         service_updater.remove(&service.service_group);
                         // ident here should just be the spec ident origin/pkg
                         updaters_to_register.push(ident.clone());
@@ -1533,8 +1439,7 @@ impl Manager {
                         // The supervisor always runs the latest package on disk. When we have an
                         // update ensure that the lastest package on disk is
                         // the package we updated to.
-                        idents_to_restart_and_latest_desired_on_restart
-                            .push((ident.clone(), Some(new_ident.ident)));
+                        idents_to_restart_and_latest_desired_on_restart.push((ident.clone(), Some(new_ident.ident)));
                     }
                 } else if service_state.should_shutdown_for_restart() {
                     idents_to_restart_and_latest_desired_on_restart.push((ident.clone(), None));
@@ -1574,11 +1479,7 @@ impl Manager {
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
     /// * `RumorHeat::inner` (write)
-    fn gossip_latest_service_rumor_rsw_mlw_rhw(
-        &self,
-        service: &Service,
-        updated_pkg_incarnation: Option<u64>,
-    ) {
+    fn gossip_latest_service_rumor_rsw_mlw_rhw(&self, service: &Service, updated_pkg_incarnation: Option<u64>) {
         let (incarnation, last_pkg_incarnation) = self
             .butterfly
             .service_store
@@ -1591,9 +1492,7 @@ impl Manager {
         // The package incarnation is either the updated package incarnation if it is
         // larger than the last package incarnation or the last known package incarnation
         // from the rumour store.
-        let pkg_incarnation = updated_pkg_incarnation
-            .unwrap_or(0)
-            .max(last_pkg_incarnation);
+        let pkg_incarnation = updated_pkg_incarnation.unwrap_or(0).max(last_pkg_incarnation);
         self.butterfly
             .insert_service_rsw_mlw_rhw(service.to_rumor(incarnation, pkg_incarnation));
     }
@@ -1710,13 +1609,11 @@ impl Manager {
                             self.organization.as_deref(),
                             self.census_ring.clone(),
                             self.state.gateway_state.clone(),
-                            self.pid_source,
                             self.feature_flags,
                         )
                         .await
                         {
-                            Ok(service) => watched_services
-                                .push((service, svc_state.service_run_state().clone())),
+                            Ok(service) => watched_services.push((service, svc_state.service_run_state().clone())),
                             Err(err) => {
                                 warn!("Failed to create service '{}' from spec: {:?}", ident, err)
                             }
@@ -1732,15 +1629,12 @@ impl Manager {
                         self.organization.as_deref(),
                         self.census_ring.clone(),
                         self.state.gateway_state.clone(),
-                        self.pid_source,
                         self.feature_flags,
                     )
                     .await
                     {
-                        Ok(service) => watched_services.push((
-                            service,
-                            ServiceRunState::new(&self.state.cfg.service_restart_config),
-                        )),
+                        Ok(service) => watched_services
+                            .push((service, ServiceRunState::new(&self.state.cfg.service_restart_config))),
                         Err(err) => {
                             warn!("Failed to create service '{}' from spec: {:?}", ident, err)
                         }
@@ -1750,9 +1644,7 @@ impl Manager {
         }
         let watched_service_proxies: Vec<ServiceQueryModel> = watched_services
             .iter()
-            .map(|(service, service_run_state)| {
-                ServiceQueryModel::new(service, service_run_state, config_rendering)
-            })
+            .map(|(service, service_run_state)| ServiceQueryModel::new(service, service_run_state, config_rendering))
             .collect();
         let mut services_data: Vec<ServiceQueryModel> = service_map
             .iter()
@@ -1770,10 +1662,7 @@ impl Manager {
 
         services_data.extend(watched_service_proxies);
 
-        self.state
-            .gateway_state
-            .lock_gsw()
-            .set_services_data(services_data);
+        self.state.gateway_state.lock_gsw().set_services_data(services_data);
     }
 
     /// Check if any elections need restarting.
@@ -1784,8 +1673,7 @@ impl Manager {
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (read)
     fn restart_elections_rsw_mlr_rhw_msr(&mut self, feature_flags: FeatureFlag) {
-        self.butterfly
-            .restart_elections_rsw_mlr_rhw_msr(feature_flags);
+        self.butterfly.restart_elections_rsw_mlr_rhw_msr(feature_flags);
     }
 
     /// # Locking (see locking.md)
@@ -1840,22 +1728,14 @@ impl Manager {
                 Self::uninstall_newer_packages(&service.spec_ident(), &latest_desired_ident).await;
             }
         };
-        Self::wrap_async_service_operation(
-            ident,
-            busy_services,
-            services_need_reconciliation,
-            stop_it,
-        )
+        Self::wrap_async_service_operation(ident, busy_services, services_need_reconciliation, stop_it)
     }
 
     /// Uninstall packages that are newer than the specified ident.
     ///
     /// This can be used to guarantee that when a service restarts it starts with the desired
     /// package.
-    async fn uninstall_newer_packages(
-        install_ident: &PackageIdent,
-        latest_desired_ident: &PackageIdent,
-    ) {
+    async fn uninstall_newer_packages(install_ident: &PackageIdent, latest_desired_ident: &PackageIdent) {
         while let Some(latest_installed) = pkg::installed(install_ident) {
             let latest_ident = latest_installed.ident;
             if latest_ident > *latest_desired_ident {
@@ -1913,16 +1793,10 @@ impl Manager {
     ) where
         F: Future<Output = ()>,
     {
-        trace!(
-            "Flagging '{:?}' as busy, pending an asynchronous operation",
-            ident
-        );
+        trace!("Flagging '{:?}' as busy, pending an asynchronous operation", ident);
         busy_services.lock().insert(ident.clone());
         fut.await;
-        trace!(
-            "Removing 'busy' flag for '{:?}'; asynchronous operation over",
-            ident
-        );
+        trace!("Removing 'busy' flag for '{:?}'; asynchronous operation over", ident);
         busy_services.lock().remove(&ident);
         services_need_reconciliation.set();
     }
@@ -1944,16 +1818,12 @@ impl Manager {
     /// * `ManagerServices::inner` (write)
     async fn maybe_spawn_service_futures_rsw_mlw_gsw_rhw_msw(&mut self) -> Vec<PackageIdent> {
         let ops = self.compute_service_operations_msr();
-        self.spawn_futures_from_operations_rsw_mlw_gsw_rhw_msw(ops)
-            .await
+        self.spawn_futures_from_operations_rsw_mlw_gsw_rhw_msw(ops).await
     }
 
     /// # Locking (see locking.md)
     /// * `ManagerServices::inner` (write)
-    fn remove_service_from_state_msw(
-        &mut self,
-        ident: &PackageIdent,
-    ) -> Option<PersistentServiceWrapper> {
+    fn remove_service_from_state_msw(&mut self, ident: &PackageIdent) -> Option<PersistentServiceWrapper> {
         self.state.services.lock_msw().remove(ident)
     }
 
@@ -1972,10 +1842,7 @@ impl Manager {
     /// * `GatewayState::inner` (write)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (write)
-    async fn spawn_futures_from_operations_rsw_mlw_gsw_rhw_msw<O>(
-        &mut self,
-        ops: O,
-    ) -> Vec<PackageIdent>
+    async fn spawn_futures_from_operations_rsw_mlw_gsw_rhw_msw<O>(&mut self, ops: O) -> Vec<PackageIdent>
     where
         O: IntoIterator<Item = ServiceOperation>,
     {
@@ -2087,10 +1954,7 @@ impl Manager {
     /// Pure utility function to generate a list of operations to
     /// perform to bring what's currently running with what _should_ be
     /// running, based on the current on-disk spec files.
-    fn specs_to_operations<C, D>(
-        currently_running_specs: C,
-        on_disk_specs: D,
-    ) -> Vec<ServiceOperation>
+    fn specs_to_operations<C, D>(currently_running_specs: C, on_disk_specs: D) -> Vec<ServiceOperation>
     where
         C: IntoIterator<Item = ServiceSpec>,
         D: IntoIterator<Item = ServiceSpec>,
@@ -2118,10 +1982,7 @@ impl Manager {
         // on-disk spec changes that must be reconciled.
         for ds in on_disk_specs {
             let ident = ds.ident.clone();
-            svc_states
-                .entry(ident)
-                .or_insert_with(ServiceState::default)
-                .disk = Some(ds);
+            svc_states.entry(ident).or_insert_with(ServiceState::default).disk = Some(ds);
         }
 
         svc_states
@@ -2167,8 +2028,7 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
     let client_auth = match &config.ca_cert_path {
         Some(path) => {
             let mut root_store = RootCertStore::empty();
-            let certs =
-                certificates_from_file(path).map_err(|_| Error::InvalidCertFile(path.clone()))?;
+            let certs = certificates_from_file(path).map_err(|_| Error::InvalidCertFile(path.clone()))?;
 
             if certs.is_empty() {
                 return Err(Error::InvalidCertFile(path.clone()));
@@ -2177,9 +2037,7 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
             for cert in certs {
                 root_store.add(cert).unwrap();
             }
-            WebPkiClientVerifier::builder(root_store.into())
-                .build()
-                .unwrap()
+            WebPkiClientVerifier::builder(root_store.into()).build().unwrap()
         }
         None => WebPkiClientVerifier::no_client_auth(),
     };
@@ -2189,10 +2047,9 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
     // Note that we must explicitly map these errors because rustls returns () as the error from
     // both pemfile::certs() as well as pemfile::rsa_private_keys() and we want to return
     // different errors for each.
-    let certs = certificates_from_file(&config.cert_path)
-        .map_err(|_| Error::InvalidCertFile(config.cert_path.clone()))?;
-    let key = private_key_from_file(&config.key_path)
-        .map_err(|_| Error::InvalidKeyFile(config.key_path.clone()))?;
+    let certs =
+        certificates_from_file(&config.cert_path).map_err(|_| Error::InvalidCertFile(config.cert_path.clone()))?;
+    let key = private_key_from_file(&config.key_path).map_err(|_| Error::InvalidKeyFile(config.key_path.clone()))?;
     let mut server_config = tls_config.with_single_cert(certs, PrivateKeyDer::Pkcs8(key))?;
     server_config.ignore_client_order = true;
 

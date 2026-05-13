@@ -333,7 +333,7 @@ _program=$(basename "$0")
 BIO_PLAN_BUILD=0.0.1
 # The root path of the Biome file system. If the `$BIO_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: "${BIO_ROOT_PATH:=/bio}"
+: "${BIO_ROOT_PATH:=/opt/bio}"
 # The default path where source artifacts are downloaded, extracted, & compiled
 BIO_CACHE_SRC_PATH=$BIO_ROOT_PATH/cache/src
 # The default download root path for package artifacts, used on package
@@ -359,7 +359,7 @@ BIO_PLAN_FILENAME="plan.sh"
 export BIO_BLDR_URL
 # The default Biome channel from where to download dependencies. If
 # `BIO_BLDR_CHANNEL` is set, this value is overridden.
-: "${BIO_BLDR_CHANNEL:=stable}"
+: "${BIO_BLDR_CHANNEL:=base}"
 # Export Builder channel so all other programs and subshells use this same one
 export BIO_BLDR_CHANNEL
 # Fall back here if package can't be installed from $BIO_BLDR_CHANNEL
@@ -747,24 +747,35 @@ _resolve_dependency() {
 # _install_dependency acme/zlib/1.2.8/20151216221001
 # ```
 _install_dependency() {
-  local dep="${1}"
-  if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
+    local dep="${1}"
+    local origin
+    local channel="$BIO_BLDR_CHANNEL"
+    if [[ -z "${NO_INSTALL_DEPS:-}" || ${NO_INSTALL_DEPS} == "false" ]]; then
+        origin="$(echo "$dep" | cut -d "/" -f 1)"
+        if [[ $origin == "core" || $origin == "biome" ]]; then
+            if [[ $origin == "core" ]]; then
+                channel="$BIO_REFRESH_CHANNEL"
+            fi
+            if [[ $BIO_PREFER_LOCAL_BIOME_DEPS == "false" ]]; then
+                IGNORE_LOCAL="--ignore-local"
+            fi
+        fi
 
-    # Enable --ignore-local if invoked with BIO_FEAT_IGNORE_LOCAL in
-    # the environment, set to either "true" or "TRUE" (features are
-    # not currently enabled by the mere presence of an environment variable)
-    if [[ "${BIO_FEAT_IGNORE_LOCAL:-}" = "true" ||
-      "${BIO_FEAT_IGNORE_LOCAL:-}" = "TRUE" ]]; then
-      IGNORE_LOCAL="--ignore-local"
+        $BIO_BIN pkg install -u "$BIO_BLDR_URL" --channel "$channel" ${IGNORE_LOCAL:-} "$@" || {
+            if [[ "$channel" != "$BIO_FALLBACK_CHANNEL" ]]; then
+                build_line "Trying to install '$dep' from '$BIO_FALLBACK_CHANNEL'"
+                $BIO_BIN pkg install -u "$BIO_BLDR_URL" --channel "$BIO_FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
+            fi
+        }
+    else
+        if resolved=$(_resolve_dependency "${dep}" |  sed "s|${BIO_PKG_PATH}[/]\?||g"); then
+            echo "${resolved}"
+            return 0
+        else
+            return 1
+        fi
     fi
-    $BIO_BIN pkg install -u $BIO_BLDR_URL --channel $BIO_BLDR_CHANNEL ${IGNORE_LOCAL:-} "$@" || {
-      if [[ "$BIO_BLDR_CHANNEL" != "$BIO_FALLBACK_CHANNEL" ]]; then
-        build_line "Trying to install '$dep' from '$BIO_FALLBACK_CHANNEL'"
-        $BIO_BIN pkg install -u $BIO_BLDR_URL --channel "$BIO_FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
-      fi
-    }
-  fi
-  return 0
+    return 0
 }
 
 # **Internal** Returns (on stdout) the `TDEPS` file contents of another locally

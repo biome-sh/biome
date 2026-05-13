@@ -1,7 +1,6 @@
 use crate::{
     DisplayProgress, OriginInfoResponse, OriginKeyIdent, OriginMemberRoleResponse, Package,
-    PendingOriginInvitationsResponse, ReverseDependencies, SchedulerResponse,
-    UserOriginInvitationsResponse,
+    PendingOriginInvitationsResponse, ReverseDependencies, SchedulerResponse, UserOriginInvitationsResponse,
     bio_http::ApiClient,
     error::{Error, Result},
     response,
@@ -127,12 +126,7 @@ pub struct OriginChannelWithPromotion {
 pub struct BuilderAPIClient(ApiClient);
 
 impl BuilderAPIClient {
-    pub fn new<U>(
-        endpoint: U,
-        product: &str,
-        version: &str,
-        fs_root_path: Option<&Path>,
-    ) -> Result<Self>
+    pub fn new<U>(endpoint: U, product: &str, version: &str, fs_root_path: Option<&Path>) -> Result<Self>
     where
         U: IntoUrl,
     {
@@ -141,8 +135,7 @@ impl BuilderAPIClient {
             endpoint.set_path(DEFAULT_API_PATH);
         }
         let client = BuilderAPIClient(
-            ApiClient::new(endpoint, product, version, fs_root_path)
-                .map_err(Error::BiomeHttpClient)?,
+            ApiClient::new(endpoint, product, version, fs_root_path).map_err(Error::BiomeHttpClient)?,
         );
         Ok(client)
     }
@@ -204,12 +197,8 @@ impl BuilderAPIClient {
         .await?
     }
 
-    async fn upload_body(
-        src_path: &Path,
-        progress: Option<Box<dyn DisplayProgress>>,
-    ) -> Result<Body> {
-        let file =
-            File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
+    async fn upload_body(src_path: &Path, progress: Option<Box<dyn DisplayProgress>>) -> Result<Body> {
+        let file = File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
         let file_size = file
             .metadata()
             .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
@@ -238,11 +227,9 @@ impl BuilderAPIClient {
         range: usize,
     ) -> Result<(PackageResults<PackageIdent>, bool)> {
         debug!("Searching for package {} with range {}", search_term, range);
-        let req = self
-            .0
-            .get_with_custom_url(&package_search(search_term), |url| {
-                url.set_query(Some(&format!("range={:?}&distinct=true", range)));
-            });
+        let req = self.0.get_with_custom_url(&package_search(search_term), |url| {
+            url.set_query(Some(&format!("range={:?}&distinct=true", range)));
+        });
         let resp = self.maybe_add_authz(req, token).send().await?;
         let status = resp.status();
         debug!("Response Status: {:?}", status);
@@ -251,10 +238,7 @@ impl BuilderAPIClient {
             let encoded = resp.text().await.map_err(Error::BadResponseBody)?;
             trace!(target: "biome_http_client::api_client::search_package", "{:?}", encoded);
 
-            Ok((
-                serde_json::from_str(&encoded)?,
-                status == StatusCode::PARTIAL_CONTENT,
-            ))
+            Ok((serde_json::from_str(&encoded)?, status == StatusCode::PARTIAL_CONTENT))
         } else {
             Err(response::err_from_response(resp).await)
         }
@@ -288,11 +272,7 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub async fn get_origin_schedule(
-        &self,
-        origin: &str,
-        limit: usize,
-    ) -> Result<Vec<SchedulerResponse>> {
+    pub async fn get_origin_schedule(&self, origin: &str, limit: usize) -> Result<Vec<SchedulerResponse>> {
         debug!(
             "Retrieving status for job groups in the {} origin (limit: {})",
             origin, limit
@@ -301,8 +281,7 @@ impl BuilderAPIClient {
         let path = format!("depot/pkgs/schedule/{}/status", origin);
 
         let custom = |url: &mut Url| {
-            url.query_pairs_mut()
-                .append_pair("limit", &limit.to_string());
+            url.query_pairs_mut().append_pair("limit", &limit.to_string());
         };
 
         let resp = self.0.get_with_custom_url(&path, custom).send().await?;
@@ -316,11 +295,7 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub async fn get_schedule(
-        &self,
-        group_id: i64,
-        include_projects: bool,
-    ) -> Result<SchedulerResponse> {
+    pub async fn get_schedule(&self, group_id: i64, include_projects: bool) -> Result<SchedulerResponse> {
         debug!(
             "Retrieving schedule for job group {} (include_projects: {})",
             group_id, include_projects
@@ -393,9 +368,7 @@ impl BuilderAPIClient {
 
         let resp = self
             .0
-            .get_with_custom_url(&url, |u| {
-                u.set_query(Some(&format!("target={}", &target.to_string())))
-            })
+            .get_with_custom_url(&url, |u| u.set_query(Some(&format!("target={}", &target.to_string()))))
             .bearer_auth(token)
             .send()
             .await?;
@@ -439,12 +412,7 @@ impl BuilderAPIClient {
         );
 
         response::ok_if_unit(
-            self.0
-                .post(&url)
-                .bearer_auth(token)
-                .json(&body)
-                .send()
-                .await?,
+            self.0.post(&url).bearer_auth(token).json(&body).send().await?,
             &[StatusCode::NO_CONTENT],
         )
         .await
@@ -482,8 +450,7 @@ impl BuilderAPIClient {
         progress: Option<Box<dyn DisplayProgress>>,
     ) -> Result<PathBuf> {
         self.download(
-            self.0
-                .get(&format!("depot/origins/{}/encryption_key", origin)),
+            self.0.get(&format!("depot/origins/{}/encryption_key", origin)),
             dst_path.as_ref(),
             Some(token),
             DEFAULT_PUBLIC_KEY_PERMISSIONS,
@@ -526,11 +493,7 @@ impl BuilderAPIClient {
 
         let path = format!("depot/origins/{}", origin);
 
-        response::ok_if_unit(
-            self.0.get(&path).bearer_auth(token).send().await?,
-            &[StatusCode::OK],
-        )
-        .await
+        response::ok_if_unit(self.0.get(&path).bearer_auth(token).send().await?, &[StatusCode::OK]).await
     }
 
     /// Delete an origin
@@ -561,12 +524,7 @@ impl BuilderAPIClient {
     ///  * Account is not a member of the origin
     ///  * Account does not exist
     ///  * Origin does not exist
-    pub async fn transfer_origin_ownership(
-        &self,
-        origin: &str,
-        token: &str,
-        account: &str,
-    ) -> Result<()> {
+    pub async fn transfer_origin_ownership(&self, origin: &str, token: &str, account: &str) -> Result<()> {
         debug!("Transferring ownership of {} origin to {}", origin, account);
 
         let path = format!("depot/origins/{}/transfer/{}", origin, account);
@@ -614,16 +572,8 @@ impl BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    pub async fn accept_origin_invitation(
-        &self,
-        origin: &str,
-        token: &str,
-        invitation_id: u64,
-    ) -> Result<()> {
-        debug!(
-            "Accepting invitation id {} in origin {}",
-            invitation_id, origin
-        );
+    pub async fn accept_origin_invitation(&self, origin: &str, token: &str, invitation_id: u64) -> Result<()> {
+        debug!("Accepting invitation id {} in origin {}", invitation_id, origin);
 
         let path = format!("depot/origins/{}/invitations/{}", origin, invitation_id);
 
@@ -651,21 +601,10 @@ impl BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    pub async fn ignore_origin_invitation(
-        &self,
-        origin: &str,
-        token: &str,
-        invitation_id: u64,
-    ) -> Result<()> {
-        debug!(
-            "Marking invitation {} in origin {} ignored",
-            invitation_id, origin
-        );
+    pub async fn ignore_origin_invitation(&self, origin: &str, token: &str, invitation_id: u64) -> Result<()> {
+        debug!("Marking invitation {} in origin {} ignored", invitation_id, origin);
 
-        let path = format!(
-            "depot/origins/{}/invitations/{}/ignore",
-            origin, invitation_id
-        );
+        let path = format!("depot/origins/{}/invitations/{}/ignore", origin, invitation_id);
 
         response::ok_if_unit(
             self.0.put(&path).bearer_auth(token).send().await?,
@@ -690,10 +629,7 @@ impl BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<UserOriginInvitationsResponse>
-    pub async fn list_user_invitations(
-        &self,
-        token: &str,
-    ) -> Result<UserOriginInvitationsResponse> {
+    pub async fn list_user_invitations(&self, token: &str) -> Result<UserOriginInvitationsResponse> {
         let path = "user/invitations";
 
         let resp = self.0.get(path).bearer_auth(token).send().await?;
@@ -769,16 +705,8 @@ impl BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    pub async fn rescind_origin_invitation(
-        &self,
-        origin: &str,
-        token: &str,
-        invitation_id: u64,
-    ) -> Result<()> {
-        debug!(
-            "Rescinding invitation {} in origin {}",
-            invitation_id, origin
-        );
+    pub async fn rescind_origin_invitation(&self, origin: &str, token: &str, invitation_id: u64) -> Result<()> {
+        debug!("Rescinding invitation {} in origin {}", invitation_id, origin);
 
         let path = format!("depot/origins/{}/invitations/{}", origin, invitation_id);
 
@@ -807,21 +735,10 @@ impl BuilderAPIClient {
     ///
     ///  # Return
     ///    * Result<()>
-    pub async fn send_origin_invitation(
-        &self,
-        origin: &str,
-        token: &str,
-        invitee_account: &str,
-    ) -> Result<()> {
-        debug!(
-            "Sending an invitation to {} for origin {}",
-            invitee_account, origin
-        );
+    pub async fn send_origin_invitation(&self, origin: &str, token: &str, invitee_account: &str) -> Result<()> {
+        debug!("Sending an invitation to {} for origin {}", invitee_account, origin);
 
-        let path = format!(
-            "depot/origins/{}/users/{}/invitations",
-            origin, invitee_account
-        );
+        let path = format!("depot/origins/{}/users/{}/invitations", origin, invitee_account);
 
         response::ok_if_unit(
             self.0.post(&path).bearer_auth(token).send().await?,
@@ -846,8 +763,7 @@ impl BuilderAPIClient {
         progress: Option<Box<dyn DisplayProgress>>,
     ) -> Result<PathBuf> {
         self.download(
-            self.0
-                .get(&format!("depot/origins/{}/keys/{}", origin, revision)),
+            self.0.get(&format!("depot/origins/{}/keys/{}", origin, revision)),
             dst_path.as_ref(),
             None,
             DEFAULT_PUBLIC_KEY_PERMISSIONS,
@@ -871,8 +787,7 @@ impl BuilderAPIClient {
         progress: Option<Box<dyn DisplayProgress>>,
     ) -> Result<PathBuf> {
         self.download(
-            self.0
-                .get(&format!("depot/origins/{}/secret_keys/latest", origin)),
+            self.0.get(&format!("depot/origins/{}/secret_keys/latest", origin)),
             dst_path.as_ref(),
             Some(token),
             DEFAULT_SECRET_KEY_PERMISSIONS,
@@ -952,13 +867,7 @@ impl BuilderAPIClient {
 
         let path = format!("depot/origins/{}/keys/{}", &origin, &revision);
         let body = Self::upload_body(src_path, progress).await?;
-        let resp = self
-            .0
-            .post(&path)
-            .bearer_auth(token)
-            .body(body)
-            .send()
-            .await?;
+        let resp = self.0.post(&path).bearer_auth(token).body(body).send().await?;
         response::ok_if_unit(resp, &[StatusCode::OK, StatusCode::CREATED]).await
     }
 
@@ -984,13 +893,7 @@ impl BuilderAPIClient {
 
         let path = format!("depot/origins/{}/secret_keys/{}", &origin, &revision);
         let body = Self::upload_body(src_path, progress).await?;
-        let resp = self
-            .0
-            .post(&path)
-            .bearer_auth(token)
-            .body(body)
-            .send()
-            .await?;
+        let resp = self.0.post(&path).bearer_auth(token).body(body).send().await?;
         response::ok_if_unit(resp, &[StatusCode::OK]).await
     }
 
@@ -1050,10 +953,7 @@ impl BuilderAPIClient {
         (package, target): (&PackageIdent, PackageTarget),
         token: Option<&str>,
     ) -> Result<()> {
-        debug!(
-            "Checking package existence for {}, target {}",
-            package, target
-        );
+        debug!("Checking package existence for {}, target {}", package, target);
 
         if !package.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
@@ -1063,9 +963,8 @@ impl BuilderAPIClient {
 
         response::ok_if_unit(
             self.maybe_add_authz(
-                self.0.get_with_custom_url(&url, |u| {
-                    u.set_query(Some(&format!("target={}", target)))
-                }),
+                self.0
+                    .get_with_custom_url(&url, |u| u.set_query(Some(&format!("target={}", target)))),
                 token,
             )
             .send()
@@ -1090,14 +989,9 @@ impl BuilderAPIClient {
         channel: &ChannelIdent,
         token: Option<&str>,
     ) -> Result<PackageIdent> {
-        debug!(
-            "Retrieving package ident for {}, target {}",
-            package, target
-        );
+        debug!("Retrieving package ident for {}, target {}", package, target);
 
-        let package = self
-            .show_package_metadata((package, target), channel, token)
-            .await?;
+        let package = self.show_package_metadata((package, target), channel, token).await?;
         Ok(package.ident)
     }
 
@@ -1116,10 +1010,7 @@ impl BuilderAPIClient {
         channel: &ChannelIdent,
         token: Option<&str>,
     ) -> Result<Package> {
-        debug!(
-            "Retrieving package metadata for {}, target {}",
-            package, target
-        );
+        debug!("Retrieving package metadata for {}, target {}", package, target);
 
         let mut url = channel_package_path(channel, package);
 
@@ -1129,9 +1020,8 @@ impl BuilderAPIClient {
 
         let resp = self
             .maybe_add_authz(
-                self.0.get_with_custom_url(&url, |u| {
-                    u.set_query(Some(&format!("target={}", target)))
-                }),
+                self.0
+                    .get_with_custom_url(&url, |u| u.set_query(Some(&format!("target={}", target)))),
                 token,
             )
             .send()
@@ -1202,11 +1092,7 @@ impl BuilderAPIClient {
     /// * If package does not exist in Builder
     /// * If the package does not qualify for deletion
     /// * Authorization token was not set on client
-    pub async fn delete_package(
-        &self,
-        (ident, target): (&PackageIdent, PackageTarget),
-        token: &str,
-    ) -> Result<()> {
+    pub async fn delete_package(&self, (ident, target): (&PackageIdent, PackageTarget), token: &str) -> Result<()> {
         debug!("Deleting package {}, target {}", ident, target);
         let path = package_path(ident);
 
@@ -1241,10 +1127,7 @@ impl BuilderAPIClient {
         channel: &ChannelIdent,
         token: &str,
     ) -> Result<()> {
-        debug!(
-            "Promoting package {}, target {} to channel {}",
-            ident, target, channel
-        );
+        debug!("Promoting package {}, target {} to channel {}", ident, target, channel);
 
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
@@ -1282,10 +1165,7 @@ impl BuilderAPIClient {
         channel: &ChannelIdent,
         token: &str,
     ) -> Result<()> {
-        debug!(
-            "Demoting package {}, target {} from channel {}",
-            ident, target, channel
-        );
+        debug!("Demoting package {}, target {} from channel {}", ident, target, channel);
 
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
@@ -1312,12 +1192,7 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub async fn create_channel(
-        &self,
-        origin: &Origin,
-        channel: &ChannelIdent,
-        token: &str,
-    ) -> Result<()> {
+    pub async fn create_channel(&self, origin: &Origin, channel: &ChannelIdent, token: &str) -> Result<()> {
         debug!("Creating channel {} for origin {}", channel, origin);
 
         let path = format!("depot/channels/{}/{}", origin, channel);
@@ -1333,20 +1208,11 @@ impl BuilderAPIClient {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub async fn delete_channel(
-        &self,
-        origin: &Origin,
-        channel: &ChannelIdent,
-        token: &str,
-    ) -> Result<()> {
+    pub async fn delete_channel(&self, origin: &Origin, channel: &ChannelIdent, token: &str) -> Result<()> {
         debug!("Deleting channel {} for origin {}", channel, origin);
 
         let path = format!("depot/channels/{}/{}", origin, channel);
-        response::ok_if_unit(
-            self.0.delete(&path).bearer_auth(token).send().await?,
-            &[StatusCode::OK],
-        )
-        .await
+        response::ok_if_unit(self.0.delete(&path).bearer_auth(token).send().await?, &[StatusCode::OK]).await
     }
 
     /// Promote all packages in channel
@@ -1371,8 +1237,7 @@ impl BuilderAPIClient {
         response::ok_if_unit(
             self.0
                 .put_with_custom_url(&path, |url| {
-                    url.query_pairs_mut()
-                        .append_pair("channel", target_channel.as_str());
+                    url.query_pairs_mut().append_pair("channel", target_channel.as_str());
                 })
                 .bearer_auth(token)
                 .send()
@@ -1404,8 +1269,7 @@ impl BuilderAPIClient {
         response::ok_if_unit(
             self.0
                 .put_with_custom_url(&path, |url| {
-                    url.query_pairs_mut()
-                        .append_pair("channel", target_channel.as_str());
+                    url.query_pairs_mut().append_pair("channel", target_channel.as_str());
                 })
                 .bearer_auth(token)
                 .send()
@@ -1435,11 +1299,7 @@ impl BuilderAPIClient {
     /// # Failures
     /// * Remote Builder is not available
     /// * Authorization token was not set on client
-    pub async fn list_channels(
-        &self,
-        origin: &Origin,
-        include_sandbox_channels: bool,
-    ) -> Result<Vec<String>> {
+    pub async fn list_channels(&self, origin: &Origin, include_sandbox_channels: bool) -> Result<Vec<String>> {
         debug!("Listing channels for origin {}", origin);
 
         let path = format!("depot/channels/{}", origin);
@@ -1475,10 +1335,7 @@ impl BuilderAPIClient {
         token: &str,
         member_account: &str,
     ) -> Result<OriginMemberRoleResponse> {
-        debug!(
-            "Getting member {} role from origin {}",
-            member_account, origin
-        );
+        debug!("Getting member {} role from origin {}", member_account, origin);
 
         let path = format!("depot/origins/{}/users/{}/role", origin, member_account);
         let resp = self.0.get(&path).bearer_auth(token).send().await?;
@@ -1673,17 +1530,10 @@ mod tests {
     fn seach_generator<'a>(
         data: &'a [&str],
         step: usize,
-    ) -> impl Fn(
-        &BuilderAPIClient,
-        &'a str,
-        Option<&'a str>,
-        usize,
-    ) -> Ready<Result<(PackageResults<PackageIdent>, bool)>> {
+    ) -> impl Fn(&BuilderAPIClient, &'a str, Option<&'a str>, usize) -> Ready<Result<(PackageResults<PackageIdent>, bool)>>
+    {
         move |_client, search_term, _token, range| {
-            let filtered = data
-                .iter()
-                .filter(|d| d.contains(search_term))
-                .collect::<Vec<_>>();
+            let filtered = data.iter().filter(|d| d.contains(search_term)).collect::<Vec<_>>();
 
             if filtered.is_empty() {
                 return future::ready(Ok((
@@ -1723,8 +1573,7 @@ mod tests {
         let client = BuilderAPIClient::new("http://test.com", "", "", None).expect("valid client");
 
         let sample_data = vec![
-            "one_a", "one_b", "one_c", "one_d", "one_e", "two_a", "two_b", "two_c", "two_d",
-            "two_e",
+            "one_a", "one_b", "one_c", "one_d", "one_e", "two_a", "two_b", "two_c", "two_d", "two_e",
         ];
 
         let searcher = seach_generator(sample_data.as_slice(), 2);

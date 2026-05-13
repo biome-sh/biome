@@ -6,9 +6,7 @@ use crate::{
     ZMQ_CONTEXT,
     error::{Error, Result},
     message,
-    rumor::{
-        Rumor, departure::Departure, service_config::ServiceConfig, service_file::ServiceFile,
-    },
+    rumor::{Rumor, departure::Departure, service_config::ServiceConfig, service_file::ServiceFile},
 };
 use biome_core::{crypto::keys::RingKey, service::ServiceGroup};
 
@@ -34,12 +32,8 @@ impl Client {
         socket
             .set_immediate(true)
             .expect("Failure to set the ZMQ push socket to immediate");
-        socket
-            .set_sndhwm(1000)
-            .expect("Failure to set the ZMQ push socket hwm");
-        socket
-            .set_sndtimeo(500)
-            .expect("Failure to set the ZMQ send timeout");
+        socket.set_sndhwm(1000).expect("Failure to set the ZMQ push socket hwm");
+        socket.set_sndtimeo(500).expect("Failure to set the ZMQ send timeout");
         let to_addr = format!("tcp://{}", addr);
         socket.connect(&to_addr).map_err(Error::ZmqConnectError)?;
         Ok(Client { socket, ring_key })

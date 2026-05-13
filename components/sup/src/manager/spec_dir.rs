@@ -47,11 +47,7 @@ impl SpecDir {
             match ServiceSpec::from_file(&spec_file).map(|spec| spec.to_file(&spec_file)) {
                 Ok(_) => debug!("migrated {:?}", spec_file),
                 Err(err) => {
-                    outputln!(
-                        "Unable to migrate service spec, {}, {}",
-                        spec_file.display(),
-                        err
-                    );
+                    outputln!("Unable to migrate service spec, {}, {}", spec_file.display(), err);
                 }
             }
         }

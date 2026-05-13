@@ -318,6 +318,13 @@ package_targets! {
     /// [Linux kernel]: https://en.wikipedia.org/wiki/Linux_kernel
     /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
     ("aarch64-linux", AARCH64_Linux, AARCH64_LINUX, "aarch64", "linux");
+
+    /// Represents a [Windows kernel]-based system running on an
+    /// [ARM Architecture processor][arm-arch].
+    ///
+    /// [Windows kernel]: https://en.wikipedia.org/wiki/Architecture_of_Windows_NT
+    /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
+    ("aarch64-windows", AARCH64_Windows, AARCH64_WINDOWS, "aarch64", "windows");
 }
 
 lazy_static::lazy_static! {
@@ -377,10 +384,7 @@ impl PackageTarget {
     /// assert_eq!(it.next(), None);
     /// ```
     pub fn iter(&self) -> Iter<'_> {
-        Iter {
-            target: self,
-            pos: 0,
-        }
+        Iter { target: self, pos: 0 }
     }
 
     /// Returns the `PackageTarget` that is determined at compile time for the currently running
@@ -664,6 +668,29 @@ mod tests {
         assert_eq!(Some("x86_64"), iter.next());
         assert_eq!(Some("linux"), iter.next());
         assert_eq!(Some("kernel2"), iter.next());
+        assert_eq!(None, iter.next());
+    }
+
+    #[test]
+    #[cfg(feature = "aarch64-windows")]
+    fn aarch64_windows_architecture() {
+        assert_eq!("aarch64", Type::AARCH64_Windows.architecture());
+    }
+
+    #[test]
+    #[cfg(feature = "aarch64-windows")]
+    fn aarch64_windows_system() {
+        assert_eq!("windows", Type::AARCH64_Windows.system());
+    }
+
+    #[test]
+    #[cfg(feature = "aarch64-windows")]
+    fn package_target_iter_aarch64_windows() {
+        let target = PackageTarget(Type::AARCH64_Windows);
+        let mut iter = target.iter();
+
+        assert_eq!(Some("aarch64"), iter.next());
+        assert_eq!(Some("windows"), iter.next());
         assert_eq!(None, iter.next());
     }
 }

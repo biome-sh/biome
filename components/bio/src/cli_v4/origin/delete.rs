@@ -80,10 +80,7 @@ impl OriginDeleteOptions {
                     "Delete any user created origin channels with the command:\nbio bldr \
                           channel destroy [OPTIONS] <CHANNEL>",
                 )?;
-                Err(Error::APIClient(api_client::Error::APIError(
-                    StatusCode::CONFLICT,
-                    msg,
-                )))
+                Err(Error::APIClient(api_client::Error::APIError(StatusCode::CONFLICT, msg)))
             }
             // Any other failure
             Err(e) => {

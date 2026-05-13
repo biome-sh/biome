@@ -57,9 +57,7 @@ mod manager_config {
     use biome_common::command::package::install::InstallSource;
     use biome_sup::manager::service::{Topology, UpdateCondition, UpdateStrategy};
 
-    use biome_common::types::{
-        EventStreamConnectMethod, GossipListenAddr, HttpListenAddr, ListenCtlAddr,
-    };
+    use biome_common::types::{EventStreamConnectMethod, GossipListenAddr, HttpListenAddr, ListenCtlAddr};
 
     use biome_core::crypto::keys::{Key, KeyCache, NamedRevision, RingKey};
 
@@ -86,9 +84,7 @@ mod manager_config {
         assert!(matches!(bio_sup, BioSup::Run(..)));
 
         match bio_sup {
-            BioSup::Run(sup_run_options) => {
-                SupRunOptions::maybe_merge_from_config_files(sup_run_options).unwrap()
-            }
+            BioSup::Run(sup_run_options) => SupRunOptions::maybe_merge_from_config_files(sup_run_options).unwrap(),
             _ => unreachable!(),
         }
     }
@@ -103,11 +99,7 @@ mod manager_config {
         match bio_sup {
             BioSup::Run(sup_run_options) => {
                 let sup_run_options = SupRunOptions::maybe_merge_from_config_files(sup_run_options);
-                assert!(
-                    sup_run_options.is_ok(),
-                    "{:#?}",
-                    sup_run_options.err().unwrap()
-                );
+                assert!(sup_run_options.is_ok(), "{:#?}", sup_run_options.err().unwrap());
                 let sup_run_options = sup_run_options.unwrap();
                 executor::block_on(split_apart_sup_run(sup_run_options, no_feature_flags()))
                     .expect(
@@ -177,8 +169,7 @@ mod manager_config {
     #[test]
     fn gossip_listen_should_be_set() {
         let config = config_from_cmd_str("bio-sup run --listen-gossip 1.1.1.1:1111");
-        let expected_addr =
-            GossipListenAddr::from_str("1.1.1.1:1111").expect("Could not create GossipListenAddr");
+        let expected_addr = GossipListenAddr::from_str("1.1.1.1:1111").expect("Could not create GossipListenAddr");
         assert_eq!(config.gossip_listen, expected_addr);
     }
 
@@ -192,8 +183,7 @@ mod manager_config {
     #[test]
     fn http_listen_should_be_set() {
         let config = config_from_cmd_str("bio-sup run --listen-http 2.2.2.2:2222");
-        let expected_addr =
-            HttpListenAddr::from_str("2.2.2.2:2222").expect("Could not create http listen addr");
+        let expected_addr = HttpListenAddr::from_str("2.2.2.2:2222").expect("Could not create http listen addr");
         assert_eq!(config.http_listen, expected_addr);
     }
 
@@ -216,8 +206,7 @@ mod manager_config {
     #[test]
     fn ctl_listen_should_be_set() {
         let config = config_from_cmd_str("bio-sup run --listen-ctl 3.3.3.3:3333");
-        let expected_addr =
-            ListenCtlAddr::from_str("3.3.3.3:3333").expect("Could not create ctl listen addr");
+        let expected_addr = ListenCtlAddr::from_str("3.3.3.3:3333").expect("Could not create ctl listen addr");
         assert_eq!(config.ctl_listen, expected_addr);
 
         let config = config_from_cmd_str("bio-sup run");
@@ -253,18 +242,14 @@ mod manager_config {
         let lock = lock_var();
         lock.set(temp_dir.path());
 
-        let key_content =
-            "SYM-SEC-1\nfoobar-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
+        let key_content = "SYM-SEC-1\nfoobar-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
         let key: RingKey = key_content.parse().unwrap();
         cache.write_key(&key).unwrap();
 
         let config = config_from_cmd_str("bio-sup run --ring foobar");
 
         assert_eq!(
-            config
-                .ring_key
-                .expect("No ring key on manager config")
-                .named_revision(),
+            config.ring_key.expect("No ring key on manager config").named_revision(),
             key.named_revision()
         );
     }
@@ -289,10 +274,7 @@ RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
         let config = config_from_cmd_vec(cmd_vec);
 
         assert_eq!(
-            config
-                .ring_key
-                .expect("No ring key on manager config")
-                .named_revision(),
+            config.ring_key.expect("No ring key on manager config").named_revision(),
             &"foobar-20160504220722".parse::<NamedRevision>().unwrap()
         );
     }
@@ -370,8 +352,7 @@ gpoVMSncu2jMIDZX63IkQII=
         let cache = KeyCache::new(temp_dir.path());
 
         // Setup key file
-        let key_content =
-            "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
+        let key_content = "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
         let ring_key: RingKey = key_content.parse().unwrap();
         cache.write_key(&ring_key).unwrap();
 
@@ -399,9 +380,7 @@ gpoVMSncu2jMIDZX63IkQII=
         let gossip_peers = vec![
             "1.1.1.1:1111".parse().unwrap(),
             "2.2.2.2:2222".parse().unwrap(),
-            format!("3.3.3.3:{}", GossipListenAddr::DEFAULT_PORT)
-                .parse()
-                .unwrap(),
+            format!("3.3.3.3:{}", GossipListenAddr::DEFAULT_PORT).parse().unwrap(),
         ];
 
         let config = config_from_cmd_str(&args);
@@ -619,12 +598,8 @@ gpoVMSncu2jMIDZX63IkQII=
         );
 
         let mut binds = ServiceBindList::default();
-        binds
-            .binds
-            .push(ServiceBind::from_str("one:service1.default").unwrap());
-        binds
-            .binds
-            .push(ServiceBind::from_str("two:service2.default").unwrap());
+        binds.binds.push(ServiceBind::from_str("one:service1.default").unwrap());
+        binds.binds.push(ServiceBind::from_str("two:service2.default").unwrap());
         let health_check_interval = sup_proto::types::HealthCheckInterval { seconds: 17 };
 
         let service_load = service_load_from_cmd_str(&args);
@@ -660,9 +635,7 @@ gpoVMSncu2jMIDZX63IkQII=
         let m = sup_run_from_cmd_str(args);
         let pkg = m.pkg_ident_or_artifact.unwrap();
         assert_eq!(
-            "core/redis/4.0.14/20200421191514"
-                .parse::<InstallSource>()
-                .unwrap(),
+            "core/redis/4.0.14/20200421191514".parse::<InstallSource>().unwrap(),
             pkg
         );
 
@@ -693,8 +666,7 @@ gpoVMSncu2jMIDZX63IkQII=
         let cache = KeyCache::new(temp_dir.path());
 
         // Setup key file
-        let key_content =
-            "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
+        let key_content = "SYM-SEC-1\ntester-20160504220722\n\nRCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
         let ring_key: RingKey = key_content.parse().unwrap();
         cache.write_key(&ring_key).unwrap();
 
@@ -745,9 +717,7 @@ sys_ip_address = "7.8.9.0"
         let gossip_peers = vec![
             "1.1.1.1:1111".parse().unwrap(),
             "2.2.2.2:2222".parse().unwrap(),
-            format!("3.3.3.3:{}", GossipListenAddr::DEFAULT_PORT)
-                .parse()
-                .unwrap(),
+            format!("3.3.3.3:{}", GossipListenAddr::DEFAULT_PORT).parse().unwrap(),
         ];
 
         let config = config_from_cmd_str(&args);
@@ -906,9 +876,7 @@ sys_ip_address = "7.8.9.0"
 
         let gossip_peers = vec![
             "1.1.1.1:9638".parse().unwrap(),
-            format!("127.0.0.1:{}", GossipListenAddr::DEFAULT_PORT)
-                .parse()
-                .unwrap(),
+            format!("127.0.0.1:{}", GossipListenAddr::DEFAULT_PORT).parse().unwrap(),
         ];
 
         let config = config_from_cmd_str(&args);
@@ -1094,12 +1062,8 @@ pkg_ident_or_artifact = "core/redis"
         let args = format!("bio-sup run --config-files {}", config_path_str);
 
         let mut binds = ServiceBindList::default();
-        binds
-            .binds
-            .push(ServiceBind::from_str("one:service1.default").unwrap());
-        binds
-            .binds
-            .push(ServiceBind::from_str("two:service2.default").unwrap());
+        binds.binds.push(ServiceBind::from_str("one:service1.default").unwrap());
+        binds.binds.push(ServiceBind::from_str("two:service2.default").unwrap());
         let health_check_interval = sup_proto::types::HealthCheckInterval { seconds: 17 };
 
         let service_load = service_load_from_cmd_str(&args);
@@ -1148,18 +1112,12 @@ pkg_ident_or_artifact = "core/redis"
         .expect("to write config file contents");
         let pkg = sup_run_from_cmd_str(&args).pkg_ident_or_artifact.unwrap();
         assert_eq!(
-            "core/redis/4.0.14/20200421191514"
-                .parse::<InstallSource>()
-                .unwrap(),
+            "core/redis/4.0.14/20200421191514".parse::<InstallSource>().unwrap(),
             pkg
         );
 
         let mut config_file = File::create(&config_path).unwrap();
-        write!(
-            config_file,
-            "pkg_ident_or_artifact = \"/some/path/pkg.hrt\"",
-        )
-        .expect(
+        write!(config_file, "pkg_ident_or_artifact = \"/some/path/pkg.hrt\"",).expect(
             "to write config file \
                                                                           contents",
         );
@@ -1176,8 +1134,7 @@ pkg_ident_or_artifact = "core/redis"
         let config_path = temp_dir.path().join("config.toml");
         let config_path_str = config_path.to_str().unwrap();
         let mut config_file = File::create(&config_path).unwrap();
-        write!(config_file, "password = \"keep_it_secret_keep_it_safe\"")
-            .expect("to write config file contents");
+        write!(config_file, "password = \"keep_it_secret_keep_it_safe\"").expect("to write config file contents");
 
         let args = format!("bio-sup run core/redis --config-files {}", config_path_str);
         let service_load = service_load_from_cmd_str(&args);
@@ -1260,41 +1217,23 @@ organization = "MY_ORG_FROM_SECOND_CONFG"
                     --binding-mode strict core/redis";
         let svc_load = service_load_from_cmd_str(args);
         assert_eq!(i32::from(Topology::Standalone), svc_load.topology.unwrap());
-        assert_eq!(
-            i32::from(UpdateStrategy::None),
-            svc_load.update_strategy.unwrap()
-        );
-        assert_eq!(
-            i32::from(UpdateCondition::Latest),
-            svc_load.update_condition.unwrap()
-        );
-        assert_eq!(
-            i32::from(BindingMode::Strict),
-            svc_load.binding_mode.unwrap()
-        );
+        assert_eq!(i32::from(UpdateStrategy::None), svc_load.update_strategy.unwrap());
+        assert_eq!(i32::from(UpdateCondition::Latest), svc_load.update_condition.unwrap());
+        assert_eq!(i32::from(BindingMode::Strict), svc_load.binding_mode.unwrap());
 
         let args = "bio-sup run --topology leader --strategy at-once --update-condition \
                     track-channel --binding-mode relaxed core/redis";
         let svc_load = service_load_from_cmd_str(args);
         assert_eq!(i32::from(Topology::Leader), svc_load.topology.unwrap());
-        assert_eq!(
-            i32::from(UpdateStrategy::AtOnce),
-            svc_load.update_strategy.unwrap()
-        );
+        assert_eq!(i32::from(UpdateStrategy::AtOnce), svc_load.update_strategy.unwrap());
         assert_eq!(
             i32::from(UpdateCondition::TrackChannel),
             svc_load.update_condition.unwrap()
         );
-        assert_eq!(
-            i32::from(BindingMode::Relaxed),
-            svc_load.binding_mode.unwrap()
-        );
+        assert_eq!(i32::from(BindingMode::Relaxed), svc_load.binding_mode.unwrap());
 
         let args = "bio-sup run --strategy rolling core/redis";
         let svc_load = service_load_from_cmd_str(args);
-        assert_eq!(
-            i32::from(UpdateStrategy::Rolling),
-            svc_load.update_strategy.unwrap()
-        );
+        assert_eq!(i32::from(UpdateStrategy::Rolling), svc_load.update_strategy.unwrap());
     }
 }

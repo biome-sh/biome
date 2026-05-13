@@ -60,9 +60,7 @@ enum EngineError {
 /// we can update our Buildah dependency and remove this check.
 #[cfg(not(windows))]
 pub(crate) fn fail_if_buildah_and_multilayer(matches: &ArgMatches) -> Result<()> {
-    if matches.get_one::<EngineKind>("ENGINE") == Some(&EngineKind::Buildah)
-        && matches.get_flag("MULTI_LAYER")
-    {
+    if matches.get_one::<EngineKind>("ENGINE") == Some(&EngineKind::Buildah) && matches.get_flag("MULTI_LAYER") {
         return Err(EngineError::BuildahIncompatibleWithMultiLayer.into());
     }
 
@@ -167,8 +165,7 @@ pub(crate) trait Engine {
     // handling the config directory stuff internally?
     fn image_push_command(&self, image_reference: &str, config_dir: &Path) -> Command;
 
-    fn build_command(&self, build_context: &Path, tags: &[String], memory: Option<&str>)
-    -> Command;
+    fn build_command(&self, build_context: &Path, tags: &[String], memory: Option<&str>) -> Command;
 
     /// Retrieve the ID of the given image, which is expected to exist.
     fn image_id(&self, image_reference: &str) -> Result<String> {
@@ -184,10 +181,7 @@ pub(crate) trait Engine {
 
     /// Delete the referenced image in the local image store.
     fn remove_image(&self, image_reference: &str) -> Result<()> {
-        run(
-            self.image_removal_command(image_reference),
-            EngineError::RemoveFailed,
-        )
+        run(self.image_removal_command(image_reference), EngineError::RemoveFailed)
     }
 
     /// Pushes the specified container image to a remote repository, using
@@ -218,9 +212,7 @@ pub(crate) trait Engine {
             EngineError::BuildFailed,
         )?;
 
-        let identifier = tags
-            .first()
-            .expect("There should always be at least one tag");
+        let identifier = tags.first().expect("There should always be at least one tag");
         self.image_id(identifier)
     }
 }
@@ -242,6 +234,5 @@ where
 }
 
 fn resolve_engine_binary(binary_name: &str) -> StdResult<PathBuf, EngineError> {
-    find_command(binary_name)
-        .ok_or_else(|| EngineError::ExecutableNotFound(binary_name.to_string()))
+    find_command(binary_name).ok_or_else(|| EngineError::ExecutableNotFound(binary_name.to_string()))
 }

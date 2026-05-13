@@ -18,10 +18,7 @@ pub async fn start(
 
     ui.status(
         Status::Promoting,
-        format!(
-            "Packages from channel {} to {}.",
-            source_channel, target_channel
-        ),
+        format!("Packages from channel {} to {}.", source_channel, target_channel),
     )?;
 
     api_client
@@ -31,10 +28,7 @@ pub async fn start(
 
     ui.status(
         Status::Promoted,
-        format!(
-            "packages from channel {} to {}.",
-            source_channel, target_channel
-        ),
+        format!("packages from channel {} to {}.", source_channel, target_channel),
     )?;
 
     Ok(())

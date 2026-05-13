@@ -61,20 +61,14 @@ impl From<&ArgMatches> for Naming {
         // TODO (CM): If registry_type is Docker, we must set this to
         // dockerhub. Otherwise, it MUST be present, because of how
         // clap is set up.
-        let registry_url = matches
-            .get_one::<String>("REGISTRY_URL")
-            .map(ToString::to_string);
+        let registry_url = matches.get_one::<String>("REGISTRY_URL").map(ToString::to_string);
 
         Naming {
-            custom_image_name_template: matches
-                .get_one::<String>("IMAGE_NAME")
-                .map(ToString::to_string),
+            custom_image_name_template: matches.get_one::<String>("IMAGE_NAME").map(ToString::to_string),
             include_latest_tag: !matches.get_flag("TAG_LATEST"),
             include_version_tag: !matches.get_flag("TAG_VERSION"),
             include_version_release_tag: !matches.get_flag("TAG_VERSION_RELEASE"),
-            custom_tag_template: matches
-                .get_one::<String>("TAG_CUSTOM")
-                .map(ToString::to_string),
+            custom_tag_template: matches.get_one::<String>("TAG_CUSTOM").map(ToString::to_string),
             registry_url,
             registry_type,
         }
@@ -242,10 +236,7 @@ impl Naming {
             .map(|s| s.to_lowercase())
     }
 
-    fn rendering_context(
-        ident: &FullyQualifiedPackageIdent,
-        channel: &ChannelIdent,
-    ) -> impl Serialize + use<> {
+    fn rendering_context(ident: &FullyQualifiedPackageIdent, channel: &ChannelIdent) -> impl Serialize + use<> {
         json!({
             "pkg_origin": ident.origin(),
             "pkg_name": ident.name(),
@@ -343,10 +334,7 @@ mod tests {
         };
 
         let context = context();
-        assert_eq!(
-            naming.version_release_tag(&context).unwrap(),
-            "1.2.3-20200430153200"
-        );
+        assert_eq!(naming.version_release_tag(&context).unwrap(), "1.2.3-20200430153200");
     }
 
     #[test]
@@ -376,10 +364,7 @@ mod tests {
             ("monkeys", Some("monkeys")),
             ("{{pkg_name}}", Some("foo")),
             ("{{pkg_origin}}-{{pkg_name}}", Some("core-foo")),
-            (
-                "{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}",
-                Some("core-foo-1.2.3"),
-            ),
+            ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}", Some("core-foo-1.2.3")),
             (
                 "{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}",
                 Some("core-foo-1.2.3-20200430153200"),
@@ -390,9 +375,7 @@ mod tests {
             ),
             (
                 "super-{{pkg_origin}}-wacky-{{pkg_name}}-funtime-{{pkg_version}}-container-{{pkg_release}}-party-{{channel}}-ohemgee",
-                Some(
-                    "super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-base-ohemgee",
-                ),
+                Some("super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-base-ohemgee"),
             ),
             // Invalid inputs
             ("{{", None),
@@ -447,10 +430,7 @@ mod tests {
             ("monkeys", Some("monkeys")),
             ("{{pkg_name}}", Some("foo")),
             ("{{pkg_origin}}-{{pkg_name}}", Some("core-foo")),
-            (
-                "{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}",
-                Some("core-foo-1.2.3"),
-            ),
+            ("{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}", Some("core-foo-1.2.3")),
             (
                 "{{pkg_origin}}-{{pkg_name}}-{{pkg_version}}-{{pkg_release}}",
                 Some("core-foo-1.2.3-20200430153200"),
@@ -461,9 +441,7 @@ mod tests {
             ),
             (
                 "super-{{pkg_origin}}-wacky-{{pkg_name}}-funtime-{{pkg_version}}-container-{{pkg_release}}-party-{{channel}}-ohemgee",
-                Some(
-                    "super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-base-ohemgee",
-                ),
+                Some("super-core-wacky-foo-funtime-1.2.3-container-20200430153200-party-base-ohemgee"),
             ),
             // Invalid inputs
             ("{{", None),
@@ -541,10 +519,7 @@ mod tests {
         } = naming.image_identifiers(&ident, &channel).unwrap();
 
         assert_eq!(name, "registry.mycompany.com:8080/v1/my-nifty/foo");
-        assert_eq!(
-            tags,
-            ["latest", "1.2.3", "1.2.3-20200430153200", "new-hotness"]
-        );
+        assert_eq!(tags, ["latest", "1.2.3", "1.2.3-20200430153200", "new-hotness"]);
         assert_eq!(
             expanded_identifiers,
             [

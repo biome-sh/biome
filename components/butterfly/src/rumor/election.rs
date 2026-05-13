@@ -11,9 +11,7 @@
 use log::debug;
 use serde::Serialize;
 
-pub use crate::protocol::newscast::{
-    Election as ProtoElection, election::Status as ElectionStatus,
-};
+pub use crate::protocol::newscast::{Election as ProtoElection, election::Status as ElectionStatus};
 use crate::{
     error::{Error, Result},
     protocol::{
@@ -61,13 +59,7 @@ impl fmt::Display for Election {
 impl Election {
     /// Create a new election, voting for the given member id, for the given service group, and
     /// with the given suitability.
-    pub fn new<S1>(
-        member_id: S1,
-        service_group: &str,
-        term: u64,
-        suitability: u64,
-        has_quorum: bool,
-    ) -> Election
+    pub fn new<S1>(member_id: S1, service_group: &str, term: u64, suitability: u64, has_quorum: bool) -> Election
     where
         S1: Into<String>,
     {
@@ -155,9 +147,7 @@ impl FromProto<ProtoRumor> for Election {
         let from_id = rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?;
         Ok(Election {
             member_id: from_id,
-            service_group: payload
-                .service_group
-                .ok_or(Error::ProtocolMismatch("service-group"))?,
+            service_group: payload.service_group.ok_or(Error::ProtocolMismatch("service-group"))?,
             term: payload.term.unwrap_or(0),
             suitability: payload.suitability.unwrap_or(0),
             status: payload
@@ -272,13 +262,7 @@ impl fmt::Display for ElectionUpdate {
 }
 
 impl ElectionUpdate {
-    pub fn new<S1>(
-        member_id: S1,
-        service_group: &str,
-        term: u64,
-        suitability: u64,
-        has_quorum: bool,
-    ) -> ElectionUpdate
+    pub fn new<S1>(member_id: S1, service_group: &str, term: u64, suitability: u64, has_quorum: bool) -> ElectionUpdate
     where
         S1: Into<String>,
     {

@@ -147,9 +147,7 @@ impl TryFrom<UpdateCommand> for ctl::SvcUpdate {
             update_condition: None,
         } = &msg
         {
-            Err(Error::ArgumentError(
-                "No fields specified for update".to_string(),
-            ))
+            Err(Error::ArgumentError("No fields specified for update".to_string()))
         } else {
             Ok(msg)
         }

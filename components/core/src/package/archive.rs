@@ -310,11 +310,7 @@ impl PackageArchive {
 
     /// A plain string representation of the archive's file name.
     pub fn file_name(&self) -> String {
-        self.path
-            .file_name()
-            .unwrap()
-            .to_string_lossy()
-            .into_owned()
+        self.path.file_name().unwrap().to_string_lossy().into_owned()
     }
 
     /// Given a package name and a path to a file as an `&str`, unpack
@@ -341,9 +337,7 @@ impl PackageArchive {
             for id in body.lines() {
                 let package = PackageIdent::from_str(id)?;
                 if !package.fully_qualified() {
-                    return Err(Error::FullyQualifiedPackageIdentRequired(
-                        package.to_string(),
-                    ));
+                    return Err(Error::FullyQualifiedPackageIdentRequired(package.to_string()));
                 }
                 deps.push(package);
             }
@@ -456,17 +450,9 @@ impl TryFrom<PackageArchive> for PackageArchiveInfo {
             target: archive.target()?.to_string(),
             is_a_service: archive.is_a_service(),
             deps: archive.deps()?.iter().map(ToString::to_string).collect(),
-            build_deps: archive
-                .build_deps()?
-                .iter()
-                .map(ToString::to_string)
-                .collect(),
+            build_deps: archive.build_deps()?.iter().map(ToString::to_string).collect(),
             tdeps: archive.tdeps()?.iter().map(ToString::to_string).collect(),
-            build_tdeps: archive
-                .build_tdeps()?
-                .iter()
-                .map(ToString::to_string)
-                .collect(),
+            build_tdeps: archive.build_tdeps()?.iter().map(ToString::to_string).collect(),
             exposes: archive.exposes()?,
             manifest: archive.manifest()?.to_string(),
             svc_user: archive.svc_user().map(ToString::to_string),

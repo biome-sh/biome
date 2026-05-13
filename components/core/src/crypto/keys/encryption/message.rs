@@ -26,10 +26,7 @@ pub struct AnonymousBox {
 impl AnonymousBox {
     /// Create a new AnonymousBox. Intentionally private to the encryption module.
     pub(super) fn new(key_pair: NamedRevision, ciphertext: Vec<u8>) -> Self {
-        Self {
-            key_pair,
-            ciphertext,
-        }
+        Self { key_pair, ciphertext }
     }
 
     pub fn key_pair(&self) -> &NamedRevision {
@@ -91,10 +88,7 @@ impl FromStr for AnonymousBox {
             .map(crate::base64::decode)?
             .map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e)))?;
 
-        Ok(AnonymousBox {
-            key_pair,
-            ciphertext,
-        })
+        Ok(AnonymousBox { key_pair, ciphertext })
     }
 }
 
@@ -266,18 +260,17 @@ mod tests {
 
         /// The raw ciphertext of the `ANONYMOUS_TEXT` message above.
         const CIPHERTEXT: [u8; 65] = [
-            12u8, 119u8, 23u8, 135u8, 167u8, 72u8, 133u8, 250u8, 78u8, 131u8, 104u8, 237u8, 192u8,
-            113u8, 97u8, 55u8, 48u8, 229u8, 215u8, 209u8, 108u8, 30u8, 121u8, 132u8, 70u8, 57u8,
-            74u8, 185u8, 203u8, 0u8, 90u8, 33u8, 189u8, 201u8, 57u8, 238u8, 236u8, 51u8, 145u8,
-            4u8, 79u8, 231u8, 197u8, 58u8, 225u8, 206u8, 133u8, 52u8, 103u8, 19u8, 228u8, 140u8,
-            217u8, 246u8, 84u8, 190u8, 49u8, 8u8, 57u8, 91u8, 224u8, 67u8, 196u8, 80u8, 147u8,
+            12u8, 119u8, 23u8, 135u8, 167u8, 72u8, 133u8, 250u8, 78u8, 131u8, 104u8, 237u8, 192u8, 113u8, 97u8, 55u8,
+            48u8, 229u8, 215u8, 209u8, 108u8, 30u8, 121u8, 132u8, 70u8, 57u8, 74u8, 185u8, 203u8, 0u8, 90u8, 33u8,
+            189u8, 201u8, 57u8, 238u8, 236u8, 51u8, 145u8, 4u8, 79u8, 231u8, 197u8, 58u8, 225u8, 206u8, 133u8, 52u8,
+            103u8, 19u8, 228u8, 140u8, 217u8, 246u8, 84u8, 190u8, 49u8, 8u8, 57u8, 91u8, 224u8, 67u8, 196u8, 80u8,
+            147u8,
         ];
 
         #[test]
         fn parse() {
             let anonymous = ANONYMOUS_TEXT.parse::<AnonymousBox>().unwrap();
-            let expected_key_pair: NamedRevision =
-                "fhloston-paradise-20200813211603".parse().unwrap();
+            let expected_key_pair: NamedRevision = "fhloston-paradise-20200813211603".parse().unwrap();
 
             assert_eq!(anonymous.key_pair(), &expected_key_pair);
             assert_eq!(anonymous.ciphertext().to_vec(), CIPHERTEXT.to_vec());
@@ -303,15 +296,15 @@ mod tests {
 
         /// The bytes of the nonce used in `SIGNED_TEXT` above.
         const NONCE: [u8; 24] = [
-            7u8, 183u8, 184u8, 64u8, 3u8, 184u8, 104u8, 166u8, 69u8, 53u8, 184u8, 129u8, 64u8, 3u8,
-            166u8, 251u8, 201u8, 25u8, 134u8, 165u8, 67u8, 180u8, 236u8, 40u8,
+            7u8, 183u8, 184u8, 64u8, 3u8, 184u8, 104u8, 166u8, 69u8, 53u8, 184u8, 129u8, 64u8, 3u8, 166u8, 251u8,
+            201u8, 25u8, 134u8, 165u8, 67u8, 180u8, 236u8, 40u8,
         ];
 
         /// The bytes of the ciphertext used in `SIGNED_TEXT` above.
         const CIPHERTEXT: [u8; 36] = [
-            249u8, 246u8, 140u8, 204u8, 76u8, 32u8, 95u8, 81u8, 3u8, 114u8, 57u8, 125u8, 105u8,
-            190u8, 12u8, 84u8, 20u8, 124u8, 146u8, 86u8, 144u8, 156u8, 183u8, 160u8, 197u8, 41u8,
-            134u8, 202u8, 5u8, 142u8, 29u8, 79u8, 152u8, 240u8, 245u8, 51u8,
+            249u8, 246u8, 140u8, 204u8, 76u8, 32u8, 95u8, 81u8, 3u8, 114u8, 57u8, 125u8, 105u8, 190u8, 12u8, 84u8,
+            20u8, 124u8, 146u8, 86u8, 144u8, 156u8, 183u8, 160u8, 197u8, 41u8, 134u8, 202u8, 5u8, 142u8, 29u8, 79u8,
+            152u8, 240u8, 245u8, 51u8,
         ];
 
         #[test]
@@ -319,9 +312,7 @@ mod tests {
             let signed = SIGNED_TEXT.parse::<SignedBox>().unwrap();
 
             let expected_encryptor: NamedRevision = "ruby-rhod-20200813204159".parse().unwrap();
-            let expected_receiver: NamedRevision = "service-key-valid.default@acme-20160509181736"
-                .parse()
-                .unwrap();
+            let expected_receiver: NamedRevision = "service-key-valid.default@acme-20160509181736".parse().unwrap();
 
             assert_eq!(signed.encryptor(), &expected_encryptor);
             assert_eq!(signed.decryptor(), &expected_receiver);
@@ -332,9 +323,7 @@ mod tests {
         #[test]
         fn to_string() {
             let encryptor = "ruby-rhod-20200813204159".parse().unwrap();
-            let decryptor = "service-key-valid.default@acme-20160509181736"
-                .parse()
-                .unwrap();
+            let decryptor = "service-key-valid.default@acme-20160509181736".parse().unwrap();
             let nonce = primitives::Nonce::from_bytes_exact(NONCE);
             let ciphertext = CIPHERTEXT.to_vec();
 

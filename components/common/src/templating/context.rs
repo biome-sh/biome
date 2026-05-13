@@ -320,9 +320,7 @@ two = 2
         renderer
             .register_template_string("testing", template_content)
             .expect("Could not register template content");
-        renderer
-            .render("testing", ctx)
-            .expect("Could not render template")
+        renderer.render("testing", ctx).expect("Could not render template")
     }
 
     ////////////////////////////////////////////////////////////////////////

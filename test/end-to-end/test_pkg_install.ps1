@@ -39,6 +39,23 @@ Describe "pkg install" {
         }
     }
 
+    if ($IsLinux) {
+        It "installs interpreter from builder for install hooks using --auth token" {
+            Remove-Item /bio/pkgs/core/busybox-static -Recurse -Force -ErrorAction Ignore
+            Remove-Item "/bio/cache/artifacts/core-busybox-static-*" -ErrorAction Ignore
+            $token = $env:BIO_AUTH_TOKEN
+            try {
+                $env:BIO_AUTH_TOKEN = $null
+                $cached = Get-Item "/bio/cache/artifacts/$env:BIO_ORIGIN-dep-pkg-1*"
+                Write-Host (bio pkg install $cached.FullName --auth "$token" | Out-String)
+            } finally {
+                $env:BIO_AUTH_TOKEN = $token
+            }
+            $LASTEXITCODE | Should -Be 0
+            Get-Content "$(bio pkg path $env:BIO_ORIGIN/dep-pkg-1)/INSTALL_HOOK_STATUS" | Should -Be "0"
+        }
+    }
+
     It "installs all dependencies and executes all install hooks" {
         $cached = Get-Item "/bio/cache/artifacts/$env:BIO_ORIGIN-dep-pkg-3*"
         bio pkg install $cached.FullName

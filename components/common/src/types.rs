@@ -48,9 +48,7 @@ impl FromStr for EventStreamMetaPair {
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.split('=').collect::<Vec<_>>().as_slice() {
-            [key, value] if !key.is_empty() && !value.is_empty() => {
-                Ok(Self(String::from(*key), String::from(*value)))
-            }
+            [key, value] if !key.is_empty() && !value.is_empty() => Ok(Self(String::from(*key), String::from(*value))),
             _ => {
                 let e = format!(
                     "Invalid key-value pair given (must be '='-delimited pair of \
@@ -104,11 +102,7 @@ impl From<HashMap<String, String>> for EventStreamMetadata {
 
 impl From<Vec<EventStreamMetaPair>> for EventStreamMetadata {
     fn from(pairs: Vec<EventStreamMetaPair>) -> Self {
-        pairs
-            .into_iter()
-            .map(|p| (p.0, p.1))
-            .collect::<HashMap<_, _>>()
-            .into()
+        pairs.into_iter().map(|p| (p.0, p.1)).collect::<HashMap<_, _>>().into()
     }
 }
 
@@ -290,11 +284,7 @@ impl Into<PathBuf> for EventStreamServerCertificate {
 
 impl fmt::Debug for EventStreamServerCertificate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "EventStreamServerCertificate {{ path: {:?} }}",
-            self.path
-        )
+        write!(f, "EventStreamServerCertificate {{ path: {:?} }}", self.path)
     }
 }
 
@@ -328,8 +318,7 @@ impl FromStr for ResolvedListenCtlAddr {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (domain, addr) =
-            util::resolve_socket_addr_with_default_port(s, ListenCtlAddr::DEFAULT_PORT)?;
+        let (domain, addr) = util::resolve_socket_addr_with_default_port(s, ListenCtlAddr::DEFAULT_PORT)?;
         Ok(Self {
             domain,
             addr: ListenCtlAddr::from(addr),
@@ -523,9 +512,7 @@ mod tests {
         #[test]
         fn local_addr_for_gossip_listen_addr_returns_same_ip_for_a_specified_address() {
             let mut listen_addr = GossipListenAddr::default();
-            listen_addr
-                .0
-                .set_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)));
+            listen_addr.0.set_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)));
             assert!(!listen_addr.0.ip().is_loopback());
 
             let local_addr = listen_addr.local_addr();

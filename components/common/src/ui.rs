@@ -241,11 +241,7 @@ impl Status {
             Status::Determining => (Glyph::Cloud, "Determining".into(), Color::Info),
             Status::Discovering => (Glyph::Cloud, "Discovering".into(), Color::Info),
             Status::Downloading => (Glyph::DownArrow, "Downloading".into(), Color::Info),
-            Status::DryRunDeleting => (
-                Glyph::BoxedX,
-                "Would be deleted (Dry run)".into(),
-                Color::Critical,
-            ),
+            Status::DryRunDeleting => (Glyph::BoxedX, "Would be deleted (Dry run)".into(), Color::Critical),
             Status::Encrypting => (Glyph::FingerPoint, "Encrypting".into(), Color::Info),
             Status::Encrypted => (Glyph::CheckMark, "Encrypted".into(), Color::Info),
             Status::Executing => (Glyph::FingerPoint, "Executing".into(), Color::Info),
@@ -316,9 +312,7 @@ pub trait UIWriter: Send {
         println(
             self.out(),
             format!("{} {}", symbol, message).as_bytes(),
-            ColorSpec::new()
-                .set_fg(Some(Color::Warn.into()))
-                .set_bold(true),
+            ColorSpec::new().set_fg(Some(Color::Warn.into())).set_bold(true),
         )
     }
 
@@ -331,9 +325,7 @@ pub trait UIWriter: Send {
         println(
             self.out(),
             format!("{} {}", symbol, message).as_bytes(),
-            ColorSpec::new()
-                .set_fg(Some(Color::End.into()))
-                .set_bold(true),
+            ColorSpec::new().set_fg(Some(Color::End.into())).set_bold(true),
         )
     }
 
@@ -369,9 +361,7 @@ pub trait UIWriter: Send {
         println(
             self.err(),
             format!("{} {}", Glyph::SlashedZero.to_str(), message).as_bytes(),
-            ColorSpec::new()
-                .set_fg(Some(Color::Warn.into()))
-                .set_bold(true),
+            ColorSpec::new().set_fg(Some(Color::Warn.into())).set_bold(true),
         )
     }
 
@@ -383,25 +373,19 @@ pub trait UIWriter: Send {
         println(
             self.err(),
             Glyph::ErrorX.to_str().as_bytes(),
-            ColorSpec::new()
-                .set_fg(Some(Color::Critical.into()))
-                .set_bold(true),
+            ColorSpec::new().set_fg(Some(Color::Critical.into())).set_bold(true),
         )?;
         for line in message.to_string().lines() {
             println(
                 self.err(),
                 format!("{} {}", Glyph::ErrorX.to_str(), line).as_bytes(),
-                ColorSpec::new()
-                    .set_fg(Some(Color::Critical.into()))
-                    .set_bold(true),
+                ColorSpec::new().set_fg(Some(Color::Critical.into())).set_bold(true),
             )?;
         }
         println(
             self.err(),
             Glyph::ErrorX.to_str().as_bytes(),
-            ColorSpec::new()
-                .set_fg(Some(Color::Critical.into()))
-                .set_bold(true),
+            ColorSpec::new().set_fg(Some(Color::Critical.into())).set_bold(true),
         )
     }
 
@@ -419,9 +403,7 @@ pub trait UIWriter: Send {
                 width = text.as_ref().chars().count()
             )
             .as_bytes(),
-            ColorSpec::new()
-                .set_fg(Some(Color::Info.into()))
-                .set_bold(true),
+            ColorSpec::new().set_fg(Some(Color::Info.into())).set_bold(true),
         )
     }
 
@@ -433,9 +415,7 @@ pub trait UIWriter: Send {
         println(
             self.out(),
             format!("{}\n", text.as_ref()).as_bytes(),
-            ColorSpec::new()
-                .set_fg(Some(Color::Info.into()))
-                .set_bold(true),
+            ColorSpec::new().set_fg(Some(Color::Info.into())).set_bold(true),
         )
     }
 
@@ -588,9 +568,7 @@ impl UIReader for UI {
             print(
                 stream,
                 default_text.as_bytes(),
-                ColorSpec::new()
-                    .set_fg(Some(Color::Plain.into()))
-                    .set_bold(true),
+                ColorSpec::new().set_fg(Some(Color::Plain.into())).set_bold(true),
             )?;
             print(
                 stream,
@@ -633,15 +611,9 @@ impl UIReader for UI {
                 print(
                     stream,
                     d.as_bytes(),
-                    ColorSpec::new()
-                        .set_fg(Some(Color::Plain.into()))
-                        .set_bold(true),
+                    ColorSpec::new().set_fg(Some(Color::Plain.into())).set_bold(true),
                 )?;
-                print(
-                    stream,
-                    b"]",
-                    ColorSpec::new().set_fg(Some(Color::Plain.into())),
-                )?;
+                print(stream, b"]", ColorSpec::new().set_fg(Some(Color::Plain.into())))?;
             }
             stream.write_all(b" ")?;
             stream.flush()?;
@@ -1065,12 +1037,7 @@ impl Write for ConsoleProgressBar {
     }
 }
 
-pub fn print_wrapped<U>(
-    stream: &mut dyn WriteColor,
-    text: U,
-    wrap_width: usize,
-    left_indent: usize,
-) -> io::Result<()>
+pub fn print_wrapped<U>(stream: &mut dyn WriteColor, text: U, wrap_width: usize, left_indent: usize) -> io::Result<()>
 where
     U: AsRef<str>,
 {
@@ -1080,9 +1047,7 @@ where
         for word in line.split_whitespace() {
             let wl = word.chars().count();
             if (width + wl + 1) > (wrap_width - left_indent) {
-                stream.write_all(
-                    format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
-                )?;
+                stream.write_all(format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes())?;
                 buffer.clear();
                 width = 0;
             }
@@ -1091,9 +1056,7 @@ where
             buffer.push(' ');
         }
         if !buffer.is_empty() {
-            stream.write_all(
-                format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
-            )?;
+            stream.write_all(format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes())?;
         }
         stream.write_all(b"\n")?;
     }

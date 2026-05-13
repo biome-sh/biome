@@ -118,11 +118,7 @@ fn process_cert_file(certificates: &mut Vec<Certificate>, file_path: &Path) {
             certificates.append(&mut certs)
         }
         Err(err) => {
-            debug!(
-                "Unable to process cert file: {}, err={}",
-                file_path.display(),
-                err
-            )
+            debug!("Unable to process cert file: {}, err={}", file_path.display(), err)
         }
     }
 }

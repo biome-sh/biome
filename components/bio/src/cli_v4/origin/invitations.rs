@@ -114,10 +114,7 @@ pub(crate) enum OriginInvitationsCommand {
 impl OriginInvitationsCommand {
     pub(super) async fn execute(&self, ui: &mut UI) -> BioResult<()> {
         // Helper to extract token+url
-        fn get_token_and_endpoint(
-            bldr: &BldrUrl,
-            auth: &AuthToken,
-        ) -> Result<(String, String), Error> {
+        fn get_token_and_endpoint(bldr: &BldrUrl, auth: &AuthToken) -> Result<(String, String), Error> {
             let url = bldr.to_string();
             let token = auth
                 .from_cli_or_config()
@@ -144,10 +141,7 @@ impl OriginInvitationsCommand {
                 let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
                 invitations::ignore::start(ui, &url, origin.as_ref(), &token, *invitation_id).await
             }
-            OriginInvitationsCommand::List {
-                bldr_url,
-                auth_token,
-            } => {
+            OriginInvitationsCommand::List { bldr_url, auth_token } => {
                 let (url, token) = get_token_and_endpoint(bldr_url, auth_token)?;
                 invitations::list_user::start(ui, &url, &token).await
             }

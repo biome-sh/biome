@@ -29,19 +29,11 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             Error::BadDataPath(ref path, ref err) => {
-                format!(
-                    "Unable to read or write to data directory, {}, {}",
-                    path.display(),
-                    err
-                )
+                format!("Unable to read or write to data directory, {}, {}", path.display(), err)
             }
             Error::CannotBind(ref err) => format!("Cannot bind to port: {:?}", err),
             Error::DatFileIO(ref path, ref err) => {
-                format!(
-                    "Error reading or writing to DatFile, {}, {}",
-                    path.display(),
-                    err
-                )
+                format!("Error reading or writing to DatFile, {}, {}", path.display(), err)
             }
             Error::UnknownIOError(ref err) => format!("Error reading or writing: {}", err),
             Error::DecodeError(ref err) => format!("Failed to decode protocol message: {}", err),

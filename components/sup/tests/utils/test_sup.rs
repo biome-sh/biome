@@ -89,8 +89,7 @@ async fn unclaimed_port(max_attempts: u16) -> Result<u16> {
             }
             // If we are unable to bind for any other reason, bubble that up
             Err(err) => {
-                return Err(anyhow!(err))
-                    .with_context(|| format!("Failed to bind TCP port {} due to io error", port));
+                return Err(anyhow!(err)).with_context(|| format!("Failed to bind TCP port {} due to io error", port));
             }
         }
         if attempts > max_attempts {
@@ -129,11 +128,7 @@ where
         .context("Failed to find the integration test executable")?
         .parent() // deps
         .and_then(Path::parent)
-        .ok_or_else(|| {
-            anyhow!(
-                "Failed to access the parent directories of the current integration test executable"
-            )
-        })?
+        .ok_or_else(|| anyhow!("Failed to access the parent directories of the current integration test executable"))?
         .to_path_buf();
     let bin = exe_root.join(binary_name.as_ref());
     if bin.exists() {
@@ -161,10 +156,7 @@ async fn await_local_tcp_port(port: u16, timeout: Duration) -> Result<()> {
     loop {
         let timeout = timeout.saturating_sub(started_at.elapsed());
         if timeout == Duration::ZERO {
-            return Err(anyhow!(
-                "Timed out waiting for tcp port {} to open up",
-                port
-            ));
+            return Err(anyhow!("Timed out waiting for tcp port {} to open up", port));
         }
         match tokio::time::timeout(
             timeout,
@@ -178,15 +170,11 @@ async fn await_local_tcp_port(port: u16, timeout: Duration) -> Result<()> {
                 continue;
             }
             Ok(Err(err)) => {
-                return Err(anyhow!(err)).with_context(|| {
-                    format!("Failed to connect to tcp address 127.0.0.1:{}", port)
-                });
+                return Err(anyhow!(err))
+                    .with_context(|| format!("Failed to connect to tcp address 127.0.0.1:{}", port));
             }
             Err(_) => {
-                return Err(anyhow!(
-                    "Timed out waiting for tcp port {} to open up",
-                    port
-                ));
+                return Err(anyhow!("Timed out waiting for tcp port {} to open up", port));
             }
         }
     }
@@ -292,8 +280,7 @@ impl TestSup {
         R: AsRef<Path>,
     {
         let sup_exe = find_exe("bio-sup").context("Failed to find 'bio-sup' executable")?;
-        let launcher_exe =
-            find_exe("bio-launch").context("Failed to find 'bio-launch' executable")?;
+        let launcher_exe = find_exe("bio-launch").context("Failed to find 'bio-launch' executable")?;
 
         let mut cmd = Command::new(launcher_exe);
         let listen_host = "0.0.0.0";
@@ -350,10 +337,7 @@ impl TestSup {
     /// Spawn a process actually running the Supervisor.
     pub async fn start(&mut self, timeout: Duration) -> Result<()> {
         let started_at = Instant::now();
-        let child = self
-            .cmd
-            .spawn()
-            .context("Failed to spawn supervisor process")?;
+        let child = self.cmd.spawn().context("Failed to spawn supervisor process")?;
         self.process = Some(child);
         let timeout = timeout.saturating_sub(started_at.elapsed());
         tokio::try_join!(
@@ -380,26 +364,17 @@ impl TestSup {
         if let Some(mut process) = self.process.take() {
             if cfg!(not(windows)) {
                 if let Some(pid) = process.id() {
-                    nix::sys::signal::kill(
-                        nix::unistd::Pid::from_raw(pid as i32),
-                        nix::sys::signal::SIGTERM,
-                    )
-                    .context(
-                        "Failed to send \
+                    nix::sys::signal::kill(nix::unistd::Pid::from_raw(pid as i32), nix::sys::signal::SIGTERM)
+                        .context(
+                            "Failed to send \
                                                                                SIGTERM to test \
                                                                                supervisor \
                                                                                process",
-                    )?;
-                    process
-                        .wait()
-                        .await
-                        .context("Failed to kill supervisor process")?;
+                        )?;
+                    process.wait().await.context("Failed to kill supervisor process")?;
                 }
             } else {
-                process
-                    .kill()
-                    .await
-                    .context("Failed to kill supervisor process")?;
+                process.kill().await.context("Failed to kill supervisor process")?;
             }
         }
         Ok(())
@@ -407,12 +382,7 @@ impl TestSup {
 
     /// The equivalent of performing `bio apply` with the given
     /// configuration.
-    pub async fn apply_config(
-        &mut self,
-        package_name: &str,
-        service_group: &str,
-        toml_config: &str,
-    ) -> Result<()> {
+    pub async fn apply_config(&mut self, package_name: &str, service_group: &str, toml_config: &str) -> Result<()> {
         self.butterfly_client
             .apply(package_name, service_group, toml_config)
             .context("Failed to apply configuration")
@@ -475,12 +445,7 @@ impl TestSup {
             if let Some(service_state) = self
                 .try_get_service_state(package_name, service_group)
                 .await
-                .with_context(|| {
-                    format!(
-                        "Failed to get state of the service {}.{}",
-                        package_name, service_group
-                    )
-                })?
+                .with_context(|| format!("Failed to get state of the service {}.{}", package_name, service_group))?
             {
                 return Ok(service_state);
             }
@@ -569,12 +534,7 @@ impl TestSup {
             if let Some(service) = self
                 .try_get_service_state(package_name, service_group)
                 .await
-                .with_context(|| {
-                    format!(
-                        "Failed to get state of service {}.{}",
-                        package_name, service_group
-                    )
-                })?
+                .with_context(|| format!("Failed to get state of service {}.{}", package_name, service_group))?
                 && let ("up", "Up", Some(_)) = (
                     service.process.state.as_str(),
                     service.desired_state.as_str(),
@@ -615,12 +575,7 @@ impl TestSup {
             if let Some(service) = self
                 .try_get_service_state(package_name, service_group)
                 .await
-                .with_context(|| {
-                    format!(
-                        "Failed to get state of service {}.{}",
-                        package_name, service_group
-                    )
-                })?
+                .with_context(|| format!("Failed to get state of service {}.{}", package_name, service_group))?
             {
                 if let ("down", "Down", None) = (
                     service.process.state.as_str(),
@@ -659,12 +614,7 @@ impl TestSup {
             if let Some(service) = self
                 .try_get_service_state(package_name, service_group)
                 .await
-                .with_context(|| {
-                    format!(
-                        "Failed to get state of service {}.{}",
-                        package_name, service_group
-                    )
-                })?
+                .with_context(|| format!("Failed to get state of service {}.{}", package_name, service_group))?
             {
                 if service.desired_state != "Up" {
                     return Err(anyhow!(
@@ -725,12 +675,7 @@ impl TestSup {
             if let Some(service) = self
                 .try_get_service_state(package_name, service_group)
                 .await
-                .with_context(|| {
-                    format!(
-                        "Failed to get state of service {}.{}",
-                        package_name, service_group
-                    )
-                })?
+                .with_context(|| format!("Failed to get state of service {}.{}", package_name, service_group))?
             {
                 if service.desired_state != "Up" {
                     return Err(anyhow!(
@@ -740,8 +685,7 @@ impl TestSup {
                         service_group
                     ));
                 }
-                if let ("up", Some(process_id)) =
-                    (service.process.state.as_str(), service.process.pid)
+                if let ("up", Some(process_id)) = (service.process.state.as_str(), service.process.pid)
                     && process_id != old_process_id
                 {
                     return Ok(service);
@@ -786,9 +730,7 @@ impl TestSup {
                         service_group
                     ));
                 }
-                if let ("up", Some(process_id)) =
-                    (service.process.state.as_str(), service.process.pid)
-                {
+                if let ("up", Some(process_id)) = (service.process.state.as_str(), service.process.pid) {
                     if process_id != old_process_id {
                         return Err(anyhow!(
                             "Test supervisor restarted service {}.{} within \

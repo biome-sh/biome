@@ -88,10 +88,7 @@ impl Process {
                 return Err(io::Error::last_os_error());
             }
             let mut status = 0;
-            cvt(processthreadsapi::GetExitCodeProcess(
-                self.handle.raw(),
-                &mut status,
-            ))?;
+            cvt(processthreadsapi::GetExitCodeProcess(self.handle.raw(), &mut status))?;
             Ok(ExitStatus::from(status))
         }
     }
@@ -104,10 +101,7 @@ impl Process {
                 _ => return Err(io::Error::last_os_error()),
             }
             let mut status = 0;
-            cvt(processthreadsapi::GetExitCodeProcess(
-                self.handle.raw(),
-                &mut status,
-            ))?;
+            cvt(processthreadsapi::GetExitCodeProcess(self.handle.raw(), &mut status))?;
             Ok(Some(ExitStatus::from(status)))
         }
     }
@@ -151,8 +145,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service, ServiceRunError> {
 }
 
 fn build_proc_table() -> ProcessTable {
-    let processes_snap_handle =
-        unsafe { tlhelp32::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
+    let processes_snap_handle = unsafe { tlhelp32::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
 
     if processes_snap_handle == INVALID_HANDLE_VALUE {
         error!(
@@ -175,12 +168,7 @@ fn build_proc_table() -> ProcessTable {
         szExeFile: [0; MAX_PATH],
     };
     // Get the first process from the snapshot.
-    match unsafe {
-        tlhelp32::Process32FirstW(
-            processes_snap_handle,
-            &mut process_entry as LPPROCESSENTRY32W,
-        )
-    } {
+    match unsafe { tlhelp32::Process32FirstW(processes_snap_handle, &mut process_entry as LPPROCESSENTRY32W) } {
         1 => {
             // First process worked, loop to find the process with the correct name.
             let mut process_success: i32 = 1;
@@ -188,8 +176,7 @@ fn build_proc_table() -> ProcessTable {
             while process_success == 1 {
                 let children = table.entry(process_entry.th32ParentProcessID).or_default();
                 (*children).push(process_entry.th32ProcessID);
-                process_success =
-                    unsafe { tlhelp32::Process32NextW(processes_snap_handle, &mut process_entry) };
+                process_success = unsafe { tlhelp32::Process32NextW(processes_snap_handle, &mut process_entry) };
             }
             unsafe { handleapi::CloseHandle(processes_snap_handle) };
         }
@@ -201,11 +188,7 @@ fn build_proc_table() -> ProcessTable {
 }
 
 fn cvt(i: i32) -> io::Result<i32> {
-    if i == 0 {
-        Err(io::Error::last_os_error())
-    } else {
-        Ok(i)
-    }
+    if i == 0 { Err(io::Error::last_os_error()) } else { Ok(i) }
 }
 
 fn exit_code(handle: &Handle) -> Option<u32> {
@@ -213,10 +196,7 @@ fn exit_code(handle: &Handle) -> Option<u32> {
     unsafe {
         let ret = processthreadsapi::GetExitCodeProcess(handle.raw(), &mut exit_code as LPDWORD);
         if ret == 0 {
-            error!(
-                "Failed to retrieve Exit Code: {}",
-                io::Error::last_os_error()
-            );
+            error!("Failed to retrieve Exit Code: {}", io::Error::last_os_error());
             return None;
         }
     }

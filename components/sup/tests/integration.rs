@@ -43,20 +43,12 @@ async fn test_for_restart_on_config_application(
 
     test_sup.start(Duration::from_secs(10)).await?;
 
-    utils::setup_package_files(
-        origin_name,
-        package_name,
-        service_group,
-        &FIXTURE_ROOT,
-        &bio_root,
-    )
-    .await?;
+    utils::setup_package_files(origin_name, package_name, service_group, &FIXTURE_ROOT, &bio_root).await?;
 
     let initial_service = test_sup
         .ensure_service_started(package_name, service_group, Duration::from_secs(10))
         .await?;
-    let initial_snapshot =
-        FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
+    let initial_snapshot = FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
     let initial_pid_snapshot = initial_snapshot.file("PID")?;
 
     test_sup
@@ -71,14 +63,11 @@ async fn test_for_restart_on_config_application(
         )
         .await?;
 
-    let final_snapshot =
-        FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
+    let final_snapshot = FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
     let final_pid_snapshot = final_snapshot.file("PID")?;
 
-    let delta = final_snapshot.modifications_since(
-        &initial_snapshot,
-        vec![Pattern::new("logs/*").unwrap()].as_slice(),
-    );
+    let delta =
+        final_snapshot.modifications_since(&initial_snapshot, vec![Pattern::new("logs/*").unwrap()].as_slice());
 
     let duration_between_restarts = final_pid_snapshot
         .duration_between_modification(initial_pid_snapshot)
@@ -126,20 +115,12 @@ async fn test_for_no_restart_on_config_application(
 
     test_sup.start(Duration::from_secs(10)).await?;
 
-    utils::setup_package_files(
-        origin_name,
-        package_name,
-        service_group,
-        &FIXTURE_ROOT,
-        &bio_root,
-    )
-    .await?;
+    utils::setup_package_files(origin_name, package_name, service_group, &FIXTURE_ROOT, &bio_root).await?;
 
     let initial_service = test_sup
         .ensure_service_started(package_name, service_group, Duration::from_secs(10))
         .await?;
-    let initial_snapshot =
-        FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
+    let initial_snapshot = FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
     let initial_pid_snapshot = initial_snapshot.file("PID")?;
 
     test_sup
@@ -154,14 +135,11 @@ async fn test_for_no_restart_on_config_application(
         )
         .await?;
 
-    let final_snapshot =
-        FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
+    let final_snapshot = FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
     let final_pid_snapshot = final_snapshot.file("PID")?;
 
-    let delta = final_snapshot.modifications_since(
-        &initial_snapshot,
-        vec![Pattern::new("logs/*").unwrap()].as_slice(),
-    );
+    let delta =
+        final_snapshot.modifications_since(&initial_snapshot, vec![Pattern::new("logs/*").unwrap()].as_slice());
 
     let duration_between_restarts = final_pid_snapshot
         .duration_between_modification(initial_pid_snapshot)
@@ -198,13 +176,7 @@ async fn restart_for_templated_config_file() -> Result<()> {
     let package_name = "config-and-hooks-with-reconfigure";
     let applied_config = r#"app_name = "Test App""#;
     let updated_files = vec!["config/app-config.toml"];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     Ok(())
 }
@@ -334,21 +306,13 @@ async fn restart_backoff_for_failed_init_hook() -> Result<()> {
 
     test_sup.start(Duration::from_secs(10)).await?;
 
-    utils::setup_package_files(
-        origin_name,
-        package_name,
-        service_group,
-        &FIXTURE_ROOT,
-        &bio_root,
-    )
-    .await?;
+    utils::setup_package_files(origin_name, package_name, service_group, &FIXTURE_ROOT, &bio_root).await?;
 
     let _pid = test_sup
         .ensure_service_started(package_name, service_group, Duration::from_secs(10))
         .await?;
 
-    let initial_snapshot =
-        FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
+    let initial_snapshot = FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
     let mut initial_init_log_snapshot = initial_snapshot.file("logs/init.stdout.log")?.clone();
     let mut attempts = 1;
 
@@ -360,21 +324,14 @@ async fn restart_backoff_for_failed_init_hook() -> Result<()> {
     // Observe 10 restarts
     while attempts <= 10 {
         // We count on the 5 secs init sleep to ensure that we don't miss the first PID.
-        let final_init_log_snapshot = initial_init_log_snapshot
-            .await_update(Duration::from_secs(60))
-            .await?;
+        let final_init_log_snapshot = initial_init_log_snapshot.await_update(Duration::from_secs(60)).await?;
 
         let service = test_sup
             .get_service_state(package_name, service_group, Duration::from_secs(5))
             .await?;
 
         // Ignore the restart due to run hook updated
-        if service
-            .last_process_state
-            .as_ref()
-            .unwrap()
-            .termination_reason
-            == ProcessTerminationReason::InitHookUpdated
+        if service.last_process_state.as_ref().unwrap().termination_reason == ProcessTerminationReason::InitHookUpdated
         {
             initial_init_log_snapshot = final_init_log_snapshot;
             restarts_due_to_update += 1;
@@ -388,11 +345,7 @@ async fn restart_backoff_for_failed_init_hook() -> Result<()> {
         assert!(restarts_due_to_update <= 1);
         // We ensure the restart was due to an init failure
         assert_eq!(
-            service
-                .last_process_state
-                .as_ref()
-                .unwrap()
-                .termination_reason,
+            service.last_process_state.as_ref().unwrap().termination_reason,
             ProcessTerminationReason::InitHookFailed
         );
         // Ensure the time between restarts is greater than our min backoff period
@@ -471,20 +424,12 @@ async fn restart_backoff_for_failed_run_hook() -> Result<()> {
 
     test_sup.start(Duration::from_secs(10)).await?;
 
-    utils::setup_package_files(
-        origin_name,
-        package_name,
-        service_group,
-        &FIXTURE_ROOT,
-        &bio_root,
-    )
-    .await?;
+    utils::setup_package_files(origin_name, package_name, service_group, &FIXTURE_ROOT, &bio_root).await?;
 
     let _pid = test_sup
         .ensure_service_started(package_name, service_group, Duration::from_secs(10))
         .await?;
-    let initial_snapshot =
-        FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
+    let initial_snapshot = FileSystemSnapshot::new(bio_root.svc_dir_path(package_name).as_path()).await?;
     let mut initial_pid_snapshot = initial_snapshot.file("PID")?.clone();
     let mut attempts = 1;
 
@@ -497,21 +442,14 @@ async fn restart_backoff_for_failed_run_hook() -> Result<()> {
     // Observe 10 restarts
     while attempts <= 10 {
         // We count on the 5 secs run sleep to ensure that we don't miss the first PID.
-        let final_pid_snapshot = initial_pid_snapshot
-            .await_update(Duration::from_secs(60))
-            .await?;
+        let final_pid_snapshot = initial_pid_snapshot.await_update(Duration::from_secs(60)).await?;
 
         let service = test_sup
             .get_service_state(package_name, service_group, Duration::from_secs(5))
             .await?;
 
         // Ignore the restart due to run hook updated
-        if service
-            .last_process_state
-            .as_ref()
-            .unwrap()
-            .termination_reason
-            == ProcessTerminationReason::RunHookUpdated
+        if service.last_process_state.as_ref().unwrap().termination_reason == ProcessTerminationReason::RunHookUpdated
         {
             initial_pid_snapshot = final_pid_snapshot;
             restarts_due_to_update += 1;
@@ -525,11 +463,7 @@ async fn restart_backoff_for_failed_run_hook() -> Result<()> {
         // We might potentially miss the update restart as it could happen super quick
         assert!(restarts_due_to_update <= 1);
         assert_eq!(
-            service
-                .last_process_state
-                .as_ref()
-                .unwrap()
-                .termination_reason,
+            service.last_process_state.as_ref().unwrap().termination_reason,
             ProcessTerminationReason::RunHookFailed
         );
         assert_eq!(service.restart_count, attempts);
@@ -556,10 +490,7 @@ async fn restart_backoff_for_failed_run_hook() -> Result<()> {
     test_sup
         .apply_config(package_name, service_group, applied_config)
         .await?;
-    let pid = initial_pid_snapshot
-        .current_file_content()
-        .await?
-        .parse::<Pid>()?;
+    let pid = initial_pid_snapshot.current_file_content().await?.parse::<Pid>()?;
 
     // Ensure the service restarts after config applicaiton
     let initial_service = test_sup
@@ -589,25 +520,13 @@ async fn no_restart_for_templated_health_check_hook() -> Result<()> {
     let package_name = "config-and-hooks-no-reconfigure";
     let applied_config = r#"health_check_templated_value = "Health Check Hook Value""#;
     let updated_files = vec!["hooks/health-check"];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     let test_name = "no_restart_for_templated_health_check_hook_with_reconfiguration_hook";
     let package_name = "config-and-hooks-with-reconfigure";
     let applied_config = r#"health_check_templated_value = "Health Check Hook Value""#;
     let updated_files = vec!["hooks/health-check"];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     Ok(())
 }
@@ -619,25 +538,13 @@ async fn no_restart_for_templated_file_updated_hook() -> Result<()> {
     let package_name = "config-and-hooks-no-reconfigure";
     let applied_config = r#"file_updated_templated_value = "File Updated Hook Value""#;
     let updated_files = vec!["hooks/file-updated"];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     let test_name = "no_restart_for_templated_file_updated_hook_with_reconfiguration_hook";
     let package_name = "config-and-hooks-with-reconfigure";
     let applied_config = r#"file_updated_templated_value = "File Updated Hook Value""#;
     let updated_files = vec!["hooks/file-updated"];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     Ok(())
 }
@@ -649,25 +556,13 @@ async fn no_restart_for_templated_suitability_hook() -> Result<()> {
     let package_name = "config-and-hooks-no-reconfigure";
     let applied_config = r#"suitability_templated_value = "Suitability Hook Value""#;
     let updated_files = vec!["hooks/suitability"];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     let test_name = "no_restart_for_templated_suitability_hook_with_reconfiguration_hook";
     let package_name = "config-and-hooks-with-reconfigure";
     let applied_config = r#"suitability_templated_value = "Suitability Hook Value""#;
     let updated_files = vec!["hooks/suitability"];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     Ok(())
 }
@@ -679,25 +574,13 @@ async fn no_restart_for_templated_post_stop_hook() -> Result<()> {
     let package_name = "config-and-hooks-no-reconfigure";
     let applied_config = r#"post_stop_templated_value = "Post Stop Hook Value""#;
     let updated_files = vec!["hooks/post-stop"];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     let test_name = "no_restart_for_templated_post_stop_hook_with_reconfiguration_hook";
     let package_name = "config-and-hooks-with-reconfigure";
     let applied_config = r#"post_stop_templated_value = "Post Stop Hook Value""#;
     let updated_files = vec!["hooks/post-stop"];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     Ok(())
 }
@@ -709,13 +592,7 @@ async fn no_restart_for_templated_reconfigure_hook() -> Result<()> {
     let package_name = "config-and-hooks-with-reconfigure";
     let applied_config = r#"reconfigure_templated_value = "Reconfigure Hook Value""#;
     let updated_files = vec!["hooks/reconfigure"];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     Ok(())
 }
@@ -727,25 +604,13 @@ async fn no_restart_if_no_change() -> Result<()> {
     let package_name = "config-and-hooks-no-reconfigure";
     let applied_config = r#"random_value = "Random Value""#;
     let updated_files = vec![];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     let test_name = "no_restart_if_no_change_with_reconfiguration_hook";
     let package_name = "config-and-hooks-with-reconfigure";
     let applied_config = r#"random_value = "Random Value""#;
     let updated_files = vec![];
-    test_for_no_restart_on_config_application(
-        test_name,
-        package_name,
-        applied_config,
-        updated_files,
-    )
-    .await?;
+    test_for_no_restart_on_config_application(test_name, package_name, applied_config, updated_files).await?;
 
     Ok(())
 }
@@ -763,14 +628,7 @@ async fn install_hook_success() -> Result<()> {
     let package_name = "install-hook-succeeds";
     let service_group = "default";
 
-    utils::setup_package_files(
-        origin_name,
-        package_name,
-        service_group,
-        &FIXTURE_ROOT,
-        &bio_root,
-    )
-    .await?;
+    utils::setup_package_files(origin_name, package_name, service_group, &FIXTURE_ROOT, &bio_root).await?;
 
     let mut test_sup = utils::TestSup::new_with_random_ports(
         &bio_root,
@@ -786,8 +644,7 @@ async fn install_hook_success() -> Result<()> {
         .ensure_service_started(package_name, service_group, Duration::from_secs(10))
         .await?;
 
-    let initial_snapshot =
-        FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
+    let initial_snapshot = FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
     let initial_install_hook_status_file = initial_snapshot.file("INSTALL_HOOK_STATUS")?;
     let initial_install_hook_status = initial_install_hook_status_file
         .current_file_content()
@@ -804,15 +661,11 @@ async fn install_hook_success() -> Result<()> {
         .ensure_service_started(package_name, service_group, Duration::from_secs(10))
         .await?;
 
-    let final_snapshot =
-        FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
+    let final_snapshot = FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
     let final_install_hook_status_file = final_snapshot.file("INSTALL_HOOK_STATUS")?;
 
     // Ensure that the initial and final state of the INSTALL_HOOK_STATUS file is unchanged
-    assert_eq!(
-        initial_install_hook_status_file,
-        final_install_hook_status_file
-    );
+    assert_eq!(initial_install_hook_status_file, final_install_hook_status_file);
     assert_ne!(pid, restarted_pid);
 
     test_sup.stop().await?;
@@ -832,14 +685,7 @@ async fn install_hook_fails() -> Result<()> {
     let package_name = "install-hook-fails";
     let service_group = "default";
 
-    utils::setup_package_files(
-        origin_name,
-        package_name,
-        service_group,
-        &FIXTURE_ROOT,
-        &bio_root,
-    )
-    .await?;
+    utils::setup_package_files(origin_name, package_name, service_group, &FIXTURE_ROOT, &bio_root).await?;
 
     let mut test_sup = utils::TestSup::new_with_random_ports(
         &bio_root,
@@ -855,8 +701,7 @@ async fn install_hook_fails() -> Result<()> {
         .ensure_service_has_failed_to_start(package_name, service_group, Duration::from_secs(10))
         .await?;
 
-    let initial_snapshot =
-        FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
+    let initial_snapshot = FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
     let initial_install_hook_status_file = initial_snapshot.file("INSTALL_HOOK_STATUS")?;
     let initial_install_hook_status = initial_install_hook_status_file
         .current_file_content()
@@ -873,8 +718,7 @@ async fn install_hook_fails() -> Result<()> {
         .ensure_service_has_failed_to_start(package_name, service_group, Duration::from_secs(10))
         .await?;
 
-    let final_snapshot =
-        FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
+    let final_snapshot = FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, package_name).as_path()).await?;
     let final_install_hook_status_file = final_snapshot.file("INSTALL_HOOK_STATUS")?;
     let final_install_hook_status = final_install_hook_status_file
         .current_file_content()
@@ -883,8 +727,7 @@ async fn install_hook_fails() -> Result<()> {
 
     // Ensure that the install hook was re-run and the new failure status was written
     assert!(
-        final_install_hook_status_file
-            .duration_between_modification(initial_install_hook_status_file)?
+        final_install_hook_status_file.duration_between_modification(initial_install_hook_status_file)?
             > Duration::ZERO
     );
     assert_eq!(initial_install_hook_status, final_install_hook_status);
@@ -907,14 +750,7 @@ async fn package_with_successful_install_hook_in_dependency_is_loaded() -> Resul
     let dependency_name = "install-hook-succeeds";
     let service_group = "default";
 
-    utils::setup_package_files(
-        origin_name,
-        package_name,
-        service_group,
-        &FIXTURE_ROOT,
-        &bio_root,
-    )
-    .await?;
+    utils::setup_package_files(origin_name, package_name, service_group, &FIXTURE_ROOT, &bio_root).await?;
 
     let mut test_sup = utils::TestSup::new_with_random_ports(
         &bio_root,
@@ -930,14 +766,9 @@ async fn package_with_successful_install_hook_in_dependency_is_loaded() -> Resul
         .ensure_service_started(package_name, service_group, Duration::from_secs(10))
         .await?;
 
-    let initial_dependency_snapshot = FileSystemSnapshot::new(
-        bio_root
-            .pkg_dir_path(origin_name, dependency_name)
-            .as_path(),
-    )
-    .await?;
-    let initial_dependency_install_hook_status_file =
-        initial_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
+    let initial_dependency_snapshot =
+        FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, dependency_name).as_path()).await?;
+    let initial_dependency_install_hook_status_file = initial_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
     let initial_dependency_install_hook_status = initial_dependency_install_hook_status_file
         .current_file_content()
         .await?
@@ -953,14 +784,9 @@ async fn package_with_successful_install_hook_in_dependency_is_loaded() -> Resul
         .ensure_service_started(package_name, service_group, Duration::from_secs(10))
         .await?;
 
-    let final_dependency_snapshot = FileSystemSnapshot::new(
-        bio_root
-            .pkg_dir_path(origin_name, dependency_name)
-            .as_path(),
-    )
-    .await?;
-    let final_dependency_install_hook_status_file =
-        final_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
+    let final_dependency_snapshot =
+        FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, dependency_name).as_path()).await?;
+    let final_dependency_install_hook_status_file = final_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
 
     // Ensure that the initial and final state of the INSTALL_HOOK_STATUS file is unchanged
     assert_eq!(
@@ -976,8 +802,7 @@ async fn package_with_successful_install_hook_in_dependency_is_loaded() -> Resul
 #[tokio::test]
 #[cfg_attr(feature = "ignore_integration_tests", ignore)]
 async fn package_with_failing_install_hook_in_dependency_is_not_loaded() -> Result<()> {
-    let bio_root =
-        utils::BioRoot::new("package_with_failing_install_hook_in_dependency_is_not_loaded");
+    let bio_root = utils::BioRoot::new("package_with_failing_install_hook_in_dependency_is_not_loaded");
 
     let service_min_backoff_period = Duration::from_secs(10);
     let service_max_backoff_period = Duration::from_secs(30);
@@ -988,14 +813,7 @@ async fn package_with_failing_install_hook_in_dependency_is_not_loaded() -> Resu
     let dependency_name = "install-hook-fails";
     let service_group = "default";
 
-    utils::setup_package_files(
-        origin_name,
-        package_name,
-        service_group,
-        &FIXTURE_ROOT,
-        &bio_root,
-    )
-    .await?;
+    utils::setup_package_files(origin_name, package_name, service_group, &FIXTURE_ROOT, &bio_root).await?;
 
     let mut test_sup = utils::TestSup::new_with_random_ports(
         &bio_root,
@@ -1011,14 +829,9 @@ async fn package_with_failing_install_hook_in_dependency_is_not_loaded() -> Resu
         .ensure_service_has_failed_to_start(package_name, service_group, Duration::from_secs(10))
         .await?;
 
-    let initial_dependency_snapshot = FileSystemSnapshot::new(
-        bio_root
-            .pkg_dir_path(origin_name, dependency_name)
-            .as_path(),
-    )
-    .await?;
-    let initial_dependency_install_hook_status_file =
-        initial_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
+    let initial_dependency_snapshot =
+        FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, dependency_name).as_path()).await?;
+    let initial_dependency_install_hook_status_file = initial_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
     let initial_dependency_install_hook_status = initial_dependency_install_hook_status_file
         .current_file_content()
         .await?
@@ -1034,14 +847,9 @@ async fn package_with_failing_install_hook_in_dependency_is_not_loaded() -> Resu
         .ensure_service_has_failed_to_start(package_name, service_group, Duration::from_secs(10))
         .await?;
 
-    let final_dependency_snapshot = FileSystemSnapshot::new(
-        bio_root
-            .pkg_dir_path(origin_name, dependency_name)
-            .as_path(),
-    )
-    .await?;
-    let final_dependency_install_hook_status_file =
-        final_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
+    let final_dependency_snapshot =
+        FileSystemSnapshot::new(bio_root.pkg_dir_path(origin_name, dependency_name).as_path()).await?;
+    let final_dependency_install_hook_status_file = final_dependency_snapshot.file("INSTALL_HOOK_STATUS")?;
     let final_dependency_install_hook_status = final_dependency_install_hook_status_file
         .current_file_content()
         .await?

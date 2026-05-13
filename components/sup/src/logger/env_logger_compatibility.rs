@@ -129,10 +129,7 @@ impl FromStr for EnvLogConfig {
             eprintln!("Ignoring regex filter; not supported in log4rs");
         }
         if parts.next().is_some() {
-            eprintln!(
-                "warning: invalid logging spec '{}', ignoring it (too many '/'s)",
-                spec
-            );
+            eprintln!("warning: invalid logging spec '{}', ignoring it (too many '/'s)", spec);
             return Ok(config);
         }
 
@@ -142,29 +139,28 @@ impl FromStr for EnvLogConfig {
                     continue;
                 }
                 let mut parts = s.split('=');
-                let (log_level, name) =
-                    match (parts.next(), parts.next().map(str::trim), parts.next()) {
-                        (Some(part0), None, None) => {
-                            // if the single argument is a log-level string or number,
-                            // treat that as a global fallback
-                            match part0.parse() {
-                                Ok(num) => (num, None),
-                                Err(_) => (LevelFilter::max(), Some(part0)),
-                            }
+                let (log_level, name) = match (parts.next(), parts.next().map(str::trim), parts.next()) {
+                    (Some(part0), None, None) => {
+                        // if the single argument is a log-level string or number,
+                        // treat that as a global fallback
+                        match part0.parse() {
+                            Ok(num) => (num, None),
+                            Err(_) => (LevelFilter::max(), Some(part0)),
                         }
-                        (Some(part0), Some(""), None) => (LevelFilter::max(), Some(part0)),
-                        (Some(part0), Some(part1), None) => match part1.parse() {
-                            Ok(num) => (num, Some(part0)),
-                            _ => {
-                                eprintln!("warning: invalid logging spec '{}', ignoring it", part1);
-                                continue;
-                            }
-                        },
+                    }
+                    (Some(part0), Some(""), None) => (LevelFilter::max(), Some(part0)),
+                    (Some(part0), Some(part1), None) => match part1.parse() {
+                        Ok(num) => (num, Some(part0)),
                         _ => {
-                            eprintln!("warning: invalid logging spec '{}', ignoring it", s);
+                            eprintln!("warning: invalid logging spec '{}', ignoring it", part1);
                             continue;
                         }
-                    };
+                    },
+                    _ => {
+                        eprintln!("warning: invalid logging spec '{}', ignoring it", s);
+                        continue;
+                    }
+                };
                 if let Some(target) = name {
                     config.module_filters.insert(target.to_string(), log_level);
                 } else {
@@ -186,10 +182,7 @@ mod tests {
     fn config(root_level: LevelFilter, filters: Vec<(&str, LevelFilter)>) -> EnvLogConfig {
         EnvLogConfig {
             root_level,
-            module_filters: filters
-                .into_iter()
-                .map(|(m, f)| (m.to_string(), f))
-                .collect(),
+            module_filters: filters.into_iter().map(|(m, f)| (m.to_string(), f)).collect(),
         }
     }
 
@@ -197,10 +190,7 @@ mod tests {
     fn bare_module_name_gets_converted_to_maximum_filter_level() {
         assert_eq!(
             "my::cool::module".parse::<EnvLogConfig>().unwrap(),
-            config(
-                LevelFilter::Error,
-                vec![("my::cool::module", LevelFilter::Trace)]
-            )
+            config(LevelFilter::Error, vec![("my::cool::module", LevelFilter::Trace)])
         );
 
         assert_eq!(
@@ -220,19 +210,11 @@ mod tests {
 
     #[test]
     fn can_disable_logging() {
-        assert_eq!(
-            "off".parse::<EnvLogConfig>().unwrap(),
-            config(LevelFilter::Off, vec![])
-        );
+        assert_eq!("off".parse::<EnvLogConfig>().unwrap(), config(LevelFilter::Off, vec![]));
 
         assert_eq!(
-            "debug,my::chatty::module=off"
-                .parse::<EnvLogConfig>()
-                .unwrap(),
-            config(
-                LevelFilter::Debug,
-                vec![("my::chatty::module", LevelFilter::Off)]
-            )
+            "debug,my::chatty::module=off".parse::<EnvLogConfig>().unwrap(),
+            config(LevelFilter::Debug, vec![("my::chatty::module", LevelFilter::Off)])
         );
     }
 
@@ -245,22 +227,14 @@ mod tests {
 
         assert_eq!(
             "debug,foo::bar::baz=trace".parse::<EnvLogConfig>().unwrap(),
-            config(
-                LevelFilter::Debug,
-                vec![("foo::bar::baz", LevelFilter::Trace)]
-            )
+            config(LevelFilter::Debug, vec![("foo::bar::baz", LevelFilter::Trace)])
         );
 
         assert_eq!(
-            "monkeys,foo::bar::baz=trace"
-                .parse::<EnvLogConfig>()
-                .unwrap(),
+            "monkeys,foo::bar::baz=trace".parse::<EnvLogConfig>().unwrap(),
             config(
                 LevelFilter::Error,
-                vec![
-                    ("monkeys", LevelFilter::Trace),
-                    ("foo::bar::baz", LevelFilter::Trace)
-                ]
+                vec![("monkeys", LevelFilter::Trace), ("foo::bar::baz", LevelFilter::Trace)]
             )
         );
     }
@@ -272,13 +246,8 @@ mod tests {
             config(LevelFilter::Debug, vec![])
         );
         assert_eq!(
-            "debug,foo::bar::baz=trace/foo"
-                .parse::<EnvLogConfig>()
-                .unwrap(),
-            config(
-                LevelFilter::Debug,
-                vec![("foo::bar::baz", LevelFilter::Trace)]
-            )
+            "debug,foo::bar::baz=trace/foo".parse::<EnvLogConfig>().unwrap(),
+            config(LevelFilter::Debug, vec![("foo::bar::baz", LevelFilter::Trace)])
         );
     }
 
@@ -289,9 +258,7 @@ mod tests {
             EnvLogConfig::default()
         );
         assert_eq!(
-            "debug/foo,foo::bar::baz=trace/foo"
-                .parse::<EnvLogConfig>()
-                .unwrap(),
+            "debug/foo,foo::bar::baz=trace/foo".parse::<EnvLogConfig>().unwrap(),
             EnvLogConfig::default()
         );
     }

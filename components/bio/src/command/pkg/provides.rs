@@ -5,12 +5,7 @@ use crate::{
 use std::{collections::HashSet, ffi::OsStr, path::Path};
 use walkdir::WalkDir;
 
-pub fn start(
-    filename: &str,
-    fs_root_path: &Path,
-    full_releases: bool,
-    full_path: bool,
-) -> Result<()> {
+pub fn start(filename: &str, fs_root_path: &Path, full_releases: bool, full_path: bool) -> Result<()> {
     let mut found = HashSet::new();
     // count the # of directories in the path to the package dir
     // ex: /bio/pkg == 2
@@ -21,10 +16,7 @@ pub fn start(
     let mut found_any = false;
 
     // recursively walk the directories in pkg_root looking for matches
-    for entry in WalkDir::new(pkg_root)
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-    {
+    for entry in WalkDir::new(pkg_root).into_iter().filter_map(std::result::Result::ok) {
         if let Some(f) = entry.path().file_name().and_then(OsStr::to_str)
             && filename == f
         {
@@ -46,9 +38,7 @@ pub fn start(
                 comps.take(2)
             };
 
-            let mapped_segs: Vec<String> = segments
-                .map(|c| c.as_os_str().to_string_lossy().into_owned())
-                .collect();
+            let mapped_segs: Vec<String> = segments.map(|c| c.as_os_str().to_string_lossy().into_owned()).collect();
             let pkg_name = mapped_segs.join("/");
 
             // if we show the full path, then don't bother stuffing

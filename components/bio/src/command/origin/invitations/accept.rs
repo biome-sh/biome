@@ -5,13 +5,7 @@ use crate::{
     error::{Error, Result},
 };
 
-pub async fn start(
-    ui: &mut UI,
-    bldr_url: &str,
-    origin: &str,
-    token: &str,
-    invitation_id: u64,
-) -> Result<()> {
+pub async fn start(ui: &mut UI, bldr_url: &str, origin: &str, token: &str, invitation_id: u64) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(
@@ -19,10 +13,7 @@ pub async fn start(
         format!("invitation id {} in origin {}", invitation_id, origin),
     )?;
 
-    match api_client
-        .accept_origin_invitation(origin, token, invitation_id)
-        .await
-    {
+    match api_client.accept_origin_invitation(origin, token, invitation_id).await {
         Ok(_) => ui
             .status(Status::Accepted, "the invitation successfully!".to_string())
             .or(Ok(())),

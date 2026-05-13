@@ -122,29 +122,17 @@ impl fmt::Display for Error {
                                 managed by this Supervisor as unsafe to run."
                 .to_string(),
             Error::BadDataFile(path, err) => {
-                format!(
-                    "Unable to read or write to data file, {}, {}",
-                    path.display(),
-                    err
-                )
+                format!("Unable to read or write to data file, {}, {}", path.display(), err)
             }
             Error::BadDataPath(path, err) => {
-                format!(
-                    "Unable to read or write to data directory, {}, {}",
-                    path.display(),
-                    err
-                )
+                format!("Unable to read or write to data directory, {}, {}", path.display(), err)
             }
             Error::BadDesiredState(state) => {
                 format!("Unknown service desired state style '{}'", state)
             }
             Error::BadElectionStatus(status) => format!("Unknown election status '{}'", status),
             Error::BadSpecsPath(path, err) => {
-                format!(
-                    "Unable to create the specs directory '{}' ({})",
-                    path.display(),
-                    err
-                )
+                format!("Unable to create the specs directory '{}' ({})", path.display(), err)
             }
             Error::BadStartStyle(style) => format!("Unknown service start style '{}'", style),
             Error::BindTimeout(err) => format!("Timeout waiting to bind to {}", err),
@@ -267,10 +255,7 @@ impl fmt::Display for Error {
             Error::SignalFailed => "Failed to send a signal to the child process".to_string(),
             Error::SpecWatcherNotCreated => "Failed to create a SpecWatcher".to_string(),
             Error::SpecDirNotFound(path) => {
-                format!(
-                    "Spec directory '{}' not created or is not a directory",
-                    path
-                )
+                format!("Spec directory '{}' not created or is not a directory", path)
             }
             Error::SpecWatcherGlob(e) => e.to_string(),
             Error::StrFromUtf8Error(e) => e.to_string(),

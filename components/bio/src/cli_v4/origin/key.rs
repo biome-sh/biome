@@ -94,12 +94,7 @@ pub(crate) enum OriginKeyCommand {
         cache_key_path: CacheKeyPath,
 
         /// Upload origin private key in addition to the public key
-        #[arg(
-            name = "WITH_SECRET",
-            short = 's',
-            long = "secret",
-            conflicts_with = "public_file"
-        )]
+        #[arg(name = "WITH_SECRET", short = 's', long = "secret", conflicts_with = "public_file")]
         with_secret: bool,
 
         /// Path to a local origin private key file on disk
@@ -157,10 +152,7 @@ impl OriginKeyCommand {
                 Ok(())
             }
 
-            OriginKeyCommand::Generate {
-                origin,
-                cache_key_path,
-            } => {
+            OriginKeyCommand::Generate { origin, cache_key_path } => {
                 let cache_dir: PathBuf = cache_key_path.cache_key_path.clone();
                 let key_cache = KeyCache::new(cache_dir);
                 key_cache.setup().map_err(Error::from)?;
@@ -198,29 +190,11 @@ impl OriginKeyCommand {
                 key_cache.setup().map_err(Error::from)?;
 
                 if let Some(origin) = &upload.origin {
-                    key::upload_latest::start(
-                        ui,
-                        &endpoint,
-                        &token,
-                        origin,
-                        *with_secret,
-                        &key_cache,
-                    )
-                    .await
+                    key::upload_latest::start(ui, &endpoint, &token, origin, *with_secret, &key_cache).await
                 } else {
                     // upload specific files
-                    let pub_path = upload
-                        .public_file
-                        .as_ref()
-                        .expect("PUBLIC_FILE or ORIGIN is required");
-                    key::upload::start(
-                        ui,
-                        &endpoint,
-                        &token,
-                        pub_path.as_path(),
-                        secret_file.as_deref(),
-                    )
-                    .await
+                    let pub_path = upload.public_file.as_ref().expect("PUBLIC_FILE or ORIGIN is required");
+                    key::upload::start(ui, &endpoint, &token, pub_path.as_path(), secret_file.as_deref()).await
                 }
             }
         }

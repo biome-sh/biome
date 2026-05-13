@@ -36,9 +36,7 @@ use biome_common::{FeatureFlag, liveliness_checker, sync::Lock};
 use biome_core::crypto::keys::RingKey;
 use lazy_static::lazy_static;
 use log::{debug, error, info, trace, warn};
-use prometheus::{
-    HistogramTimer, HistogramVec, IntGauge, opts, register_histogram_vec, register_int_gauge,
-};
+use prometheus::{HistogramTimer, HistogramVec, IntGauge, opts, register_histogram_vec, register_int_gauge};
 use serde::{Serialize, Serializer, ser::SerializeStruct};
 use std::{
     collections::{HashMap, HashSet},
@@ -121,10 +119,7 @@ pub(crate) mod sync {
             Self(lock.write())
         }
 
-        pub fn sync_incarnation(
-            &mut self,
-            store: incarnation_store::IncarnationStore,
-        ) -> Result<()> {
+        pub fn sync_incarnation(&mut self, store: incarnation_store::IncarnationStore) -> Result<()> {
             self.0.sync_incarnation(store)
         }
 
@@ -513,10 +508,7 @@ impl Server {
 
             match reader.read_into_rsw_mlw_rhw_msr(self) {
                 Ok(_) => {
-                    debug!(
-                        "Successfully ingested rumors from {}",
-                        reader.path().display()
-                    )
+                    debug!("Successfully ingested rumors from {}", reader.path().display())
                 }
                 Err(Error::DatFileIO(path, err)) => error!("{}", Error::DatFileIO(path, err)),
                 Err(err) => return Err(err),
@@ -560,19 +552,11 @@ impl Server {
             timing.clone(),
         )?;
 
-        expire::spawn_thread(
-            format!("expire-{}", self.name()),
-            self.clone(),
-            timing.clone(),
-        )?;
+        expire::spawn_thread(format!("expire-{}", self.name()), self.clone(), timing.clone())?;
 
         pull::spawn_thread(format!("pull-{}", self.name()), self.clone())?;
 
-        push::spawn_thread(
-            format!("push-{}", self.name()),
-            self.clone(),
-            timing.clone(),
-        )?;
+        push::spawn_thread(format!("push-{}", self.name()), self.clone(), timing.clone())?;
 
         if self.dat_file.is_some() {
             spawn_persist_thread(format!("persist-{}", self.name()), self.clone())?;
@@ -696,10 +680,7 @@ impl Server {
             .member_list
             .insert_member_ignore_incarnation_mlw(sender, Health::Alive)
         {
-            debug!(
-                "Marking member '{}' as 'Alive' again, startng a new rumour.",
-                sender_id
-            );
+            debug!("Marking member '{}' as 'Alive' again, startng a new rumour.", sender_id);
             self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
@@ -724,11 +705,9 @@ impl Server {
 
             // NOT calling RumorHeat::purge here because we'll be
             // shutting down soon anyway.
-            self.rumor_heat.lock_rhw().start_hot_rumor(RumorKey::new(
-                RumorType::Member,
-                &*self.member_id,
-                "",
-            ));
+            self.rumor_heat
+                .lock_rhw()
+                .start_hot_rumor(RumorKey::new(RumorType::Member, &*self.member_id, ""));
 
             let check_list = self.member_list.check_list_mlr(&self.member_id);
 
@@ -801,9 +780,7 @@ impl Server {
             );
             health = Health::Alive;
             if member.incarnation >= self.myself.lock_smr().incarnation() {
-                self.myself
-                    .lock_smw()
-                    .refute_incarnation(member.incarnation);
+                self.myself.lock_smw().refute_incarnation(member.incarnation);
             }
         }
 
@@ -834,13 +811,9 @@ impl Server {
     /// * `MemberList::entries` (write)
     /// * `RumorHeat::inner` (write)
     pub fn insert_service_rsw_mlw_rhw(&self, service: Service) {
-        Self::insert_service_impl(
-            service,
-            &self.service_store,
-            &self.member_list,
-            &self.rumor_heat,
-            |k| self.check_quorum_mlr(k),
-        )
+        Self::insert_service_impl(service, &self.service_store, &self.member_list, &self.rumor_heat, |k| {
+            self.check_quorum_mlr(k)
+        })
     }
 
     fn insert_service_impl(
@@ -877,11 +850,9 @@ impl Server {
                 {
                     member_list.set_departed_mlw(member_id_to_depart);
                     rumor_heat.lock_rhw().purge(member_id_to_depart);
-                    rumor_heat.lock_rhw().start_hot_rumor(RumorKey::new(
-                        RumorType::Member,
-                        member_id_to_depart,
-                        "",
-                    ));
+                    rumor_heat
+                        .lock_rhw()
+                        .start_hot_rumor(RumorKey::new(RumorType::Member, member_id_to_depart, ""));
                 }
             }
 
@@ -929,11 +900,9 @@ impl Server {
 
         self.member_list.set_departed_mlw(&departure.member_id);
         self.rumor_heat.lock_rhw().purge(&departure.member_id);
-        self.rumor_heat.lock_rhw().start_hot_rumor(RumorKey::new(
-            RumorType::Member,
-            &departure.member_id,
-            "",
-        ));
+        self.rumor_heat
+            .lock_rhw()
+            .start_hot_rumor(RumorKey::new(RumorType::Member, &departure.member_id, ""));
 
         if self.departure_store.insert_rsw(departure) {
             self.rumor_heat.lock_rhw().start_hot_rumor(rk);
@@ -1019,29 +988,15 @@ impl Server {
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (read)
-    pub fn start_election_rsw_mlr_rhw_msr(
-        &self,
-        service_group: &str,
-        term: u64,
-        suitability: Option<u64>,
-    ) {
-        let suitability = suitability
-            .unwrap_or_else(|| self.suitability_lookup.suitability_for_msr(service_group));
+    pub fn start_election_rsw_mlr_rhw_msr(&self, service_group: &str, term: u64, suitability: Option<u64>) {
+        let suitability = suitability.unwrap_or_else(|| self.suitability_lookup.suitability_for_msr(service_group));
         let has_quorum = self.check_quorum_mlr(service_group);
-        let e = Election::new(
-            self.member_id(),
-            service_group,
-            term,
-            suitability,
-            has_quorum,
-        );
+        let e = Election::new(self.member_id(), service_group, term, suitability, has_quorum);
         if !has_quorum {
             warn!("start_election check_quorum failed: {:?}", e);
         }
         debug!("start_election: {:?}", e);
-        self.rumor_heat
-            .lock_rhw()
-            .start_hot_rumor(RumorKey::from(&e));
+        self.rumor_heat.lock_rhw().start_hot_rumor(RumorKey::from(&e));
         self.election_store.insert_rsw(e);
     }
 
@@ -1049,27 +1004,14 @@ impl Server {
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
-    pub fn start_update_election_rsw_mlr_rhw(
-        &self,
-        service_group: &str,
-        suitability: u64,
-        term: u64,
-    ) {
+    pub fn start_update_election_rsw_mlr_rhw(&self, service_group: &str, suitability: u64, term: u64) {
         let has_quorum = self.check_quorum_mlr(service_group);
-        let e = ElectionUpdate::new(
-            self.member_id(),
-            service_group,
-            term,
-            suitability,
-            has_quorum,
-        );
+        let e = ElectionUpdate::new(self.member_id(), service_group, term, suitability, has_quorum);
         if !has_quorum {
             warn!("start_election check_quorum failed: {:?}", e);
         }
         debug!("start_update_election: {:?}", e);
-        self.rumor_heat
-            .lock_rhw()
-            .start_hot_rumor(RumorKey::from(&e));
+        self.rumor_heat.lock_rhw().start_hot_rumor(RumorKey::from(&e));
         self.update_store.insert_rsw(e);
     }
 
@@ -1119,10 +1061,7 @@ impl Server {
                 let election = rumors
                     .get(T::const_id())
                     .expect("Lost an election struct between looking it up and reading it.");
-                debug!(
-                    "elections_to_restart: checking {} -> {:#?}",
-                    service_group, election
-                );
+                debug!("elections_to_restart: checking {} -> {:#?}", service_group, election);
 
                 if election_trigger::maybe_trigger(service_group, feature_flags, data_path) {
                     elections_to_restart.push((String::from(&service_group[..]), election.term()));
@@ -1140,28 +1079,27 @@ impl Server {
                                    quorum: {:?}",
                                 election
                             );
-                            elections_to_restart
-                                .push((String::from(&service_group[..]), election.term()));
+                            elections_to_restart.push((String::from(&service_group[..]), election.term()));
                         }
                     } else if election.is_finished() {
-                        let leader_health = member_list
-                            .health_of_by_id_mlr(election.member_id())
-                            .unwrap_or_else(|| {
-                                debug!(
-                                    "No health information for {}; \
+                        let leader_health =
+                            member_list
+                                .health_of_by_id_mlr(election.member_id())
+                                .unwrap_or_else(|| {
+                                    debug!(
+                                        "No health information for {}; \
                                                                    treating as Departed",
-                                    election.member_id()
-                                );
-                                Health::Departed
-                            });
+                                        election.member_id()
+                                    );
+                                    Health::Departed
+                                });
                         if leader_health >= Health::Confirmed {
                             warn!(
                                 "Restarting election with a new term as the leader is dead {}: \
                                    {:?}",
                                 myself_member_id, election
                             );
-                            elections_to_restart
-                                .push((String::from(&service_group[..]), election.term()));
+                            elections_to_restart.push((String::from(&service_group[..]), election.term()));
                         }
                     }
                 }
@@ -1182,37 +1120,32 @@ impl Server {
     /// * `RumorHeat::inner` (write)
     /// * `ManagerServices::inner` (read)
     pub fn restart_elections_rsw_mlr_rhw_msr(&self, feature_flags: FeatureFlag) {
-        let elections_to_restart =
-            self.elections_to_restart_rsr_mlr(&self.election_store, feature_flags);
+        let elections_to_restart = self.elections_to_restart_rsr_mlr(&self.election_store, feature_flags);
 
         // TODO (CM): not currently triggering update elections!
         // There's only one kind of sentinel file at the moment, and
         // that's for non-update elections. If that file existed,
         // it'll be gone by the time we get here.
-        let update_elections_to_restart =
-            self.elections_to_restart_rsr_mlr(&self.update_store, feature_flags);
+        let update_elections_to_restart = self.elections_to_restart_rsr_mlr(&self.update_store, feature_flags);
 
         for (service_group, old_term) in elections_to_restart {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", service_group, term);
-            let suitability = if Some(self.member_id())
-                == self.election_store.lock_rsr().get_member_id(&service_group)
+            let suitability = if Some(self.member_id()) == self.election_store.lock_rsr().get_member_id(&service_group)
             {
                 Some(u64::MAX)
             } else {
                 None
             };
 
-            self.election_store
-                .remove_rsw(&service_group, Election::const_id());
+            self.election_store.remove_rsw(&service_group, Election::const_id());
             self.start_election_rsw_mlr_rhw_msr(&service_group, term, suitability);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", service_group, term);
-            self.update_store
-                .remove_rsw(&service_group, ElectionUpdate::const_id());
+            self.update_store.remove_rsw(&service_group, ElectionUpdate::const_id());
             self.start_update_election_rsw_mlr_rhw(&service_group, 0, term);
         }
     }
@@ -1238,11 +1171,7 @@ impl Server {
             .service_group(&election.service_group)
             .contains_id(self.member_id())
         {
-            trace!(
-                "{} is a member of {}",
-                self.member_id(),
-                election.service_group
-            );
+            trace!("{} is a member of {}", self.member_id(), election.service_group);
             // And the election store already has an election rumor for this election
             if self.election_store.lock_rsr().contains_rumor(&election) {
                 let new_term = self
@@ -1252,21 +1181,14 @@ impl Server {
                     .map(|stored_term| election.term > stored_term)
                     .unwrap_or(false);
                 if new_term {
-                    if Some(self.member_id())
-                        == self.election_store.lock_rsr().get_member_id(election.key())
-                    {
+                    if Some(self.member_id()) == self.election_store.lock_rsr().get_member_id(election.key()) {
                         debug!("I am the leader of previous term!");
                         debug!(
                             "removing old rumor and starting new election with highest \
                                 `Suitability`"
                         );
-                        self.election_store
-                            .remove_rsw(election.key(), election.id());
-                        self.start_election_rsw_mlr_rhw_msr(
-                            &election.service_group,
-                            election.term,
-                            Some(u64::MAX),
-                        );
+                        self.election_store.remove_rsw(election.key(), election.id());
+                        self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term, Some(u64::MAX));
                     } else if Some(election.member_id.as_str())
                         == self.election_store.lock_rsr().get_member_id(election.key())
                     {
@@ -1275,13 +1197,8 @@ impl Server {
                                 merge. Term: {}",
                             election.term
                         );
-                        self.election_store
-                            .remove_rsw(election.key(), election.id());
-                        self.start_election_rsw_mlr_rhw_msr(
-                            &election.service_group,
-                            election.term,
-                            None,
-                        );
+                        self.election_store.remove_rsw(election.key(), election.id());
+                        self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term, None);
                     } else {
                         warn!(
                             "Received a New Term Election, but not from the current leader, \
@@ -1308,10 +1225,8 @@ impl Server {
                             // will only work as long as the same member starts and finishes the
                             // election (which is how it currently is). If we ever change elections
                             // so that any member can finish an election, this will break.
-                            let mut existing_timers = self
-                                .election_timers
-                                .lock()
-                                .expect("Election timers lock poisoned");
+                            let mut existing_timers =
+                                self.election_timers.lock().expect("Election timers lock poisoned");
 
                             // Just to be extra clear, we don't need this timer any more because
                             // once we call observe_duration(), the HistogramVec contained in
@@ -1338,10 +1253,7 @@ impl Server {
                 let timer = ELECTION_DURATION
                     .with_label_values(&[&election.service_group])
                     .start_timer();
-                let mut existing_timers = self
-                    .election_timers
-                    .lock()
-                    .expect("Election timers lock poisoned");
+                let mut existing_timers = self.election_timers.lock().expect("Election timers lock poisoned");
                 existing_timers.insert(election.service_group.clone(), ElectionTimer(timer));
                 self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term, None);
             }
@@ -1376,11 +1288,7 @@ impl Server {
             .service_group(&election.service_group)
             .contains_id(self.member_id())
         {
-            trace!(
-                "{} is a member of {}",
-                self.member_id(),
-                election.service_group
-            );
+            trace!("{} is a member of {}", self.member_id(), election.service_group);
             // And the election store already has an election rumor for this election
             if self.update_store.lock_rsr().contains_rumor(&election) {
                 let new_term = self
@@ -1392,11 +1300,7 @@ impl Server {
                 if new_term {
                     debug!("removing old rumor and starting new election");
                     self.update_store.remove_rsw(election.key(), election.id());
-                    self.start_update_election_rsw_mlr_rhw(
-                        &election.service_group,
-                        0,
-                        election.term,
-                    );
+                    self.start_update_election_rsw_mlr_rhw(&election.service_group, 0, election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
@@ -1489,13 +1393,7 @@ impl Server {
 
 impl fmt::Display for Server {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}@{}/{}",
-            self.name(),
-            self.swim_port(),
-            self.gossip_port()
-        )
+        write!(f, "{}@{}/{}", self.name(), self.swim_port(), self.gossip_port())
     }
 }
 
@@ -1523,10 +1421,7 @@ fn persist_loop(server: &Server) -> ! {
         match min_loop_period.checked_sub(time_to_persist) {
             Some(time_to_wait) => thread::sleep(time_to_wait),
             None => {
-                warn!(
-                    "Persisting data took longer than expected: {:?}",
-                    time_to_persist
-                )
+                warn!("Persisting data took longer than expected: {:?}", time_to_persist)
             }
         }
     }
@@ -1545,11 +1440,7 @@ fn clone_socket(socket: &UdpSocket) -> Result<UdpSocket> {
 
     let cloned = socket.try_clone()?;
     match unsafe {
-        handleapi::SetHandleInformation(
-            cloned.as_raw_socket() as winnt::HANDLE,
-            winbase::HANDLE_FLAG_INHERIT,
-            0,
-        )
+        handleapi::SetHandleInformation(cloned.as_raw_socket() as winnt::HANDLE, winbase::HANDLE_FLAG_INHERIT, 0)
     } {
         0 => Err(Error::OsError(io::Error::last_os_error())),
         _ => Ok(cloned),
@@ -1818,10 +1709,7 @@ mod tests {
             check_quorum_returns(false),
         );
 
-        assert_eq!(
-            member_list.health_of_mlr(&confirmed_member),
-            Some(Health::Confirmed)
-        );
+        assert_eq!(member_list.health_of_mlr(&confirmed_member), Some(Health::Confirmed));
 
         Server::insert_service_impl(
             alive_member_service_rumor,
@@ -1831,10 +1719,7 @@ mod tests {
             check_quorum_returns(false),
         );
 
-        assert_eq!(
-            member_list.health_of_mlr(&confirmed_member),
-            Some(Health::Departed)
-        );
+        assert_eq!(member_list.health_of_mlr(&confirmed_member), Some(Health::Departed));
     }
 
     #[test]
@@ -1881,10 +1766,7 @@ mod tests {
             check_quorum_returns(false),
         );
 
-        assert_eq!(
-            member_list.health_of_mlr(&confirmed_member),
-            Some(Health::Confirmed)
-        );
+        assert_eq!(member_list.health_of_mlr(&confirmed_member), Some(Health::Confirmed));
     }
 
     #[test]
@@ -1908,10 +1790,7 @@ mod tests {
             check_quorum_returns(true),
         );
 
-        assert_eq!(
-            member_list.health_of_mlr(&confirmed_member),
-            Some(Health::Confirmed)
-        );
+        assert_eq!(member_list.health_of_mlr(&confirmed_member), Some(Health::Confirmed));
 
         Server::insert_service_impl(
             alive_member_service_rumor,
@@ -1921,10 +1800,7 @@ mod tests {
             check_quorum_returns(true),
         );
 
-        assert_eq!(
-            member_list.health_of_mlr(&confirmed_member),
-            Some(Health::Confirmed)
-        );
+        assert_eq!(member_list.health_of_mlr(&confirmed_member), Some(Health::Confirmed));
     }
     mod myself {
         use super::super::*;
@@ -1939,8 +1815,7 @@ mod tests {
             P: AsRef<Path>,
         {
             let mut i = IncarnationStore::new(path.as_ref());
-            i.initialize()
-                .expect("Couldn't initialize incarnation store");
+            i.initialize().expect("Couldn't initialize incarnation store");
             Myself::new(Member::default(), Some(i))
         }
 

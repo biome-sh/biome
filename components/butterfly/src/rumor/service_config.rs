@@ -91,9 +91,7 @@ impl ServiceConfig {
         let config = str::from_utf8(&bytes)
             .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))
             .map(toml::from_str)?
-            .map_err(|e| {
-                Error::ServiceConfigDecode(self.service_group.to_string(), e.to_string())
-            })?;
+            .map_err(|e| Error::ServiceConfigDecode(self.service_group.to_string(), e.to_string()))?;
 
         Ok(config)
     }

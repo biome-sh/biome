@@ -16,8 +16,7 @@ impl clap_v4::builder::TypedValueParser for UrlValueParser {
     ) -> Result<Self::Value, clap_v4::Error> {
         let result = url::Url::parse(value.to_string_lossy().as_ref());
         if result.is_err() {
-            let mut err =
-                clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
+            let mut err = clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
             if let Some(arg) = arg {
                 err.insert(
                     clap_v4::error::ContextKind::InvalidArg,
@@ -62,8 +61,7 @@ impl clap_v4::builder::TypedValueParser for BioPackageInstallSourceValueParser {
 
         let result = InstallSource::from_str(&val);
         if result.is_err() {
-            let mut err =
-                clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
+            let mut err = clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
             if let Some(arg) = arg {
                 err.insert(
                     clap_v4::error::ContextKind::InvalidArg,
@@ -100,8 +98,7 @@ impl clap_v4::builder::TypedValueParser for FileExistsValueParser {
         arg: Option<&clap_v4::Arg>,
         value: &std::ffi::OsStr,
     ) -> Result<Self::Value, clap_v4::Error> {
-        parse_ref_internal(cmd, arg, value, false, false, "is not a valid file")
-            .map(Into::<PathBuf>::into)
+        parse_ref_internal(cmd, arg, value, false, false, "is not a valid file").map(Into::<PathBuf>::into)
     }
 }
 
@@ -138,8 +135,7 @@ impl clap_v4::builder::TypedValueParser for DirExistsValueParser {
         arg: Option<&clap_v4::Arg>,
         value: &std::ffi::OsStr,
     ) -> Result<Self::Value, clap_v4::Error> {
-        parse_ref_internal(cmd, arg, value, true, false, "is not a valid directory")
-            .map(|x| x.into())
+        parse_ref_internal(cmd, arg, value, true, false, "is not a valid directory").map(|x| x.into())
     }
 }
 
@@ -191,11 +187,7 @@ fn parse_ref_internal(
         }
         err.insert(
             clap_v4::error::ContextKind::InvalidValue,
-            clap_v4::error::ContextValue::String(format!(
-                "`{}`: {}",
-                value.to_string_lossy(),
-                err_str,
-            )),
+            clap_v4::error::ContextValue::String(format!("`{}`: {}", value.to_string_lossy(), err_str,)),
         );
         Err(err)
     } else {
@@ -230,8 +222,7 @@ impl clap_v4::builder::TypedValueParser for TomlOrPkgIdentFileValueParser {
 
         let result = file_into_idents(&val);
         if result.is_err() {
-            let mut err =
-                clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
+            let mut err = clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
             if let Some(arg) = arg {
                 err.insert(
                     clap_v4::error::ContextKind::InvalidArg,
@@ -268,16 +259,12 @@ pub struct BioPkgIdentValueParser {
 impl BioPkgIdentValueParser {
     /// For Simple Package Identifier of the form 'origin/name'
     pub fn simple() -> Self {
-        Self {
-            fully_qualified: false,
-        }
+        Self { fully_qualified: false }
     }
 
     /// For Full Package Identifier of the form 'origin/name/version/release'
     pub fn full() -> Self {
-        Self {
-            fully_qualified: true,
-        }
+        Self { fully_qualified: true }
     }
 }
 
@@ -301,8 +288,7 @@ impl clap_v4::builder::TypedValueParser for BioPkgIdentValueParser {
         };
 
         if result.is_some() {
-            let mut err =
-                clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
+            let mut err = clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
             if let Some(arg) = arg {
                 err.insert(
                     clap_v4::error::ContextKind::InvalidArg,
@@ -311,11 +297,7 @@ impl clap_v4::builder::TypedValueParser for BioPkgIdentValueParser {
             }
             err.insert(
                 clap_v4::error::ContextKind::InvalidValue,
-                clap_v4::error::ContextValue::String(format!(
-                    "`{}`: {}",
-                    value.to_string_lossy(),
-                    result.unwrap(),
-                )),
+                clap_v4::error::ContextValue::String(format!("`{}`: {}", value.to_string_lossy(), result.unwrap(),)),
             );
             Err(err)
         } else {

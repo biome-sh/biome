@@ -8,8 +8,7 @@ fn main() {
     cc::Build::new()
         .file("./src/os/users/admincheck.c")
         .compile("libadmincheck.a");
-    let mut file =
-        File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("bio-crypt")).unwrap();
+    let mut file = File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("bio-crypt")).unwrap();
     if let Ok(key) = env::var("BIO_CRYPTO_KEY") {
         file.write_all(&STANDARD.decode(key).unwrap()).unwrap();
     }
@@ -26,8 +25,7 @@ pub fn populate_cacert() {
     if let Ok(src) = env::var("SSL_CERT_FILE") {
         let dst = Path::new(&env::var("OUT_DIR").unwrap()).join("cacert.pem");
         // Verify the certificate data
-        let cert_data =
-            fs::read(&src).unwrap_or_else(|_| panic!("Failed to read SSL_CERT_FILE at {}", src));
+        let cert_data = fs::read(&src).unwrap_or_else(|_| panic!("Failed to read SSL_CERT_FILE at {}", src));
         pem::parse_many(cert_data).unwrap_or_else(|_| {
             panic!(
                 "The SSL_CERT_FILE {} contains one or more invalid \

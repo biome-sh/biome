@@ -2,13 +2,12 @@ use crate::{
     crypto::{
         hash::Blake2bHash,
         keys::{
-            BuilderSecretEncryptionKey, KeyFile, NamedRevision, OriginPublicEncryptionKey,
-            OriginSecretEncryptionKey, PublicOriginSigningKey, RingKey, SecretOriginSigningKey,
-            ServicePublicEncryptionKey, ServiceSecretEncryptionKey, UserPublicEncryptionKey,
-            UserSecretEncryptionKey,
+            BuilderSecretEncryptionKey, KeyFile, NamedRevision, OriginPublicEncryptionKey, OriginSecretEncryptionKey,
+            PublicOriginSigningKey, RingKey, SecretOriginSigningKey, ServicePublicEncryptionKey,
+            ServiceSecretEncryptionKey, UserPublicEncryptionKey, UserSecretEncryptionKey,
             encryption::{
-                BUILDER_KEY_NAME, generate_origin_encryption_key_pair,
-                generate_service_encryption_key_pair, generate_user_encryption_key_pair,
+                BUILDER_KEY_NAME, generate_origin_encryption_key_pair, generate_service_encryption_key_pair,
+                generate_user_encryption_key_pair,
             },
             generate_signing_key_pair,
         },
@@ -63,10 +62,7 @@ impl KeyCache {
     }
 
     /// Generate a new origin signing key pair and save both keys to disk.
-    pub fn new_signing_pair(
-        &self,
-        origin: &Origin,
-    ) -> Result<(PublicOriginSigningKey, SecretOriginSigningKey)> {
+    pub fn new_signing_pair(&self, origin: &Origin) -> Result<(PublicOriginSigningKey, SecretOriginSigningKey)> {
         let (public, secret) = generate_signing_key_pair(origin)?;
         self.write_pair(&public, &secret)?;
         Ok((public, secret))
@@ -83,10 +79,7 @@ impl KeyCache {
     }
 
     /// Generate a new user encryption key pair and save both keys to disk.
-    pub fn new_user_encryption_pair(
-        &self,
-        user: &str,
-    ) -> Result<(UserPublicEncryptionKey, UserSecretEncryptionKey)> {
+    pub fn new_user_encryption_pair(&self, user: &str) -> Result<(UserPublicEncryptionKey, UserSecretEncryptionKey)> {
         let (public, secret) = generate_user_encryption_key_pair(user)?;
         self.write_pair(&public, &secret)?;
         Ok((public, secret))
@@ -175,17 +168,11 @@ impl KeyCache {
         self.fetch_latest_revision::<RingKey>(name)
     }
 
-    pub fn latest_secret_origin_signing_key(
-        &self,
-        origin: &Origin,
-    ) -> Result<SecretOriginSigningKey> {
+    pub fn latest_secret_origin_signing_key(&self, origin: &Origin) -> Result<SecretOriginSigningKey> {
         self.fetch_latest_revision::<SecretOriginSigningKey>(origin.as_ref())
     }
 
-    pub fn latest_public_origin_signing_key(
-        &self,
-        origin: &Origin,
-    ) -> Result<PublicOriginSigningKey> {
+    pub fn latest_public_origin_signing_key(&self, origin: &Origin) -> Result<PublicOriginSigningKey> {
         self.fetch_latest_revision::<PublicOriginSigningKey>(origin.as_ref())
     }
 
@@ -193,10 +180,7 @@ impl KeyCache {
         self.fetch_latest_revision::<UserSecretEncryptionKey>(user_name)
     }
 
-    pub fn latest_origin_public_encryption_key(
-        &self,
-        origin: &Origin,
-    ) -> Result<OriginPublicEncryptionKey> {
+    pub fn latest_origin_public_encryption_key(&self, origin: &Origin) -> Result<OriginPublicEncryptionKey> {
         self.fetch_latest_revision::<OriginPublicEncryptionKey>(origin.as_ref())
     }
 
@@ -215,40 +199,25 @@ impl KeyCache {
 
     /// Attempt to retrieve the specified signing key from the cache,
     /// if it exists and is valid.
-    pub fn public_signing_key(
-        &self,
-        named_revision: &NamedRevision,
-    ) -> Result<PublicOriginSigningKey> {
+    pub fn public_signing_key(&self, named_revision: &NamedRevision) -> Result<PublicOriginSigningKey> {
         self.fetch_specific_revision::<PublicOriginSigningKey>(named_revision)
     }
 
-    pub fn secret_signing_key(
-        &self,
-        named_revision: &NamedRevision,
-    ) -> Result<SecretOriginSigningKey> {
+    pub fn secret_signing_key(&self, named_revision: &NamedRevision) -> Result<SecretOriginSigningKey> {
         self.fetch_specific_revision::<SecretOriginSigningKey>(named_revision)
     }
 
-    pub fn user_public_encryption_key(
-        &self,
-        named_revision: &NamedRevision,
-    ) -> Result<UserPublicEncryptionKey> {
+    pub fn user_public_encryption_key(&self, named_revision: &NamedRevision) -> Result<UserPublicEncryptionKey> {
         self.fetch_specific_revision::<UserPublicEncryptionKey>(named_revision)
     }
 
-    pub fn service_secret_encryption_key(
-        &self,
-        named_revision: &NamedRevision,
-    ) -> Result<ServiceSecretEncryptionKey> {
+    pub fn service_secret_encryption_key(&self, named_revision: &NamedRevision) -> Result<ServiceSecretEncryptionKey> {
         self.fetch_specific_revision::<ServiceSecretEncryptionKey>(named_revision)
     }
 
     /// Retrieve the Builder secret encryption key with the specified
     /// revision.
-    pub fn builder_secret_encryption_key(
-        &self,
-        named_revision: &NamedRevision,
-    ) -> Result<BuilderSecretEncryptionKey> {
+    pub fn builder_secret_encryption_key(&self, named_revision: &NamedRevision) -> Result<BuilderSecretEncryptionKey> {
         self.fetch_specific_revision::<BuilderSecretEncryptionKey>(named_revision)
     }
 
@@ -334,11 +303,7 @@ impl KeyCache {
     /// Search the key cache for all files that are revisions of the
     /// given key. Returns the full paths to those files within the
     /// cache.
-    fn get_all_paths_for(
-        &self,
-        name: &str,
-        key_extension: &str,
-    ) -> Result<impl Iterator<Item = PathBuf> + use<>> {
+    fn get_all_paths_for(&self, name: &str, key_extension: &str) -> Result<impl Iterator<Item = PathBuf> + use<>> {
         // Ideally, we'd want that `*` to be `\d{14}` to match the
         // structure of our revisions... perhaps that can be an
         // additional filter later on with an actual regex?
@@ -366,8 +331,7 @@ mod tests {
     use crate::crypto::{
         keys::{
             Key, KeyFile, OriginSecretEncryptionKey, generate_origin_encryption_key_pair,
-            generate_service_encryption_key_pair, generate_signing_key_pair,
-            generate_user_encryption_key_pair,
+            generate_service_encryption_key_pair, generate_signing_key_pair, generate_user_encryption_key_pair,
         },
         test_support::*,
     };
@@ -450,11 +414,7 @@ mod tests {
         let (cache, dir) = new_cache();
         let old_content = fixture_as_string("keys/ring-key-valid-20160504220722.sym.key");
 
-        std::fs::write(
-            dir.path().join("ring-key-valid-20160504220722.sym.key"),
-            &old_content,
-        )
-        .unwrap();
+        std::fs::write(dir.path().join("ring-key-valid-20160504220722.sym.key"), &old_content).unwrap();
 
         #[rustfmt::skip]
         let new_content = "SYM-SEC-1\nring-key-valid-20160504220722\n\nkA+c03Ly5qEoOZIjJ5zCD2vHI05pAW59PfCOb8thmZw=";
@@ -479,9 +439,7 @@ mod tests {
                 "Expected to retrieve the latest key by name"
             );
 
-            let fetched_specific: $t = $cache
-                .fetch_specific_revision($key.named_revision())
-                .unwrap();
+            let fetched_specific: $t = $cache.fetch_specific_revision($key.named_revision()).unwrap();
             assert_eq!(
                 fetched_specific, $key,
                 "Expected to retrieve the key by specific revision"
@@ -497,9 +455,7 @@ mod tests {
         for _ in 0..=2 {
             cache.new_user_encryption_pair("my-user").unwrap();
             cache.new_origin_encryption_pair(&origin).unwrap();
-            cache
-                .new_service_encryption_pair("my-org", "foo.default")
-                .unwrap();
+            cache.new_service_encryption_pair("my-org", "foo.default").unwrap();
 
             // If we're going to be using the same origin name for the
             // encryption key and the signing key, we have to wait a
@@ -544,8 +500,7 @@ mod tests {
     fn service_keys_round_trip() {
         let (cache, _dir) = new_cache();
         populate_cache(&cache);
-        let (public, secret) =
-            generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
+        let (public, secret) = generate_service_encryption_key_pair("my-org", "foo.default").unwrap();
         assert_cache_round_trip!(ServicePublicEncryptionKey, public, cache);
         assert_cache_round_trip!(ServiceSecretEncryptionKey, secret, cache);
     }
@@ -622,9 +577,7 @@ mod tests {
             assert!(link_metadata.file_type().is_symlink());
 
             // When retrieving the key, we can follow symlinks!
-            let retrieved_key = cache
-                .latest_ring_key_revision(key.named_revision().name())
-                .unwrap();
+            let retrieved_key = cache.latest_ring_key_revision(key.named_revision().name()).unwrap();
             assert_eq!(retrieved_key, key);
         }
 

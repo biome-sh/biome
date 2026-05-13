@@ -46,11 +46,7 @@ pub(crate) fn cli() -> Command {
     let cmd = add_pkg_ident_arg(cmd);
     let cmd = add_engine_arg(cmd);
 
-    if cfg!(windows) {
-        add_base_image_arg(cmd)
-    } else {
-        cmd
-    }
+    if cfg!(windows) { add_base_image_arg(cmd) } else { cmd }
 }
 
 fn add_base_packages_args(cmd: Command) -> Command {
@@ -189,16 +185,11 @@ fn add_tagging_args(cmd: Command) -> Command {
             .action(ArgAction::SetTrue)
             .help("Do not tag image with :\"latest\""),
     )
-    .arg(
-        Arg::new("TAG_CUSTOM")
-            .long("tag-custom")
-            .value_name("TAG_CUSTOM")
-            .help(
-                "Tag image with additional custom tag (supports: \
+    .arg(Arg::new("TAG_CUSTOM").long("tag-custom").value_name("TAG_CUSTOM").help(
+        "Tag image with additional custom tag (supports: \
                                          {{pkg_origin}}, {{pkg_name}}, {{pkg_version}}, \
                                          {{pkg_release}}, {{channel}})",
-            ),
-    )
+    ))
 }
 
 fn add_publishing_args(cmd: Command) -> Command {
@@ -289,15 +280,10 @@ fn add_memory_arg(cmd: Command) -> Command {
 }
 
 fn add_base_image_arg(cmd: Command) -> Command {
-    cmd.arg(
-        Arg::new("BASE_IMAGE")
-            .value_name("BASE_IMAGE")
-            .long("base-image")
-            .help(
-                "Base image of the final exported image --base-image \
+    cmd.arg(Arg::new("BASE_IMAGE").value_name("BASE_IMAGE").long("base-image").help(
+        "Base image of the final exported image --base-image \
                                          mcr.microsoft.com/windows/servercore:ltsc2019",
-            ),
-    )
+    ))
 }
 
 fn add_layer_arg(cmd: Command) -> Command {
@@ -334,9 +320,7 @@ mod tests {
     #[test]
     fn image_name_cli_arg_no_default_value() {
         let cli = super::cli();
-        let m = cli
-            .clone()
-            .get_matches_from(["bio-pkg-export-container", "core/redis"]);
+        let m = cli.clone().get_matches_from(["bio-pkg-export-container", "core/redis"]);
         assert!(m.get_one::<String>("IMAGE_NAME").is_none());
     }
 

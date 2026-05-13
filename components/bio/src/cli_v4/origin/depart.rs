@@ -48,10 +48,7 @@ impl OriginDepartOptions {
         let api_client = Client::new(endpoint, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
         // Show departing status
-        ui.status(
-            Status::Departing,
-            format!("membership from origin {}.", self.origin),
-        )?;
+        ui.status(Status::Departing, format!("membership from origin {}.", self.origin))?;
 
         // Call the API
         match api_client.depart_origin(self.origin.as_ref(), &token).await {

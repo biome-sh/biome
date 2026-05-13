@@ -29,9 +29,7 @@ impl PackageUpdateWorkerPeriod {
             return None;
         }
         let val = PackageUpdateWorkerPeriod::configured_value().into();
-        if val >= PackageUpdateWorkerPeriod::MIN_ALLOWED
-            || biome_core::env::var(PERIOD_BYPASS_CHECK_ENVVAR).is_ok()
-        {
+        if val >= PackageUpdateWorkerPeriod::MIN_ALLOWED || biome_core::env::var(PERIOD_BYPASS_CHECK_ENVVAR).is_ok() {
             Some(val)
         } else {
             Some(PackageUpdateWorkerPeriod::MIN_ALLOWED)
@@ -90,16 +88,10 @@ impl PackageUpdateWorker {
                 match self.update_condition {
                     UpdateCondition::Latest => {
                         let install_source = ident.ident.clone().into();
-                        util::pkg::install_no_ui(&self.builder_url, &install_source, &self.channel)
-                            .await
+                        util::pkg::install_no_ui(&self.builder_url, &install_source, &self.channel).await
                     }
                     UpdateCondition::TrackChannel => {
-                        util::pkg::install_channel_head(
-                            &self.builder_url,
-                            &ident.ident,
-                            &self.channel,
-                        )
-                        .await
+                        util::pkg::install_channel_head(&self.builder_url, &ident.ident, &self.channel).await
                     }
                 }
             };
@@ -124,11 +116,7 @@ impl PackageUpdateWorker {
                     trace!(
                         "'{}' package update worker did not find change from '{}' for '{}' in \
                             channel '{}' using '{}' update condition",
-                        self.service_group,
-                        self.full_ident,
-                        ident.ident,
-                        self.channel,
-                        self.update_condition
+                        self.service_group, self.full_ident, ident.ident, self.channel, self.update_condition
                     )
                 }
                 Err(err) => {
@@ -158,13 +146,8 @@ impl PackageUpdateWorker {
         let ident = self.ident.clone();
         let period = PackageUpdateWorkerPeriod::get().unwrap_or(self.period);
         let splay = Duration::from_secs(rand::rng().random_range(0..period.as_secs()));
-        debug!(
-            "Starting package update worker for {} in {}s",
-            ident,
-            splay.as_secs()
-        );
+        debug!("Starting package update worker for {} in {}s", ident, splay.as_secs());
         time::sleep(splay).await;
-        self.update_to(IncarnatedPackageIdent::new(ident, None))
-            .await
+        self.update_to(IncarnatedPackageIdent::new(ident, None)).await
     }
 }

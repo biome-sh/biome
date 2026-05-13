@@ -4,8 +4,8 @@ use super::{
 };
 
 use handlebars::{
-    Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason,
-    Renderable, to_json,
+    Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderErrorReason, Renderable,
+    to_json,
 };
 use serde_json::Value as Json;
 
@@ -61,13 +61,7 @@ impl HelperDef for EachAliveHelper {
                                 block.set_local_var("last", to_json(is_last));
                                 block.set_local_var("index", to_json(index.clone()));
 
-                                update_block_context(
-                                    block,
-                                    array_path,
-                                    i.to_string(),
-                                    is_first,
-                                    member,
-                                );
+                                update_block_context(block, array_path, i.to_string(), is_first, member);
                                 set_block_param(block, h, array_path, &index, member)?;
                             }
 

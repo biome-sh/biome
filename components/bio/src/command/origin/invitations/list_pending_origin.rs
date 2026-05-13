@@ -16,10 +16,7 @@ pub async fn start(ui: &mut UI, bldr_url: &str, origin: &str, token: &str) -> Re
     )?;
 
     // given an origin, list its pending invitations
-    match api_client
-        .list_pending_origin_invitations(origin, token)
-        .await
-    {
+    match api_client.list_pending_origin_invitations(origin, token).await {
         Ok(resp) => {
             println!(
                 "Pending Origin ({}) Member Invitations [{}]:",
@@ -32,10 +29,7 @@ pub async fn start(ui: &mut UI, bldr_url: &str, origin: &str, token: &str) -> Re
                     Ok(())
                 }
                 Err(e) => {
-                    ui.fatal(format!(
-                        "Failed to format pending origin invitations! {:?}.",
-                        e
-                    ))?;
+                    ui.fatal(format!("Failed to format pending origin invitations! {:?}.", e))?;
                     Err(Error::from(e))
                 }
             }
@@ -49,10 +43,7 @@ pub async fn start(ui: &mut UI, bldr_url: &str, origin: &str, token: &str) -> Re
             Err(Error::APIClient(err))
         }
         Err(e) => {
-            ui.fatal(format!(
-                "Failed to retrieve pending origin invitations! {:?}.",
-                e
-            ))?;
+            ui.fatal(format!("Failed to retrieve pending origin invitations! {:?}.", e))?;
             Err(Error::from(e))
         }
     }

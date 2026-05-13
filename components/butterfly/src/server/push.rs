@@ -80,10 +80,7 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                 if server.member_list.pingable_mlr(&member)
                     && !server.member_list.persistent_and_confirmed_mlr(&member)
                 {
-                    let rumors = server
-                        .rumor_heat
-                        .lock_rhr()
-                        .currently_hot_rumors(&member.id);
+                    let rumors = server.rumor_heat.lock_rhr().currently_hot_rumors(&member.id);
                     if !rumors.is_empty() {
                         let sc = server.clone();
                         let guard = match thread::Builder::new()
@@ -162,12 +159,8 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
     socket
         .set_immediate(true)
         .expect("Failure to set the ZMQ push socket to immediate");
-    socket
-        .set_sndhwm(1000)
-        .expect("Failure to set the ZMQ push socket hwm");
-    socket
-        .set_sndtimeo(500)
-        .expect("Failure to set the ZMQ send timeout");
+    socket.set_sndhwm(1000).expect("Failure to set the ZMQ push socket hwm");
+    socket.set_sndtimeo(500).expect("Failure to set the ZMQ send timeout");
     let to_addr = format!("{}:{}", member.address, member.gossip_port);
     match socket.connect(&format!("tcp://{}", to_addr)) {
         Ok(()) => debug!("Connected push socket to {:?}", member),
@@ -201,114 +194,90 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                     }
                 }
             }
-            RumorType::Service => {
-                match server.service_store.lock_rsr().encode_rumor_for(rumor_key) {
-                    Ok(bytes) => bytes,
-                    Err(e) => {
-                        error!(
-                            "Could not write our own rumor to bytes; abandoning sending \
+            RumorType::Service => match server.service_store.lock_rsr().encode_rumor_for(rumor_key) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    error!(
+                        "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                            e
-                        );
-                        let label_values = &["service_rumor_encode", "failure"];
-                        GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
-                        GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
-                        continue 'rumorlist;
-                    }
+                        e
+                    );
+                    let label_values = &["service_rumor_encode", "failure"];
+                    GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                    GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
+                    continue 'rumorlist;
                 }
-            }
-            RumorType::ServiceConfig => {
-                match server
-                    .service_config_store
-                    .lock_rsr()
-                    .encode_rumor_for(rumor_key)
-                {
-                    Ok(bytes) => bytes,
-                    Err(e) => {
-                        error!(
-                            "Could not write our own rumor to bytes; abandoning sending \
+            },
+            RumorType::ServiceConfig => match server.service_config_store.lock_rsr().encode_rumor_for(rumor_key) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    error!(
+                        "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                            e
-                        );
-                        let label_values = &["service_config_rumor_encode", "failure"];
-                        GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
-                        GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
-                        continue 'rumorlist;
-                    }
+                        e
+                    );
+                    let label_values = &["service_config_rumor_encode", "failure"];
+                    GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                    GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
+                    continue 'rumorlist;
                 }
-            }
-            RumorType::ServiceFile => {
-                match server
-                    .service_file_store
-                    .lock_rsr()
-                    .encode_rumor_for(rumor_key)
-                {
-                    Ok(bytes) => bytes,
-                    Err(e) => {
-                        error!(
-                            "Could not write our own rumor to bytes; abandoning sending \
+            },
+            RumorType::ServiceFile => match server.service_file_store.lock_rsr().encode_rumor_for(rumor_key) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    error!(
+                        "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                            e
-                        );
-                        let label_values = &["service_file_rumor_encode", "failure"];
-                        GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
-                        GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
-                        continue 'rumorlist;
-                    }
+                        e
+                    );
+                    let label_values = &["service_file_rumor_encode", "failure"];
+                    GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                    GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
+                    continue 'rumorlist;
                 }
-            }
-            RumorType::Departure => {
-                match server
-                    .departure_store
-                    .lock_rsr()
-                    .encode_rumor_for(rumor_key)
-                {
-                    Ok(bytes) => bytes,
-                    Err(e) => {
-                        error!(
-                            "Could not write our own rumor to bytes; abandoning sending \
+            },
+            RumorType::Departure => match server.departure_store.lock_rsr().encode_rumor_for(rumor_key) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    error!(
+                        "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                            e
-                        );
-                        let label_values = &["departure_rumor_encode", "failure"];
-                        GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
-                        GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
-                        continue 'rumorlist;
-                    }
+                        e
+                    );
+                    let label_values = &["departure_rumor_encode", "failure"];
+                    GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                    GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
+                    continue 'rumorlist;
                 }
-            }
-            RumorType::Election => {
-                match server.election_store.lock_rsr().encode_rumor_for(rumor_key) {
-                    Ok(bytes) => bytes,
-                    Err(e) => {
-                        error!(
-                            "Could not write our own rumor to bytes; abandoning sending \
+            },
+            RumorType::Election => match server.election_store.lock_rsr().encode_rumor_for(rumor_key) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    error!(
+                        "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                            e
-                        );
-                        let label_values = &["election_rumor_encode", "failure"];
-                        GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
-                        GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
-                        continue 'rumorlist;
-                    }
+                        e
+                    );
+                    let label_values = &["election_rumor_encode", "failure"];
+                    GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                    GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
+                    continue 'rumorlist;
                 }
-            }
-            RumorType::ElectionUpdate => {
-                match server.update_store.lock_rsr().encode_rumor_for(rumor_key) {
-                    Ok(bytes) => bytes,
-                    Err(e) => {
-                        error!(
-                            "Could not write our own rumor to bytes; abandoning sending \
+            },
+            RumorType::ElectionUpdate => match server.update_store.lock_rsr().encode_rumor_for(rumor_key) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    error!(
+                        "Could not write our own rumor to bytes; abandoning sending \
                                 rumor: {:?}",
-                            e
-                        );
-                        let label_values = &["election_update_rumor_encode", "failure"];
-                        GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
-                        GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
-                        continue 'rumorlist;
-                    }
+                        e
+                    );
+                    let label_values = &["election_update_rumor_encode", "failure"];
+                    GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
+                    GOSSIP_BYTES_SENT.with_label_values(label_values).set(0);
+                    continue 'rumorlist;
                 }
-            }
+            },
             RumorType::Fake | RumorType::Fake2 => {
                 debug!("You have fake rumors; how odd!");
                 continue 'rumorlist;
@@ -321,9 +290,7 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
                 error!("Generating protobuf failed: {}", e);
                 let label_values = &["generate_wire", "failure"];
                 GOSSIP_MESSAGES_SENT.with_label_values(label_values).inc();
-                GOSSIP_BYTES_SENT
-                    .with_label_values(label_values)
-                    .set(rumor_len);
+                GOSSIP_BYTES_SENT.with_label_values(label_values).set(rumor_len);
                 continue 'rumorlist;
             }
         };
@@ -357,10 +324,7 @@ fn create_member_rumor_mlr(server: &Server, rumor_key: &RumorKey) -> Option<Rumo
     let member = server.member_list.get_cloned_mlr(&rumor_key.to_string())?;
     let payload = Membership {
         member,
-        health: server
-            .member_list
-            .health_of_by_id_mlr(&rumor_key.to_string())
-            .unwrap(),
+        health: server.member_list.health_of_by_id_mlr(&rumor_key.to_string()).unwrap(),
     };
     let rumor = RumorEnvelope {
         r#type: RumorType::Member,

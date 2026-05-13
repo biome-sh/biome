@@ -119,11 +119,7 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn hook_run_error(
-        package_ident: FullyQualifiedPackageIdent,
-        hook: &'static str,
-        error: Error,
-    ) -> Self {
+    pub fn hook_run_error(package_ident: FullyQualifiedPackageIdent, hook: &'static str, error: Error) -> Self {
         Self::HookFailed {
             package_ident,
             hook,
@@ -149,18 +145,13 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::APIClient(ref err) => format!("{}", err),
             Error::ArtifactIdentMismatch((ref a, ref ai, ref i)) => {
-                format!(
-                    "Artifact ident {} for `{}' does not match expected ident {}",
-                    ai, a, i
-                )
+                format!("Artifact ident {} for `{}' does not match expected ident {}", ai, a, i)
             }
             Error::BadEnvConfig(ref varname) => {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
             Error::BadGlyphStyle(ref style) => format!("Unknown symbol style '{}'", style),
-            Error::CantUploadGossipToml => {
-                "Can't upload gossip.toml, it's a reserved file name".to_string()
-            }
+            Error::CantUploadGossipToml => "Can't upload gossip.toml, it's a reserved file name".to_string(),
             Error::ChannelNotFound => "Channel not found".to_string(),
             Error::CryptoKeyError(ref s) => format!("Missing or invalid key: {}", s),
             Error::EditorEnv(ref e) => format!("Missing EDITOR environment variable: {}", e),
@@ -168,10 +159,7 @@ impl fmt::Display for Error {
             Error::FileNameError => "Failed to extract a filename".to_string(),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::GossipFileRelativePath(ref s) => {
-                format!(
-                    "Path for gossip file cannot have relative components (eg: ..): {}",
-                    s
-                )
+                format!("Path for gossip file cannot have relative components (eg: ..): {}", s)
             }
             Error::BiomeCore(ref e) => format!("{}", e),
             Error::MissingCLIInputError(ref arg) => {
@@ -201,10 +189,7 @@ impl fmt::Display for Error {
                 format!("Cached artifact not found in offline mode: {}", ident)
             }
             Error::OfflineOriginKeyNotFound(ref name_with_rev) => {
-                format!(
-                    "Cached origin key not found in offline mode: {}",
-                    name_with_rev
-                )
+                format!("Cached origin key not found in offline mode: {}", name_with_rev)
             }
             Error::OfflinePackageNotFound(ref ident) => {
                 format!(
@@ -224,14 +209,9 @@ impl fmt::Display for Error {
             Error::ListenCtlResolutionError(ref sup_addr, ref err) => {
                 format!("Failed to resolve ctl address '{}': {}", sup_addr, err,)
             }
-            Error::RootRequired => {
-                "Root or administrator permissions required to complete operation".to_string()
-            }
+            Error::RootRequired => "Root or administrator permissions required to complete operation".to_string(),
             Error::StatusFileCorrupt(ref path) => {
-                format!(
-                    "Unable to decode contents of INSTALL_STATUS file, {}",
-                    path.display()
-                )
+                format!("Unable to decode contents of INSTALL_STATUS file, {}", path.display())
             }
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),

@@ -110,16 +110,7 @@ impl OriginRbacCommand {
                 no_prompt,
             } => {
                 let (url, token, origin_obj) = get_args(bldr_url, auth_token, origin)?;
-                rbac::set_role::start(
-                    ui,
-                    url,
-                    origin_obj,
-                    &token,
-                    member_account,
-                    *role,
-                    *no_prompt,
-                )
-                .await
+                rbac::set_role::start(ui, url, origin_obj, &token, member_account, *role, *no_prompt).await
             }
         }
     }

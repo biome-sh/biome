@@ -47,11 +47,6 @@ impl PkgSignOptions {
         crypto::init()?;
         let key_cache = KeyCache::new::<PathBuf>((&self.cache_key_path).into());
         let key = key_cache.latest_secret_origin_signing_key(&origin)?;
-        sign::start(
-            ui,
-            &key,
-            &Into::<PathBuf>::into(self.source.clone()),
-            &self.dest,
-        )
+        sign::start(ui, &key, &Into::<PathBuf>::into(self.source.clone()), &self.dest)
     }
 }

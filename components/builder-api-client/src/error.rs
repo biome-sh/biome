@@ -95,11 +95,7 @@ impl fmt::Display for Error {
             Error::APIClientError(ref e) => format!("{}", e),
             Error::BadResponseBody(ref e) => format!("Failed to read response body, {}", e),
             Error::DownloadWrite(ref p, ref e) => {
-                format!(
-                    "Failed to write contents of builder response, {}, {}",
-                    p.display(),
-                    e
-                )
+                format!("Failed to write contents of builder response, {}, {}", p.display(), e)
             }
             Error::BiomeCore(ref e) => format!("{}", e),
             Error::BiomeHttpClient(ref e) => format!("{}", e),
@@ -125,9 +121,7 @@ impl fmt::Display for Error {
             }
             Error::UploadFailed(ref s) => format!("Upload failed: {}", s),
             Error::UrlParseError(ref e) => format!("{}", e),
-            Error::WriteSyncFailed => {
-                "Could not write to destination; perhaps the disk is full?".to_string()
-            }
+            Error::WriteSyncFailed => "Could not write to destination; perhaps the disk is full?".to_string(),
             Error::NotSupported => "The specified operation is not supported.".to_string(),
             Error::TokioJoinError(ref e) => format!("{}", e),
         };

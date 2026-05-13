@@ -14,8 +14,7 @@ use biome_core::{crypto, crypto::keys::KeyCache, origin::Origin};
 use biome_core::ChannelIdent;
 
 use crate::{
-    cli_v4::utils::maybe_refresh_channel_from_args_env_or_config, command::pkg::build,
-    error::Result as BioResult,
+    cli_v4::utils::maybe_refresh_channel_from_args_env_or_config, command::pkg::build, error::Result as BioResult,
 };
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -117,9 +116,8 @@ impl PkgBuildOptions {
         let (reuse_flag, docker_flag) = (self.reuse, self.docker);
 
         // Resolve refresh channel from CLI arg, env var, config file, or default to base
-        let refresh_channel =
-            maybe_refresh_channel_from_args_env_or_config(self.refresh_channel.clone())
-                .unwrap_or_else(|| ChannelIdent::default().to_string());
+        let refresh_channel = maybe_refresh_channel_from_args_env_or_config(self.refresh_channel.clone())
+            .unwrap_or_else(|| ChannelIdent::default().to_string());
 
         build::start(
             ui,

@@ -12,9 +12,7 @@ use bio::{
 use biome_api_client::BuilderAPIClient;
 use biome_common::{
     cli_config::CliConfig,
-    command::package::install::{
-        self as install_cmd, InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
-    },
+    command::package::install::{self as install_cmd, InstallHookMode, InstallMode, InstallSource, LocalPackageUsage},
     outputln,
     ui::{NullUi, UIWriter},
 };

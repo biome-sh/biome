@@ -54,17 +54,11 @@ pub(crate) enum SvcCommand {
 }
 
 impl SvcCommand {
-    pub(crate) async fn do_command(
-        &self,
-        ui: &mut UI,
-        _feature_flags: FeatureFlag,
-    ) -> BioResult<()> {
+    pub(crate) async fn do_command(&self, ui: &mut UI, _feature_flags: FeatureFlag) -> BioResult<()> {
         match self {
             Self::Load(load_cmd) => load_cmd.do_command().await,
             Self::Unload(unload_cmd) => unload_cmd.clone().do_command().await,
-            Self::Key(KeyCommand::Generate(key_generate_cmd)) => {
-                key_generate_cmd.do_command(ui).await
-            }
+            Self::Key(KeyCommand::Generate(key_generate_cmd)) => key_generate_cmd.do_command(ui).await,
             Self::Update(update_cmd) => update_cmd.do_command().await,
             Self::Start(start_cmd) => start_cmd.do_command().await,
             Self::Stop(stop_cmd) => stop_cmd.do_command().await,

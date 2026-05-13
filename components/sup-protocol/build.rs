@@ -12,11 +12,7 @@ fn main() {
     );
     config
         .compile_protos(
-            &[
-                "protocols/ctl.proto",
-                "protocols/net.proto",
-                "protocols/types.proto",
-            ],
+            &["protocols/ctl.proto", "protocols/net.proto", "protocols/types.proto"],
             &["protocols/"],
         )
         .expect("Couldn't compile protobufs!");

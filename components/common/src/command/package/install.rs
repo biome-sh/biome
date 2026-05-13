@@ -38,8 +38,8 @@ use biome_core::{
     },
     fs::{AtomicWriter, DEFAULT_CACHED_ARTIFACT_PERMISSIONS, cache_key_path, pkg_install_path},
     package::{
-        FullyQualifiedPackageIdent, Identifiable, PackageArchive, PackageIdent, PackageInstall,
-        PackageTarget, list::temp_package_directory,
+        FullyQualifiedPackageIdent, Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget,
+        list::temp_package_directory,
     },
 };
 use log::debug;
@@ -320,12 +320,8 @@ where
     };
 
     match *install_source {
-        InstallSource::Ident(ref ident, target) => {
-            task.with_ident(ui, (ident.clone(), target), token).await
-        }
-        InstallSource::Archive(ref local_archive) => {
-            task.with_archive(ui, local_archive, token).await
-        }
+        InstallSource::Ident(ref ident, target) => task.with_ident(ui, (ident.clone(), target), token).await,
+        InstallSource::Archive(ref local_archive) => task.with_archive(ui, local_archive, token).await,
     }
 }
 
@@ -456,12 +452,9 @@ impl InstallTask<'_> {
         T: UIWriter,
     {
         ui.begin(format!("Installing {}", &ident))?;
-        let target_ident = self
-            .determine_latest_from_ident(ui, (ident, target), token)
-            .await?;
+        let target_ident = self.determine_latest_from_ident(ui, (ident, target), token).await?;
 
-        self.install_package(ui, (&target_ident, target), token)
-            .await
+        self.install_package(ui, (&target_ident, target), token).await
     }
 
     /// Given an archive on disk, ensure that it is properly installed
@@ -507,10 +500,7 @@ impl InstallTask<'_> {
 
             ui.status(
                 Status::Determining,
-                format!(
-                    "latest version of {} locally installed or cached (offline)",
-                    &ident
-                ),
+                format!("latest version of {} locally installed or cached (offline)", &ident),
             )?;
             match self.latest_installed_or_cached(&ident) {
                 Ok(i) => Ok(i),
@@ -530,15 +520,9 @@ impl InstallTask<'_> {
 
             ui.status(
                 Status::Determining,
-                format!(
-                    "latest version of {} in the '{}' channel",
-                    &ident, self.channel
-                ),
+                format!("latest version of {} in the '{}' channel", &ident, self.channel),
             )?;
-            let latest_remote = match self
-                .fetch_latest_pkg_ident_for((&ident, target), token)
-                .await
-            {
+            let latest_remote = match self.fetch_latest_pkg_ident_for((&ident, target), token).await {
                 Ok(latest_ident) => Some(latest_ident),
                 Err(Error::APIClient(APIError(StatusCode::NOT_FOUND, _))) => None,
                 Err(e) => {
@@ -651,12 +635,8 @@ impl InstallTask<'_> {
                 ui.status(Status::Using, dependency)?;
             } else {
                 artifacts_to_install.push_front(
-                    self.get_cached_artifact(
-                        ui,
-                        (&FullyQualifiedPackageIdent::try_from(dependency)?, target),
-                        token,
-                    )
-                    .await?,
+                    self.get_cached_artifact(ui, (&FullyQualifiedPackageIdent::try_from(dependency)?, target), token)
+                        .await?,
                 );
             }
         }
@@ -698,10 +678,7 @@ impl InstallTask<'_> {
         T: UIWriter,
     {
         if self.is_artifact_cached(ident) {
-            debug!(
-                "Found {} in artifact cache, skipping remote download",
-                ident
-            );
+            debug!("Found {} in artifact cache, skipping remote download", ident);
         } else if self.is_offline() {
             return Err(Error::OfflineArtifactNotFound(ident.as_ref().clone()));
         } else {
@@ -710,8 +687,7 @@ impl InstallTask<'_> {
 
         let mut artifact = PackageArchive::new(self.cached_artifact_path(ident))?;
         ui.status(Status::Verifying, artifact.ident()?)?;
-        self.verify_artifact(ui, ident, token, &mut artifact)
-            .await?;
+        self.verify_artifact(ui, ident, token, &mut artifact).await?;
         Ok(artifact)
     }
 
@@ -794,10 +770,7 @@ impl InstallTask<'_> {
 
     /// Checks for the latest installed package or cached artifact that matches a given package
     /// identifier and returns a fully qualified package identifier if a match exists.
-    fn latest_installed_or_cached(
-        &self,
-        ident: &PackageIdent,
-    ) -> Result<FullyQualifiedPackageIdent> {
+    fn latest_installed_or_cached(&self, ident: &PackageIdent) -> Result<FullyQualifiedPackageIdent> {
         let latest_installed = self.latest_installed_ident(ident);
         let latest_cached = self.latest_cached_ident(ident);
         debug!(
@@ -870,9 +843,7 @@ impl InstallTask<'_> {
         if latest.is_empty() {
             Err(Error::PackageNotFound("".to_string()))
         } else {
-            Ok(FullyQualifiedPackageIdent::try_from(
-                latest.pop().unwrap().1.ident()?,
-            )?)
+            Ok(FullyQualifiedPackageIdent::try_from(latest.pop().unwrap().1.ident()?)?)
         }
     }
 
@@ -902,10 +873,7 @@ impl InstallTask<'_> {
         channel: &ChannelIdent,
         token: Option<&str>,
     ) -> Result<FullyQualifiedPackageIdent> {
-        let origin_package = self
-            .api_client
-            .show_package((ident, target), channel, token)
-            .await?;
+        let origin_package = self.api_client.show_package((ident, target), channel, token).await?;
         Ok(FullyQualifiedPackageIdent::try_from(origin_package)?)
     }
 
@@ -923,12 +891,7 @@ impl InstallTask<'_> {
         retry_builder_api!(async {
             ui.status(Status::Downloading, format!("{} for {}", ident, target))?;
             self.api_client
-                .fetch_package(
-                    (ident.as_ref(), target),
-                    token,
-                    self.artifact_cache_path,
-                    ui.progress(),
-                )
+                .fetch_package((ident.as_ref(), target), token, self.artifact_cache_path, ui.progress())
                 .await
         })
         .await
@@ -956,10 +919,7 @@ impl InstallTask<'_> {
         if self.is_offline() {
             Err(Error::OfflineOriginKeyNotFound(named_revision.to_string()))
         } else {
-            ui.status(
-                Status::Downloading,
-                format!("{} public origin key", named_revision),
-            )?;
+            ui.status(Status::Downloading, format!("{} public origin key", named_revision))?;
             self.api_client
                 .fetch_origin_key(
                     named_revision.name(),
@@ -971,21 +931,14 @@ impl InstallTask<'_> {
                 .await?;
 
             let key = self.key_cache.public_signing_key(named_revision)?;
-            ui.status(
-                Status::Cached,
-                format!("{} public origin key", key.named_revision()),
-            )?;
+            ui.status(Status::Cached, format!("{} public origin key", key.named_revision()))?;
             Ok(key)
         }
     }
 
     /// Copies the artifact to the local artifact cache directory
     // TODO (CM): Oh, we could just pass in the LocalArchive
-    fn store_artifact_in_cache(
-        &self,
-        ident: &FullyQualifiedPackageIdent,
-        artifact_path: &Path,
-    ) -> Result<()> {
+    fn store_artifact_in_cache(&self, ident: &FullyQualifiedPackageIdent, artifact_path: &Path) -> Result<()> {
         // Canonicalize both paths to ensure that there aren't any symlinks when comparing them
         // later. These calls can fail under certain circumstances, so we warn, allow failure and
         // try to continue.
@@ -1016,10 +969,7 @@ impl InstallTask<'_> {
                 artifact_path.display(),
                 cache_path.display()
             );
-            let w = AtomicWriter::new_with_permissions(
-                &cache_path,
-                DEFAULT_CACHED_ARTIFACT_PERMISSIONS,
-            )?;
+            let w = AtomicWriter::new_with_permissions(&cache_path, DEFAULT_CACHED_ARTIFACT_PERMISSIONS)?;
             w.with_writer(|mut w| {
                 let mut f = File::open(artifact_path)?;
                 io::copy(&mut f, &mut w)
@@ -1054,9 +1004,10 @@ impl InstallTask<'_> {
         let artifact_target = artifact.target()?;
         let active_target = PackageTarget::active_target();
         if active_target != artifact_target {
-            return Err(Error::BiomeCore(
-                biome_core::Error::WrongActivePackageTarget(active_target, artifact_target),
-            ));
+            return Err(Error::BiomeCore(biome_core::Error::WrongActivePackageTarget(
+                active_target,
+                artifact_target,
+            )));
         }
 
         let named_revision = artifact::artifact_signer(&artifact.path)?;
@@ -1103,9 +1054,7 @@ impl InstallTask<'_> {
     where
         T: UIWriter,
     {
-        if let Ok(recommendations) = self
-            .get_channel_recommendations((ident, target), token)
-            .await
+        if let Ok(recommendations) = self.get_channel_recommendations((ident, target), token).await
             && !recommendations.is_empty()
         {
             ui.warn(format!(
@@ -1132,11 +1081,7 @@ impl InstallTask<'_> {
     ) -> Result<Vec<(String, String)>> {
         let mut res = Vec::new();
 
-        let channels = match self
-            .api_client
-            .list_channels(&ident.hacky_get_origin(), false)
-            .await
-        {
+        let channels = match self.api_client.list_channels(&ident.hacky_get_origin(), false).await {
             Ok(channels) => channels,
             Err(e) => {
                 debug!("Failed to get channel list: {:?}", e);

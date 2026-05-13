@@ -7,10 +7,7 @@ use winapi::{
     um::{
         accctrl::SE_FILE_OBJECT,
         aclapi::SetNamedSecurityInfoW,
-        winnt::{
-            DACL_SECURITY_INFORMATION, FILE_ALL_ACCESS, PACL, PROTECTED_DACL_SECURITY_INFORMATION,
-            PSID,
-        },
+        winnt::{DACL_SECURITY_INFORMATION, FILE_ALL_ACCESS, PACL, PROTECTED_DACL_SECURITY_INFORMATION, PSID},
     },
 };
 use windows_acl::acl::ACL;
@@ -25,10 +22,7 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &[PermissionEntry]) -> 
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
         None => {
-            return Err(Error::PermissionFailed(format!(
-                "Invalid path {:?}",
-                &path.as_ref()
-            )));
+            return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())));
         }
     };
 
@@ -114,10 +108,7 @@ mod tests {
 
     #[test]
     fn set_permissions_ok_test() {
-        let tmp_dir = Builder::new()
-            .prefix("foo")
-            .tempdir()
-            .expect("create temp dir");
+        let tmp_dir = Builder::new().prefix("foo").tempdir().expect("create temp dir");
         let file_path = tmp_dir.path().join("test.txt");
         let mut tmp_file = File::create(&file_path).expect("create temp file");
         writeln!(tmp_file, "foobar123").expect("write temp file");
@@ -159,10 +150,7 @@ mod tests {
             }
             Err(Error::PermissionFailed(_)) => { /* OK */ }
             Err(e) => {
-                panic!(
-                    "Got unexpected error setting permissions a non-existent file: {:?}",
-                    e
-                );
+                panic!("Got unexpected error setting permissions a non-existent file: {:?}", e);
             }
         }
     }

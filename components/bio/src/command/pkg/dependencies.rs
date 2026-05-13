@@ -11,12 +11,7 @@ use crate::{
 ///
 /// We can either show the dependencies of the package or show the packages that are dependent on
 /// the provided identifier
-pub fn start(
-    ident: &PackageIdent,
-    scope: Scope,
-    direction: DependencyRelation,
-    fs_root_path: &Path,
-) -> Result<()> {
+pub fn start(ident: &PackageIdent, scope: Scope, direction: DependencyRelation, fs_root_path: &Path) -> Result<()> {
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
 
     let graph = PackageGraph::from_root_path(fs_root_path)?;

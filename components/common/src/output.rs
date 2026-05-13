@@ -179,15 +179,9 @@ impl<'a> StructuredOutput<'a> {
                 writer.write_all(self.logkey.as_bytes())?;
                 writer.reset()?;
                 writer.write_all(b")")?;
-                if let OutputVerbosityInternal::Verbose(OutputContext { line, file, column }) =
-                    self.verbosity
-                {
+                if let OutputVerbosityInternal::Verbose(OutputContext { line, file, column }) = self.verbosity {
                     writer.write_all(b"[")?;
-                    writer.set_color(
-                        ColorSpec::new()
-                            .set_fg(Some(Color::White))
-                            .set_underline(true),
-                    )?;
+                    writer.set_color(ColorSpec::new().set_fg(Some(Color::White)).set_underline(true))?;
                     write!(writer, "{}:{}:{}", file, line, column)?;
                     writer.reset()?;
                     writer.write_all(b"]")?;
@@ -218,9 +212,7 @@ impl Serialize for StructuredOutput<'_> {
 
         map.serialize_entry("preamble", &self.preamble)?;
         map.serialize_entry("logkey", &self.logkey)?;
-        if let OutputVerbosityInternal::Verbose(OutputContext { line, file, column }) =
-            self.verbosity
-        {
+        if let OutputVerbosityInternal::Verbose(OutputContext { line, file, column }) = self.verbosity {
             map.serialize_entry("file", &file)?;
             map.serialize_entry("line", &line)?;
             map.serialize_entry("column", &column)?;
@@ -424,9 +416,7 @@ mod tests {
         let writer = BufferWriter::stdout(ColorChoice::Auto);
         let mut buffer = writer.buffer();
         buffer.reset().unwrap();
-        buffer
-            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
-            .unwrap();
+        buffer.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).unwrap();
         buffer.write_all(progname.as_bytes()).unwrap();
         buffer.reset().unwrap();
         buffer.write_all(b"(").unwrap();
@@ -439,23 +429,14 @@ mod tests {
         buffer.set_color(&cs).unwrap();
         buffer.write_all(content.as_bytes()).unwrap();
         buffer.reset().unwrap();
-        assert_eq!(
-            format!("{}", so),
-            String::from_utf8_lossy(buffer.as_slice())
-        );
+        assert_eq!(format!("{}", so), String::from_utf8_lossy(buffer.as_slice()));
     }
 
     #[test]
     fn json_formatting() {
-        let so = so(
-            "monkeys",
-            "I love monkeys",
-            OutputFormat::Json,
-            OutputVerbosity::Normal,
-        );
+        let so = so("monkeys", "I love monkeys", OutputFormat::Json, OutputVerbosity::Normal);
 
-        let actual: serde_json::Value =
-            serde_json::from_str(&(format!("{}", so))).expect("Couldn't parse from JSON");
+        let actual: serde_json::Value = serde_json::from_str(&(format!("{}", so))).expect("Couldn't parse from JSON");
 
         assert_eq!(
             actual,
@@ -476,8 +457,7 @@ mod tests {
             OutputVerbosity::Verbose,
         );
 
-        let actual: serde_json::Value =
-            serde_json::from_str(&(format!("{}", so))).expect("Couldn't parse from JSON");
+        let actual: serde_json::Value = serde_json::from_str(&(format!("{}", so))).expect("Couldn't parse from JSON");
 
         assert_eq!(
             actual,

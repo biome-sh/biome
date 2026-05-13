@@ -1,6 +1,4 @@
-use crate::{
-    cli_v4::utils::RemoteSup, command::config::sub_svc_config, error::Result as BioResult,
-};
+use crate::{cli_v4::utils::RemoteSup, command::config::sub_svc_config, error::Result as BioResult};
 use biome_core::package::PackageIdent;
 use clap::Parser;
 use clap_v4 as clap;

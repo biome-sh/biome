@@ -1,9 +1,6 @@
 use anyhow::{Context, Result, anyhow, bail};
 #[cfg(any(
-    all(
-        target_os = "linux",
-        any(target_arch = "x86_64", target_arch = "aarch64")
-    ),
+    all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
     all(target_os = "windows", target_arch = "x86_64")
 ))]
 use biome_core::package::PackageTarget;
@@ -47,10 +44,7 @@ impl FileSystemSnapshot {
                             let entry_path = entry.path();
 
                             if entry_path.is_file() {
-                                files.push(
-                                    FileSnapshot::new(entry_path)
-                                        .context("Failed to take file snapshot")?,
-                                );
+                                files.push(FileSnapshot::new(entry_path).context("Failed to take file snapshot")?);
                             } else if entry_path.is_dir() {
                                 queue.push_back(entry_path);
                             }
@@ -75,11 +69,7 @@ impl FileSystemSnapshot {
             .with_context(|| format!("File not found '{}'", path))
     }
 
-    pub fn modifications_since(
-        &self,
-        other: &FileSystemSnapshot,
-        exclude: &[Pattern],
-    ) -> FileSystemModifications {
+    pub fn modifications_since(&self, other: &FileSystemSnapshot, exclude: &[Pattern]) -> FileSystemModifications {
         if self.path != other.path {
             panic!("Cannot compare snapshot for different folders");
         }
@@ -169,12 +159,8 @@ impl FileSnapshot {
 
     /// Reads the current contents of the file into a string
     pub async fn current_file_content(&self) -> Result<String> {
-        String::from_utf8(
-            fs::read(&self.path)
-                .await
-                .context("Failed to read file contents")?,
-        )
-        .context("File contains non UTF-8 characters")
+        String::from_utf8(fs::read(&self.path).await.context("Failed to read file contents")?)
+            .context("File contains non UTF-8 characters")
     }
 
     /// Wait for the file to be modified and get the new snapshot
@@ -242,16 +228,14 @@ pub async fn setup_package_files(
     // Copy the expanded package directory over
     let expanded_fixture_dir = fixture_root.expanded_package_dir(&package_name);
     let bio_pkg_path = bio_root.pkg_dir_path(&origin_name, &package_name);
-    copy_dir(&expanded_fixture_dir, &bio_pkg_path)
-        .await
-        .with_context(|| {
-            format!(
-                "Failed to copy fixture directory \
+    copy_dir(&expanded_fixture_dir, &bio_pkg_path).await.with_context(|| {
+        format!(
+            "Failed to copy fixture directory \
                                                                '{}' to '{}'",
-                expanded_fixture_dir.display(),
-                bio_pkg_path.display()
-            )
-        })?;
+            expanded_fixture_dir.display(),
+            bio_pkg_path.display()
+        )
+    })?;
     write_default_metafiles(bio_root, &origin_name, &package_name)
         .await
         .context(
@@ -264,12 +248,7 @@ pub async fn setup_package_files(
         &bio_root.pkg_ident(&origin_name, &package_name),
         Some(bio_root.as_ref()),
     )
-    .with_context(|| {
-        format!(
-            "Failed to load package {:?}/{:?}",
-            &origin_name, &package_name
-        )
-    })?;
+    .with_context(|| format!("Failed to load package {:?}/{:?}", &origin_name, &package_name))?;
     if let Ok(tdeps) = install.tdeps() {
         for dependency in tdeps.iter() {
             let fixture_dir = fixture_root.expanded_package_dir(&dependency.name);
@@ -300,15 +279,13 @@ pub async fn setup_package_files(
     if !spec_source.exists() {
         return Err(anyhow!("Missing a spec file at {}", spec_source.display()));
     }
-    fs::copy(&spec_source, &spec_destination)
-        .await
-        .with_context(|| {
-            format!(
-                "Failed to copy '{}' to '{}'",
-                spec_source.display(),
-                spec_destination.display()
-            )
-        })?;
+    fs::copy(&spec_source, &spec_destination).await.with_context(|| {
+        format!(
+            "Failed to copy '{}' to '{}'",
+            spec_source.display(),
+            spec_destination.display()
+        )
+    })?;
     Ok(())
 }
 
@@ -323,10 +300,7 @@ where
         bail!("Source directory '{}' does not exist", source_dir.display());
     }
     if !source_dir.is_dir() {
-        bail!(
-            "Source directory '{}' is not a directory",
-            source_dir.display()
-        );
+        bail!("Source directory '{}' is not a directory", source_dir.display());
     }
     let dest_dir = dest_dir.as_ref().to_path_buf();
 
@@ -351,11 +325,7 @@ where
 
             if source.is_file() {
                 fs::copy(&source, &destination).await.with_context(|| {
-                    format!(
-                        "Could not copy '{}' to '{}'",
-                        source.display(),
-                        destination.display()
-                    )
+                    format!("Could not copy '{}' to '{}'", source.display(), destination.display())
                 })?;
             } else if source.is_dir() {
                 queue.push_back((source, destination));
@@ -371,11 +341,7 @@ where
 /// In an effort to execute a package when running test suites as a non-root user, the current
 /// username and the user's primary groupname will be used. If a fixture contains one or both of
 /// these metafiles, default values will *not* be used.
-async fn write_default_metafiles(
-    bio_root: &BioRoot,
-    pkg_origin: &str,
-    pkg_name: &str,
-) -> Result<()> {
+async fn write_default_metafiles(bio_root: &BioRoot, pkg_origin: &str, pkg_name: &str) -> Result<()> {
     let svc_user_metafile = bio_root.svc_user_path(pkg_origin, pkg_name);
     let svc_group_metafile = bio_root.svc_group_path(pkg_origin, pkg_name);
 
@@ -404,10 +370,7 @@ async fn write_default_metafiles(
     // Write metafiles to convert the package to a native package on platforms without package
     // support
     #[cfg(not(any(
-        all(
-            target_os = "linux",
-            any(target_arch = "x86_64", target_arch = "aarch64")
-        ),
+        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
         all(target_os = "windows", target_arch = "x86_64")
     )))]
     {
@@ -416,19 +379,12 @@ async fn write_default_metafiles(
     }
     // Write the TARGET metafile on all platforms that we support building packages for
     #[cfg(any(
-        all(
-            target_os = "linux",
-            any(target_arch = "x86_64", target_arch = "aarch64")
-        ),
+        all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
         all(target_os = "windows", target_arch = "x86_64")
     ))]
     {
         let target_metafile = bio_root.target_path(pkg_origin, pkg_name);
-        write_metafile(
-            target_metafile,
-            PackageTarget::active_target().to_string().as_str(),
-        )
-        .await?;
+        write_metafile(target_metafile, PackageTarget::active_target().to_string().as_str()).await?;
     }
 
     Ok(())
@@ -439,18 +395,12 @@ async fn write_metafile<P>(metafile: P, content: &str) -> Result<()>
 where
     P: AsRef<Path>,
 {
-    let mut f = File::create(&metafile).await.with_context(|| {
-        format!(
-            "Failed to create metafile '{}'",
-            metafile.as_ref().display()
-        )
-    })?;
-    f.write_all(content.as_bytes()).await.with_context(|| {
-        format!(
-            "Failed to write contents to metafile '{}'",
-            metafile.as_ref().display()
-        )
-    })?;
+    let mut f = File::create(&metafile)
+        .await
+        .with_context(|| format!("Failed to create metafile '{}'", metafile.as_ref().display()))?;
+    f.write_all(content.as_bytes())
+        .await
+        .with_context(|| format!("Failed to write contents to metafile '{}'", metafile.as_ref().display()))?;
     f.shutdown()
         .await
         .with_context(|| format!("Failed to close metafile '{}'", metafile.as_ref().display()))?;

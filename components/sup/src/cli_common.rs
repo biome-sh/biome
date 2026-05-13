@@ -26,10 +26,7 @@ pub(crate) fn boot() -> Option<LauncherCli> {
         Some(pipe) => match LauncherCli::connect(pipe) {
             Ok(launcher) => Some(launcher),
             Err(err) => {
-                error!(
-                    "Failed to connect to launcher: {:?}",
-                    anyhow::Error::new(err)
-                );
+                error!("Failed to connect to launcher: {:?}", anyhow::Error::new(err));
                 process::exit(1);
             }
         },
@@ -38,10 +35,7 @@ pub(crate) fn boot() -> Option<LauncherCli> {
 }
 
 #[cfg(any(
-    all(
-        target_os = "linux",
-        any(target_arch = "x86_64", target_arch = "aarch64")
-    ),
+    all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
     all(target_os = "windows", target_arch = "x86_64"),
 ))]
 pub(crate) async fn sub_sh() -> Result<()> {
@@ -59,10 +53,7 @@ pub(crate) fn sub_term() -> Result<()> {
 }
 
 #[cfg(any(
-    all(
-        target_os = "linux",
-        any(target_arch = "x86_64", target_arch = "aarch64")
-    ),
+    all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
     all(target_os = "windows", target_arch = "x86_64"),
 ))]
 pub(crate) async fn sub_bash() -> Result<()> {
