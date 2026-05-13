@@ -86,6 +86,7 @@ deletes:
   - .rustfmt.toml
   - .gitmodules
   - BUILDING.md
+  - Cargo.lock
   - CHANGELOG-before-2.x.md
   - CHANGELOG.md
   - CODE_OF_CONDUCT.md
@@ -117,7 +118,6 @@ deletes:
 
 # Excludes from patching contents
 excludes:
-  - Cargo.lock
   - COPYRIGHT.md
   - NOTICES.txt
   - components/core/tests/fixtures/unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart
