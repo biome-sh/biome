@@ -173,9 +173,7 @@ async fn await_local_tcp_port(port: u16, timeout: Duration) -> Result<()> {
                 return Err(anyhow!(err))
                     .with_context(|| format!("Failed to connect to tcp address 127.0.0.1:{}", port));
             }
-            Err(_) => {
-                return Err(anyhow!("Timed out waiting for tcp port {} to open up", port));
-            }
+            Err(_) => return Err(anyhow!("Timed out waiting for tcp port {} to open up", port)),
         }
     }
 }

@@ -1635,9 +1635,7 @@ impl Manager {
                     {
                         Ok(service) => watched_services
                             .push((service, ServiceRunState::new(&self.state.cfg.service_restart_config))),
-                        Err(err) => {
-                            warn!("Failed to create service '{}' from spec: {:?}", ident, err)
-                        }
+                        Err(err) => warn!("Failed to create service '{}' from spec: {:?}", ident, err),
                     };
                 }
             }

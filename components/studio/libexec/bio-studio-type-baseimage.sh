@@ -122,8 +122,8 @@ networks:   files
 rpc:        files
 services:   files
 EOT
-  echo "${run_user}:x:69:69:root:/:/bin/sh" >> "$BIO_STUDIO_ROOT"/etc/passwd
-  echo "${run_group}:x:69:${run_user}" >> "$BIO_STUDIO_ROOT"/etc/group
+  echo "${run_user}:x:42:42:root:/:/bin/sh" >> "$BIO_STUDIO_ROOT"/etc/passwd
+  echo "${run_group}:x:42:${run_user}" >> "$BIO_STUDIO_ROOT"/etc/group
 
   local sup="$BIO_ROOT_PATH/bin/bio sup"
   $bb touch "$BIO_STUDIO_ROOT"/.bio_pkg
