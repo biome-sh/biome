@@ -6,6 +6,8 @@ It was generated from original using small tool [ForkMan](https://github.com/jsi
 
 ## Unforked
 
+**NOTE: History was recreated! Force-Push to master has happened**
+
 The last version fully compatible with Habitat was: 2.0.107. It is hard to keeep
 full compatibility, especially when services are not available without license.
 
