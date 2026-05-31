@@ -118,6 +118,7 @@ deletes:
   - components/hab/win/habitat.nuspec
   - components/hab/tests/test_install_script.ps1
   - components/hab/tests/test_install_script.bats
+  - support/sbom
 
 # Excludes from patching contents
 excludes:
