@@ -1,0 +1,68 @@
+---
+
+name: forkman
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '13 7 * * 6'
+
+jobs:
+  update-forkman-branch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4.0
+          bundler-cache: false
+
+      - name: Install Ruby dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y file libmagic-dev pkg-config yq
+
+      - name: Read toolchain version
+        id: rust-toolchain
+        run: echo "channel=$(tomlq -r '.toolchain.channel' < rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ steps.rust-toolchain.outputs.channel }}
+          components: rustfmt
+
+      - name: Install Forkman
+        run: |
+          sudo mkdir -p /usr/local/share/forkman
+          curl -fsSL https://github.com/jsirex/forkman/archive/refs/tags/v0.3.1.tar.gz \
+            | sudo tar -xzf - --strip-components=1 -C /usr/local/share/forkman
+          sudo ln -sf /usr/local/share/forkman/forkman.rb /usr/local/bin/forkman
+          sudo ln -sf /usr/local/share/forkman/forkman-patch-git /usr/local/bin/forkman-patch-git
+          sudo chown $USER -R /usr/local/share/forkman
+          bundle install --gemfile /usr/local/share/forkman/Gemfile
+
+      - name: Run update git repository
+        run: |
+          git remote add habitat https://github.com/habitat-sh/habitat.git
+          git fetch --depth 1 origin master
+          git fetch --depth 1 origin forkman-raw:forkman-raw
+          git fetch --depth 1 habitat main
+          git config user.name "Fork Man"
+          git config user.email forkman@biome.sh
+
+          if ! forkman-patch-git -b -u habitat/main; then
+            echo "forkman-patch-git produced no updates"
+            exit 0
+          fi
+
+          git checkout origin/master -- rustfmt.toml
+          cargo fmt
+          git add -u
+          git commit --amend --no-edit --allow-empty
+          git push origin forkman-raw:forkman-raw
