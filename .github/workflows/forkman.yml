@@ -61,8 +61,11 @@ jobs:
             exit 0
           fi
 
+          echo Reformating source code
           git checkout origin/master -- rustfmt.toml
           cargo fmt
           git add -u
           git commit --amend --no-edit --allow-empty
+
+          echo Pushing final changes
           git push origin forkman-raw:forkman-raw
