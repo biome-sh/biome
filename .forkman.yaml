@@ -53,12 +53,15 @@ patterns:
   'if license_exists() ': 'if true '
   'license::check_for_license_acceptance_and_prompt(ui)?;': ''
 
-  'default has the uid `42` and the gid `42`': 'default has the uid `69` and the gid `69`'
-  ':x:42:42:': ':x:69:69:'
-  ':x:42:': ':x:69:'
+  # TODO: I decided to revert it back, as I don't know what is better
+  # If we ever need different user and group id we can uncomment this
+  # 'default has the uid `42` and the gid `42`': 'default has the uid `69` and the gid `69`'
+  # ':x:42:42:': ':x:69:69:'
+  # ':x:42:': ':x:69:'
+  # 'const DEFAULT_BIO_UID: u32 = 84;': 'const DEFAULT_BIO_UID: u32 = 138;'
+  # 'const DEFAULT_BIO_GID: u32 = 84;': 'const DEFAULT_BIO_GID: u32 = 138;'
 
-  'const DEFAULT_BIO_UID: u32 = 84;': 'const DEFAULT_BIO_UID: u32 = 138;'
-  'const DEFAULT_BIO_GID: u32 = 84;': 'const DEFAULT_BIO_GID: u32 = 138;'
+  # TODO: maybe change ctl ports, http ports someday
 
 
   # Should be final
