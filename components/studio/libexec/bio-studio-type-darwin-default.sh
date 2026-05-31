@@ -25,6 +25,49 @@ _pkgpath_for() {
 
 # shellcheck disable=SC2154
 finish_setup() {
+    # Import origin keys from the host key cache (BIO_CACHE_KEY_PATH, typically
+    # ~/.bio/cache/keys) into the studio's key cache (/opt/bio/cache/keys).
+    # Unlike Linux (which uses a chroot), the darwin studio runs directly on the
+    # host, so we must explicitly target BIO_ROOT_PATH/cache/keys on import.
+    if [ -n "${BIO_ORIGIN_KEYS:-}" ]; then
+        $mkdir_cmd -p "$BIO_ROOT_PATH/cache/keys"
+        for key in $(echo "$BIO_ORIGIN_KEYS" | $sed_cmd 's/,/ /g'); do
+            info "Importing '$key' secret origin key"
+            # shellcheck disable=SC2154
+            if key_text=$(BIO_LICENSE="${BIO_LICENSE:-}" "$system_bio_cmd" origin key export --type secret "$key"); then
+                printf -- "%s" "${key_text}" | BIO_CACHE_KEY_PATH="$BIO_ROOT_PATH/cache/keys" "$system_bio_cmd" origin key import
+            else
+                echo "Error exporting $key key"
+                echo "${key_text}"
+                echo "Biome was unable to export your secret signing key. Please"
+                echo "verify that you have a signing key for $key present in"
+                # shellcheck disable=2088
+                echo "~/.bio/cache/keys. You can test this by running:"
+                echo ""
+                echo "    bio origin key export --type secret $key"
+                echo ""
+                echo "This will print your signing key or error if it cannot be found."
+                echo "To create a signing key, run:"
+                echo ""
+                echo "    bio origin key generate $key"
+                echo ""
+                exit 1
+            fi
+            # Import the public key too; required for verifying installed packages.
+            if key_text=$("$system_bio_cmd" origin key export --type public "$key" 2>/dev/null); then
+                info "Importing '$key' public origin key"
+                printf -- "%s" "${key_text}" | BIO_CACHE_KEY_PATH="$BIO_ROOT_PATH/cache/keys" "$system_bio_cmd" origin key import
+            else
+                info "Tried to import '$key' public origin key, but key was not found"
+            fi
+        done
+    else
+        info "No secret keys imported! Did you mean to set BIO_ORIGIN?"
+        echo "To specify a BIO_ORIGIN, either set the BIO_ORIGIN environment"
+        echo "variable to your origin name or run 'bio cli setup' and specify a"
+        echo "default origin."
+    fi
+
     src_dir="$($pwd_cmd)"
     $mkdir_cmd -p "$BIO_STUDIO_ROOT"/etc
     $mkdir_cmd -p "$BIO_STUDIO_ROOT"/bin
