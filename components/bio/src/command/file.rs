@@ -112,9 +112,7 @@ where
                     _ => return Err(SrvClientError::from(m).into()),
                 }
             }
-            _ => {
-                return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into());
-            }
+            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
         }
     }
 

@@ -147,8 +147,8 @@ if [[ -f /src/.studiorc && -z "\${BIO_STUDIO_NOSTUDIORC:-}" ]]; then
 fi
 PROFILE_ENTER
 
-  echo "${run_user}:x:69:69:root:/:/bin/sh" >>"$BIO_STUDIO_ROOT"/etc/passwd
-  echo "${run_group}:x:69:${run_user}" >>"$BIO_STUDIO_ROOT"/etc/group
+  echo "${run_user}:x:42:42:root:/:/bin/sh" >>"$BIO_STUDIO_ROOT"/etc/passwd
+  echo "${run_group}:x:42:${run_user}" >>"$BIO_STUDIO_ROOT"/etc/group
 
   studio_env_command="$coreutils_path/bin/env"
 

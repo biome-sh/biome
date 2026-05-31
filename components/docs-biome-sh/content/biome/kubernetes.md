@@ -63,7 +63,7 @@ spec:
         fsGroup: 42
 ```
 
-This section sets the group ownership for the persistent volume mount point so the Biome Supervisor can write to it.  The Biome user (`bio`) by default has the uid `69` and the gid `69`.
+This section sets the group ownership for the persistent volume mount point so the Biome Supervisor can write to it.  The Biome user (`bio`) by default has the uid `42` and the gid `42`.
 
 ```yaml
       containers:
