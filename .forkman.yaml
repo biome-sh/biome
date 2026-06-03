@@ -10,6 +10,8 @@ patterns:
   alphabet: alphabet
   searchable: searchable
   dispatchable: dispatchable
+  chart: chart
+  Hartwig: Hartwig
 
   'Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.': 'Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.'
   Progress Software Corporation: Biome Community
@@ -77,6 +79,10 @@ patterns:
   hab: bio
   HAB: BIO
 
+  HART: BART
+  hart: bart
+  Hart: Bart
+
 
 # Delete some files which safe to ignore
 deletes:
@@ -126,3 +132,4 @@ excludes:
   - NOTICES.txt
   - components/core/tests/fixtures/unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart
   - components/core/tests/fixtures/happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart
+  - components/core/tests/fixtures/bogus_and_corrupt.hart
