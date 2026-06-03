@@ -28,7 +28,7 @@ After a successful Biome package build, images can be pushed to the Container Re
 follows: `[HOSTNAME]/[PROJECT-ID]/[IMAGE]:[TAG]`, more details at [this link](https://cloud.google.com/container-registry/docs/pushing-and-pulling):
 
 ```bash
-$ bio pkg export docker ./results/bioskp-bio-gcr-demo-0.1.0-20180710145742-x86_64-linux.hart
+$ bio pkg export docker ./results/bioskp-bio-gcr-demo-0.1.0-20180710145742-x86_64-linux.bart
 $ docker tag bioskp/bio-gcr-demo:latest eu.gcr.io/user-project/bio-gcr-demo:latest
 $ docker push eu.gcr.io/user-project/bio-gcr-demo:latest
 ```

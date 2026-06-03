@@ -41,7 +41,7 @@ pub(crate) struct PkgInstallOptions {
     channel: Option<ChannelIdent>,
 
     /// One or more Biome package identifiers (ex: acme/redis) and/or filepaths to a Biome
-    /// Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    /// Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.bart)
     #[arg(required = true)]
     pkg_ident_or_artifact: Vec<InstallSource>,
 

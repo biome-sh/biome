@@ -40,9 +40,9 @@ pub(crate) struct PkgUploadOptions {
     force: bool,
 
     /// One or more filepaths to a Biome Artifact (ex:
-    /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
-    #[arg(name = "HART_FILE", required = true, value_parser = FileExistsValueParser)]
-    hart_file: Vec<PathBuf>,
+    /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.bart)
+    #[arg(name = "BART_FILE", required = true, value_parser = FileExistsValueParser)]
+    bart_file: Vec<PathBuf>,
 
     #[command(flatten)]
     cache_key_path: CacheKeyPath,
@@ -54,13 +54,13 @@ impl PkgUploadOptions {
 
         let key_cache = KeyCache::new::<PathBuf>((&self.cache_key_path).into());
 
-        for hart_file in &self.hart_file {
+        for bart_file in &self.bart_file {
             upload::start(
                 ui,
                 &self.bldr_url.to_string(),
                 &self.channel,
                 &auth_token,
-                hart_file,
+                bart_file,
                 self.force,
                 &key_cache,
             )

@@ -41,9 +41,9 @@ Next build the studio
 bio pkg build components/studio
 ```
 
-The most important thing here is that you end up with `hart` files at the same version for both `biome/bio` and `biome/bio-studio`.
+The most important thing here is that you end up with `bart` files at the same version for both `biome/bio` and `biome/bio-studio`.
 
-On a linux OS, you can `bio pkg install` the `hart`s and then run the bio binary you installed with the studio command. For example:
+On a linux OS, you can `bio pkg install` the `bart`s and then run the bio binary you installed with the studio command. For example:
 
 ```
 /bio/pkgs/biome/bio/2.0.134/20250606091728/bin/bio studio enter

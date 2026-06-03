@@ -25,7 +25,7 @@ pub(crate) struct PkgInfoOptions {
           action = ArgAction::SetTrue)]
     json: bool,
 
-    /// A path to a Biome Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    /// A path to a Biome Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.bart)
     #[arg(name = "SOURCE", value_parser = FileExistsValueParser)]
     source: PathBuf,
 }

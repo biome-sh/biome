@@ -16,7 +16,7 @@ use biome_common::{
     max_term_width = 100)]
 pub(crate) struct Cli {
     /// Biome CLI package identifier (ex: biome/bio) or filepath to a Biome artifact
-    /// (ex: /home/biome-bio-2.0.100-20250416101002-x86_64-linux.hart) to install
+    /// (ex: /home/biome-bio-2.0.100-20250416101002-x86_64-linux.bart) to install
     #[arg(name = "BIO_PKG",
           long = "bio-pkg",
           value_name = "BIO_PKG",
@@ -25,7 +25,7 @@ pub(crate) struct Cli {
     pub(crate) bio_pkg: String,
 
     /// Launcher package identifier (ex: biome/bio-launcher) or filepath to a Biome artifact
-    /// (ex: /home/biome-bio-launcher-19633-20250610094807-x86_64-linux.hart) to install
+    /// (ex: /home/biome-bio-launcher-19633-20250610094807-x86_64-linux.bart) to install
     #[arg(name = "BIO_LAUNCHER_PKG",
           long = "launcher-pkg",
           value_name = "BIO_LAUNCHER_PKG",
@@ -34,7 +34,7 @@ pub(crate) struct Cli {
     pub(crate) bio_launcher_pkg: String,
 
     /// Supervisor package identifier (ex: biome/bio-sup) or filepath to a Biome artifact
-    /// (ex: /home/biome-bio-sup-2.0.134-20250610093735-x86_64-linux.hart) to install
+    /// (ex: /home/biome-bio-sup-2.0.134-20250610093735-x86_64-linux.bart) to install
     #[arg(name = "BIO_SUP_PKG",
           long = "sup-pkg",
           value_name = "BIO_SUP_PKG",
@@ -98,7 +98,7 @@ pub(crate) struct Cli {
     pub(crate) no_bio_sup: bool,
 
     /// A Biome package identifier (ex: acme/redis) and/or filepath to a Biome artifact
-    /// (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    /// (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.bart)
     #[arg(name = "PKG_IDENT_OR_ARTIFACT",
           value_name = "PKG_IDENT_OR_ARTIFACT",
           value_parser = BioPackageInstallSourceValueParser,

@@ -1,6 +1,6 @@
 use crate::{
     crypto::{
-        Blake2bHash, HART_FORMAT_VERSION, SIG_HASH_TYPE,
+        BART_FORMAT_VERSION, Blake2bHash, SIG_HASH_TYPE,
         keys::{Key, KeyCache, NamedRevision, SecretOriginSigningKey},
     },
     error::{Error, Result},
@@ -32,7 +32,7 @@ impl ArtifactHeader {
     }
 
     /// Provide the signature as a base64-encoded string. This is how
-    /// the signature appears in a HART file header, and is the most
+    /// the signature appears in a BART file header, and is the most
     /// convenient form for passing around to external software.
     pub fn encoded_signature(&self) -> String {
         crate::base64::encode(&self.signature)
@@ -51,7 +51,7 @@ where
     write!(
         writer,
         "{}\n{}\n{}\n{}\n\n",
-        HART_FORMAT_VERSION,
+        BART_FORMAT_VERSION,
         key.named_revision(),
         SIG_HASH_TYPE,
         crate::base64::encode(signature)
@@ -88,7 +88,7 @@ where
     let f = File::open(path)?;
     let mut reader = BufReader::new(f);
 
-    // First line is HART format line.
+    // First line is BART format line.
     let mut line = String::new();
     let format = if reader.read_line(&mut line)? == 0 {
         Err(Error::CryptoError(
@@ -98,7 +98,7 @@ where
         ))
     } else {
         let line = line.trim();
-        if line != HART_FORMAT_VERSION {
+        if line != BART_FORMAT_VERSION {
             Err(Error::CryptoError(format!(
                 "Unsupported format version: \
                                             {}",
@@ -184,31 +184,31 @@ where
 }
 
 /// Returns a tuple of the `NamedRevision` of the key that verified
-/// the `.hart` file, along with the Blake2b hash of its contents.
-pub fn verify<P>(hart_file_path: P, cache: &KeyCache) -> Result<(NamedRevision, Blake2bHash)>
+/// the `.bart` file, along with the Blake2b hash of its contents.
+pub fn verify<P>(bart_file_path: P, cache: &KeyCache) -> Result<(NamedRevision, Blake2bHash)>
 where
     P: AsRef<Path>,
 {
-    let (header, mut reader) = artifact_header_and_archive(hart_file_path)?;
+    let (header, mut reader) = artifact_header_and_archive(bart_file_path)?;
     let key = cache.public_signing_key(&header.signer)?;
     let hash = key.verify(header.signature.as_slice(), &mut reader)?;
     Ok((key.named_revision().clone(), hash))
 }
 
-/// Parse a HART file (referred to by filesystem path) to discover the
+/// Parse a BART file (referred to by filesystem path) to discover the
 /// signing key revision that was used to sign it.
-pub fn artifact_signer<P>(hart_file_path: P) -> Result<NamedRevision>
+pub fn artifact_signer<P>(bart_file_path: P) -> Result<NamedRevision>
 where
     P: AsRef<Path>,
 {
-    let (header, _reader) = artifact_header_and_archive(hart_file_path)?;
+    let (header, _reader) = artifact_header_and_archive(bart_file_path)?;
     Ok(header.signer)
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        super::{HART_FORMAT_VERSION, SIG_HASH_TYPE, test_support::*},
+        super::{BART_FORMAT_VERSION, SIG_HASH_TYPE, test_support::*},
         *,
     };
 
@@ -243,7 +243,7 @@ mod tests {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(b"HART-1\n\nuhoh").unwrap();
+        f.write_all(b"BART-1\n\nuhoh").unwrap();
 
         verify(&dst, &cache).unwrap();
     }
@@ -255,7 +255,7 @@ mod tests {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(b"HART-1\nnope-nope\nuhoh").unwrap();
+        f.write_all(b"BART-1\nnope-nope\nuhoh").unwrap();
 
         verify(&dst, &cache).unwrap();
     }
@@ -269,7 +269,7 @@ mod tests {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\n", public.named_revision()).as_bytes())
+        f.write_all(format!("BART-1\n{}\n", public.named_revision()).as_bytes())
             .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -284,7 +284,7 @@ mod tests {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBESTEST\nuhoh", public.named_revision()).as_bytes())
+        f.write_all(format!("BART-1\n{}\nBESTEST\nuhoh", public.named_revision()).as_bytes())
             .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -299,7 +299,7 @@ mod tests {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBLAKE2b\n", public.named_revision()).as_bytes())
+        f.write_all(format!("BART-1\n{}\nBLAKE2b\n", public.named_revision()).as_bytes())
             .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -314,7 +314,7 @@ mod tests {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBLAKE2b\nnot:base64:signature", public.named_revision()).as_bytes())
+        f.write_all(format!("BART-1\n{}\nBLAKE2b\nnot:base64:signature", public.named_revision()).as_bytes())
             .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -329,7 +329,7 @@ mod tests {
 
         let dst = dir.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all(format!("HART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n", public.named_revision()).as_bytes())
+        f.write_all(format!("BART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n", public.named_revision()).as_bytes())
             .unwrap();
 
         verify(&dst, &cache).unwrap();
@@ -393,11 +393,11 @@ mod tests {
         f.write_all(b"hearty goodness").unwrap();
         sign(&src, &dst, &secret).unwrap();
 
-        let hart_header = get_artifact_header(&dst).unwrap();
-        assert_eq!(HART_FORMAT_VERSION, hart_header.format());
-        assert_eq!("unicorn", hart_header.signer().name());
-        assert_eq!(SIG_HASH_TYPE, hart_header.hash_type());
-        assert!(!hart_header.encoded_signature().is_empty());
+        let bart_header = get_artifact_header(&dst).unwrap();
+        assert_eq!(BART_FORMAT_VERSION, bart_header.format());
+        assert_eq!("unicorn", bart_header.signer().name());
+        assert_eq!(SIG_HASH_TYPE, bart_header.hash_type());
+        assert!(!bart_header.encoded_signature().is_empty());
     }
 
     mod artifact_header {
@@ -405,10 +405,10 @@ mod tests {
 
         #[test]
         fn get_artifact_header_works() {
-            let hart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
-            let header = get_artifact_header(hart_path).unwrap();
+            let bart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.bart");
+            let header = get_artifact_header(bart_path).unwrap();
 
-            assert_eq!(header.format(), "HART-1");
+            assert_eq!(header.format(), "BART-1");
             assert_eq!(header.signer().to_string(), "happyhumans-20160424223347");
             assert_eq!(header.hash_type(), "BLAKE2b");
             assert_eq!(
@@ -423,20 +423,20 @@ mod tests {
 
         #[test]
         fn get_named_revision_from_artifact() {
-            let hart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart");
-            let signer = artifact_signer(hart_path).unwrap();
+            let bart_path = fixture("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.bart");
+            let signer = artifact_signer(bart_path).unwrap();
             let expected: NamedRevision = "happyhumans-20160424223347".parse().unwrap();
             assert_eq!(signer, expected);
         }
 
         #[test]
         #[should_panic(expected = "Cannot parse named revision")]
-        fn fails_on_invalid_hart() {
-            // Not really a HART file, but has enough of a header to
+        fn fails_on_invalid_bart() {
+            // Not really a BART file, but has enough of a header to
             // be parsed by `artifact_signer`. It has an invalid
             // signing key identifier.
-            let hart_path = fixture("bogus_and_corrupt.hart");
-            artifact_signer(hart_path).unwrap();
+            let bart_path = fixture("bogus_and_corrupt.bart");
+            artifact_signer(bart_path).unwrap();
         }
     }
 }

@@ -321,8 +321,8 @@ impl PackageArchive {
     /// * If the package cannot be unpacked
     pub fn unpack(&self, fs_root_path: Option<&Path>) -> Result<()> {
         let root = fs_root_path.unwrap_or_else(|| Path::new("/"));
-        let hart_payload_tar_xz = artifact::get_archive_reader(&self.path)?;
-        let decoder = XzDecoder::new(hart_payload_tar_xz);
+        let bart_payload_tar_xz = artifact::get_archive_reader(&self.path)?;
+        let decoder = XzDecoder::new(bart_payload_tar_xz);
         let mut tar = Archive::new(decoder);
         tar.set_preserve_permissions(true);
         tar.set_preserve_mtime(true);
@@ -352,8 +352,8 @@ impl PackageArchive {
 
     fn get_all_metadata(path: impl AsRef<Path>) -> Result<Metadata> {
         let mut metadata = Metadata::new();
-        let hart_payload_tar_xz = artifact::get_archive_reader(path)?;
-        let decoder = XzDecoder::new(hart_payload_tar_xz);
+        let bart_payload_tar_xz = artifact::get_archive_reader(path)?;
+        let decoder = XzDecoder::new(bart_payload_tar_xz);
         let mut tar = Archive::new(decoder);
 
         // Check all entries in the tar archive for metafiles and add them to the `Metadata` store
@@ -480,12 +480,12 @@ mod tests {
     #[test]
     #[ignore]
     fn reading_artifact_metadata() {
-        let hart = PackageArchive::new(fixtures().join(
+        let bart = PackageArchive::new(fixtures().join(
             "happyhumans-possums-8.1.\
-                                                 4-20160427165340-x86_64-linux.hart",
+                                                 4-20160427165340-x86_64-linux.bart",
         ))
         .unwrap();
-        let ident = hart.ident().unwrap();
+        let ident = bart.ident().unwrap();
         assert_eq!(ident.origin, "happyhumans");
         assert_eq!(ident.name, "possums");
         assert_eq!(ident.version, Some("8.1.4".to_string()));
@@ -495,13 +495,13 @@ mod tests {
     #[test]
     #[ignore]
     fn reading_artifact_extended_metadata() {
-        let hart = PackageArchive::new(fixtures().join(
+        let bart = PackageArchive::new(fixtures().join(
             "unhappyhumans-possums-8.1.\
-                                                 4-20160427165340-x86_64-linux.hart",
+                                                 4-20160427165340-x86_64-linux.bart",
         ))
         .unwrap();
-        let info = PackageArchiveInfo::from_path(hart.path).unwrap();
-        assert_eq!(info.format_version, "HART-1");
+        let info = PackageArchiveInfo::from_path(bart.path).unwrap();
+        assert_eq!(info.format_version, "BART-1");
         assert_eq!(info.key_name, "happyhumans-20160424223347");
         assert_eq!(info.hash_type, "BLAKE2b");
         assert_eq!(
@@ -517,14 +517,14 @@ mod tests {
     #[test]
     #[ignore]
     fn serialize_packagearchiveinfo() {
-        let hart = PackageArchive::new(fixtures().join(
+        let bart = PackageArchive::new(fixtures().join(
             "happyhumans-possums-8.1.\
-                                                 4-20160427165340-x86_64-linux.hart",
+                                                 4-20160427165340-x86_64-linux.bart",
         ))
         .unwrap();
-        let info = PackageArchiveInfo::from_path(hart.path).unwrap();
+        let info = PackageArchiveInfo::from_path(bart.path).unwrap();
         let expected = serde_json::json!({
-        "format_version": "HART-1",
+        "format_version": "BART-1",
         "key_name": "happyhumans-20160424223347",
         "hash_type": "BLAKE2b",
         "signature_raw": "U0cp/+npru0ZxhK76zm+PDVSV/707siyrO1r7T6CZZ4ShSLrIxyx8jLSMr5wnLuGrVIV358smQPWOSTOmyfFCjBmMmM1ZjRkZTE0NWM3Zjc4NjAxY2FhZTljN2I4NzY3MDk4NDEzZDA1NzM5ZGU5MTNjMDEyOTIyYjdlZWQ3NjA=",
@@ -564,24 +564,24 @@ mod tests {
     #[test]
     #[ignore]
     fn reading_artifact_deps() {
-        let hart = PackageArchive::new(fixtures().join(
+        let bart = PackageArchive::new(fixtures().join(
             "happyhumans-possums-8.1.\
-                                                 4-20160427165340-x86_64-linux.hart",
+                                                 4-20160427165340-x86_64-linux.bart",
         ))
         .unwrap();
-        let _ = hart.deps().unwrap();
-        let _ = hart.tdeps().unwrap();
+        let _ = bart.deps().unwrap();
+        let _ = bart.tdeps().unwrap();
     }
 
     #[test]
     #[ignore]
     fn reading_artifact_large_tdeps() {
-        let hart = PackageArchive::new(fixtures().join(
+        let bart = PackageArchive::new(fixtures().join(
             "unhappyhumans-possums-8.1.\
-                                                 4-20160427165340-x86_64-linux.hart",
+                                                 4-20160427165340-x86_64-linux.bart",
         ))
         .unwrap();
-        let tdeps = hart.tdeps().unwrap();
+        let tdeps = bart.tdeps().unwrap();
         assert_eq!(1024, tdeps.len());
     }
 
@@ -589,12 +589,12 @@ mod tests {
     #[ignore]
     #[cfg(feature = "x86_64-linux")]
     fn reading_artifact_target() {
-        let hart = PackageArchive::new(fixtures().join(
+        let bart = PackageArchive::new(fixtures().join(
             "unhappyhumans-possums-8.1.\
-                                                 4-20160427165340-x86_64-linux.hart",
+                                                 4-20160427165340-x86_64-linux.bart",
         ))
         .unwrap();
-        let target = hart.target().unwrap();
+        let target = bart.target().unwrap();
 
         assert_eq!(target::X86_64_LINUX, target);
     }

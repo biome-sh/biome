@@ -220,7 +220,7 @@ pub struct SupRunOptions {
     /// Load a Biome package as part of the Supervisor startup
     ///
     /// The package can be specified by a package identifier (ex: core/redis) or filepath to a
-    /// Biome artifact (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).
+    /// Biome artifact (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.bart).
     pub pkg_ident_or_artifact: Option<InstallSource>,
 
     /// Verbose output showing file and line/column numbers

@@ -38,7 +38,7 @@ impl clap_v4::builder::TypedValueParser for UrlValueParser {
     }
 }
 
-/// Struct implementing validator for Hart Package Identifier or Hart File Package Path
+/// Struct implementing validator for Bart Package Identifier or Bart File Package Path
 ///
 /// Try parsing the `InstallSource` from the given input, if it's a valid `InstallSource` then the
 /// given package identifier is a valid one.

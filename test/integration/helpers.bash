@@ -57,11 +57,11 @@ assert_spec_not_exists_for() {
 # assertion. For that, see `assert_package_and_deps_installed` below.
 assert_package_installed() {
     local ident=${1}
-    local cached_hart_file
-    cached_hart_file=$(cached_artifact_for "${ident}")
+    local cached_bart_file
+    cached_bart_file=$(cached_artifact_for "${ident}")
 
-    assert_file_exist "${cached_hart_file}"
-    assert_file_exist "$(cached_signing_key_for "${cached_hart_file}")"
+    assert_file_exist "${cached_bart_file}"
+    assert_file_exist "$(cached_signing_key_for "${cached_bart_file}")"
     assert_file_exist "$(installation_directory_for "${ident}")"
 }
 
@@ -392,16 +392,16 @@ latest_from_builder() {
         ${jq} -r '.ident | (.origin + "/" +.name + "/" + .version + "/" + .release)'
 }
 
-# Extract the signing key name from the header of the given `.hart`
+# Extract the signing key name from the header of the given `.bart`
 # file.
 signing_key_name() {
-    local hart_archive=${1}
+    local bart_archive=${1}
     # The key name is the second line of the file
-    ${awk} 'NR==2' "${hart_archive}"
+    ${awk} 'NR==2' "${bart_archive}"
 }
 
 # Given a fully-qualified package identifier, return the path to the
-# cached `.hart` file on disk.
+# cached `.bart` file on disk.
 cached_artifact_for() {
     local ident=${1}
     parsed=()
@@ -415,16 +415,16 @@ cached_artifact_for() {
     # Hard-coding this for now
     local platform="x86_64-linux"
 
-    local file="/bio/cache/artifacts/${origin}-${package_name}-${version}-${release}-${platform}.hart"
+    local file="/bio/cache/artifacts/${origin}-${package_name}-${version}-${release}-${platform}.bart"
 
     echo "${file}"
 }
 
-# Return the path to the cached signing key for a given hart file
+# Return the path to the cached signing key for a given bart file
 cached_signing_key_for() {
-    local hart_file=${1}
+    local bart_file=${1}
     local key_name
-    key_name=$(signing_key_name "${hart_file}")
+    key_name=$(signing_key_name "${bart_file}")
 
     echo "/bio/cache/keys/${key_name}.pub"
 }
@@ -436,10 +436,10 @@ installation_directory_for() {
     echo "/bio/pkgs/${ident}"
 }
 
-# Given a fully-qualified identifier, use `bio` to retrieve the hart
+# Given a fully-qualified identifier, use `bio` to retrieve the bart
 # file for it and place it into `$BATS_TMPDIR`, returning the full
-# path to the hart file.
-download_hart_for() {
+# path to the bart file.
+download_bart_for() {
     ident=${1}
 
     run "${bio}" pkg install "${ident}"

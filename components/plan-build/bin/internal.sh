@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=2154
 
-_artifact_ext="hart"
+_artifact_ext="bart"
 
 # **Internal** Prints out an optionally colorized message indicating
 # an error of some kind.

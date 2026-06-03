@@ -61,14 +61,14 @@ pub const RETRIES: usize = 5;
 pub const RETRY_WAIT: Duration = Duration::from_millis(3000);
 pub const DEFAULT_RENAME_TIMEOUT_SECS: u64 = 5;
 
-/// Represents a locally-available `.hart` file for package
+/// Represents a locally-available `.bart` file for package
 /// installation purposes only.
 ///
 /// The struct itself must be public because it is used in
 /// `InstallSource` enum. The members are intentionally private,
 /// though; by design, the only way an instance of this struct can be
 /// created is to call `parse::<InstallSource>` on a file path that
-/// refers to a `.hart` file.
+/// refers to a `.bart` file.
 ///
 /// In other words, you are probably more interested in the
 /// `InstallSource` enum; this struct is just an implementation
@@ -102,7 +102,7 @@ pub struct LocalArchive {
 pub enum InstallSource {
     /// We can install from a package identifier
     Ident(PackageIdent, PackageTarget),
-    /// We can install from a locally-available `.hart` file
+    /// We can install from a locally-available `.bart` file
     Archive(LocalArchive),
 }
 
@@ -131,7 +131,7 @@ impl FromStr for InstallSource {
             }
         } else {
             if let Some(extension) = path.extension()
-                && extension == "hart"
+                && extension == "bart"
             {
                 return Err(biome_core::Error::FileNotFound(s.to_string()));
             }

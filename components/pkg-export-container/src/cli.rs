@@ -58,7 +58,7 @@ fn add_base_packages_args(cmd: Command) -> Command {
             .value_parser(BioPackageInstallSourceValueParser)
             .help(
                 "Biome CLI package identifier (ex: biome/bio) or filepath to a Biome \
-                         artifact (ex: /home/biome-bio-2.0.100-20250416101002-x86_64-linux.hart) \
+                         artifact (ex: /home/biome-bio-2.0.100-20250416101002-x86_64-linux.bart) \
                          to install",
             ),
     )
@@ -71,7 +71,7 @@ fn add_base_packages_args(cmd: Command) -> Command {
             .help(
                 "Launcher package identifier (ex: biome/bio-launcher) or filepath to a \
                          Biome artifact (ex: \
-                         /home/biome-bio-launcher-19633-20250610094807-x86_64-linux.hart) to \
+                         /home/biome-bio-launcher-19633-20250610094807-x86_64-linux.bart) to \
                          install",
             ),
     )
@@ -84,7 +84,7 @@ fn add_base_packages_args(cmd: Command) -> Command {
             .help(
                 "Supervisor package identifier (ex: biome/bio-sup) or filepath to a \
                  Biome artifact (ex: \
-                 /home/biome-bio-sup-2.0.134-20250610093735-x86_64-linux.hart) to install",
+                 /home/biome-bio-sup-2.0.134-20250610093735-x86_64-linux.bart) to install",
             ),
     )
 }
@@ -255,7 +255,7 @@ fn add_publishing_args(cmd: Command) -> Command {
 
 fn add_pkg_ident_arg(cmd: Command) -> Command {
     let help = "One or more Biome package identifiers (ex: acme/redis) and/or filepaths to a \
-                Biome Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)";
+                Biome Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.bart)";
 
     cmd.arg(
         Arg::new("PKG_IDENT_OR_ARTIFACT")

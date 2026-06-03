@@ -27,7 +27,7 @@
 //! At build time, the build system will produce a Biome artifact which is unconditionally
 //! encoded with a specific package target by including a `TARGET` metafile in the root of the
 //! package's installed directory. For convenience, the package target string representation is
-//! also used in the naming of the so-called "hart" file (or Biome ARTifact).
+//! also used in the naming of the so-called "bart" file (or Biome ARTifact).
 //!
 //! After a package has been built, there are a few ways to check the [`PackageTarget`]:
 //!

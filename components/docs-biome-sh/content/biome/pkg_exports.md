@@ -11,7 +11,7 @@ gh_repo = "biome"
     weight = 40
 +++
 
-Biome Artifacts--`.hart` files--can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Biome artifact by exporting it into a format that you need for a specific job.
+Biome Artifacts--`.bart` files--can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Biome artifact by exporting it into a format that you need for a specific job.
 
 You can export packages to a Docker container image or a tar file.
 
@@ -19,10 +19,10 @@ The command to export a package is `bio pkg export <FORMAT> <PKG_IDENT>`. See th
 
 > **Note** If you specify an `origin/package` identifier, such as `core/postgresql`, the Biome CLI will check Builder for the latest stable version of the package and export that.
 
-> If you wish to export a package that is not on Builder, create a Biome artifact by running the `build` command, then point `bio pkg` to the `.hart` file within the `/results` directory:
+> If you wish to export a package that is not on Builder, create a Biome artifact by running the `build` command, then point `bio pkg` to the `.bart` file within the `/results` directory:
 
 ```bash
-bio pkg export tar ./results/example-app.hart
+bio pkg export tar ./results/example-app.bart
 ```
 
 Read on for more detailed instructions.
@@ -38,14 +38,14 @@ You can create a Docker container image for any package by performing the follow
 1. [Build]({{< relref "pkg_build" >}}) the Biome package from which you want to create a Docker container image and then run the Docker exporter on the package.
 
     ```bash
-    bio pkg export docker ./results/<hart-filename>.hart
+    bio pkg export docker ./results/<bart-filename>.bart
     ```
 
     > **Note** The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling `bio pkg export docker origin/package`. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
 
     > **Note** On Linux, exporting your Biome artifact to a Docker image requires the Docker Engine supplied by Docker. Packages from distribution-specific or otherwise alternative providers are currently not supported.
 
-    > **Note** In a Windows container studio, the `export` command will not be able to access the host docker engine. To export a Windows package or hart file built inside of a Windows container studio, first exit the studio and then export the `.hart` file in your local `results` directory.
+    > **Note** In a Windows container studio, the `export` command will not be able to access the host docker engine. To export a Windows package or bart file built inside of a Windows container studio, first exit the studio and then export the `.bart` file in your local `results` directory.
 
 1. You may now exit the studio. The new Docker image exists on your computer and can be examined with `docker images` or run with `docker run`.
 
@@ -70,7 +70,7 @@ You can create a Docker container image for any package by performing the follow
     If you receive an error, try running
 
     ```bash
-    bio pkg export tar /results/<your_package>.hart
+    bio pkg export tar /results/<your_package>.bart
     ```
 
 4. Your package is now in a tar file that exists locally on your computer in the format `<ORIGIN>-<NAME>-<VERSION>-<TIMESTAMP>.tar.gz` and can be deployed and run on a target machine.
