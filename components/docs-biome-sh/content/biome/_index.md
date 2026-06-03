@@ -34,7 +34,7 @@ For more information, see the [Biome Builder]({{< relref "/biome/builder_overvie
 ### Biome Package
 
 A Biome Package is an artifact that contains the application codebase, lifecycle hooks, and a manifest that defines build and runtime dependencies of the application.
-The package is bundled into a Biome Artifact (.HART) file, which is a binary distribution of a given package built with Biome.
+The package is bundled into a Biome Artifact (.BART) file, which is a binary distribution of a given package built with Biome.
 The package is immutable and cryptographically signed with a key so you can verify that the artifact came from the place you expected it to come from.
 Artifacts can be exported to run in a variety of runtimes with zero refactoring or rewriting.
 

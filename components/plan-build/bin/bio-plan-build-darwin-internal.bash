@@ -374,8 +374,8 @@ export BIO_BLDR_CHANNEL
 INITIAL_PATH="$PATH"
 # The value of `pwd` on initial start of this program
 INITIAL_PWD="$(pwd)"
-# The compression level to use when compression harts (0..9)
-: "${BIO_HART_COMPRESSION_LEVEL:=6}"
+# The compression level to use when compression barts (0..9)
+: "${BIO_BART_COMPRESSION_LEVEL:=6}"
 # The full target tuple this plan will be built for
 pkg_target='@@pkg_target@@'
 # The package's origin (i.e. acme)
@@ -432,7 +432,7 @@ umask 0022
 # and other build software.
 unset TERMINFO
 
-_artifact_ext="hart"
+_artifact_ext="bart"
 
 # ## Private/Internal helper functions
 #
@@ -2347,7 +2347,7 @@ _generate_artifact() {
   mkdir -pv "$(dirname "$pkg_artifact")"
   rm -fv "$tarf" "$xzf" "$pkg_artifact"
   $_tar_cmd -cf "$tarf" "$pkg_prefix"
-  $_xz_cmd --compress -${BIO_HART_COMPRESSION_LEVEL} --threads=0 "$tarf"
+  $_xz_cmd --compress -${BIO_BART_COMPRESSION_LEVEL} --threads=0 "$tarf"
   $BIO_BIN pkg sign --origin "$pkg_origin" "$xzf" "$pkg_artifact"
   rm -f "$tarf" "$xzf"
 }

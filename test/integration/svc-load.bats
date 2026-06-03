@@ -81,12 +81,12 @@ teardown() {
     assert_spec_value redis bldr_url "https://bldr.biome.sh"
 }
 
-@test "bio svc load: local hart file (standalone service)" {
-    # First, grab a hart file!
+@test "bio svc load: local bart file (standalone service)" {
+    # First, grab a bart file!
     desired_version="core/redis/3.2.4/20170514150022"
-    hart_path=$(download_hart_for "${desired_version}")
+    bart_path=$(download_bart_for "${desired_version}")
 
-    run ${bio} pkg install "${hart_path}"
+    run ${bio} pkg install "${bart_path}"
     assert_success
     run ${bio} svc load "${desired_version}"
     assert_success

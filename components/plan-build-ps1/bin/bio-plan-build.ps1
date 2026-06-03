@@ -375,7 +375,7 @@ function __resolve_full_ident($dep) {
         $transformedDep = $dep -replace '/', '-'
         $paths = $env:BIO_STUDIO_INSTALL_PKGS -split ";"
         foreach ($path in $paths) {
-            if ($path -match "$transformedDep-(.*)-(.*)-$pkg_target.hart") {
+            if ($path -match "$transformedDep-(.*)-(.*)-$pkg_target.bart") {
                 $version = $matches[1]
                 $timestamp = $matches[2]
 
@@ -1481,7 +1481,7 @@ function Save-Artifact {
     # archive that is readable by bio pkg install. By replicating the
     # packages directory structure in a temp directory and taring that
     # entire tree, bio pkg install is able to successfully install the
-    # generated hart file.
+    # generated bart file.
     $tempRoot = Join-Path $env:temp ([System.IO.Path]::GetRandomFileName())
     $tempBase = Join-Path $tempRoot "bio"
     $tempPkg = "$tempBase\pkgs\$pkg_origin\$pkg_name\$pkg_version"
@@ -1750,7 +1750,7 @@ try {
     $script:pkg_svc_static_path="$pkg_svc_path\static"
 
     # Set the package artifact name
-    $_artifact_ext="hart"
+    $_artifact_ext="bart"
     $script:pkg_artifact="$BIO_CACHE_ARTIFACT_PATH\${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
 
     # Run `do_begin`

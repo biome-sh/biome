@@ -75,8 +75,8 @@ export BIO_REFRESH_CHANNEL
 INITIAL_PATH="$PATH"
 # The value of `pwd` on initial start of this program
 INITIAL_PWD="$(pwd)"
-# The compression level to use when compression harts (0..9)
-: "${BIO_HART_COMPRESSION_LEVEL:=6}"
+# The compression level to use when compression barts (0..9)
+: "${BIO_BART_COMPRESSION_LEVEL:=6}"
 # The full target tuple this plan will be built for
 pkg_target='aarch64-darwin'
 # The package's origin (i.e. acme)

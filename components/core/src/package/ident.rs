@@ -154,7 +154,7 @@ impl PackageIdent {
     fn archive_name_impl(&self, target: PackageTarget) -> Result<String> {
         if self.fully_qualified() {
             Ok(format!(
-                "{}-{}-{}-{}-{}.hart",
+                "{}-{}-{}-{}-{}.bart",
                 self.origin,
                 self.name,
                 self.version.as_ref().unwrap(),
@@ -823,7 +823,7 @@ mod tests {
         let target = PackageTarget::active_target();
 
         assert_eq!(
-            format!("{}-{}.hart", "tom-petty-the_last__dj-1.0.0-20180701125610", target),
+            format!("{}-{}.bart", "tom-petty-the_last__dj-1.0.0-20180701125610", target),
             ident.archive_name().unwrap()
         );
     }
@@ -847,7 +847,7 @@ mod tests {
         let target = PackageTarget::from_str("x86_64-linux").unwrap();
 
         assert_eq!(
-            String::from("tom-petty-the_last__dj-1.0.0-20180701125610-x86_64-linux.hart"),
+            String::from("tom-petty-the_last__dj-1.0.0-20180701125610-x86_64-linux.bart"),
             ident.archive_name_with_target(target).unwrap()
         );
     }

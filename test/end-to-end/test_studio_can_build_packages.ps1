@@ -37,7 +37,7 @@ Describe "Studio build" {
         $pkg_name | Should -Be "target_plan"
     }
 
-    It "saves hart in linked artifact cache" {
+    It "saves bart in linked artifact cache" {
         Invoke-Build minimal-package
         . ./results/last_build.ps1
 

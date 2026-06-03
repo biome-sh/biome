@@ -3,7 +3,7 @@
 //! # Examples
 //!
 //! ```bash
-//! $ bio pkg upload /path/to/acme-redis-2.0.7-2112010203120101-x86_64-linux.hart \
+//! $ bio pkg upload /path/to/acme-redis-2.0.7-2112010203120101-x86_64-linux.bart \
 //!     -u http://localhost:9632
 //! ```
 //!
@@ -41,7 +41,7 @@ use std::path::{Path, PathBuf};
 /// # Failures
 ///
 /// * Fails if it cannot find a package
-/// * Fails if the package doesn't have a `.hart` file in the cache
+/// * Fails if the package doesn't have a `.bart` file in the cache
 /// * Fails if it cannot upload the file
 #[allow(clippy::too_many_arguments)]
 pub async fn start(

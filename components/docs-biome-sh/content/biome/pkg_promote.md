@@ -23,7 +23,7 @@ By default, every new package is placed in the `unstable` channel by Builder. Pa
 To promote your package to a channel, you must either use Builder to build your package or upload it to Builder yourself, and then use the `bio pkg promote` subcommand to promote the package to the intended channel. To combine operations, the `bio` CLI allows you to do both in one command by using the `--channel` option when uploading your package. The following shows how to upload and promote a package to a custom channel named `test`.
 
 ```bash
-$ bio pkg upload -z <TOKEN> results/<hart file> --channel test
+$ bio pkg upload -z <TOKEN> results/<bart file> --channel test
 ```
 
 In the example above, if you look up your package in the Builder UI, or using the `bio pkg channels` subcommand, you can see that your package is tagged for both the `test` and `unstable` channels.

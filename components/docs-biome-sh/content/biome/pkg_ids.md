@@ -10,7 +10,7 @@ gh_repo = "biome"
     parent = "biome/reference"
 +++
 
-A Biome artifact the binary distribution for a given package built with Biome. A Biome artifact is a signed tarball with a `.hart` file extension. Biome artifacts are composed of a software library or application, the configuration information for that software, and lifecycle hooks. They are created from a the plan file, a `plan.sh` on Linux systems or a `plan.ps1` on Windows systems, and are built with Biome tools. Biome artifacts can be exported to a specific format, such as when creating a Docker image.
+A Biome artifact the binary distribution for a given package built with Biome. A Biome artifact is a signed tarball with a `.bart` file extension. Biome artifacts are composed of a software library or application, the configuration information for that software, and lifecycle hooks. They are created from a the plan file, a `plan.sh` on Linux systems or a `plan.ps1` on Windows systems, and are built with Biome tools. Biome artifacts can be exported to a specific format, such as when creating a Docker image.
 
 When referring to Biome artifacts from either Builder or the Studio, you can refer to them in two ways:
 

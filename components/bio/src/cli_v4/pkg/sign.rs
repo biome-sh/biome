@@ -32,7 +32,7 @@ pub(crate) struct PkgSignOptions {
     source: PathBuf,
 
     /// The destination path to the signed Biome Artifact (ex:
-    /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    /// /home/acme-redis-3.0.7-21120102031201-x86_64-linux.bart)
     #[arg(name = "DEST")]
     dest: PathBuf,
 

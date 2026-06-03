@@ -89,7 +89,7 @@ Use the Biome Studio to generate a Biome package and preview the running Node.js
    build
    ```
 
-   The Studio will generate a package (a `.hart` file) and place it in the `results` directory.
+   The Studio will generate a package (a `.bart` file) and place it in the `results` directory.
    You will also find a `last_build.env` file in the `results` directory that has metadata about the last package build.
 
 1. Start the service.

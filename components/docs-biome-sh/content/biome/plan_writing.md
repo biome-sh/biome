@@ -55,7 +55,7 @@ When you have finished creating your plan and call `build` in Biome studio, the 
 4. The source is extracted into a temporary cache.
 5. Unless overridden, the callback methods will build and install the binary or library via `make` and `make install`, respectively for Linux based builds.
 6. Your package contents (binaries, runtime dependencies, libraries, assets, etc.) are then compressed into a tarball.
-7. The tarball is signed with your private origin key and given a `.hart` file extension.
+7. The tarball is signed with your private origin key and given a `.bart` file extension.
 
 After the build script completes, you can then upload your package to Biome Builder, or install and start your package locally.
 

@@ -47,10 +47,10 @@ bio pkg build -N .
 
 ### Running a Native Package
 
-Users can run a native package with the Biome Supervisor by providing it with the HART file.
+Users can run a native package with the Biome Supervisor by providing it with the BART file.
 
 ```bash
-bio sup run your-native-package.hart
+bio sup run your-native-package.bart
 ```
 
 ### Native Packages Builder Support

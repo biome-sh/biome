@@ -109,7 +109,7 @@
 //!
 //! ## Biome artifacts
 //!
-//! A signed Biome artifact (a file with the extension `.hart`) has 5 plaintext lines followed by
+//! A signed Biome artifact (a file with the extension `.bart`) has 5 plaintext lines followed by
 //! a binary blob of data, which is an unsigned, compressed tarfile. The lines are as follows:
 //!
 //! 1. The artifact format version
@@ -134,7 +134,7 @@
 //! Example header:
 //!
 //! ```text
-//! HART-1
+//! BART-1
 //! biome-20160405144945
 //! BLAKE2b
 //! signed BLAKE2b signature
@@ -146,8 +146,8 @@
 //! a Biome artifact using standard Unix tooling:
 //!
 //! ```text
-//! $ head -4 /path/to/acme-glibc-2.22-20160310192356-x86_64-linux.hart
-//! HART-1
+//! $ head -4 /path/to/acme-glibc-2.22-20160310192356-x86_64-linux.bart
+//! BART-1
 //! biome-20160405144945
 //! BLAKE2b
 //! abc123...
@@ -159,7 +159,7 @@
 //! the `tail(1)` Unix command:
 //!
 //! ```text
-//! tail -n +6 /tmp/somefile.hart > somefile.tar.xz
+//! tail -n +6 /tmp/somefile.bart > somefile.tar.xz
 //! ```
 //!
 //! The above command starts streaming the file to standard out at line 6, skipping the first 5
@@ -169,7 +169,7 @@
 //! authenticity, this can be accomplished with:
 //!
 //! ```text
-//! tail -n +6 /tmp/somefile.hart | xzcat | tar x -C /
+//! tail -n +6 /tmp/somefile.bart | xzcat | tar x -C /
 //! ```
 //!
 //! **Caution!** Working with Biome artifacts in this manner this is not normally recommended and
@@ -227,7 +227,7 @@ pub const SIG_HASH_TYPE: &str = "BLAKE2b";
 /// This environment variable allows you to override the fs::CACHE_KEY_PATH
 /// at runtime. This is useful for testing.
 pub const CACHE_KEY_PATH_ENV_VAR: &str = "BIO_CACHE_KEY_PATH";
-pub const HART_FORMAT_VERSION: &str = "HART-1";
+pub const BART_FORMAT_VERSION: &str = "BART-1";
 pub const BOX_FORMAT_VERSION: &str = "BOX-1";
 pub const ANONYMOUS_BOX_FORMAT_VERSION: &str = "ANONYMOUS-BOX-1";
 

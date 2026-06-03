@@ -399,7 +399,7 @@ Everyone with origin membership can see the _Settings_ tab, but only origin admi
 
 ### Default package settings
 
-The _Default Package Settings_ define the visibility of build artifacts (.hart files). Everyone with origin membership can view the origin settings, but only origin administrators and owners can add, update, or delete settings.
+The _Default Package Settings_ define the visibility of build artifacts (.bart files). Everyone with origin membership can view the origin settings, but only origin administrators and owners can add, update, or delete settings.
 
 - Public packages are visible in search results and can be used by every Biome Builder user
 - Private artifacts do not appear in search results and are available only to users with origin membership

@@ -20,7 +20,7 @@ When you have finished creating your plan and call `build` in Biome Studio, the 
 5. Builds and installs the binary or library using `make` and `make install` for Linux based builds, and
   TODO: WHAT DOES WINDOWS USE? Invoke-Unpack function with Start-Process? Invoke-Install & Copy-Item? unless the callback methods are overridden in the plan.
 6. Compresses the package contents (binaries, runtime dependencies, libraries, assets, etc.) into a tarball.
-7. Signs the tarball with your private origin key and gives it a `.hart` file extension.
+7. Signs the tarball with your private origin key and gives it a `.bart` file extension.
 
 After the build script completes, you can then upload your package to Biome Builder, or install and start your package locally.
 
@@ -113,7 +113,7 @@ This way, you can `bio studio enter` in `projects/`. If `project-b` depends on `
 
 ### Non-interactive Build
 
-A non-interactive build is one in which Biome creates a Studio for you, builds the package inside it, and then destroys the Studio, leaving the resulting `.hart` on your computer. Use a non-interactive build when you are sure the build will succeed, or in conjunction with a continuous integration system.
+A non-interactive build is one in which Biome creates a Studio for you, builds the package inside it, and then destroys the Studio, leaving the resulting `.bart` on your computer. Use a non-interactive build when you are sure the build will succeed, or in conjunction with a continuous integration system.
 
 1. Change to the parent directory of the plan context.
 1. Build the artifact in an unattended fashion, passing the name of the origin key to the command.

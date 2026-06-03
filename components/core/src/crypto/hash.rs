@@ -108,7 +108,7 @@ impl fmt::Display for Blake2bHash {
     /// Due to historical precedent, the lowercasing *is* significant,
     /// as we sign the lowercase hex-encoded version of a Blake2b
     /// hash, and not simply the Blake2b hash itself, when we sign a
-    /// HART file.
+    /// BART file.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // hex::encode currently outputs lowercase strings, but we
         // want to strictly enforce this and guard against any future

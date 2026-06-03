@@ -43,7 +43,7 @@ Once you have this token, you can set the `BIO_AUTH_TOKEN` [environment variable
 
 ## Create an Origin Key Pair
 
-After finishing the basic account creation steps, you need to create your origin key pair. Biome will use the private origin key to sign the artifacts (`.hart` files) created by building your plan and verify the integrity of your artifacts with the public origin key.
+After finishing the basic account creation steps, you need to create your origin key pair. Biome will use the private origin key to sign the artifacts (`.bart` files) created by building your plan and verify the integrity of your artifacts with the public origin key.
 
 You can create an origin key pair by running `bio cli setup` from your host machine, or by running `bio origin key generate <ORIGIN>` from either the host machine or from within the studio.
 

@@ -49,7 +49,7 @@ pub async fn start(
     auto_create_origins: bool,
     key_cache: &KeyCache,
 ) -> Result<()> {
-    let artifact_paths = paths_with_extension(artifact_path, "hart");
+    let artifact_paths = paths_with_extension(artifact_path, "bart");
     let pub_keys_paths = paths_with_extension(key_cache.as_ref(), PUBLIC_KEY_SUFFIX);
 
     ui.begin(format!(

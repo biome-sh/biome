@@ -66,7 +66,7 @@ impl FixtureRoot {
         self.0.to_path_buf().join(format!("{}.spec", &package_name.to_string()))
     }
 
-    /// Fixture files for an expanded bundle... think of what a .hart
+    /// Fixture files for an expanded bundle... think of what a .bart
     /// expands into.
     pub fn expanded_package_dir<P>(&self, package_name: P) -> PathBuf
     where
