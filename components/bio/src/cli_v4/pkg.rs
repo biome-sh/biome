@@ -25,6 +25,7 @@ mod env;
 mod exec;
 
 #[cfg(any(
+    all(target_os = "macos", target_arch = "aarch64"),
     all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
     all(target_os = "windows", target_arch = "x86_64")
 ))]
@@ -96,6 +97,7 @@ pub(super) enum PkgCommand {
     Exec(exec::PkgExecOptions),
 
     #[cfg(any(
+        all(target_os = "macos", target_arch = "aarch64"),
         all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
         all(target_os = "windows", target_arch = "x86_64")
     ))]
@@ -162,6 +164,7 @@ impl PkgCommand {
             Self::Env(opts) => opts.do_env(),
             Self::Exec(opts) => opts.do_exec(),
             #[cfg(any(
+                all(target_os = "macos", target_arch = "aarch64"),
                 all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64")),
                 all(target_os = "windows", target_arch = "x86_64")
             ))]

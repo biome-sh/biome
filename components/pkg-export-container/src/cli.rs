@@ -104,7 +104,7 @@ fn add_builder_args(cmd: Command) -> Command {
             .long("channel")
             .short('c')
             .value_name("CHANNEL")
-            .default_value("stable")
+            .default_value("base")
             .help("Install packages from the specified release channel"),
     )
     .arg(
@@ -122,7 +122,7 @@ fn add_builder_args(cmd: Command) -> Command {
         Arg::new("BASE_PKGS_CHANNEL")
             .long("base-pkgs-channel")
             .value_name("BASE_PKGS_CHANNEL")
-            .default_value("stable")
+            .default_value("base")
             .help("Install base packages from the specified release"),
     )
     .arg(

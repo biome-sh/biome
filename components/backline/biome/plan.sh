@@ -8,7 +8,6 @@ pkg_deps=(biome/bio-plan-build
           core/diffutils
           core/less
           core/make
-          core/mg
           core/util-linux
           core/vim
           core/ncurses)

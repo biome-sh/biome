@@ -6,7 +6,10 @@ mod rootfs;
 
 use crate::{
     common::ui::UI,
-    hcore::package::{PackageIdent, PackageInstall},
+    hcore::{
+        fs::ROOT_PATH,
+        package::{PackageIdent, PackageInstall},
+    },
 };
 use anyhow::Result;
 use flate2::{Compression, write::GzEncoder};
@@ -60,7 +63,7 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, bio_pkg: &str, no_
     tar_builder.follow_symlinks(false);
 
     let root_fs = temp_dir_path.join("rootfs");
-    let bio_pkgs_path = temp_dir_path.join("rootfs/bio");
+    let bio_pkgs_path = root_fs.join(ROOT_PATH);
 
     // Although this line of code DOES work (it adds the required directories
     // and subdirectories to the tarball), it also returns an error
@@ -70,7 +73,7 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, bio_pkg: &str, no_
     // https://github.com/alexcrichton/tar-rs/issues/147
     // Until this is sorted out, I am not doing anything with the result
     // that is returned by this command -NSH
-    tar_builder.append_dir_all("bio", bio_pkgs_path);
+    tar_builder.append_dir_all(ROOT_PATH, bio_pkgs_path);
 
     // Conditionally include the bio binary if not excluded
     if !no_bio_bin {
@@ -79,7 +82,7 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, bio_pkg: &str, no_
         bio_pkg_binary_path.push("bin");
 
         // Append the bio binary to the tar ball
-        tar_builder.append_dir_all("bio/bin", bio_pkg_binary_path);
+        tar_builder.append_dir_all(format!("{ROOT_PATH}/bin"), bio_pkg_binary_path);
     }
 }
 

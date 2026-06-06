@@ -2,9 +2,11 @@ use clap::Parser;
 
 use biome_common::{
     cli::clap_validators::{BioPackageInstallSourceValueParser, UrlValueParser},
-    consts::{DEFAULT_BIO_LAUNCHER_PKG_IDENT, DEFAULT_BIO_PKG_IDENT, DEFAULT_BIO_SUP_PKG_IDENT, DEFAULT_BUILDER_URL},
+    consts::{DEFAULT_BIO_PKG_IDENT, DEFAULT_BUILDER_URL},
 };
 
+#[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+use biome_common::consts::{DEFAULT_BIO_LAUNCHER_PKG_IDENT, DEFAULT_BIO_SUP_PKG_IDENT};
 #[derive(Debug, Clone, Parser)]
 #[command(
     name = "bio-pkg-export-tar",
@@ -26,6 +28,7 @@ pub(crate) struct Cli {
 
     /// Launcher package identifier (ex: biome/bio-launcher) or filepath to a Biome artifact
     /// (ex: /home/biome-bio-launcher-19633-20250610094807-x86_64-linux.bart) to install
+    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
     #[arg(name = "BIO_LAUNCHER_PKG",
           long = "launcher-pkg",
           value_name = "BIO_LAUNCHER_PKG",
@@ -35,6 +38,7 @@ pub(crate) struct Cli {
 
     /// Supervisor package identifier (ex: biome/bio-sup) or filepath to a Biome artifact
     /// (ex: /home/biome-bio-sup-2.0.134-20250610093735-x86_64-linux.bart) to install
+    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
     #[arg(name = "BIO_SUP_PKG",
           long = "sup-pkg",
           value_name = "BIO_SUP_PKG",
@@ -57,7 +61,7 @@ pub(crate) struct Cli {
         long = "channel",
         short = 'c',
         value_name = "CHANNEL",
-        default_value = "stable"
+        default_value = "base"
     )]
     pub(crate) channel: String,
 
@@ -74,7 +78,7 @@ pub(crate) struct Cli {
         name = "BASE_PKGS_CHANNEL",
         long = "base-pkgs-channel",
         value_name = "BASE_PKGS_CHANNEL",
-        default_value = "stable"
+        default_value = "base"
     )]
     pub(crate) base_pkgs_channel: String,
 
@@ -94,6 +98,7 @@ pub(crate) struct Cli {
     pub(crate) no_bio_bin: bool,
 
     /// Exclude supervisor and launcher packages from the exported tar
+    #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
     #[arg(name = "NO_BIO_SUP", long = "no-bio-sup")]
     pub(crate) no_bio_sup: bool,
 

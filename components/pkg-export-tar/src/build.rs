@@ -75,8 +75,14 @@ impl<'a> BuildSpec<'a> {
         BuildSpec {
             bio: cli.bio_pkg.as_str(),
 
+            #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+            bio_launcher: "",
+            #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
             bio_launcher: cli.bio_launcher_pkg.as_str(),
 
+            #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+            bio_sup: "",
+            #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
             bio_sup: cli.bio_sup_pkg.as_str(),
 
             url: cli.bldr_url.as_str(),
@@ -93,6 +99,9 @@ impl<'a> BuildSpec<'a> {
 
             no_bio_bin: cli.no_bio_bin,
 
+            #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+            no_bio_sup: true,
+            #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
             no_bio_sup: cli.no_bio_sup,
         }
     }
