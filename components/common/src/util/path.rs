@@ -20,8 +20,13 @@ use std::{
 
 // The package identifier for the OS specific interpreter which the Supervisor is built with,
 // or which may be independently installed
-#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[cfg(target_os = "linux")]
 biome_core::env_config_string!(InterpreterIdent, BIO_INTERPRETER_IDENT, "core/busybox-static");
+
+// core/busybox-static is not published for aarch64-darwin, so fall back to core/bash, which is
+// already a required runtime dependency of the darwin Studio and bio-plan-build.
+#[cfg(target_os = "macos")]
+biome_core::env_config_string!(InterpreterIdent, BIO_INTERPRETER_IDENT, "core/bash");
 
 #[cfg(target_os = "windows")]
 biome_core::env_config_string!(InterpreterIdent, BIO_INTERPRETER_IDENT, "core/powershell");
