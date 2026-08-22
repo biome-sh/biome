@@ -24,18 +24,18 @@ This documentation covers everything from creating an account to setting up auto
 You need to set a few things up before you can get started with Biome Builder:
 
 * Download and install the [Biome CLI]({{< relref "install_biome" >}})
-* A [GitHub account](https://github.com/join)
+* A [GitHub account](https://github.com/signup)
 
 ### Sign-in and Authorize Biome Builder
 
-Biome Builder automatically creates your account the first time you sign in using the GitHub authentication process. You'll also need to authorize the Biome Builder application in Github.
+Biome Builder automatically creates your account the first time you sign in using the GitHub authentication process. You'll also need to authorize the Biome Builder application in GitHub.
 
 Head over to the Biome Builder sign-in page at [https://bldr.biome.sh/#/sign-in](https://bldr.biome.sh/#/sign-in) to get started.
 
 1. To sign in with an existing GitHub account, select **Sign in with GitHub**
 1. If you need to set up a GitHub account, select the **Sign up here** link
 
-![Biome sign in with Github](/images/biome/builder_signin.png)
+![Biome sign in with GitHub](/images/biome/builder_signin.png)
 
 Signing in with your GitHub account and authorizing the Biome Builder application the first time you sign in grants you access to the Biome Builder platform. Once you've completed signing in and authorizing Biome Builder, you'll arrive at the 'My Origins' view.
 

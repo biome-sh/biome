@@ -18,7 +18,7 @@ This getting started guide will show you how to use Biome to build and deploy a 
 Before getting started with this tutorial, you will need:
 
 - a workstation running Linux or macOS
-- a [GitHub account](https://github.com/join)
+- a [GitHub account](https://github.com/signup)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed locally (optional)
 - the [Biome CLI]({{< relref "/biome/install_biome" >}}) installed locally
 - an account on [Biome Builder]({{< relref "builder_account" >}})

@@ -86,7 +86,7 @@ You can also develop your application if you are unsure of the infrastructure yo
 
 ### Learning
 
-- [Learn Biome: Deliver Applications with Biome](https://learn.biome.sh/courses/course-v1:biome+Biome101+Perpetual/about)
+- [LearnBiome: Tutorials](https://biome.sh/training/tutorials)
 - [Biome webinars](https://biome.sh/webinars?products=biome-biome&page=1)
 - [Resource Library](https://biome.sh/resources?products=biome-biome&page=1)
 
