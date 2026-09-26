@@ -74,7 +74,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
         let template = template_path.as_ref().join(file_name);
 
         if !template.exists() {
-            debug!("{} not found at {}, not loading", &file_name, template.display());
+            debug!("{} not found at {}, not loading", file_name, template.display());
             return None;
         }
 
@@ -105,7 +105,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
             Self::set_permissions(&path)?;
             Ok(true)
         } else {
-            debug!("{}, already compiled to {}", Self::FILE_NAME, &path.display());
+            debug!("{}, already compiled to {}", Self::FILE_NAME, path.display());
             Ok(false)
         }
     }
@@ -213,12 +213,12 @@ pub trait Hook: fmt::Debug + Sized + Send {
             let uid = users::get_uid_by_name(&pkg.svc_user)?
                 .map(Uid::from_raw)
                 .ok_or_else(|| {
-                    Error::PermissionFailed(format!("No uid for user '{}' could be found", &pkg.svc_user))
+                    Error::PermissionFailed(format!("No uid for user '{}' could be found", pkg.svc_user))
                 })?;
             let gid = users::get_gid_by_name(&pkg.svc_group)?
                 .map(Gid::from_raw)
                 .ok_or_else(|| {
-                    Error::PermissionFailed(format!("No gid for group '{}' could be found", &pkg.svc_group))
+                    Error::PermissionFailed(format!("No gid for group '{}' could be found", pkg.svc_group))
                 })?;
             Some((uid, gid))
         } else {
@@ -226,7 +226,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
                 "Current user lacks sufficient capabilites to run {:?} as \"{}\"; running as \
                     self!",
                 path.as_ref(),
-                &pkg.svc_user
+                pkg.svc_user
             );
             None
         };
@@ -604,7 +604,7 @@ impl<'a> HookOutput<'a> {
         for line in BufReader::new(reader).lines_lossy().filter_map(result::Result::ok) {
             outputln!(preamble preamble_str, &line);
             if let Ok(file) = &mut file_result {
-                writeln!(file, "{}", &line)
+                writeln!(file, "{}", line)
                     .unwrap_or_else(|e| error!("Failed to write hook output to {:?}, {}", path, e));
             }
         }

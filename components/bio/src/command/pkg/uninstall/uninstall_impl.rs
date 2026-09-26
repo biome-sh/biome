@@ -170,7 +170,7 @@ where
         let ident = ident.as_ref();
         let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
         let ident = pkg_install.ident();
-        ui.begin(format!("Uninstalling {}", &ident))?;
+        ui.begin(format!("Uninstalling {}", ident))?;
 
         // 3.
         let deps = graph.owned_ordered_deps(ident);
@@ -187,7 +187,7 @@ where
                     "Tried to find dependant packages of {} but it wasn't in \
                                  graph.  Maybe another uninstall command was run at the same \
                                  time?",
-                    &ident
+                    ident
                 ))?;
             }
             Some(0) => {
@@ -265,7 +265,7 @@ where
                             Status::Skipping,
                             format!(
                                 "{}. It is a dependency of {} external packages",
-                                &p, external_rdeps_count
+                                p, external_rdeps_count
                             ),
                         )?;
                     }
@@ -276,11 +276,11 @@ where
             ExecutionStrategy::DryRun => {
                 ui.end(format!(
                     "Would uninstall {} and {} dependencies (Dry run)",
-                    &ident, count
+                    ident, count
                 ))?;
             }
             ExecutionStrategy::Run => {
-                ui.end(format!("Uninstall of {} and {} dependencies complete", &ident, count))?;
+                ui.end(format!("Uninstall of {} and {} dependencies complete", ident, count))?;
             }
         };
     }
@@ -399,14 +399,14 @@ where
 
     let bio = PackageIdent::from_str("biome/bio")?;
     if ident.satisfies(&bio) {
-        ui.status(Status::Skipping, format!("{}. You can't uninstall biome/bio", &ident))?;
+        ui.status(Status::Skipping, format!("{}. You can't uninstall biome/bio", ident))?;
         return Ok(false);
     }
 
     if safety.should_skip(ident) {
         ui.status(
             Status::Skipping,
-            format!("{}. It is currently loaded by the supervisor", &ident),
+            format!("{}. It is currently loaded by the supervisor", ident),
         )?;
         return Ok(false);
     }
@@ -416,7 +416,7 @@ where
     // `Identifiable` trait which supplies this logic for PackageIdents
     let should_exclude = excludes.iter().any(|i| i.satisfies(ident));
     if should_exclude {
-        ui.status(Status::Skipping, format!("{}. It is on the exclusion list", &ident))?;
+        ui.status(Status::Skipping, format!("{}. It is on the exclusion list", ident))?;
         return Ok(false);
     }
 

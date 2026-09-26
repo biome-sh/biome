@@ -779,7 +779,7 @@ mod tests {
                 panic!(
                     "Should not load successfully, install_ident={}, install_target={}, \
                         active_target={}",
-                    &i,
+                    i,
                     i.target().unwrap(),
                     active_target,
                 )
@@ -827,7 +827,7 @@ mod tests {
                 panic!(
                     "Should not load successfully, install_ident={}, install_target={}, \
                         active_target={}",
-                    &i,
+                    i,
                     i.target().unwrap(),
                     active_target,
                 )
@@ -880,7 +880,7 @@ mod tests {
             Ok(i) => {
                 panic!(
                     "Should not load successfully, install_ident={}, install_target=missing",
-                    &i,
+                    i,
                 )
             }
         }
@@ -902,7 +902,7 @@ mod tests {
             Ok(i) => {
                 panic!(
                     "Should not load successfully, install_ident={}, install_target=missing",
-                    &i,
+                    i,
                 )
             }
         }
@@ -941,7 +941,7 @@ mod tests {
                 panic!(
                     "Should not load successfully, install_ident={}, install_target={}, \
                         active_target={}",
-                    &i,
+                    i,
                     i.target().unwrap(),
                     active_target,
                 )
@@ -989,7 +989,7 @@ mod tests {
                 panic!(
                     "Should not load successfully, install_ident={}, install_target={}, \
                         active_target={}",
-                    &i,
+                    i,
                     i.target().unwrap(),
                     active_target,
                 )
@@ -1042,7 +1042,7 @@ mod tests {
             Ok(i) => {
                 panic!(
                     "Should not load successfully, install_ident={}, install_target=missing",
-                    &i,
+                    i,
                 )
             }
         }
@@ -1064,7 +1064,7 @@ mod tests {
             Ok(i) => {
                 panic!(
                     "Should not load successfully, install_ident={}, install_target=missing",
-                    &i,
+                    i,
                 )
             }
         }

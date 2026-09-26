@@ -244,7 +244,7 @@ where
         panic!(
             "{}: couldn't create log output file {}",
             preamble_str,
-            &log_file.to_string_lossy()
+            log_file.to_string_lossy()
         )
     });
 

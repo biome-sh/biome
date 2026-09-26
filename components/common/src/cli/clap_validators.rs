@@ -287,7 +287,7 @@ impl clap_v4::builder::TypedValueParser for BioPkgIdentValueParser {
             PackageIdent::from_str(&val).err()
         };
 
-        if result.is_some() {
+        if let Some(err_value) = result {
             let mut err = clap_v4::Error::new(clap_v4::error::ErrorKind::ValueValidation).with_cmd(cmd);
             if let Some(arg) = arg {
                 err.insert(
@@ -297,7 +297,7 @@ impl clap_v4::builder::TypedValueParser for BioPkgIdentValueParser {
             }
             err.insert(
                 clap_v4::error::ContextKind::InvalidValue,
-                clap_v4::error::ContextValue::String(format!("`{}`: {}", value.to_string_lossy(), result.unwrap(),)),
+                clap_v4::error::ContextValue::String(format!("`{}`: {}", value.to_string_lossy(), err_value,)),
             );
             Err(err)
         } else {

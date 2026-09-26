@@ -469,7 +469,7 @@ impl UI {
         };
 
         let ui = UI::default_with(coloring, isatty);
-        debug!("{:?}", &ui);
+        debug!("{:?}", ui);
         ui
     }
 

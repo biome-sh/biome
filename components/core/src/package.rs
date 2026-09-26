@@ -68,7 +68,7 @@ pub mod test_support {
             panic!(
                 "PackageInstall should load for \
                                                                    {}",
-                &pkg_ident
+                pkg_ident
             )
         })
     }

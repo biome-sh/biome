@@ -22,7 +22,7 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &[PermissionEntry]) -> 
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
         None => {
-            return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())));
+            return Err(Error::PermissionFailed(format!("Invalid path {:?}", path.as_ref())));
         }
     };
 
@@ -52,7 +52,7 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &[PermissionEntry]) -> 
                 "OS error {} retrieving \
                                                         ACLs from path path {:?}",
                 e,
-                &path.as_ref()
+                path.as_ref()
             )));
         }
     };

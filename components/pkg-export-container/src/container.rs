@@ -77,7 +77,7 @@ impl ContainerImage {
         let report = Self::report_path(&dst);
         ui.status(Status::Creating, format!("build report {}", report.display()))?;
         fs::create_dir_all(&dst)?;
-        let name_tags: Vec<_> = self.tags.iter().map(|t| format!("{}:{}", &self.name, t)).collect();
+        let name_tags: Vec<_> = self.tags.iter().map(|t| format!("{}:{}", self.name, t)).collect();
         let json = json!({
             "id": &self.id,
             "name": &self.name,
@@ -196,7 +196,7 @@ impl BuildContext {
             let file = "etc/passwd";
             let mut f = OpenOptions::new().append(true).open(ctx.rootfs().join(file))?;
             for user in users {
-                ui.status(Status::Creating, format!("user '{}' in /{}", user.name, &file))?;
+                ui.status(Status::Creating, format!("user '{}' in /{}", user.name, file))?;
                 writeln!(f, "{}", user)?;
             }
         }
@@ -204,7 +204,7 @@ impl BuildContext {
             let file = "etc/group";
             let mut f = OpenOptions::new().append(true).open(ctx.rootfs().join(file))?;
             for group in groups {
-                ui.status(Status::Creating, format!("group '{}' in /{}", group.name, &file))?;
+                ui.status(Status::Creating, format!("group '{}' in /{}", group.name, file))?;
                 writeln!(f, "{}", group)?;
             }
         }

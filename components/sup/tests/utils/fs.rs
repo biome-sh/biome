@@ -248,7 +248,7 @@ pub async fn setup_package_files(
         &bio_root.pkg_ident(&origin_name, &package_name),
         Some(bio_root.as_ref()),
     )
-    .with_context(|| format!("Failed to load package {:?}/{:?}", &origin_name, &package_name))?;
+    .with_context(|| format!("Failed to load package {:?}/{:?}", origin_name, package_name))?;
     if let Ok(tdeps) = install.tdeps() {
         for dependency in tdeps.iter() {
             let fixture_dir = fixture_root.expanded_package_dir(&dependency.name);

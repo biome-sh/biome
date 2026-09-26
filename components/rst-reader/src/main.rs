@@ -36,7 +36,7 @@ fn main() -> error::Result<()> {
         error!(
             "Could not read \
                                                                                   dat file {}: {}",
-            &rst_reader.file, e
+            rst_reader.file, e
         );
         process::exit(1);
     });

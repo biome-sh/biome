@@ -63,7 +63,7 @@ pub async fn start(
         Status::Using,
         format!(
             "{} for artifacts and {} for signing keys",
-            &artifact_path.display(),
+            artifact_path.display(),
             key_cache.as_ref().display()
         ),
     )?;
@@ -90,12 +90,12 @@ pub async fn start(
         match api_client.check_origin(&origin, token).await {
             Ok(()) => {
                 ui.status(
-                    Status::Custom(Glyph::CheckMark, format!("Origin '{}' already exists", &origin)),
+                    Status::Custom(Glyph::CheckMark, format!("Origin '{}' already exists", origin)),
                     String::from(""),
                 )?;
             }
             Err(api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {
-                ui.status(Status::Missing, format!("origin '{}'", &origin))?;
+                ui.status(Status::Missing, format!("origin '{}'", origin))?;
                 origins_to_create.push(origin);
             }
             Err(err) => return Err(Error::from(err)),

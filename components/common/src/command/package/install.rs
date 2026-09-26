@@ -451,7 +451,7 @@ impl InstallTask<'_> {
     where
         T: UIWriter,
     {
-        ui.begin(format!("Installing {}", &ident))?;
+        ui.begin(format!("Installing {}", ident))?;
         let target_ident = self.determine_latest_from_ident(ui, (ident, target), token).await?;
 
         self.install_package(ui, (&target_ident, target), token).await
@@ -500,7 +500,7 @@ impl InstallTask<'_> {
 
             ui.status(
                 Status::Determining,
-                format!("latest version of {} locally installed or cached (offline)", &ident),
+                format!("latest version of {} locally installed or cached (offline)", ident),
             )?;
             match self.latest_installed_or_cached(&ident) {
                 Ok(i) => Ok(i),
@@ -520,7 +520,7 @@ impl InstallTask<'_> {
 
             ui.status(
                 Status::Determining,
-                format!("latest version of {} in the '{}' channel", &ident, self.channel),
+                format!("latest version of {} in the '{}' channel", ident, self.channel),
             )?;
             let latest_remote = match self.fetch_latest_pkg_ident_for((&ident, target), token).await {
                 Ok(latest_ident) => Some(latest_ident),
@@ -542,7 +542,7 @@ impl InstallTask<'_> {
                             format!(
                                 "newer installed version ({}) than remote version \
                                            ({})",
-                                &local, remote
+                                local, remote
                             ),
                         )?;
                         Ok(local)
@@ -556,7 +556,7 @@ impl InstallTask<'_> {
                         ui.warn(format!(
                             "Locally-installed package '{}' would satisfy '{}', \
                                          but we are ignoring that as directed",
-                            local, &ident,
+                            local, ident,
                         ))?;
                         Err(Error::PackageNotFound("".to_string()))
                     } else {
@@ -565,7 +565,7 @@ impl InstallTask<'_> {
                             format!(
                                 "remote version of '{}' in the '{}' channel, but an \
                                            installed version was found locally ({})",
-                                &ident, self.channel, local
+                                ident, self.channel, local
                             ),
                         )?;
                         Ok(local)
@@ -775,7 +775,7 @@ impl InstallTask<'_> {
         let latest_cached = self.latest_cached_ident(ident);
         debug!(
             "latest installed: {:?}, latest_cached: {:?}",
-            &latest_installed, &latest_cached,
+            latest_installed, latest_cached,
         );
         let latest = match (latest_installed, latest_cached) {
             (Ok(pkg_install), Err(_)) => pkg_install,
@@ -789,7 +789,7 @@ impl InstallTask<'_> {
             }
             (Err(_), Err(_)) => return Err(Error::PackageNotFound("".to_string())),
         };
-        debug!("offline mode: winner: {:?}", &latest);
+        debug!("offline mode: winner: {:?}", latest);
 
         Ok(latest)
     }
@@ -1059,7 +1059,7 @@ impl InstallTask<'_> {
         {
             ui.warn(format!(
                 "No releases of {} exist in the '{}' channel",
-                &ident, self.channel
+                ident, self.channel
             ))?;
             ui.warn("The following releases were found:")?;
             for r in recommendations {

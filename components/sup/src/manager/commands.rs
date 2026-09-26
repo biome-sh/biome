@@ -263,12 +263,12 @@ pub fn service_start(mgr: &ManagerState, req: &mut CtlRequest, opts: protocol::c
                 req.info(format!(
                     "Supervisor starting {}. See the Supervisor output for more \
                                   details.",
-                    &ident
+                    ident
                 ))?;
             }
         }
         None => {
-            return Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", &ident)));
+            return Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", ident)));
         }
     };
     req.reply_complete(net::ok());
@@ -297,12 +297,12 @@ pub fn service_stop(
                 req.info(format!(
                     "Supervisor stopping {}. See the Supervisor output for more \
                                   details.",
-                    &ident
+                    ident
                 ))?;
             }
         }
         None => {
-            return Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", &ident)));
+            return Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", ident)));
         }
     };
 

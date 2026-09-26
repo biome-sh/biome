@@ -90,7 +90,7 @@ pub trait KeyFile: Key {
             "{}\n{}\n\n{}",
             Self::version(),
             self.named_revision(),
-            &crate::base64::encode(k)
+            crate::base64::encode(k)
         )
     }
 }

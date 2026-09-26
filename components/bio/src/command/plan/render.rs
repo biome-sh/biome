@@ -47,7 +47,7 @@ pub fn start(
 
     if !quiet {
         // import default.toml values, convert to JSON
-        ui.begin(format!("Importing default.toml: {}", &default_toml_path.display()))?;
+        ui.begin(format!("Importing default.toml: {}", default_toml_path.display()))?;
     }
 
     // we should always have a default.toml, would be nice to "autodiscover" based on package name,
@@ -99,7 +99,7 @@ pub fn start(
     if print {
         if !quiet {
             ui.br()?;
-            ui.warn(format!("###======== Rendered template: {}", &template_path.display()))?;
+            ui.warn(format!("###======== Rendered template: {}", template_path.display()))?;
         }
 
         println!("{}", rendered_template);
@@ -107,7 +107,7 @@ pub fn start(
         if !quiet {
             ui.warn(format!(
                 "========### End rendered template: {}",
-                &template_path.display()
+                template_path.display()
             ))?;
         }
     }
@@ -126,8 +126,7 @@ pub fn start(
 fn toml_to_json(cfg: &str) -> Result<Json> {
     let toml_value: Value = toml::from_str(cfg).map_err(crate::error::Error::from)?;
     let toml_string = serde_json::to_string(&toml_value).map_err(crate::error::Error::from)?;
-    let json =
-        serde_json::from_str(&format!(r#"{{ "cfg": {} }}"#, &toml_string)).map_err(crate::error::Error::from)?;
+    let json = serde_json::from_str(&format!(r#"{{ "cfg": {} }}"#, toml_string)).map_err(crate::error::Error::from)?;
     Ok(json)
 }
 
