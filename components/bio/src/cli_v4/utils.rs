@@ -792,6 +792,16 @@ pub(crate) async fn process_sup_request(
 
 #[cfg(test)]
 mod tests {
+    // Shared lock for BIO_REFRESH_CHANNEL: both `refresh_channel_tests` and
+    // `secret_refresh_channel_tests` exercise
+    // `maybe_refresh_channel_from_args_env_or_config`, which checks
+    // BIO_REFRESH_CHANNEL *before* BIO_STUDIO_SECRET_BIO_REFRESH_CHANNEL.
+    // Declaring the lock once here (instead of once per module) ensures both
+    // modules serialize on the same mutex, so tests in one module can't race
+    // with env var mutations happening in the other (cargo test runs tests
+    // from different modules concurrently on separate threads by default).
+    biome_core::locked_env_var!(BIO_REFRESH_CHANNEL, locked_refresh_channel);
+
     mod auth_token {
 
         use crate::cli_v4::utils::AuthToken;
@@ -982,10 +992,11 @@ mod tests {
         use crate::cli_v4::utils::maybe_refresh_channel_from_args_env_or_config;
         use biome_core::ChannelIdent;
 
-        biome_core::locked_env_var!(BIO_REFRESH_CHANNEL, locked_refresh_channel);
+        use super::locked_refresh_channel;
 
         #[test]
         fn test_refresh_channel_from_cli_arg() {
+            let _env_var = locked_refresh_channel();
             let result = maybe_refresh_channel_from_args_env_or_config(Some("testing".to_string()));
             assert_eq!(result, Some("testing".to_string()));
         }
@@ -1025,10 +1036,19 @@ mod tests {
         use crate::cli_v4::utils::maybe_refresh_channel_from_args_env_or_config;
         use biome_core::ChannelIdent;
 
+        use super::locked_refresh_channel as locked_primary_refresh_channel;
+
         biome_core::locked_env_var!(BIO_STUDIO_SECRET_BIO_REFRESH_CHANNEL, locked_refresh_channel);
 
         #[test]
         fn test_refresh_channel_from_env() {
+            // BIO_REFRESH_CHANNEL takes precedence over the secret channel
+            // var, so it must be unset here (and held for the test's
+            // duration via the shared lock) for this test to observe the
+            // secret var's value.
+            let primary_env_var = locked_primary_refresh_channel();
+            primary_env_var.unset();
+
             let env_var = locked_refresh_channel();
             env_var.set("staging");
 
@@ -1038,6 +1058,9 @@ mod tests {
 
         #[test]
         fn test_no_arg_no_env_defaults_to_base_channel() {
+            let primary_env_var = locked_primary_refresh_channel();
+            primary_env_var.unset();
+
             let env_var = locked_refresh_channel();
             env_var.unset();
 
