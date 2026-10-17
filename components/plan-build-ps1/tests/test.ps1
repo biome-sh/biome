@@ -2,7 +2,7 @@
 $env:BIO_LICENSE = "accept-no-persist"
 Install-Biome
 
-bio pkg install core/pester
+Install-BioPkg -idents @("core/pester")
 Import-Module "$(bio pkg path core/pester)\module\pester.psd1"
 
 Invoke-Pester $PSScriptRoot -EnableExit

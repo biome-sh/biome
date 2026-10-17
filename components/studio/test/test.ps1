@@ -5,13 +5,29 @@
 # Failure case: because this creates a studio from source, we don't exercise changes
 # in our plan.sh, and could still end up with a bad studio build.
 
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$CorePackageChannel
+)
+
 $ErrorActionPreference = "Stop"
 
 $env:BIO_LICENSE = "accept-no-persist"
 
-bio pkg install core/powershell
-bio pkg install core/7zip
+bio pkg install --channel $CorePackageChannel core/powershell
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to install core/powershell from the '$CorePackageChannel' channel (exit code $LASTEXITCODE)"
+}
+
+bio pkg install --channel $CorePackageChannel core/7zip
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to install core/7zip from the '$CorePackageChannel' channel (exit code $LASTEXITCODE)"
+}
+
 bio pkg install biome/bio-plan-build-ps1
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to install biome/bio-plan-build-ps1 from the '$env:BIO_BLDR_CHANNEL' channel (exit code $LASTEXITCODE)"
+}
 
 mkdir "bin/powershell" | Out-Null
 mkdir "bin/bio" | Out-Null
